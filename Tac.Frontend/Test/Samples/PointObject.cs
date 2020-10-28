@@ -11,22 +11,18 @@ namespace Tac.Tests.Samples
             {
                 return TokenHelp.File(
                     TokenHelp.Line(
-                        TokenHelp.Atom("module"),
-                        TokenHelp.Atom("point-module"),
+                            TokenHelp.Atom("object"),
                             TokenHelp.Curl(
                                 TokenHelp.Line(
-                                    TokenHelp.Atom("object"),
-                                    TokenHelp.Curl(
-                                        TokenHelp.Line(
-                                            TokenHelp.Atom("5"),
-                                            TokenHelp.Atom("=:"),
-                                            TokenHelp.Atom("x")),
-                                        TokenHelp.Line(
-                                            TokenHelp.Atom("2"),
-                                            TokenHelp.Atom("=:"),
-                                            TokenHelp.Atom("y"))),
+                                    TokenHelp.Atom("5"),
                                     TokenHelp.Atom("=:"),
-                                    TokenHelp.Atom("point")))));
+                                    TokenHelp.Atom("x")),
+                                TokenHelp.Line(
+                                    TokenHelp.Atom("2"),
+                                    TokenHelp.Atom("=:"),
+                                    TokenHelp.Atom("y"))),
+                            TokenHelp.Atom("=:"),
+                            TokenHelp.Atom("point")));
             }
         }
     }

@@ -10,9 +10,9 @@ namespace Tac.Tests.Samples
 {
     public class Arithmetic : ITestCase
     {
-        public string Text => "module math-module { ( 2 + 5 ) * ( 2 + 7 ) =: x ; } ;";
+        public string Text => "( 2 + 5 ) * ( 2 + 7 ) =: x ;";
 
-        public IModuleDefinition ModuleDefinition => Model.Instantiated.ModuleDefinition.CreateAndBuild(
+        public IRootScope RootScope => Model.Instantiated.RootScope.CreateAndBuild(
              Scope.CreateAndBuild(
                 new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("x"),  new AnyType(), Access.ReadWrite), false) }),
             new[] {
@@ -25,7 +25,6 @@ namespace Tac.Tests.Samples
                             ConstantNumber.CreateAndBuild(2),
                             ConstantNumber.CreateAndBuild(7))),
                     MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("x"),new AnyType(), Access.ReadWrite)))},
-            new NameKey("math-module"),
             EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));
 
     }

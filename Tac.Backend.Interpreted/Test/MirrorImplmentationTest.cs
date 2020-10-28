@@ -21,7 +21,7 @@ namespace Tac.Backend.Interpreted.Test
         {
             var testCase = new MirrorPointImplementation();
             var conversionContext = new Definitions();
-            var module = testCase.ModuleDefinition.Convert(conversionContext);
+            var module = testCase.RootScope.Convert(conversionContext);
 
             var res = module.Interpet(InterpetedContext.Root());
 

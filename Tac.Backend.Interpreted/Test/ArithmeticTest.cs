@@ -20,7 +20,7 @@ namespace Tac.Backend.Interpreted.Test
         public void Test() {
             var testCase = new Arithmetic();
             var conversionContext = new Definitions();
-            var module = testCase.ModuleDefinition.Convert(conversionContext);
+            var module = testCase.RootScope.Convert(conversionContext);
 
             var res = module.Interpet(InterpetedContext.Root());
 

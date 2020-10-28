@@ -30,7 +30,7 @@ namespace Tac.Backend.Interpreted.Test
             var testCase = new PairType();
             var conversionContext = new Definitions();
 
-            var res = testCase.ModuleDefinition.Convert(conversionContext).Interpet(InterpetedContext.Root());
+            var res = testCase.RootScope.Convert(conversionContext).Interpet(InterpetedContext.Root());
 
             Assert.False(res.IsReturn(out var _, out var scope));
 

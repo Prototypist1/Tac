@@ -9,6 +9,6 @@ namespace Tac.TestCases
     public interface ITestCase
     {
         string Text { get; }
-        IModuleDefinition ModuleDefinition { get; }
+        IRootScope RootScope { get; }
     }
 }

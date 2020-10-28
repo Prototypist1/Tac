@@ -10,10 +10,6 @@ namespace Tac.Tests.Samples
             get
             {
                 return TokenHelp.File(
-                    TokenHelp.Line(
-                        TokenHelp.Atom("module"),
-                        TokenHelp.Atom("pair-type"),
-                        TokenHelp.Curl(
                             TokenHelp.Line(
                                 TokenHelp.Atom("type"),
                                 TokenHelp.Square(
@@ -50,7 +46,7 @@ namespace Tac.Tests.Samples
                                                     TokenHelp.Atom("y"))),
                                         TokenHelp.Atom("return"))),
                                 TokenHelp.Atom("=:"),
-                                    TokenHelp.Atom("pairify")))));
+                                    TokenHelp.Atom("pairify")));
             }
         }
     }

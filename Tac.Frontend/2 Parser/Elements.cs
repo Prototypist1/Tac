@@ -18,43 +18,10 @@ using Prototypist.Toolbox.Bool;
 using Tac.Frontend.Parser;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using Tac.Frontend._3_Syntax_Model.Elements;
 
 namespace Tac.Parser
 {
-
-
-    //internal class TokenSyntaxMap {
-
-    //    private readonly IDictionary<IToken, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> tokenToElement = new Dictionary<IToken, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>();
-    //    private readonly IDictionary<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> elementParent = new Dictionary<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>();
-
-    //    public void SetTokenElement(IToken token, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> element) {
-    //        tokenToElement[token] = element;
-    //    }
-
-    //    public void SetElementParent(ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> child, ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode> parent)
-    //    {
-    //        elementParent[child] = parent;
-    //    }
-
-
-    //    internal bool TokenHasElement(IToken token)
-    //    {
-    //        return tokenToElement.ContainsKey(token);
-    //    }
-
-    //    public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> GetGreatestParent(IToken token) {
-    //        if (!tokenToElement.TryGetValue(token, out var startAt)) {
-    //            return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"token ({token}) is not mapped"));
-    //        }
-
-    //        while (elementParent.TryGetValue(startAt, out var x)) {
-    //            startAt = x;
-    //        }
-
-    //        return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(startAt);
-    //    }
-    //}
 
 
     internal partial class MakerRegistry { // the real one
@@ -177,30 +144,9 @@ namespace Tac.Parser
     internal class ElementMatchingContext
     {
 
-        //public TokenSyntaxMap Map { get; } = new TokenSyntaxMap();
-
         public ElementMatchingContext() 
-            //: 
-            //this(
-            //    MakerRegistry.Instance.OperationMatchers.ToArray(),
-            //    MakerRegistry.Instance.ElementMakers.ToArray(),
-            //    MakerRegistry.Instance.TypeOperationMatchers.ToArray(),
-            //    MakerRegistry.Instance.TypeMakers.ToArray()
-            //    )
         {}
 
-        //public ElementMatchingContext(
-        //IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] operationMatchers, 
-        //IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] elementMakers,
-        //IMaker<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>[] typeOperationMatchers,
-        //IMaker<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>[] typeMakers
-        //    )
-        //{
-        //this.operationMatchers = operationMatchers ?? throw new ArgumentNullException(nameof(operationMatchers));
-        //this.elementMakers = elementMakers ?? throw new ArgumentNullException(nameof(elementMakers));
-        //this.typeOperationMatchers = typeOperationMatchers ?? throw new ArgumentNullException(nameof(typeOperationMatchers));
-        //this.typeMakers = typeMakers ?? throw new ArgumentNullException(nameof(typeMakers));
-        //}
 
         private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] allMakers = new IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] { 
             
@@ -262,6 +208,8 @@ namespace Tac.Parser
         };
 
 
+
+
         private class ParenthesisOperationMaker : IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>
         {
             public ITokenMatching<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> TryMake(IMatchedTokenMatching elementToken)
@@ -294,156 +242,20 @@ namespace Tac.Parser
 
             new MemberDefinitionMaker(),
             new MemberMaker(),
-            // new ObjectOrTypeMemberDefinitionMaker(), // maybe I just need this?
-
-            //new MemberDefinitionMaker(),
-            //new MemberMaker(), // this matches very broadly so it pretty much goes last
         };
-
-        //private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] elementMakers;
-        //private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] operationMatchers;
-
-
-        //// 
-        //private readonly IMaker<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>[] typeOperationMatchers;
-        //private readonly IMaker<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>[] typeMakers;
 
         #region Parse
 
-        //public ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode> ParseParenthesisOrElementType(IToken token) {
-        //    //if (token is ElementToken elementToken)
-        //    //{
-        //    //    // smells
-        //    //    // why did i write this agian?
-        //    //    // why would an element be wrapped in parenthesis ?
-        //    //    // maybe I can just remove??
-        //    //    // maybe we have a parentthesis matcher?
-        //    //    if (elementToken.Tokens.Count == 1 && elementToken.Tokens[0] is ParenthesisToken parenthesisToken)
-        //    //    {
-        //    //        return ParseTypeLine(parenthesisToken.Tokens);
-        //    //    }
-
-        //    //    foreach (var tryMatch in typeMakers)
-        //    //    {
-        //    //        if (TokenMatching<ISetUp<IFrontendType, Tpn.ITypeProblemNode>>.MakeStart(elementToken.Tokens, this)
-        //    //            .Has(tryMatch, out var res)
-        //    //            .Has(new DoneMaker())
-        //    //            is IMatchedTokenMatching)
-        //    //        {
-        //    //            return res!;
-        //    //        }
-        //    //    }
-        //    //}
-        //    //else 
-        //    if (token is ParenthesisToken parenthesisToken)
-        //    {
-        //        return ParseTypeLine(parenthesisToken.Tokens);
-        //    }
-
-        //    throw new Exception("");
-        //}
-
-        //public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> ParseParenthesisOrElement(IToken token)
-        //{
-        //    //if (token is ElementToken elementToken)
-        //    //{
-        //    //    // smells
-        //    //    // why did i write this agian?
-        //    //    // why would an element be wrapped in parenthesis ?
-        //    //    // maybe I can just remove??
-        //    //    // maybe we have a parentthesis matcher?
-        //    //    if (elementToken.Tokens.Count == 1 && elementToken.Tokens[0] is ParenthesisToken parenthesisToken)
-        //    //    {
-        //    //        return ParseLine(parenthesisToken.Tokens);
-        //    //    }
-
-        //    //    foreach (var tryMatch in elementMakers)
-        //    //    {
-        //    //        if (TokenMatching<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>.MakeStart(elementToken.Tokens,this)
-        //    //            .Has(tryMatch, out var res)
-        //    //            .Has(new DoneMaker())
-        //    //            is IMatchedTokenMatching)
-        //    //        {
-        //    //            return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(res!);
-        //    //        }
-        //    //    }
-        //    //}
-        //    //else 
-        //    if (token is ParenthesisToken parenthesisToken)
-        //    {
-        //        return ParseLine(parenthesisToken.Tokens);
-        //    }
-
-        //    return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No element matches {token.ToString()}"));
-        //}
-
-        //public IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError> ParseObjectMember(IToken[] tokens)
-        //{
-        //    //if (token is ElementToken elementToken)
-        //    //{
-
-        //        foreach (var tryMatch in  new[] {new ObjectOrTypeMemberDefinitionMaker() })
-        //        {
-        //            if (TokenMatching<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>>.MakeStart(tokens, this)
-        //                .Has(tryMatch, out var res)
-        //                .Has(new DoneMaker())
-        //                is IMatchedTokenMatching)
-        //            {
-        //                return OrType.Make<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError>(res!);
-        //            }
-        //        }
-        //    //}
-
-
-        //    return OrType.Make<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No element matches {token.ToString()}"));
-        //}
-
-
         public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> ParseLine(IReadOnlyList<IToken> tokens)
         {
-            return InnerParseLine(tokens,allMakers).TransformInner(x=>x.SafeCastTo(out ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>_));
-
-            //var matching = TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(tokens.ToArray(), this, Possibly.IsNot<object>());
-            //top:
-            //foreach (var operationMatcher in operationMatchers)
-            //{
-            //    if (matching.Tokens.First().SafeIs(out ParenthesisToken parenthesisToken))
-            //    {
-            //        var parenthesisNextMatching = ParseParenthesis(parenthesisToken);
-            //        if (parenthesisNextMatching.Is1(out var setUp))
-            //        {
-            //            if (matching.Tokens.Count == 1)
-            //            {
-            //                return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(setUp);
-            //            }
-            //            matching = TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(matching.Tokens.Skip(1).ToArray(), this);
-            //            goto top;
-            //        }
-            //        else if (parenthesisNextMatching.Is2(out var error))
-            //        {
-            //            return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(error);
-            //        }
-            //    }
-
-            //    var nextMatching =  matching.Has(operationMatcher, out var res);
-            //    if (nextMatching.SafeIs(out IMatchedTokenMatching matched))
-            //    {
-            //        if (!matched.Tokens.Any())
-            //        {
-            //            return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(res!);
-            //        }
-            //        matching = matched;
-            //        goto top;
-            //    }
-            //}
-
-            //return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No operation matches {tokens.Aggregate("",(x,y)=> x +" "+ y.ToString())}"));
+            return InnerParseLine(tokens,allMakers);
         }
 
-        private IOrType<ISetUp,IError> InnerParseLine(IReadOnlyList<IToken> tokens, IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] makers)
+
+        private IOrType<ISetUp<IBox<T>, Tpn.ITypeProblemNode>, IError> InnerParseLine<T>(IReadOnlyList<IToken> tokens, IMaker<ISetUp<IBox<T>, Tpn.ITypeProblemNode>>[] makers)
         {
 
-            var myList = tokens.Select(x => OrType.Make<IToken, ISetUp>(x)).ToList();
+            var myList = tokens.Select(x => OrType.Make<IToken, ISetUp<IBox<T>, Tpn.ITypeProblemNode>>(x)).ToList();
 
             foreach (var maker in makers)
             {
@@ -458,42 +270,29 @@ namespace Tac.Parser
                 top:
                 for (int i = 0; i < myList.Count; i++)
                 {
-                    //if (myList[i].Is1(out var token) && token.SafeIs(out ParenthesisToken parenthesisToken))
-                    //{
-                    //    var res = ParseParenthesis(parenthesisToken);
-                    //    if (res.Is1(out var setUp))
-                    //    {
-                    //        myList[i] = OrType.Make<IToken, ISetUp>(setUp);
-                    //    }
-                    //    else if (res.Is2(out var error)) {
-                    //        return OrType.Make<ISetUp,IError>(error);
-                    //    }
-                    //    goto top;
-                    //}
-
                     var matching = TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(myList, this, i);
 
-                    if (matching.Has(maker, out var element).SafeIs(out IMatchedTokenMatching<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> matched))
+                    if (matching.Has(maker, out var element).SafeIs(out IMatchedTokenMatching<ISetUp<IBox<T>, Tpn.ITypeProblemNode>> matched))
                     {
                         myList.RemoveRange(matched.StartIndex, matched.EndIndex - matched.StartIndex);
-                        myList.Insert(matched.StartIndex, OrType.Make<IToken, ISetUp>(matched.Value));
+                        myList.Insert(matched.StartIndex, OrType.Make<IToken, ISetUp<IBox<T>, Tpn.ITypeProblemNode>>(matched.Value));
                         goto top;
                     }
                 }
             }
 
             if (myList.Count > 1) {
-                return OrType.Make<ISetUp, IError>(Error.Other("expected to parse down to one element"));
+                return OrType.Make<ISetUp<IBox<T>, Tpn.ITypeProblemNode>, IError>(Error.Other("expected to parse down to one element"));
             }
 
             var single = myList.Single();
 
             if (single.Is2(out var setup))
             {
-                return OrType.Make<ISetUp, IError>(setup);
+                return OrType.Make<ISetUp<IBox<T>, Tpn.ITypeProblemNode>, IError>(setup);
             }
 
-            return OrType.Make<ISetUp, IError>(Error.Other("token could not be matched"));
+            return OrType.Make<ISetUp<IBox<T>, Tpn.ITypeProblemNode>, IError>(Error.Other("token could not be matched"));
         }
 
         public IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError> ParseTypeLine(IReadOnlyList<IToken> tokens)
@@ -518,132 +317,55 @@ namespace Tac.Parser
             return ParseLine(item.SafeCastTo(out LineToken lt).Tokens);
         }
 
-        // only types and assignments 
-        // I would not mind being more explict 
-        // I don't need to hide everything behind such intense interfaces
-        //public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> ParseObjectLine(IEnumerable<IToken> tokens)
-        //{
-        //    // TODO
-        //    // ugh type definition still needs to match!
-        //    // I am not sure type would have ever matched
-        //    // I can't find anyway a type would be matched
-        //    // I am shocked this got by my tests
-        //    // I think I need more tests
-        //    // that other case too with the members that might be on parent
-        //    // this one:
-        //    // x = 1
-        //    // object {x =: x; }
-        //    // fuck
-
-        //    // I think I need IStaticFrontendCodeElement
-
-        //    //if (tokens.Count() == 1)
-        //    //{
-        //    //    if (tokens.First() is ElementToken elementToken)
-        //    //    {
-        //    //        foreach (var operationMatcher in new[] { new TypeDefinitionMaker(),  })
-        //    //        {
-        //    //            if (TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(elementToken.Tokens.ToArray(), this)
-        //    //                    .Has(operationMatcher, out var res)
-        //    //                     is IMatchedTokenMatching)
-        //    //            {
-        //    //                return OrType.Make<ISetUp<IBox<WeakAssignOperation>, Tpn.ITypeProblemNode>, ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode>, IError>(res!);
-        //    //            }
-        //    //        }
-        //    //    }
-        //    //}
-        //    //else 
-        //    //{
-        //    foreach (var operationMatcher in new IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] { new AssertAssignInObjectOperationMaker(), new GenericTypeDefinitionMaker() })
-        //        {
-        //            if (TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(tokens.ToArray(), this)
-        //                    .Has(operationMatcher, out var res)
-        //                     is IMatchedTokenMatching)
-        //            {
-        //                return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(res!);
-        //            }
-        //        }
-        //    //}
-
-
-
-        //    if (tokens.Count() == 1)
-        //    {
-        //        return ParseObjectElement(tokens.Single());
-        //    }
-
-        //    return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No operation matches {tokens.Aggregate("", (x, y) => x + " " + y.ToString())}"));
-        //}
-
-        //public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError> ParseObjectElement(IToken token)
-        //{
-        //    if (token is ElementToken elementToken)
-        //    {
-        //        if (TokenMatching<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>.MakeStart(elementToken.Tokens, this)
-        //            .Has(new GenericTypeDefinitionMaker(), out var res)
-        //            .Has(new DoneMaker())
-        //            is IMatchedTokenMatching)
-        //        {
-        //            return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(res!);
-        //        }
-        //    }
-
-
-        //    return OrType.Make<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No element matches {token.ToString()}"));
-        //}
-
-        //public IOrType<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError> ParseLineInDefinitionType(IEnumerable<IToken> tokens)
-        //{
-
-
-        //    if (tokens.Count() == 1)
-        //    {
-        //        var token = tokens.First();
-        //        if (token is ElementToken elementToken)
-        //        {
-
-        //            foreach (var tryMatch in new[] { new ObjectOrTypeMemberDefinitionMaker() })
-        //            {
-        //                if (TokenMatching<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>>.MakeStart(elementToken.Tokens, this)
-        //                    .Has(tryMatch, out var res)
-        //                    .Has(new DoneMaker())
-        //                    is IMatchedTokenMatching)
-        //                {
-        //                    return OrType.Make<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError>(res!);
-        //                }
-        //            }
-        //        }
-        //        return OrType.Make<ISetUp<IBox<WeakMemberReference>, Tpn.ITypeProblemNode>, IError>(Error.Other($"No element matches {token.ToString()}"));
-        //    }
-        //    else {
-        //        throw new Exception("type should not have more than one thing it it");
-        //    }
-        //}
-
-        //public ISetUp<IOrType<IBox<IFrontendType>, IError>, Tpn.ITypeProblemNode> ParseTypeLine(IEnumerable<IToken> tokens)
-        //{
-        //    foreach (var operationMatcher in typeOperationMatchers)
-        //    {
-        //        if (TokenMatching<ISetUp<ICodeElement, Tpn.ITypeProblemNode>>.MakeStart(tokens.ToArray(), this)
-        //                .Has(operationMatcher, out var res)
-        //                 is IMatchedTokenMatching)
-        //        {
-        //            return res!;
-        //        }
-        //    }
-
-        //    if (tokens.Count() == 1)
-        //    {
-        //        return ParseParenthesisOrElementType(tokens.Single());
-        //    }
-
-        //    throw new Exception("");
-        //}
-
-        public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>[] ParseFile(FileToken file)
+        public RootScopePopulateScope ParseFile(FileToken file)
         {
-            var res = file.Tokens.Select(line => ParseLine(line.CastTo<LineToken>().Tokens)).ToArray();
-            return res;
+            IOrType<EntryPointDefinitionPopulateScope, IError> defaultEntryPoint = OrType.Make<EntryPointDefinitionPopulateScope, IError>(new EntryPointDefinitionPopulateScope(Array.Empty<IOrType<EntryPointDefinitionPopulateScope, IError >>()));
+            var entryToReturn = defaultEntryPoint;
+
+            var assignments = new List<IOrType<WeakAssignOperationPopulateScope, IError>>();
+            var types = new List<IOrType<TypeDefinitionPopulateScope, IError>>();
+            var genericTypes = new List<IOrType< GenericTypeDefinitionPopulateScope, IError>>();
+
+            foreach (var element in file.Tokens.Select(line => ParseLine(line.CastTo<LineToken>().Tokens)))
+            {
+                element.Switch(setup =>
+                {
+                    if (setup.SafeIs(out WeakAssignOperationPopulateScope assign))
+                    {
+                        assignments.Add(OrType.Make<WeakAssignOperationPopulateScope, IError>(assign));
+                    }
+                    else if (setup.SafeIs(out GenericTypeDefinitionPopulateScope genericType))
+                    {
+                        genericTypes.Add(OrType.Make<GenericTypeDefinitionPopulateScope, IError>(genericType));
+                    }
+                    else if(setup.SafeIs(out TypeDefinitionPopulateScope type))
+                    {
+                        types.Add(OrType.Make<TypeDefinitionPopulateScope, IError>(type));
+                    }
+                    else if (setup.SafeIs(out EntryPointDefinitionPopulateScope entry))
+                    {
+                        if (entryToReturn == defaultEntryPoint)
+                        {
+                            entryToReturn = OrType.Make<EntryPointDefinitionPopulateScope, IError>(entry);
+                        }
+                        else
+                        {
+                            entryToReturn = OrType.Make<EntryPointDefinitionPopulateScope, IError>(Error.Other("you can't have more than one entry point"));
+                        }
+                    }
+                    else
+                    {
+                        assignments.Add(OrType.Make<WeakAssignOperationPopulateScope, IError>(Error.Other($"unexpected type {setup.GetType().Name}")));
+                    }
+                }
+                , error =>
+                {
+                    assignments.Add(OrType.Make<WeakAssignOperationPopulateScope, IError>(error));
+                });
+            }
+
+
+            return new RootScopePopulateScope(assignments.ToArray() ,entryToReturn, types,genericTypes);
         }
 
         public IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>[] ParseBlock(CurleyBracketToken block)
@@ -657,14 +379,6 @@ namespace Tac.Parser
 
             return res.ToArray();
 
-            //return block.Tokens.Select(x =>
-            //{
-            //    if (x is LineToken lineToken)
-            //    {
-            //        return ParseLine(lineToken.Tokens);
-            //    }
-            //    throw new Exception("unexpected token type");
-            //}).ToArray();
         }
 
 
@@ -748,12 +462,6 @@ namespace Tac.Parser
         /// EndIndex - StartIndex  will be 1
         int EndIndex { get; }
     }
-
-    //internal static class IMatchedTokenMatchingExtensions {
-    //    public static IReadOnlyList<IOrType< IToken,ISetUp>> MatchedTokens(this IMatchedTokenMatching self) {
-    //        return self.AllTokens.Skip(self.StartIndex).Take(self.EndIndex - self.StartIndex).ToArray();
-    //    }
-    //}
 
     internal interface IMatchedTokenMatching<out T> : ITokenMatching<T>, IMatchedTokenMatching
     {

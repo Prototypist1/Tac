@@ -21,13 +21,12 @@ namespace Tac.TestCases.Samples
             {
                 return 
 @"
-module mirror-module {
-    implementation [ type { x ; y ; } ; empty ; empty ] context input { 
-        context . x =: temp ;
-        context . y =: ( context . x ) ;
-        temp =: ( context . y ) ; 
-    } =: mirror ;
-} ; ";
+implementation [ type { x ; y ; } ; empty ; empty ] context input { 
+    context . x =: temp ;
+    context . y =: ( context . x ) ;
+    temp =: ( context . y ) ; 
+} =: mirror ;
+";
             }
         }
 
@@ -67,7 +66,7 @@ module mirror-module {
                     new IsStatic( context ,false)});
 
 
-            ModuleDefinition = Model.Instantiated.ModuleDefinition.CreateAndBuild(
+            RootScope = Model.Instantiated.RootScope.CreateAndBuild(
                  Scope.CreateAndBuild(
                     new List<IsStatic>() {
                         new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), Access.ReadWrite) ,false) }),
@@ -96,11 +95,10 @@ module mirror-module {
                             intermediateScope),
                     MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("mirror"), new AnyType(), Access.ReadWrite)))
                 },
-                new NameKey("mirror-module"),
                 EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));
             
         }
 
-        public IModuleDefinition ModuleDefinition {get;}
+        public IRootScope RootScope {get;}
     }
 }

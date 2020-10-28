@@ -12,7 +12,7 @@ namespace Tac.Tests
 @"entry-point {
     true =: ((((bool)|number)| type { number x; })) x;
 }");
-            var converted = TestSupport.ConvertToWeak<WeakEntryPointDefinition>(res);
+            var converted = TestSupport.ConvertToWeak(res);
 
             var errors = converted.Validate().ToArray();
 
@@ -26,7 +26,7 @@ namespace Tac.Tests
     @"entry-point {
         true =: bool | method[bool;bool;] x;
     }");
-            var converted = TestSupport.ConvertToWeak<WeakEntryPointDefinition>(res);
+            var converted = TestSupport.ConvertToWeak(res);
 
             var errors = converted.Validate().ToArray();
 
@@ -42,7 +42,7 @@ namespace Tac.Tests
     @"entry-point {
         true =: bool | method[method[bool;bool;];method[bool;bool;];] x;
     }");
-            var converted = TestSupport.ConvertToWeak<WeakEntryPointDefinition>(res);
+            var converted = TestSupport.ConvertToWeak(res);
 
             var errors = converted.Validate().ToArray();
 

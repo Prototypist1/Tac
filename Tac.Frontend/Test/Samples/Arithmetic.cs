@@ -12,24 +12,20 @@ namespace Tac.Tests.Samples
             get
             {
                 return TokenHelp.File(
-                    TokenHelp.Line(
-                        TokenHelp.Atom("module"),
-                        TokenHelp.Atom("math-module"),
-                            TokenHelp.Curl(
-                                TokenHelp.Line(
-                                    TokenHelp.Par(
-                                        TokenHelp.Line(new[] {
-                                            TokenHelp.Atom("2"),
-                                            TokenHelp.Atom("+"),
-                                            TokenHelp.Atom("5")})),
-                                    TokenHelp.Atom("*"),
-                                    TokenHelp.Par(
-                                        TokenHelp.Line(new[] {
-                                            TokenHelp.Atom("2"),
-                                            TokenHelp.Atom("+"),
-                                            TokenHelp.Atom("7")})),
-                                    TokenHelp.Atom("=:"),
-                                    TokenHelp.Atom("x")))));
+                            TokenHelp.Line(
+                                TokenHelp.Par(
+                                    TokenHelp.Line(new[] {
+                                        TokenHelp.Atom("2"),
+                                        TokenHelp.Atom("+"),
+                                        TokenHelp.Atom("5")})),
+                                TokenHelp.Atom("*"),
+                                TokenHelp.Par(
+                                    TokenHelp.Line(new[] {
+                                        TokenHelp.Atom("2"),
+                                        TokenHelp.Atom("+"),
+                                        TokenHelp.Atom("7")})),
+                                TokenHelp.Atom("=:"),
+                                TokenHelp.Atom("x")));
             }
         }
     }

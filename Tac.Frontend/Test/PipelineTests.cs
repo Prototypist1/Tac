@@ -59,14 +59,12 @@ namespace Tac.Tests
         private static void Token_CodeElements(IWrappedTestCase sample)
         {
 
-            var target = sample.ModuleDefinition;
+            var target = sample.RootScope;
 
             var converted = TestSupport.Convert(sample.Token.SafeCastTo<IToken, FileToken>());
 
             converted.ValueEqualOrThrow(target);
         }
-
-
 
         [Fact]
         public void Text_Token_Factorial()
@@ -130,7 +128,7 @@ namespace Tac.Tests
             var fileToken = TestSupport.Tokenize(sample.Text);
             var converted = TestSupport.Convert(fileToken);
 
-            converted.ValueEqualOrThrow(sample.ModuleDefinition);
+            converted.ValueEqualOrThrow(sample.RootScope);
         }
 
 

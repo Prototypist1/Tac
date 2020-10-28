@@ -29,7 +29,7 @@ namespace Tac.Frontend
 
             var elementMatchingContest = new ElementMatchingContext();
 
-            var scopePopulators = elementMatchingContest.ParseFile(tokens);
+            var scopePopulator = elementMatchingContest.ParseFile(tokens);
 
             var dependencyConverter = new DependencyConverter();
 
@@ -55,11 +55,11 @@ namespace Tac.Frontend
             }
 
             var populateScopeContex = new SetUpContext(problem.builder);
-            var referanceResolvers = scopePopulators.Select(or => or.TransformInner(populateScope => populateScope.Run(problem.ModuleRoot, populateScopeContex).Resolve)).ToArray();
+            var referanceResolver = scopePopulator.Run(problem.ModuleRoot, populateScopeContex).Resolve;
 
             var solution = problem.Solve();
 
-            referanceResolvers.Select(or => or.TransformInner(reranceResolver => reranceResolver.Run(solution))).ToArray();
+            referanceResolver.Run(solution);
 
             var moduleDefinition = solution.GetObject(problem.ModuleRoot).GetValue().Is2OrThrow();
 

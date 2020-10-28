@@ -11,6 +11,9 @@ using Tac.Infastructure;
 using Tac.Parser;
 using Tac.SemanticModel;
 using Tac.SemanticModel.CodeStuff;
+using Tac.Frontend._3_Syntax_Model.Elements;
+using Tac.Model.Operations;
+using Tac.SemanticModel.Operations;
 
 namespace Tac.Tests
 {
@@ -24,9 +27,9 @@ namespace Tac.Tests
             return res;
         }
 
-        internal static IModuleDefinition Convert(FileToken fileToken)
+        internal static IRootScope Convert(FileToken fileToken)
         {
-            var result = ConvertToWeak< WeakModuleDefinition>(fileToken);
+            var result = ConvertToWeak(fileToken);
 
             var context = TransformerExtensions.NewConversionContext();
 
@@ -34,30 +37,22 @@ namespace Tac.Tests
             return converted;
         }
 
-        internal static T ConvertToWeak<T>(FileToken fileToken)
-            where T : IFrontendCodeElement
+        internal static WeakRootScope ConvertToWeak(FileToken fileToken)
         {
             var elementMatchingContest = new ElementMatchingContext();
 
             var scopePopulators = elementMatchingContest.ParseFile(fileToken);
 
-
             var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
 
             var populateScopeContex = new SetUpContext(problem.builder);
-            var referanceResolvers = scopePopulators.Select(or => or.TransformInner(populateScope => populateScope.Run(problem.ModuleRoot, populateScopeContex).Resolve)).ToArray();
-
+            var referanceResolver = scopePopulators.Run(problem.ModuleRoot, populateScopeContex).Resolve;
 
             var solution = problem.Solve();
 
-            var result = referanceResolvers
-                .Select(or => or.TransformInner(reranceResolver => reranceResolver.Run(solution)))
-                .ToArray()
-                .Single()
-                .Is1OrThrow()
-                .GetValue()
-                .SafeCastTo<IFrontendCodeElement, T>();
-            return result;
+            var res = referanceResolver.Run(solution);
+
+            return res.GetValue();
         }
     }
 }

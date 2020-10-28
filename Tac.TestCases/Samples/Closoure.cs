@@ -21,7 +21,7 @@ namespace Tac.Tests.Samples
             var methodScope = Scope.CreateAndBuild(new List<IsStatic> { new IsStatic(x ,false) });
             var innerMethodScope = Scope.CreateAndBuild(new List<IsStatic> { new IsStatic(y ,false) });
 
-            ModuleDefinition = Model.Instantiated.ModuleDefinition.CreateAndBuild(
+            RootScope = Model.Instantiated.RootScope.CreateAndBuild(
                 Scope.CreateAndBuild(
                     new List<IsStatic>() {
                         new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), new AnyType(), Access.ReadWrite) ,false) }),
@@ -54,7 +54,6 @@ namespace Tac.Tests.Samples
                             Array.Empty<ICodeElement>()),
                         MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("create-accululator"), new AnyType(),Access.ReadWrite)))
                  },
-                new NameKey("closoure"),
                 EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));
         }
 
@@ -64,17 +63,16 @@ namespace Tac.Tests.Samples
             {
                 return
 @"
-module closoure {
-    method [ number ; method [ number ; number ; ] ; ] x {
-        method [ number ; number ; ] y {
-            x + y =: x ;
-            x return ;
-        } return ;
-    } =: create-accululator  ;
-} ; ";
+method [ number ; method [ number ; number ; ] ; ] x {
+    method [ number ; number ; ] y {
+        x + y =: x ;
+        x return ;
+    } return ;
+} =: create-accululator  ;
+";
             }
         }
 
-        public IModuleDefinition ModuleDefinition { get; }
+        public IRootScope RootScope { get; }
     }
 }

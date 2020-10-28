@@ -11,13 +11,11 @@ namespace Tac.Tests.Samples
     public class OrTypeSample : ITestCase
     {
         public string Text => @"
-module or-test 
-{ 
-    5 =: ( bool | number ) x ;
-    false =: ( bool | number ) y ; 
-} ;";
+5 =: ( bool | number ) x ;
+false =: ( bool | number ) y ; 
+";
 
-        public IModuleDefinition ModuleDefinition => Model.Instantiated.ModuleDefinition.CreateAndBuild(
+        public IRootScope RootScope => Model.Instantiated.RootScope.CreateAndBuild(
              Scope.CreateAndBuild(
                 new List<IsStatic> {
                     new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("x"), TypeOr.CreateAndBuild(new BooleanType(),new NumberType()), Access.ReadWrite), false),
@@ -29,7 +27,6 @@ module or-test
                 AssignOperation.CreateAndBuild(
                     ConstantBool.CreateAndBuild(false),
                     MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("y"),TypeOr.CreateAndBuild(new BooleanType(),new NumberType()), Access.ReadWrite)))},
-            new NameKey("or-test"),
             EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));
     }
 }

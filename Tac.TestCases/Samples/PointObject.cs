@@ -12,12 +12,12 @@ namespace Tac.Tests.Samples
 {
     public class PointObject : ITestCase
     {
-        public string Text => @"module point-module { object {
+        public string Text => @"object {
                             5 =: x ;
                             2 =: y ;
-                        } =: point ; }";
+                        } =: point ;";
 
-        public IModuleDefinition ModuleDefinition { get; }
+        public IRootScope RootScope { get; }
 
         public PointObject()
         {
@@ -26,7 +26,7 @@ namespace Tac.Tests.Samples
                 var keyY = new NameKey("y");
                 var localY = MemberDefinition.CreateAndBuild(keyY, new AnyType(), Access.ReadWrite);
 
-            ModuleDefinition = Model.Instantiated.ModuleDefinition.CreateAndBuild(
+            RootScope = Model.Instantiated.RootScope.CreateAndBuild(
                      Scope.CreateAndBuild(
                         new List<IsStatic>(){new IsStatic(MemberDefinition.CreateAndBuild(new NameKey("point"), new AnyType(), Access.ReadWrite),false) } ),
                     new[] {
@@ -46,7 +46,6 @@ namespace Tac.Tests.Samples
                                         MemberReference.CreateAndBuild(localY))
                                 }),
                             MemberReference.CreateAndBuild(MemberDefinition.CreateAndBuild(new NameKey("point"), new AnyType(), Access.ReadWrite)))},
-                    new NameKey("point-module"),
                     EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));
         }
     }

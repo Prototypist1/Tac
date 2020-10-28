@@ -74,6 +74,10 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
                     yield return error;
                 }
             }
+            foreach (var error in EntryPoint.SwitchReturns<IEnumerable<IError>>(x => x.GetValue().Validate(), x => new List<IError>() { x }))
+            {
+                yield return error;
+            }
         }
 
         private readonly Lazy<IOrType<IFrontendType, IError>> returns;
@@ -85,15 +89,23 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
     }
 
 
-
-
     internal class RootScopePopulateScope : ISetUp<IBox<WeakRootScope>, Tpn.IValue>
     {
-        private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
+        private readonly IReadOnlyList<IOrType<WeakAssignOperationPopulateScope, IError>> elements;
+        private readonly IOrType<EntryPointDefinitionPopulateScope, IError> entry;
+        private readonly IReadOnlyList<IOrType<TypeDefinitionPopulateScope,  IError>> types;
+        private readonly IReadOnlyList<IOrType<GenericTypeDefinitionPopulateScope, IError>> genericTypes;
 
-        public RootScopePopulateScope(IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements)
+        public RootScopePopulateScope(
+            IReadOnlyList<IOrType<WeakAssignOperationPopulateScope, IError>> elements, 
+            IOrType<EntryPointDefinitionPopulateScope, IError> entry, 
+            IReadOnlyList<IOrType<TypeDefinitionPopulateScope,  IError>> types,
+            IReadOnlyList<IOrType<GenericTypeDefinitionPopulateScope, IError>> genericTypes)
         {
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+            this.entry = entry ?? throw new ArgumentNullException(nameof(entry));
+            this.types = types ?? throw new ArgumentNullException(nameof(types));
+            this.genericTypes = genericTypes ?? throw new ArgumentNullException(nameof(genericTypes));
         }
 
         public ISetUpResult<IBox<WeakRootScope>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
@@ -107,8 +119,9 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
 
             var key = new ImplicitKey(Guid.NewGuid());
 
-            var box = new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>();
-            var myScope = context.TypeProblem.CreateObjectOrModule(scope, key, new WeakObjectConverter(box), new WeakScopeConverter());
+            var assignmentsBox = new Box<IReadOnlyList<IOrType<IResolve<IBox<WeakAssignOperation>>, IError>>>();
+            var entryBox = new Box<IOrType<IResolve<IBox<WeakEntryPointDefinition>>, IError>>();
+            var myScope = context.TypeProblem.CreateObjectOrModule(scope, key, new WeakRootConverter(assignmentsBox, entryBox), new WeakScopeConverter());
 
             // {6B83A7F1-0E28-4D07-91C8-57E6878E97D9}
             // module has similar code
@@ -132,30 +145,40 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             //        });
             //}
 
-            box.Fill(elements.Select(x =>
-            x.TransformInner(y => y.Run(myScope, context.CreateChildContext(this)).Resolve)).ToArray());
+            assignmentsBox.Fill(elements.Select(x =>x.TransformInner(y => y.Run(myScope, context.CreateChildContext(this)).Resolve)).ToArray());
+            entryBox.Fill(entry.TransformInner(y => y.Run(myScope, context.CreateChildContext(this)).Resolve));
+
+
+            var ranTypes = types.Select(x => x.TransformInner(y => y.Run(myScope, context.CreateChildContext(this)).Resolve)).ToArray();
+            var ranGenericTypes = genericTypes.Select(x => x.TransformInner(y => y.Run(myScope, context.CreateChildContext(this)).Resolve)).ToArray();
 
             var value = context.TypeProblem.CreateValue(runtimeScope, key, new PlaceholderValueConverter());
             // ugh! an object is a type
             //
 
-            return new SetUpResult<IBox<WeakRootScope>, Tpn.IValue>(new ResolveReferanceRootScope(myScope), OrType.Make<Tpn.IValue, IError>(value));
+            return new SetUpResult<IBox<WeakRootScope>, Tpn.IValue>(new ResolveReferanceRootScope(myScope, ranTypes, ranGenericTypes), OrType.Make<Tpn.IValue, IError>(value));
         }
     }
 
     internal class ResolveReferanceRootScope : IResolve<IBox<WeakRootScope>>
     {
         private readonly Tpn.TypeProblem2.Object myScope;
+        private readonly IReadOnlyList< IOrType<IResolve<IBox<IFrontendType>>, IError>> ranTypes;
+        private readonly IReadOnlyList<IOrType<IResolve<IBox<WeakGenericTypeDefinition>>, IError>> ranGenericTypes;
 
-        public ResolveReferanceRootScope(Tpn.TypeProblem2.Object myScope)
+        public ResolveReferanceRootScope(Tpn.TypeProblem2.Object myScope, IReadOnlyList<IOrType<IResolve<IBox<IFrontendType>>, IError>> ranTypes, IReadOnlyList<IOrType<IResolve<IBox<WeakGenericTypeDefinition>>, IError>> ranGenericTypes)
         {
             this.myScope = myScope ?? throw new ArgumentNullException(nameof(myScope));
+            this.ranTypes = ranTypes ?? throw new ArgumentNullException(nameof(ranTypes));
+            this.ranGenericTypes = ranGenericTypes ?? throw new ArgumentNullException(nameof(ranGenericTypes));
         }
 
         // do these really need to be IBox? they seeme to generally be filled...
         // mayble IPossibly...
         public IBox<WeakRootScope> Run(Tpn.TypeSolution context)
         {
+            ranTypes.Select(x => x.TransformInner(y => y.Run(context))).ToArray();
+            ranGenericTypes.Select(x => x.TransformInner(y => y.Run(context))).ToArray();
             var objectOr = context.GetObject(myScope);
             if (objectOr.GetValue().Is3(out var v3))
             {

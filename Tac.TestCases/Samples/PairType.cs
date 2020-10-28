@@ -13,17 +13,16 @@ namespace Tac.Tests.Samples
     {
         public string Text =>
             @"
-module pair-type { 
-    type [ T ; ] pair { T x ; T y ; } ; 
-    method [ number ; pair [ number ; ] ] input {
-        object {
-            input =: x ;
-            input =: y ;
-        } return ;      
-    } =: pairify ;
-}";
+type [ T ; ] pair { T x ; T y ; } ; 
+method [ number ; pair [ number ; ] ] input {
+    object {
+        input =: x ;
+        input =: y ;
+    } return ;      
+} =: pairify ;
+";
 
-        public IModuleDefinition ModuleDefinition { get; }
+        public IRootScope RootScope { get; }
 
         public PairType()
         {
@@ -45,7 +44,7 @@ module pair-type {
             var pairifyKey = new NameKey("pairify");
             var pairify = MemberDefinition.CreateAndBuild(pairifyKey, MethodType.CreateAndBuild(new NumberType(), pairTypeNumber), Access.ReadWrite);
 
-            ModuleDefinition = Model.Instantiated.ModuleDefinition.CreateAndBuild(
+            RootScope = Model.Instantiated.RootScope.CreateAndBuild(
                 Scope.CreateAndBuild(
                     new List<IsStatic> { new IsStatic(MemberDefinition.CreateAndBuild(pairifyKey, MethodType.CreateAndBuild(new NumberType(), pairTypeNumber), Access.ReadWrite), false) }),
                 new [] {
@@ -73,7 +72,6 @@ module pair-type {
                                         }))},
                             Array.Empty<ICodeElement>()),
                     MemberReference.CreateAndBuild(pairify))},
-                new NameKey("pair-type"),
                 EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));
         }
     }

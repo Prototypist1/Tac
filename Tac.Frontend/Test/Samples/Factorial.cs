@@ -12,40 +12,36 @@ namespace Tac.Tests.Samples
                 return 
                     TokenHelp.File(
                         TokenHelp.Line(
-                                TokenHelp.Atom("module"),
-                                TokenHelp.Atom("factorial"),
-                                    TokenHelp.Curl(
-                                        TokenHelp.Line(
-                                                TokenHelp.Atom("method"),
-                                                TokenHelp.Square(
-                                                    TokenHelp.Line(TokenHelp.Atom("number")),
-                                                    TokenHelp.Line(TokenHelp.Atom("number"))),
-                                                TokenHelp.Atom("input"),
-                                                TokenHelp.Curl(
-                                                    TokenHelp.Line(
-                                                        TokenHelp.Atom("input"),
-                                                        TokenHelp.Atom("<?"),
-                                                        TokenHelp.Atom("2"),
-                                                        TokenHelp.Atom("then"),
-                                                            TokenHelp.Curl(
-                                                                TokenHelp.Line(
-                                                                    TokenHelp.Atom("1"),
-                                                                    TokenHelp.Atom("return"))),
-                                                        TokenHelp.Atom("else"),
-                                                            TokenHelp.Curl(
-                                                                TokenHelp.Line(
-                                                                    TokenHelp.Par(new IToken[] {
-                                                                        TokenHelp.Line(new IToken[]{
-                                                                            TokenHelp.Atom("input"),
-                                                                            TokenHelp.Atom("-"),
-                                                                            TokenHelp.Atom("1"),
-                                                                            TokenHelp.Atom(">"),
-                                                                            TokenHelp.Atom("fac") }) }),
-                                                                    TokenHelp.Atom("*"),
-                                                                    TokenHelp.Atom("input"),
-                                                                    TokenHelp.Atom("return"))))),
-                                                TokenHelp.Atom("=:"),
-                                                TokenHelp.Atom("fac")))));
+                                TokenHelp.Atom("method"),
+                                TokenHelp.Square(
+                                    TokenHelp.Line(TokenHelp.Atom("number")),
+                                    TokenHelp.Line(TokenHelp.Atom("number"))),
+                                TokenHelp.Atom("input"),
+                                TokenHelp.Curl(
+                                    TokenHelp.Line(
+                                        TokenHelp.Atom("input"),
+                                        TokenHelp.Atom("<?"),
+                                        TokenHelp.Atom("2"),
+                                        TokenHelp.Atom("then"),
+                                            TokenHelp.Curl(
+                                                TokenHelp.Line(
+                                                    TokenHelp.Atom("1"),
+                                                    TokenHelp.Atom("return"))),
+                                        TokenHelp.Atom("else"),
+                                            TokenHelp.Curl(
+                                                TokenHelp.Line(
+                                                    TokenHelp.Par(new IToken[] {
+                                                        TokenHelp.Line(new IToken[]{
+                                                            TokenHelp.Atom("input"),
+                                                            TokenHelp.Atom("-"),
+                                                            TokenHelp.Atom("1"),
+                                                            TokenHelp.Atom(">"),
+                                                            TokenHelp.Atom("fac") }) }),
+                                                    TokenHelp.Atom("*"),
+                                                    TokenHelp.Atom("input"),
+                                                    TokenHelp.Atom("return"))))),
+                                TokenHelp.Atom("=:"),
+                                TokenHelp.Atom("fac")));
             }
         }
     }

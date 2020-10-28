@@ -18,28 +18,28 @@ namespace Tac.Tests
         [Fact]
         public void TokenizeMissingElement()
         {
-            var res = TestSupport.Tokenize("module tokenize-missing-element { 5 + + 10 =: x ; }");
-            var converted = TestSupport.ConvertToWeak< WeakModuleDefinition>(res);
+            var res = TestSupport.Tokenize("5 + + 10 =: x ;");
+            var converted = TestSupport.ConvertToWeak(res);
 
             var errors = converted.Validate().ToArray();
 
             Assert.NotEmpty(errors);
 
-            var line = Assert.Single(converted.StaticInitialization);
+            var line = Assert.Single(converted.Assignments);
             line.Is2OrThrow();
         }
 
         [Fact]
         public void MissingSquareBracket()
         {
-            var res = TestSupport.Tokenize(@" module tet { method [ number ; number ;  input { input return ;} =: pass-through ; }");
-            var converted = TestSupport.ConvertToWeak<WeakModuleDefinition>(res);
+            var res = TestSupport.Tokenize(@"  method [ number ; number ;  input { input return ;} =: pass-through ; ");
+            var converted = TestSupport.ConvertToWeak(res);
 
             var errors = converted.Validate().ToArray();
 
             Assert.NotEmpty(errors);
 
-            var lineOr = Assert.Single(converted.StaticInitialization);
+            var lineOr = Assert.Single(converted.Assignments);
             lineOr.Is2OrThrow();
         }
 
@@ -51,7 +51,7 @@ namespace Tac.Tests
     5 =: i;
     i is type { number x; number y; } t { };
 }");
-            var converted = TestSupport.ConvertToWeak<WeakEntryPointDefinition>(res);
+            var converted = TestSupport.ConvertToWeak(res);
 
             var errors = converted.Validate().ToArray();
 
@@ -79,8 +79,8 @@ namespace Tac.Tests
         [Fact]
         public void YouCantInvokeANumber()
         {
-            var res = TestSupport.Tokenize("module test { 5 =: x ; 5 > x ; }");
-            var converted = TestSupport.ConvertToWeak<WeakModuleDefinition>(res);
+            var res = TestSupport.Tokenize("entry-point { 5 =: x ; 5 > x ; }");
+            var converted = TestSupport.ConvertToWeak(res);
 
             var db = converted.Validate().ToArray();
 
@@ -95,8 +95,8 @@ namespace Tac.Tests
         [Fact]
         public void UndefinedVariable()
         {
-            var res = TestSupport.Tokenize("module test { a + 2 =: x ; }");
-            var converted = TestSupport.ConvertToWeak<WeakModuleDefinition>(res);
+            var res = TestSupport.Tokenize("a + 2 =: x ; ");
+            var converted = TestSupport.ConvertToWeak(res);
 
             var errors = converted.Validate().ToArray();
 
@@ -106,14 +106,14 @@ namespace Tac.Tests
         [Fact]
         public void UndefinedType()
         {
-            var res = TestSupport.Tokenize(@" module test { method [ chicken ; number ; ] input { 1 return ;} =: chicken-to-one ; }");
-            var converted = TestSupport.ConvertToWeak<WeakModuleDefinition>(res);
+            var res = TestSupport.Tokenize(@"method [ chicken ; number ; ] input { 1 return ;} =: chicken-to-one ;");
+            var converted = TestSupport.ConvertToWeak(res);
 
             var errors = converted.Validate().ToArray();
 
             Assert.NotEmpty(errors);
 
-            var lineOr = Assert.Single(converted.StaticInitialization);
+            var lineOr = Assert.Single(converted.Assignments);
             var line = lineOr.Is1OrThrow().GetValue();
             var assign = line.SafeCastTo<IFrontendCodeElement, WeakAssignOperation>();
             var codeElement = assign.Left.Is1OrThrow().GetValue();

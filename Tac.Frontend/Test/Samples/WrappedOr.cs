@@ -12,27 +12,23 @@ namespace Tac.Tests.Samples
                 return
                     TokenHelp.File(
                         TokenHelp.Line(
-                            TokenHelp.Atom("module"),
-                            TokenHelp.Atom("or-test"),
-                                TokenHelp.Curl(
-                                    TokenHelp.Line(
-                                            TokenHelp.Atom("5"),
-                                            TokenHelp.Atom("=:"),
-                                            TokenHelp.Par(
-                                                TokenHelp.Line(new[] {
-                                                    TokenHelp.Atom("bool"),
-                                                    TokenHelp.Atom("|"),
-                                                    TokenHelp.Atom("number") })),
-                                            TokenHelp.Atom("x")), 
-                                    TokenHelp.Line(
-                                            TokenHelp.Atom("false"),
-                                            TokenHelp.Atom("=:"),
-                                                TokenHelp.Par(
-                                                    TokenHelp.Line(new[] {
-                                                        TokenHelp.Atom("bool"),
-                                                        TokenHelp.Atom("|"),
-                                                        TokenHelp.Atom("number")})),
-                                            TokenHelp.Atom("y")))));
+                                TokenHelp.Atom("5"),
+                                TokenHelp.Atom("=:"),
+                                TokenHelp.Par(
+                                    TokenHelp.Line(new[] {
+                                        TokenHelp.Atom("bool"),
+                                        TokenHelp.Atom("|"),
+                                        TokenHelp.Atom("number") })),
+                                TokenHelp.Atom("x")), 
+                        TokenHelp.Line(
+                                TokenHelp.Atom("false"),
+                                TokenHelp.Atom("=:"),
+                                    TokenHelp.Par(
+                                        TokenHelp.Line(new[] {
+                                            TokenHelp.Atom("bool"),
+                                            TokenHelp.Atom("|"),
+                                            TokenHelp.Atom("number")})),
+                                TokenHelp.Atom("y")));
             }
         }
     }
