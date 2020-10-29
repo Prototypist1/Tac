@@ -14,6 +14,7 @@ using Tac.Backend.Interpreted.SyntazModelInterpeter;
 using Tac.Backend.Interpreted.SyntazModelInterpeter.Run_Time_Objects;
 using static Tac.Backend.Interpreted.Public.AssemblyBuilder;
 using Prototypist.Toolbox.Object;
+using Tac.Backend.Interpreted.Syntaz_Model_Interpeter.Elements;
 
 namespace Tac.Backend.Interpreted.SyntazModelInterpeter
 {
@@ -466,7 +467,20 @@ namespace Tac.Backend.Interpreted.SyntazModelInterpeter
         public IInterpetedOperation RootScope(IRootScope co)
         {
             // you do need to do this
-            throw new NotImplementedException();
+            if (backing.TryGetValue(co, out var res))
+            {
+                return res;
+            }
+            else
+            {
+                var op = new InterpetedRootScope();
+                backing.Add(co, op);
+                op.Init(
+                    new InterpetedScopeTemplate(co.Scope, co.Scope.ToVerifiableType()),
+                    co.Assignments.Select(x=>x.Convert(this).CastTo<IInterpetedAssignOperation>()).ToArray(),
+                    co.EntryPoint.Convert(this).CastTo<InterpetedEntryPointDefinition>());
+                return op;
+            }
         }
 
 

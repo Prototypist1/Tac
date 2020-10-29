@@ -23,15 +23,10 @@ namespace Tac.Backend.Interpreted
                 interpetedContext.TryAddMember(reference.Key, reference.Backing.CreateMember(interpetedContext));
             }
 
-            if (conversionContext.ModuleDefinition(moduleDefinition.ModuleDefinition).Interpet(interpetedContext).IsReturn(out var _, out var _))
+            if (conversionContext.RootScope(moduleDefinition.RootScope).Interpet(interpetedContext).IsReturn(out var _, out var _))
             {
                 throw new Exception("this should not really return");
             }
-
-            if (conversionContext.EntryPoint == null) {
-                throw new NullReferenceException();
-            }
-            conversionContext.EntryPoint.Interpet(interpetedContext);
         }
     }
 }

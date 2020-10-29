@@ -14,7 +14,7 @@ namespace Tac.Model.Elements
 
     public interface IProject<TBacking> 
     {
-        IModuleDefinition ModuleDefinition { get; }
+        IRootScope RootScope { get; }
         IReadOnlyList<IAssembly<TBacking>> References { get; }
     }
 }

@@ -21,13 +21,12 @@ namespace Tac.Backend.Interpreted.Test
         {
             var testCase = new Closoure();
             var conversionContext = new Definitions();
-            var module = testCase.RootScope.Convert(conversionContext);
+            var module = testCase.RootScope.Convert(conversionContext).SafeCastTo(out Tac.Backend.Interpreted.Syntaz_Model_Interpeter.Elements.InterpetedRootScope _);
 
-            var res = module.Interpet(InterpetedContext.Root());
+            var (scope, res) = module.InterpetWithExposedScope(InterpetedContext.Root());
 
             Assert.False(res.IsReturn(out var _, out var value));
 
-            var scope = value!.Value.CastTo<IInterpetedScope>();
             var method = scope.GetMember(new NameKey("create-accululator")).Value;
             
             Assert.False(method.Has<IInterpetedMethod>().Invoke(TypeManager.NumberMember(TypeManager.Double(1))).IsReturn(out var _, out var innerMethod));

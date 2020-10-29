@@ -19,13 +19,17 @@ namespace Tac.Backend.Interpreted.Test
         {
             var testCase = new PointObject();
             var conversionContext = new Definitions();
-            
-            Assert.False( testCase.RootScope.Convert(conversionContext).Interpet(InterpetedContext.Root()).IsReturn(out var _, out var res));
 
-            var scope = res!.Value.CastTo<IInterpetedScope>().GetMember(new NameKey("point")).Value;
+            var module = testCase.RootScope.Convert(conversionContext).SafeCastTo(out Tac.Backend.Interpreted.Syntaz_Model_Interpeter.Elements.InterpetedRootScope _);
 
-            Assert.True(scope.CastTo<IInterpetedScope>().ContainsMember(new NameKey("x")));
-            Assert.True(scope.CastTo<IInterpetedScope>().ContainsMember(new NameKey("y")));
+            var (scope, value) = module.InterpetWithExposedScope(InterpetedContext.Root());
+
+            Assert.False(value.IsReturn(out var _, out var res));
+
+            var pointScope = scope.GetMember(new NameKey("point")).Value;
+
+            Assert.True(pointScope.CastTo<IInterpetedScope>().ContainsMember(new NameKey("x")));
+            Assert.True(pointScope.CastTo<IInterpetedScope>().ContainsMember(new NameKey("y")));
         }
     }
 
@@ -37,10 +41,14 @@ namespace Tac.Backend.Interpreted.Test
             var testCase = new OrTypeSample();
             var conversionContext = new Definitions();
 
-            Assert.False(testCase.RootScope.Convert(conversionContext).Interpet(InterpetedContext.Root()).IsReturn(out var _, out var res));
+            var module = testCase.RootScope.Convert(conversionContext).SafeCastTo(out Tac.Backend.Interpreted.Syntaz_Model_Interpeter.Elements.InterpetedRootScope _);
 
-            Assert.Equal(5, res!.Value.CastTo<IInterpetedScope>().GetMember(new NameKey("x")).Value.Has<IBoxedDouble>().Value);
-            Assert.False(res.Value.CastTo<IInterpetedScope>().GetMember(new NameKey("y")).Value.Has<IBoxedBool>().Value);
+            var (scope, value) = module.InterpetWithExposedScope(InterpetedContext.Root());
+
+            Assert.False(value.IsReturn(out var _, out var res));
+
+            Assert.Equal(5, scope.GetMember(new NameKey("x")).Value.Has<IBoxedDouble>().Value);
+            Assert.False(scope.GetMember(new NameKey("y")).Value.Has<IBoxedBool>().Value);
         }
     }
 }

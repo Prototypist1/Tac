@@ -59,13 +59,13 @@ namespace Tac.Frontend
 
             var solution = problem.Solve();
 
-            referanceResolver.Run(solution);
+            var rootScope = referanceResolver.Run(solution).GetValue();
 
-            var moduleDefinition = solution.GetObject(problem.ModuleRoot).GetValue().Is2OrThrow();
+            //var moduleDefinition = solution.GetObject(problem.ModuleRoot).GetValue().Is2OrThrow();
 
             var context = TransformerExtensions.NewConversionContext();
 
-            return new Project<TBacking>(moduleDefinition.Convert(context), dependencies);
+            return new Project<TBacking>(rootScope.Convert(context), dependencies);
         }
 
         private OrType<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>> ConvertType(

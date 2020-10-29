@@ -21,13 +21,12 @@ namespace Tac.Backend.Interpreted.Test
         {
             var testCase = new MirrorPointImplementation();
             var conversionContext = new Definitions();
-            var module = testCase.RootScope.Convert(conversionContext);
+            var module = testCase.RootScope.Convert(conversionContext).SafeCastTo(out Tac.Backend.Interpreted.Syntaz_Model_Interpeter.Elements.InterpetedRootScope _);
 
-            var res = module.Interpet(InterpetedContext.Root());
+            var (scope, res) = module.InterpetWithExposedScope(InterpetedContext.Root());
 
             Assert.False(res.IsReturn(out var _, out var value));
 
-            var scope = value!.Value.CastTo<IInterpetedScope>();
             var implementation = scope.GetMember(new NameKey("mirror")).Value.Has<IInterpetedMethod>();
 
             var context = TypeManager.InstanceScope(

@@ -6,15 +6,15 @@ namespace Tac.Model.Instantiated
 {
     public class Project<TBacking> : IProject<TBacking>
     {
-        public Project(IModuleDefinition moduleDefinition, IReadOnlyList<IAssembly<TBacking>> references)
+        public Project(IRootScope rootScope, IReadOnlyList<IAssembly<TBacking>> references)
         {
-            ModuleDefinition = moduleDefinition ?? throw new ArgumentNullException(nameof(moduleDefinition));
+            RootScope = rootScope ?? throw new ArgumentNullException(nameof(rootScope));
             References = references ?? throw new ArgumentNullException(nameof(references));
         }
 
         // maybe this will become a list modules??
         // maybe you only get one root module
-        public IModuleDefinition ModuleDefinition { get; }
+        public IRootScope RootScope { get; }
         public IReadOnlyList<IAssembly<TBacking>> References { get; }
 
     }

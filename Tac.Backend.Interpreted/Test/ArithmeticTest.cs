@@ -20,13 +20,10 @@ namespace Tac.Backend.Interpreted.Test
         public void Test() {
             var testCase = new Arithmetic();
             var conversionContext = new Definitions();
-            var module = testCase.RootScope.Convert(conversionContext);
+            var module = testCase.RootScope.Convert(conversionContext).SafeCastTo(out Tac.Backend.Interpreted.Syntaz_Model_Interpeter.Elements.InterpetedRootScope _);
 
-            var res = module.Interpet(InterpetedContext.Root());
+            var (scope, _) = module.InterpetWithExposedScope(InterpetedContext.Root());
 
-            Assert.False(res.IsReturn(out var _, out var member));
-
-            var scope = member!.Value.CastTo<IInterpetedScope>();
             var x = scope.GetMember(new NameKey("x"));
 
             Assert.Equal(63.0, x.Value.CastTo<IBoxedDouble>().Value);

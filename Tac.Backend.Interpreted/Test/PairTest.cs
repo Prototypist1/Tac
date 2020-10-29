@@ -30,11 +30,13 @@ namespace Tac.Backend.Interpreted.Test
             var testCase = new PairType();
             var conversionContext = new Definitions();
 
-            var res = testCase.RootScope.Convert(conversionContext).Interpet(InterpetedContext.Root());
+            var module = testCase.RootScope.Convert(conversionContext).SafeCastTo(out Tac.Backend.Interpreted.Syntaz_Model_Interpeter.Elements.InterpetedRootScope _);
 
-            Assert.False(res.IsReturn(out var _, out var scope));
+            var (scope, res) = module.InterpetWithExposedScope(InterpetedContext.Root());
 
-            var method = scope!.Value.Has<IInterpetedScope>().GetMember(new NameKey("pairify"));
+            Assert.False(res.IsReturn(out var _, out var value));
+
+            var method = scope.GetMember(new NameKey("pairify"));
 
             Assert.False( method.Value.Has<IInterpetedMethod>().Invoke(TypeManager.NumberMember(TypeManager.Double(d))).IsReturn(out var _, out var methodResult));
 
