@@ -13,7 +13,7 @@ namespace Tac.SnippetTests
             var (stringIn, verifyStringIn) = BasicInputOutput.ToInput(new string[] { "test" });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToInput(new bool[] { });
 
-            Tac.Runner.Runner.Run("test", new[] {
+            Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Input(intIn ,stringIn,boolIn)},
  @"
 entry-point {
@@ -33,7 +33,7 @@ entry-point {
             var (stringIn, verifyStringIn) = BasicInputOutput.ToInput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToInput(new bool[] { });
 
-            Tac.Runner.Runner.Run("test",
+            Tac.Runner.Runner.RunInterpeted("test",
                 new[] {BasicInputOutput.Input(intIn ,stringIn, boolIn) },
 @"
 entry-point {
@@ -58,7 +58,7 @@ entry-point {
             var (stringOut, verifyStringOut) = BasicInputOutput.ToOutput(new string[] { });
             var (boolOut, verifyBoolOut) = BasicInputOutput.ToOutput(new bool[] { true });
 
-            Tac.Runner.Runner.Run("test",
+            Tac.Runner.Runner.RunInterpeted("test",
                 new[] {
                     BasicInputOutput.Input(intIn, stringIn, boolIn),
                     BasicInputOutput.Output(intOut, stringOut, boolOut) },
@@ -83,7 +83,7 @@ entry-point {
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
 
-            Tac.Runner.Runner.Run("test", new[] {
+            Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
  entry-point {
@@ -105,7 +105,7 @@ entry-point {
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
 
-            Tac.Runner.Runner.Run("test", new[] {
+            Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
                 @"entry-point{2*2>(out.write-number);3*2>(out.write-number);4*2>(out.write-number);5*2>(out.write-number);};");
 
@@ -121,7 +121,7 @@ entry-point {
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
 
-            Tac.Runner.Runner.Run("test", new[] {
+            Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
  entry-point {
@@ -144,7 +144,7 @@ entry-point {
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
 
-            Tac.Runner.Runner.Run("test", new[] {
+            Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
  entry-point { };");
@@ -163,7 +163,7 @@ entry-point {
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
 
-            Tac.Runner.Runner.Run("test", new[] {
+            Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
  entry-point {
@@ -182,7 +182,7 @@ entry-point {
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
 
-            Tac.Runner.Runner.Run("test", new[] {
+            Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
  entry-point {
@@ -203,7 +203,7 @@ entry-point {
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
 
-            Tac.Runner.Runner.Run("test", new[] {
+            Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
  entry-point {
@@ -225,7 +225,7 @@ entry-point {
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { true, false, false});
 
-            Tac.Runner.Runner.Run("test", new[] {
+            Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
  entry-point {
@@ -246,7 +246,7 @@ entry-point {
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
 
-            Tac.Runner.Runner.Run("test", new[] {
+            Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
  entry-point {
@@ -266,7 +266,7 @@ entry-point {
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
 
-            Tac.Runner.Runner.Run("test", new[] {
+            Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
  entry-point {
@@ -286,7 +286,7 @@ entry-point {
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
 
-            Tac.Runner.Runner.Run("test", new[] {
+            Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
  entry-point {
@@ -307,7 +307,7 @@ entry-point {
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { "hello world"  });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
 
-            Tac.Runner.Runner.Run("test", new[] {
+            Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
 entry-point {
@@ -328,7 +328,7 @@ entry-point {
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
 
-            Tac.Runner.Runner.Run("test", new[] {
+            Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
 entry-point {
@@ -351,7 +351,7 @@ entry-point {
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { true });
 
-            Tac.Runner.Runner.Run("test", new[] {
+            Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
 entry-point {
@@ -373,7 +373,7 @@ entry-point {
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { true });
 
-            Tac.Runner.Runner.Run("test", new[] {
+            Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
 @"
 entry-point {
@@ -395,7 +395,7 @@ entry-point {
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { true });
 
-            Tac.Runner.Runner.Run("test", new[] {
+            Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
 @"
 entry-point {
@@ -417,7 +417,7 @@ entry-point {
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { true });
 
-            Tac.Runner.Runner.Run("test", new[] {
+            Tac.Runner.Runner.RunInterpeted("test", new[] {
                     BasicInputOutput.Output(intIn ,stringIn,boolIn)},
 @"
 entry-point {
@@ -438,7 +438,7 @@ entry-point {
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] {  });
 
-            Tac.Runner.Runner.Run("test", new[] {
+            Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
 @"
 entry-point {
@@ -460,7 +460,7 @@ entry-point {
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] {  });
 
-            Tac.Runner.Runner.Run("test", new[] {
+            Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
 @"
 entry-point {

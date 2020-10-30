@@ -13,35 +13,6 @@ using Tac.Type;
 
 namespace Tac.Backend.Emit.Visitors
 {
-    // this is wrapped just to give a nicer name
-    // is that a silly reason?
-
-        // TODO remove
-    public class RootScope : IEquatable<RootScope?>
-    {
-        public readonly IFinalizedScope scope;
-
-        public RootScope(IFinalizedScope scope)
-        {
-            this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return Equals(obj as RootScope);
-        }
-
-        public bool Equals(RootScope? other)
-        {
-            return other != null &&
-                   EqualityComparer<IFinalizedScope>.Default.Equals(scope, other.scope);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(scope);
-        }
-    }
 
     class MemberKindVisitor : IOpenBoxesContext<Nothing>
     {

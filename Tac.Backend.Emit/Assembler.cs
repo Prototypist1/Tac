@@ -38,44 +38,34 @@ namespace Tac.Backend.Emit
             return Assembly.Value.DefineDynamicModule(GenerateName());
         });
 
-        public static object BuildAndRun(IReadOnlyList<ICodeElement> lines, object input)
+        public static object BuildAndRun(IRootScope rootScope, object input)
         {
-            var complitation = Build(lines);
+            var complitation = Build(rootScope);
             return complitation.main(input);
         }
 
-        private static TacCompilation Build(IReadOnlyList<ICodeElement> lines)
+        private static TacCompilation Build(IRootScope rootScope)
         {
             // I think we are actually not making an assembly,
             // just a type 
 
             var extensionLookup = new ExtensionLookup();
             var closureVisitor = new ClosureVisitor(extensionLookup);
-            foreach (var line in lines)
-            {
-                line.Convert(closureVisitor);
-            }
+            rootScope.Convert(closureVisitor);
 
             var memberKindLookup = new MemberKindLookup();
             var memberKindVisitor = MemberKindVisitor.Make(memberKindLookup);
-            foreach (var line in lines)
-            {
-                line.Convert(memberKindVisitor);
-            }
+            rootScope.Convert(memberKindVisitor);
 
             var typeCache = new Dictionary<IVerifiableType, System.Type>();
             var typeVisitor = new TypeVisitor(typeCache);
-            foreach (var line in lines)
-            {
-                line.Convert(typeVisitor);
-            }
+            rootScope.Convert(typeVisitor);
 
             var realizedMethodLookup = new RealizedMethodLookup();
             var methodMakerVisitor = new MethodMakerVisitor(module.Value, extensionLookup, realizedMethodLookup, typeCache);
-            foreach (var line in lines)
-            {
-                line.Convert(methodMakerVisitor);
-            }
+
+                rootScope.Convert(methodMakerVisitor);
+            
 
             var (assemblerVisitor, after) = AssemblerVisitor.Create(
                 memberKindLookup,
@@ -84,10 +74,7 @@ namespace Tac.Backend.Emit
                 module.Value,
                 realizedMethodLookup
                 );
-            foreach (var line in lines)
-            {
-                line.Convert(assemblerVisitor);
-            }
+                rootScope.Convert(assemblerVisitor);
 
             //finish up
             // this is a bit sloppy, maybe disposable?

@@ -19,9 +19,9 @@ namespace Tac.Backend.Emit.Test
     public class SimpleTests
     {
         [Fact]
-        public void Simplist() {
+        public void Simplist()
+        {
             Compiler.BuildAndRun(
-                new List<ICodeElement>{
                     Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -31,14 +31,13 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>()))
-                }, null);
+                , null);
         }
 
         [Fact]
         public void Add()
         {
             var res = Compiler.BuildAndRun(
-                new List<ICodeElement>{
                     Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -48,7 +47,7 @@ namespace Tac.Backend.Emit.Test
                                     ReturnOperation.CreateAndBuild(AddOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(1),ConstantNumber.CreateAndBuild(1)))
                                 },
                                 Array.Empty<ICodeElement>()))
-                }, null);
+                , null);
 
             Assert.Equal(2.0, res);
         }
@@ -57,7 +56,6 @@ namespace Tac.Backend.Emit.Test
         public void Multiply()
         {
             var res = Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -67,15 +65,15 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(MultiplyOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2),ConstantNumber.CreateAndBuild(2)))
                         },
                         Array.Empty<ICodeElement>()))
-                }, null);
+                , null);
 
             Assert.Equal(4.0, res);
         }
 
         [Fact]
-        public void LessThen() {
+        public void LessThen()
+        {
             var res = Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -85,7 +83,7 @@ namespace Tac.Backend.Emit.Test
                                     ReturnOperation.CreateAndBuild(LessThanOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2),ConstantNumber.CreateAndBuild(2)))
                                 },
                                 Array.Empty<ICodeElement>()))
-                }, null);
+                , null);
 
             Assert.False((bool)res);
         }
@@ -95,7 +93,6 @@ namespace Tac.Backend.Emit.Test
         public void If()
         {
             Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -114,14 +111,13 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>()))
-                }, null);
+                , null);
         }
 
         [Fact]
         public void Else()
         {
             Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -140,14 +136,13 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>()))
-                }, null);
+                , null);
         }
 
         [Fact]
         public void IfElse()
         {
             Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -174,16 +169,16 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>()))
-                }, null);
+                , null);
         }
 
         [Fact]
-        public void AssignMemberReference() {
+        public void AssignMemberReference()
+        {
 
             var memberDefinition = MemberDefinition.CreateAndBuild(new NameKey("x"), new NumberType(), Model.Elements.Access.ReadWrite);
 
             Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -196,7 +191,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>()))
-            }, null);
+            , null);
         }
 
         [Fact]
@@ -206,7 +201,6 @@ namespace Tac.Backend.Emit.Test
             var memberDefinition = MemberDefinition.CreateAndBuild(new NameKey("x"), new AnyType(), Model.Elements.Access.ReadWrite);
 
             Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -219,7 +213,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>()))
-            }, null);
+            , null);
         }
 
         // 2=: any x
@@ -235,7 +229,6 @@ namespace Tac.Backend.Emit.Test
             var innerMemberDefinition = MemberDefinition.CreateAndBuild(new NameKey("y"), new NumberType(), Model.Elements.Access.ReadWrite);
 
             Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -259,7 +252,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>()))
-            }, null);
+            , null);
         }
 
 
@@ -271,7 +264,6 @@ namespace Tac.Backend.Emit.Test
             var memberDefinition = MemberDefinition.CreateAndBuild(new NameKey("x"), new NumberType(), Model.Elements.Access.ReadWrite);
 
             Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -284,7 +276,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>()))
-            }, null);
+           , null);
         }
 
 
@@ -294,12 +286,12 @@ namespace Tac.Backend.Emit.Test
             var input = MemberDefinition.CreateAndBuild(new NameKey("test"), new NumberType(), Model.Elements.Access.ReadWrite);
 
             Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
-                        Scope.CreateAndBuild(new List<IsStatic>{
+                        Scope.CreateAndBuild(new List<IsStatic>
+                        {
                         }),
                         new List<ICodeElement> {
                             NextCallOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2) ,
@@ -316,7 +308,7 @@ namespace Tac.Backend.Emit.Test
                                     Array.Empty<ICodeElement>())),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},
                     Array.Empty<ICodeElement>()))
-                }, null);
+                , null);
         }
 
 
@@ -329,7 +321,6 @@ namespace Tac.Backend.Emit.Test
             var input = MemberDefinition.CreateAndBuild(new NameKey("test"), new NumberType(), Model.Elements.Access.ReadWrite);
 
             Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -357,23 +348,23 @@ namespace Tac.Backend.Emit.Test
                                     Array.Empty<ICodeElement>())),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},
                     Array.Empty<ICodeElement>()))
-                }, null);
+                , null);
         }
 
 
         [Fact]
-        public void CreateObject() {
+        public void CreateObject()
+        {
 
             var xDefinition = MemberDefinition.CreateAndBuild(new NameKey("x"), new NumberType(), Model.Elements.Access.ReadWrite);
             var yDefinition = MemberDefinition.CreateAndBuild(new NameKey("y"), new NumberType(), Model.Elements.Access.ReadWrite);
 
             Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
                     EntryPointDefinition.CreateAndBuild(
-                        Scope.CreateAndBuild(new List<IsStatic>{ }),
+                        Scope.CreateAndBuild(new List<IsStatic> { }),
                         new List<ICodeElement> {
                             ObjectDefiniton.CreateAndBuild(
                                 Scope.CreateAndBuild(
@@ -391,7 +382,6 @@ namespace Tac.Backend.Emit.Test
                         },
                         Array.Empty<ICodeElement>()
                     ))
-                }
            , null);
         }
 
@@ -421,7 +411,6 @@ namespace Tac.Backend.Emit.Test
             var zMember = MemberDefinition.CreateAndBuild(new NameKey("z"), new NumberType(), Model.Elements.Access.ReadWrite);
 
             Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -445,7 +434,6 @@ namespace Tac.Backend.Emit.Test
                         },
                         Array.Empty<ICodeElement>()
                     ))
-                }
            , null);
         }
 
@@ -481,7 +469,6 @@ namespace Tac.Backend.Emit.Test
             var zMember = MemberDefinition.CreateAndBuild(new NameKey("z"), new NumberType(), Model.Elements.Access.ReadWrite);
 
             Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -521,7 +508,6 @@ namespace Tac.Backend.Emit.Test
                         },
                         Array.Empty<ICodeElement>()
                     ))
-                }
            , null);
         }
 
@@ -531,7 +517,8 @@ namespace Tac.Backend.Emit.Test
         //}
         //
         [Fact]
-        public void FunctionIsType() {
+        public void FunctionIsType()
+        {
 
             var abcdType = InterfaceType.CreateAndBuild(new List<IMemberDefinition>
             {
@@ -570,7 +557,6 @@ namespace Tac.Backend.Emit.Test
             var objectD = MemberDefinition.CreateAndBuild(new NameKey("d"), new NumberType(), Access.ReadWrite);
 
             Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -623,7 +609,7 @@ namespace Tac.Backend.Emit.Test
                                 ),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())},
                     Array.Empty<ICodeElement>()))
-                }, null);
+                , null);
         }
 
         // I should test a return from inside a try assign
@@ -636,13 +622,13 @@ namespace Tac.Backend.Emit.Test
         //}
         // empty return
         [Fact]
-        public void ReturnInsideBlocks() {
+        public void ReturnInsideBlocks()
+        {
             var memberDefinition = MemberDefinition.CreateAndBuild(new NameKey("x"), new AnyType(), Model.Elements.Access.ReadWrite);
 
             var innerMemberDefinition = MemberDefinition.CreateAndBuild(new NameKey("y"), new NumberType(), Model.Elements.Access.ReadWrite);
 
             Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -675,7 +661,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>()))
-            }, null);
+            , null);
         }
 
         // long path test
@@ -686,7 +672,8 @@ namespace Tac.Backend.Emit.Test
         // t.next is T t-next { t-next.next is T t-next-next { t-next-next.next is T t-next-next-next { t-next-next.next is empty t-next-next-next-empty {  t-next-next-next-empty return } } } }
         // empty return 
         [Fact]
-        public void LinkedList() {
+        public void LinkedList()
+        {
             var (node, nodeBuilder) = InterfaceType.Create();
 
             var nodeOrNull = TypeOr.CreateAndBuild(node, new EmptyType());
@@ -711,7 +698,6 @@ namespace Tac.Backend.Emit.Test
 
 
             Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -805,7 +791,7 @@ namespace Tac.Backend.Emit.Test
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>()))
-            }, null);
+            , null);
         }
 
 
@@ -863,7 +849,6 @@ namespace Tac.Backend.Emit.Test
 
 
             Compiler.BuildAndRun(
-               new List<ICodeElement>{
                       Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -898,7 +883,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>()))
-            }, null);
+            , null);
 
         }
 
@@ -910,7 +895,8 @@ namespace Tac.Backend.Emit.Test
         //}
         // 2 > ( method [number;number] input { input return } > m) 
         [Fact]
-        public void MethodsOnMethods() {
+        public void MethodsOnMethods()
+        {
 
 
             var input = MemberDefinition.CreateAndBuild(new NameKey("input"), MethodType.CreateAndBuild(new NumberType(), new NumberType()), Access.ReadWrite);
@@ -952,7 +938,6 @@ namespace Tac.Backend.Emit.Test
             var input2 = MemberDefinition.CreateAndBuild(new NameKey("input"), new NumberType(), Access.ReadWrite);
 
             Compiler.BuildAndRun(
-               new List<ICodeElement>{
                       Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -981,19 +966,19 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>()))
-            }, null);
+            , null);
         }
 
         //   1 =: number | bool n-b =: any a is number n {}
         [Fact]
-        public void NumberOrAnyNumber() {
+        public void NumberOrAnyNumber()
+        {
 
             var nb = MemberDefinition.CreateAndBuild(new NameKey("n-b"), TypeOr.CreateAndBuild(new NumberType(), new BooleanType()), Access.ReadWrite);
             var a = MemberDefinition.CreateAndBuild(new NameKey("a"), new AnyType(), Access.ReadWrite);
             var n = MemberDefinition.CreateAndBuild(new NameKey("n"), new NumberType(), Access.ReadWrite);
 
             Compiler.BuildAndRun(
-             new List<ICodeElement>{
                     Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -1022,7 +1007,7 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>()))
-          }, null);
+          , null);
         }
 
 
@@ -1047,7 +1032,6 @@ namespace Tac.Backend.Emit.Test
             var n = MemberDefinition.CreateAndBuild(new NameKey("t"), node, Access.ReadWrite);
 
             Compiler.BuildAndRun(
-             new List<ICodeElement>{
                     Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -1076,13 +1060,14 @@ namespace Tac.Backend.Emit.Test
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>()))
-          }, null);
+          , null);
         }
 
         // maybe a member on an or type
         //  object {number a := 1; number b := 2; number c := 3} is type { number a } | type {number b} a-or-b { a-or-b.a =: a-or-b.a }
         [Fact]
-        public void MemberOnOrType() {
+        public void MemberOnOrType()
+        {
             var abType = InterfaceType.CreateAndBuild(new List<IMemberDefinition>
             {
                 MemberDefinition.CreateAndBuild(new NameKey("a"),new NumberType(),Access.ReadWrite),
@@ -1123,12 +1108,12 @@ namespace Tac.Backend.Emit.Test
                         });
 
             Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
                         EntryPointDefinition.CreateAndBuild(
-                            Scope.CreateAndBuild(new List<IsStatic>{
+                            Scope.CreateAndBuild(new List<IsStatic>
+                            {
                             }),
                             new List<ICodeElement> {
                                 TryAssignOperation.CreateAndBuild(
@@ -1136,7 +1121,7 @@ namespace Tac.Backend.Emit.Test
                                     Model.Instantiated.MemberReference.CreateAndBuild(a_or_ab),
                                     BlockDefinition.CreateAndBuild(
                                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
-                                        new List<ICodeElement>{ 
+                                        new List<ICodeElement>{
                                             AssignOperation.CreateAndBuild(
                                                 PathOperation.CreateAndBuild(
                                                 Model.Instantiated.MemberReference.CreateAndBuild(a_or_ab),
@@ -1154,7 +1139,7 @@ namespace Tac.Backend.Emit.Test
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                             },
                             Array.Empty<ICodeElement>()))
-             }, null);
+             , null);
         }
 
         // an or with methods 
@@ -1184,7 +1169,6 @@ namespace Tac.Backend.Emit.Test
 
 
             Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -1200,7 +1184,7 @@ namespace Tac.Backend.Emit.Test
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                             },
                             Array.Empty<ICodeElement>()))
-                }, null);
+                , null);
 
         }
 
@@ -1211,8 +1195,9 @@ namespace Tac.Backend.Emit.Test
         //      }
         //}
         [Fact]
-        public void IsOr() {
-            var aTypeAMember =  MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite);
+        public void IsOr()
+        {
+            var aTypeAMember = MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite);
 
             var aType = InterfaceType.CreateAndBuild(new List<IMemberDefinition>
             {
@@ -1242,7 +1227,6 @@ namespace Tac.Backend.Emit.Test
                       });
 
             Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -1262,7 +1246,7 @@ namespace Tac.Backend.Emit.Test
                                                     Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                                                     new List<ICodeElement>{
                                                         ReturnOperation.CreateAndBuild(
-                                                            PathOperation.CreateAndBuild(Model.Instantiated.MemberReference.CreateAndBuild(hasA), 
+                                                            PathOperation.CreateAndBuild(Model.Instantiated.MemberReference.CreateAndBuild(hasA),
                                                             Model.Instantiated.MemberReference.CreateAndBuild(aTypeAMember)))
                                                     },
                                                     Array.Empty<ICodeElement>()),
@@ -1278,7 +1262,7 @@ namespace Tac.Backend.Emit.Test
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                             },
                             Array.Empty<ICodeElement>()))
-                }, null);
+                , null);
 
         }
 
@@ -1321,7 +1305,6 @@ namespace Tac.Backend.Emit.Test
                       });
 
             Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -1357,7 +1340,7 @@ namespace Tac.Backend.Emit.Test
                                 ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                             },
                             Array.Empty<ICodeElement>()))
-                }, null);
+                , null);
 
         }
 
@@ -1393,7 +1376,6 @@ namespace Tac.Backend.Emit.Test
                       });
 
             var res = Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                         Array.Empty<IAssignOperation>(),
@@ -1416,7 +1398,7 @@ namespace Tac.Backend.Emit.Test
                                 ReturnOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(1))
                             },
                             Array.Empty<ICodeElement>()))
-                }, null);
+                , null);
 
 
             Assert.Equal(1.0, res);
@@ -1429,26 +1411,25 @@ namespace Tac.Backend.Emit.Test
         //  x return;
         //}
         [Fact]
-        public void SomethingOutsideEntryPoint() {
+        public void SomethingOutsideEntryPoint()
+        {
             var memA = MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite);
 
 
             var res = Compiler.BuildAndRun(
-                new List<ICodeElement>{
                        Model.Instantiated.RootScope.CreateAndBuild(
                         Scope.CreateAndBuild(new List<IsStatic>{
                             new IsStatic(memA, false),
                         }),
                         new List<IAssignOperation>{
-                            AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2) , Model.Instantiated.MemberReference.CreateAndBuild(memA)) 
+                            AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2) , Model.Instantiated.MemberReference.CreateAndBuild(memA))
                         },
                         EntryPointDefinition.CreateAndBuild(
                             Scope.CreateAndBuild(Array.Empty<IsStatic>()),
                             new List<ICodeElement> {
                                 ReturnOperation.CreateAndBuild(Model.Instantiated.MemberReference.CreateAndBuild(memA))
                             },
-                            Array.Empty<ICodeElement>()))
-                }, 
+                            Array.Empty<ICodeElement>())),
                 null);
 
 
