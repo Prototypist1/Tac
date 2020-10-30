@@ -229,9 +229,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
 
             }
-            public class Object : TypeProblemNode<Object, IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>>, IExplicitType, IHavePossibleMembers
+            public class Object : TypeProblemNode<Object, IOrType<WeakObjectDefinition, WeakRootScope>>, IExplicitType, IHavePossibleMembers
             {
-                public Object(Builder problem, string debugName, IConvertTo<Object, IOrType<WeakObjectDefinition, WeakModuleDefinition,WeakRootScope>> converter, IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> innerConverter) : base(problem, debugName, converter)
+                public Object(Builder problem, string debugName, IConvertTo<Object, IOrType<WeakObjectDefinition, WeakRootScope>> converter, IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> innerConverter) : base(problem, debugName, converter)
                 {
                     InitizationScope = new Scope(problem, debugName, innerConverter)
                     {
@@ -1545,12 +1545,12 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public TypeProblem2(IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> rootConverter, IConvertTo<Object, IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>> moduleConverter, IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> innerConverter)
+            public TypeProblem2(IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> rootConverter, RootScopePopulateScope rootScopePopulateScope)
             {
                 builder = new Builder(this);
                 Primitive = new Scope(this.builder, "base", rootConverter);
                 Dependency = builder.CreateScope(Primitive, rootConverter);
-                ModuleRoot = builder.CreateObjectOrModule(builder.CreateScope(Dependency, rootConverter), new ImplicitKey(Guid.NewGuid()), moduleConverter, innerConverter);
+                ModuleRoot = rootScopePopulateScope.InitizeForTypeProblem(this);
 
                 builder.CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("block")), new PrimitiveTypeConverter(new BlockType()), Possibly.Is(Guid.NewGuid()));
                 builder.CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("number")), new PrimitiveTypeConverter(new NumberType()), Possibly.Is(Guid.NewGuid()));

@@ -13,6 +13,8 @@ using Tac.SyntaxModel.Elements.AtomicTypes;
 using Tac.Model.Instantiated;
 using Tac.Frontend.SyntaxModel.Operations;
 using Tac.Model.Elements;
+using Tac.Frontend._3_Syntax_Model.Elements;
+using Tac.SemanticModel.Operations;
 
 namespace Tac.Frontend.TypeProblem.Test
 {
@@ -54,20 +56,32 @@ namespace Tac.Frontend.TypeProblem.Test
             Assert.True(a.TheyAreUs(b, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow() && b.TheyAreUs(a, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
         }
 
+        private static RootScopePopulateScope DefaultRootScopePopulateScope() => new RootScopePopulateScope(
+                Array.Empty<IOrType<WeakAssignOperationPopulateScope, IError>>(),
+                OrType.Make<EntryPointDefinitionPopulateScope, IError>(
+                    new EntryPointDefinitionPopulateScope (
+                        Array.Empty<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>>()
+                        )
+                    ),
+                Array.Empty<IOrType<TypeDefinitionPopulateScope, IError>>(),
+                Array.Empty<IOrType<GenericTypeDefinitionPopulateScope, IError>>()
+                );
+        
+
         #endregion
 
 
         [Fact]
         public void Simplest()
         {
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope());
             x.Solve();
         }
 
         [Fact]
         public void AddType()
         {
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope());
             var hello = x.builder.CreateType(x.ModuleRoot, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("Hello")), new WeakTypeDefinitionConverter());
             x.builder.CreatePublicMember(hello, hello, new NameKey("x"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("x")));
             x.builder.CreatePublicMember(hello, hello, new NameKey("y"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("y")));
@@ -96,7 +110,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
 
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope());
 
             var hello = x.builder.CreateType(x.ModuleRoot, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("hello")), new WeakTypeDefinitionConverter());
             x.builder.CreatePublicMember(hello, hello, new NameKey("x"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("x")));
@@ -151,7 +165,7 @@ namespace Tac.Frontend.TypeProblem.Test
             // m3 =: m4
             // m3 =: m5
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope());
 
             var m1 = x.builder.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("m1"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("m1")));
             x.builder.CreateHopefulMember(m1, new NameKey("x"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("x")));
@@ -196,7 +210,7 @@ namespace Tac.Frontend.TypeProblem.Test
         public void AssignmentXUpStream()
         {
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope());
 
             var m1 = x.builder.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("m1"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("m1")));
             var m2 = x.builder.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("m2"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("m2")));
@@ -245,7 +259,7 @@ namespace Tac.Frontend.TypeProblem.Test
         public void AssignmentMutual()
         {
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope());
 
             var m1 = x.builder.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("m1"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("m1")));
             x.builder.CreateHopefulMember(m1, new NameKey("x"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("x")));
@@ -274,7 +288,7 @@ namespace Tac.Frontend.TypeProblem.Test
         public void Generic()
         {
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope());
 
             var pairType = x.builder.CreateGenericType(
                 x.ModuleRoot,
@@ -317,7 +331,8 @@ namespace Tac.Frontend.TypeProblem.Test
             // type chicken {}
             // node[chicken] thing;
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(),
+                DefaultRootScopePopulateScope());
 
             var type = x.builder.CreateGenericType(
                 x.ModuleRoot,
@@ -362,7 +377,7 @@ namespace Tac.Frontend.TypeProblem.Test
             // node[chicken] thing;
             // x =: thing
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope());
 
             var type = x.builder.CreateGenericType(
                 x.ModuleRoot,
@@ -416,7 +431,7 @@ namespace Tac.Frontend.TypeProblem.Test
             // left[chicken] left-member;
             // right[chicken] right-member
 
-            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope());
 
             var left = x.builder.CreateGenericType(
                 x.ModuleRoot,
@@ -481,7 +496,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var x = new Tpn.TypeProblem2(
                 new WeakScopeConverter(),
-                new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+                DefaultRootScopePopulateScope());
 
             var pairType = x.builder.CreateGenericType(
                 x.ModuleRoot,
@@ -527,7 +542,7 @@ namespace Tac.Frontend.TypeProblem.Test
         {
             var x = new Tpn.TypeProblem2(
                 new WeakScopeConverter(),
-                new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+                DefaultRootScopePopulateScope());
 
 
             var aType = x.builder.CreateType(x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("A")), new WeakTypeDefinitionConverter());
@@ -582,7 +597,7 @@ namespace Tac.Frontend.TypeProblem.Test
         {
             var x = new Tpn.TypeProblem2(
                 new WeakScopeConverter(),
-                new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+                DefaultRootScopePopulateScope());
 
 
             var aType = x.builder.CreateType(x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("A")), new WeakTypeDefinitionConverter());
@@ -626,7 +641,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var x = new Tpn.TypeProblem2(
                 new WeakScopeConverter(),
-                new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+                DefaultRootScopePopulateScope());
 
             var key = new ImplicitKey(Guid.NewGuid());
             var orType = x.builder.CreateOrType(x.ModuleRoot, key,
@@ -667,7 +682,7 @@ namespace Tac.Frontend.TypeProblem.Test
         {
             var x = new Tpn.TypeProblem2(
                 new WeakScopeConverter(),
-                new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+                DefaultRootScopePopulateScope());
 
             var key = new ImplicitKey(Guid.NewGuid());
             var orType = x.builder.CreateOrType(x.ModuleRoot, key,
@@ -716,7 +731,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var x = new Tpn.TypeProblem2(
                 new WeakScopeConverter(),
-                new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+                DefaultRootScopePopulateScope());
 
             var aType = x.builder.CreateType(x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("A")), new WeakTypeDefinitionConverter());
             x.builder.CreatePublicMember(aType, aType, new NameKey("x"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("x")));
@@ -820,7 +835,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var x = new Tpn.TypeProblem2(
                 new WeakScopeConverter(),
-                new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+                DefaultRootScopePopulateScope());
 
             var aType = x.builder.CreateType(x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("A")), new WeakTypeDefinitionConverter());
             x.builder.CreatePublicMember(aType, aType, new NameKey("x"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("x")));
@@ -895,7 +910,7 @@ namespace Tac.Frontend.TypeProblem.Test
         {
             var x = new Tpn.TypeProblem2(
                 new WeakScopeConverter(),
-                new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+                DefaultRootScopePopulateScope());
 
             var aType = x.builder.CreateType(x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("A")), new WeakTypeDefinitionConverter());
             x.builder.CreatePublicMember(aType, aType, new NameKey("x"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("x")));
@@ -944,7 +959,7 @@ namespace Tac.Frontend.TypeProblem.Test
         public void Complex()
         {
 
-            var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+            var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope());
 
             var yType = problem.builder.CreateType(
                 problem.ModuleRoot,
@@ -1000,7 +1015,7 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void InferredMethod() {
 
-            var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+            var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope());
 
             var a = problem.builder.CreatePublicMember(
                     problem.ModuleRoot,
@@ -1035,7 +1050,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var x = new Tpn.TypeProblem2(
                 new WeakScopeConverter(),
-                new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+                DefaultRootScopePopulateScope());
 
             var nType = x.builder.CreateType(x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("N")), new WeakTypeDefinitionConverter());
             x.builder.CreatePublicMember(nType, nType, new NameKey("x"), OrType.Make<IKey, IError>(new NameKey("number")), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("x")));

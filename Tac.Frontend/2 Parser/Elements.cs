@@ -170,7 +170,6 @@ namespace Tac.Parser
             new ImplementationDefinitionMaker(),
 
             // object likes
-            new ModuleDefinitionMaker(),
             new ObjectDefinitionMaker(),
 
             new BlockDefinitionMaker(),

@@ -328,25 +328,6 @@ namespace Tac.Backend.Interpreted.SyntazModelInterpeter
             }
         }
 
-        public IInterpetedOperation ModuleDefinition(IModuleDefinition codeElement)
-        {
-            if (backing.TryGetValue(codeElement, out var res))
-            {
-                return res;
-            }
-            else
-            {
-                var op = new InterpetedModuleDefinition();
-                backing.Add(codeElement, op);
-                op.Init(new InterpetedScopeTemplate(codeElement.Scope, codeElement.Scope.ToVerifiableType()),
-                    codeElement.StaticInitialization.Select(x => x.Convert(this)).ToArray(),
-                    // yikos yuckos
-                    (this as IOpenBoxesContext<IInterpetedOperation>).EntryPoint(codeElement.EntryPoint).CastTo<InterpetedEntryPointDefinition>()
-                    );
-                return op;
-            }
-        }
-
         public IInterpetedOperation MultiplyOperation(IMultiplyOperation co)
         {
             if (backing.TryGetValue(co, out var res))

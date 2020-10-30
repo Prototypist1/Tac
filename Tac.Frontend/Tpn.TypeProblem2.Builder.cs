@@ -41,7 +41,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                     parent.Refs.Add(reference);
                 }
 
-
                 public void HasEntryPoint(IStaticScope parent, Scope entry)
                 {
                     parent.EntryPoints.Add(entry);
@@ -304,7 +303,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 // why do objects have keys?
                 // that is wierd
-                public Object CreateObjectOrModule(IStaticScope parent, IKey key, IConvertTo<Object, IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>> converter, IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> innerConverter)
+                public Object CreateObjectOrModule(IStaticScope parent, IKey key, IConvertTo<Object, IOrType<WeakObjectDefinition, WeakRootScope>> converter, IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> innerConverter)
                 {
                     var res = new Object(this, key.ToString()!, converter, innerConverter);
                     IsChildOf(parent, res);

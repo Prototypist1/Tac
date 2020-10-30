@@ -43,7 +43,7 @@ namespace Tac.Tests
 
             var scopePopulators = elementMatchingContest.ParseFile(fileToken);
 
-            var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), new WeakModuleConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), new NameKey("test module")), new WeakScopeConverter());
+            var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), scopePopulators);
 
             var populateScopeContex = new SetUpContext(problem.builder);
             var referanceResolver = scopePopulators.Run(problem.ModuleRoot, populateScopeContex).Resolve;

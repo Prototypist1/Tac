@@ -307,26 +307,6 @@ namespace Tac.Backend.Emit.Visitors
             return new Nothing();
         }
 
-        public Nothing ModuleDefinition(IModuleDefinition codeElement)
-        {
-            throw new NotImplementedException();
-
-            //if (codeElement.Scope.Members.Values.Any(x => !x.Static))
-            //{
-            //    throw new Exception("a modules members are all static");
-            //}
-
-            //foreach (var member in codeElement.Scope.Members.Values.Select(x => x.Value))
-            //{
-            //    lookup.AddStaticField(codeElement, member);
-            //}
-
-            //var next = Push(codeElement);
-            //next.Walk(codeElement.StaticInitialization);
-
-            return new Nothing();
-        }
-
         public Nothing ObjectDefinition(IObjectDefiniton codeElement)
         {
             if (codeElement.Scope.Members.Values.Any(x => x.Static))

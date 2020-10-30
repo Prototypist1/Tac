@@ -216,12 +216,6 @@ namespace Tac.Backend.Emit.Visitors
             return new Nothing();
         }
 
-        public Nothing ModuleDefinition(IModuleDefinition codeElement)
-        {
-            Walk(codeElement.StaticInitialization);
-            return new Nothing();
-        }
-
         public Nothing MultiplyOperation(IMultiplyOperation co)
         {
             Walk(co.Operands);

@@ -89,12 +89,13 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
     }
 
 
-    internal class RootScopePopulateScope : ISetUp<IBox<WeakRootScope>, Tpn.IValue>
+    internal class RootScopePopulateScope : ISetUp<IBox<WeakRootScope>, Tpn.TypeProblem2.Object>
     {
         private readonly IReadOnlyList<IOrType<WeakAssignOperationPopulateScope, IError>> elements;
         private readonly IOrType<EntryPointDefinitionPopulateScope, IError> entry;
         private readonly IReadOnlyList<IOrType<TypeDefinitionPopulateScope,  IError>> types;
         private readonly IReadOnlyList<IOrType<GenericTypeDefinitionPopulateScope, IError>> genericTypes;
+
 
         public RootScopePopulateScope(
             IReadOnlyList<IOrType<WeakAssignOperationPopulateScope, IError>> elements, 
@@ -108,20 +109,32 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             this.genericTypes = genericTypes ?? throw new ArgumentNullException(nameof(genericTypes));
         }
 
-        public ISetUpResult<IBox<WeakRootScope>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
+
+        private Box<IReadOnlyList<IOrType<IResolve<IBox<WeakAssignOperation>>, IError>>> assignmentsBox;
+        private Box<IOrType<IResolve<IBox<WeakEntryPointDefinition>>, IError>> entryBox;
+        private ImplicitKey key;
+        private Tpn.TypeProblem2.Object myScope;
+        public Tpn.TypeProblem2.Object InitizeForTypeProblem(Tpn.TypeProblem2 typeProblem2) {
+            assignmentsBox = new Box<IReadOnlyList<IOrType<IResolve<IBox<WeakAssignOperation>>, IError>>>();
+            entryBox = new Box<IOrType<IResolve<IBox<WeakEntryPointDefinition>>, IError>>();
+            key = new ImplicitKey(Guid.NewGuid());
+            myScope = typeProblem2.builder.CreateObjectOrModule(typeProblem2.Dependency, key, new WeakRootConverter(assignmentsBox, entryBox), new WeakScopeConverter());
+            return myScope;
+        }
+
+        public ISetUpResult<IBox<WeakRootScope>, Tpn.TypeProblem2.Object> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-            scope = scope.EnterInitizaionScopeIfNessisary();
+            //scope = scope.EnterInitizaionScopeIfNessisary();
 
-            if (!(scope is Tpn.IScope runtimeScope))
-            {
-                throw new NotImplementedException("this should be an IError");
-            }
+            //if (!(scope is Tpn.IScope runtimeScope))
+            //{
+            //    throw new NotImplementedException("this should be an IError");
+            //}
 
-            var key = new ImplicitKey(Guid.NewGuid());
 
-            var assignmentsBox = new Box<IReadOnlyList<IOrType<IResolve<IBox<WeakAssignOperation>>, IError>>>();
-            var entryBox = new Box<IOrType<IResolve<IBox<WeakEntryPointDefinition>>, IError>>();
-            var myScope = context.TypeProblem.CreateObjectOrModule(scope, key, new WeakRootConverter(assignmentsBox, entryBox), new WeakScopeConverter());
+            //var assignmentsBox = new Box<IReadOnlyList<IOrType<IResolve<IBox<WeakAssignOperation>>, IError>>>();
+            //var entryBox = new Box<IOrType<IResolve<IBox<WeakEntryPointDefinition>>, IError>>();
+            //var myScope = context.TypeProblem.CreateObjectOrModule(context.TypeProblem.ModuleRoot, key, new WeakRootConverter(assignmentsBox, entryBox), new WeakScopeConverter());
 
             // {6B83A7F1-0E28-4D07-91C8-57E6878E97D9}
             // module has similar code
@@ -152,11 +165,11 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             var ranTypes = types.Select(x => x.TransformInner(y => y.Run(myScope, context.CreateChildContext(this)).Resolve)).ToArray();
             var ranGenericTypes = genericTypes.Select(x => x.TransformInner(y => y.Run(myScope, context.CreateChildContext(this)).Resolve)).ToArray();
 
-            var value = context.TypeProblem.CreateValue(runtimeScope, key, new PlaceholderValueConverter());
+            //var value = context.TypeProblem.CreateValue(runtimeScope, key, new PlaceholderValueConverter());
             // ugh! an object is a type
             //
 
-            return new SetUpResult<IBox<WeakRootScope>, Tpn.IValue>(new ResolveReferanceRootScope(myScope, ranTypes, ranGenericTypes), OrType.Make<Tpn.IValue, IError>(value));
+            return new SetUpResult<IBox<WeakRootScope>, Tpn.TypeProblem2.Object>(new ResolveReferanceRootScope(myScope, ranTypes, ranGenericTypes), OrType.Make<Tpn.TypeProblem2.Object, IError>(myScope));
         }
     }
 
@@ -180,9 +193,9 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             ranTypes.Select(x => x.TransformInner(y => y.Run(context))).ToArray();
             ranGenericTypes.Select(x => x.TransformInner(y => y.Run(context))).ToArray();
             var objectOr = context.GetObject(myScope);
-            if (objectOr.GetValue().Is3(out var v3))
+            if (objectOr.GetValue().Is2(out var v2))
             {
-                return new Box<WeakRootScope>(v3);
+                return new Box<WeakRootScope>(v2);
             }
             throw new Exception("wrong or");
         }

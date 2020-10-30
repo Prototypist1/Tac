@@ -268,15 +268,6 @@ namespace Tac.Backend.Emit.Walkers
             return new Nothing();
         }
 
-        public Nothing ModuleDefinition(IModuleDefinition codeElement)
-        {
-            throw new NotImplementedException();
-            HandleScope(codeElement.Scope);
-            codeElement.EntryPoint.Convert(this);
-            HandleLines(codeElement.StaticInitialization);
-            return new Nothing();
-        }
-
         public Nothing ObjectDefinition(IObjectDefiniton codeElement)
         {
             HandleLines(codeElement.Assignments);

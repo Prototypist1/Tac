@@ -124,12 +124,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheMethod[method];
             }
 
-            private readonly Dictionary<TypeProblem2.Object, IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>>> cacheObject = new Dictionary<TypeProblem2.Object, IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>>>();
-            public IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>> GetObject(TypeProblem2.Object @object)
+            private readonly Dictionary<TypeProblem2.Object, IBox<IOrType<WeakObjectDefinition, WeakRootScope>>> cacheObject = new Dictionary<TypeProblem2.Object, IBox<IOrType<WeakObjectDefinition, WeakRootScope>>>();
+            public IBox<IOrType<WeakObjectDefinition, WeakRootScope>> GetObject(TypeProblem2.Object @object)
             {
                 if (!cacheObject.ContainsKey(@object))
                 {
-                    var box = new Box<IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>>();
+                    var box = new Box<IOrType<WeakObjectDefinition, WeakRootScope>>();
                     cacheObject[@object] = box;
                     box.Fill(@object.Converter.Convert(this, @object));
                 }

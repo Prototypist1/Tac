@@ -148,11 +148,6 @@ namespace Tac.Backend.Emit.Walkers
             }).closureMember;
         }
 
-        public IReadOnlyList<IMemberDefinition> ModuleDefinition(IModuleDefinition module)
-        {
-            return Walk(module.StaticInitialization).ToList();
-        }
-
         public IReadOnlyList<IMemberDefinition> MultiplyOperation(IMultiplyOperation co)
         {
             return Walk(co.Operands);

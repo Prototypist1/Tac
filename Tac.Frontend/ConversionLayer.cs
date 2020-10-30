@@ -85,9 +85,9 @@ namespace Tac.Frontend
 
     internal class UnWrappingObjectBox : IBox<IOrType<IFrontendType,IError>>
     {
-        private readonly IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>> box;
+        private readonly IBox<IOrType<WeakObjectDefinition,  WeakRootScope>> box;
 
-        public UnWrappingObjectBox(IBox<IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>> box)
+        public UnWrappingObjectBox(IBox<IOrType<WeakObjectDefinition, WeakRootScope>> box)
         {
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
@@ -95,7 +95,7 @@ namespace Tac.Frontend
         public IOrType<IFrontendType, IError> GetValue()
         {
             var inner = box.GetValue();
-            return inner.SwitchReturns(x => x.Returns(), x => x.Returns(), x => x.Returns());
+            return inner.SwitchReturns(x => x.Returns(), x => x.Returns());
         }
     }
 
@@ -532,7 +532,7 @@ namespace Tac.Frontend
         }
     }
 
-    internal class WeakObjectConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Object, IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>>
+    internal class WeakObjectConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Object, IOrType<WeakObjectDefinition, WeakRootScope>>
     {
         private readonly Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>> box;
 
@@ -541,9 +541,9 @@ namespace Tac.Frontend
             this.box = box;
         }
 
-        public IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Object from)
+        public IOrType<WeakObjectDefinition, WeakRootScope> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Object from)
         {
-            return OrType.Make<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>(new WeakObjectDefinition(
+            return OrType.Make<WeakObjectDefinition,  WeakRootScope>(new WeakObjectDefinition(
                 Help.GetScope(typeSolution, typeSolution.GetFlowNode(from)).TransformInner(x => new Box<WeakScope>(x)),
                 box.GetValue().Select(x => x.SwitchReturns<IOrType<IBox<WeakAssignOperation>, IError>>(
                     y=> { 
@@ -561,7 +561,7 @@ namespace Tac.Frontend
     }
 
 
-    internal class WeakRootConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Object, IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>>
+    internal class WeakRootConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Object, IOrType<WeakObjectDefinition, WeakRootScope>>
     {
         private readonly Box<IReadOnlyList<IOrType<IResolve<IBox<WeakAssignOperation>>, IError>>> assignments;
         private readonly Box<IOrType<IResolve<IBox<WeakEntryPointDefinition>>, IError>> entry;
@@ -573,47 +573,12 @@ namespace Tac.Frontend
             this.entry = entry ?? throw new ArgumentNullException(nameof(entry));
         }
 
-        public IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Object from)
+        public IOrType<WeakObjectDefinition, WeakRootScope> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Object from)
         {
-            return OrType.Make<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>(new WeakRootScope(
+            return OrType.Make<WeakObjectDefinition, WeakRootScope>(new WeakRootScope(
                 Help.GetScope(typeSolution, typeSolution.GetFlowNode(from)).TransformInner(x => new Box<WeakScope>(x)),
                 assignments.GetValue().Select(x => x.TransformInner(y => y.Run(typeSolution))).ToArray(),
                 entry.GetValue().TransformInner(y => y.Run(typeSolution))));
         }
     }
-
-    internal class WeakModuleConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Object, IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>>
-    {
-        private readonly Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>,IError>>> box;
-        private readonly IKey key;
-
-        public WeakModuleConverter(Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>,IError>>> box, IKey key)
-        {
-            this.box = box;
-            this.key = key;
-        }
-
-        public IOrType<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Object from)
-        {
-            WeakEntryPointDefinition weakEntryPoint;
-            if (typeSolution.GetEntryPoint(from) is IIsDefinately<Tpn.TypeProblem2.Scope> scope)
-            {
-                weakEntryPoint = typeSolution.GetScope(scope.Value).GetValue().Is3OrThrow();
-            }
-            else {
-                weakEntryPoint = new WeakEntryPointDefinition(
-                    Array.Empty<IOrType<IBox<IFrontendCodeElement>,IError>>(),
-                    OrType.Make<IBox<WeakScope>, IError>(new Box<WeakScope>(new WeakScope(new List<IBox<WeakMemberDefinition>>()))),
-                    Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>());
-            }
-
-
-            return OrType.Make<WeakObjectDefinition, WeakModuleDefinition, WeakRootScope>(new WeakModuleDefinition(
-                Help.GetScope(typeSolution, typeSolution.GetFlowNode(from)).TransformInner(x=> new Box<WeakScope>(x)),
-                box.GetValue().Select(x => x.TransformInner(y=> y.Run(typeSolution))).ToArray(), 
-                key,
-                new Box<WeakEntryPointDefinition>(weakEntryPoint)));
-        }
-    }
-
 }

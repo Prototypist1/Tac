@@ -1630,12 +1630,6 @@ namespace Tac.Backend.Emit.Walkers
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
-        public Nothing ModuleDefinition(IModuleDefinition module)
-        {
-            throw new NotImplementedException();
-            return Walk(module.StaticInitialization, module);
-        }
-
         public Nothing MultiplyOperation(IMultiplyOperation co)
         {
             Walk(co.Operands, co);
