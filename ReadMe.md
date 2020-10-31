@@ -94,7 +94,7 @@ Method-blueprints are really just methods. They take a context as their input an
 Unsurprisingly, defining a method-blueprint is very similar to defining a method:
 ```
 say-hello-blueprint := blueprint<named, named, string> context subject {
-    "Hello " + subject.first-name + ", it's " +context.first-name return;
+    "Hello " + subject.first-name + ", it's " + context.first-name return;
 }
 ```
 Unlike methods, method-blueprints have three type parameters: the first is the context's type, the second is the input of the returned method, and the third is the output of the returned method. A blueprint definition also includes the name of the context <!-- what do I mean "name of the context"?? how the blueprint will refer to it's context -->, the name of the created method's input, and the code that will be the body of that method.
