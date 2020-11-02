@@ -63,7 +63,7 @@ Methods are a reusable series of operations that that act on an input to produce
 To create a method, we write:
 ```
 method<named, string> input {
-    input.first-name + " " +input.last-name return;
+    input.first-name + " " + input.last-name return;
 }
 ```
 As always, we start with what we are trying to make, only this time, that _what_ is a little more complex. Methods that require different input types or produce different output types are not interchangeable. Thus, when referring to methods, we always include the input and output types next to "method" in a pair of angle brackets. We refer to these as type parameters. The first type parameter is the method's input type (named), and the second is the method's return type (string). We finish with the input parameter (input) and some code that concatenates the input's first-name and last-name.
@@ -94,7 +94,7 @@ Method-blueprints are really just methods. They take a context as their input an
 Unsurprisingly, defining a method-blueprint is very similar to defining a method:
 ```
 say-hello-blueprint := blueprint<named, named, string> context subject {
-    "Hello " + subject.first-name + ", it's " +context.first-name return;
+    "Hello " + subject.first-name + ", it's " + context.first-name return;
 }
 ```
 Unlike methods, method-blueprints have three type parameters: the first is the context's type, the second is the input of the returned method, and the third is the output of the returned method. A blueprint definition also includes the name of the context <!-- what do I mean "name of the context"?? how the blueprint will refer to it's context -->, the name of the created method's input, and the code that will be the body of that method.
