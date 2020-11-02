@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypist.Toolbox;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Tac.Model.Elements;
@@ -7,9 +8,10 @@ namespace Tac.Backend.Emit.Extensions
 {
     class ClosureLookup
     {
-        public readonly IReadOnlyList<IMemberDefinition> closureMember;
+        // the member and who orignally defined it 
+        public readonly IReadOnlyDictionary<IMemberDefinition, IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition, IObjectDefiniton >> closureMember;
 
-        public ClosureLookup(IReadOnlyList<IMemberDefinition> closureMember)
+        public ClosureLookup(IReadOnlyDictionary<IMemberDefinition, IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition, IObjectDefiniton>> closureMember)
         {
             this.closureMember = closureMember ?? throw new ArgumentNullException(nameof(closureMember));
         }

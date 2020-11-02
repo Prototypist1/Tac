@@ -45,6 +45,50 @@ namespace Tac.Backend.Emit
         //}
 
 
+        internal bool InAnyCLosure(IMemberDefinition memberDefinition) {
+            foreach (var item in methodLookup)
+            {
+                foreach (var value in entryPointLookup.Values)
+                {
+                    foreach (var member in value.closureMember)
+                    {
+                        if (memberDefinition == member) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            foreach (var item in implementationLookup)
+            {
+                foreach (var value in entryPointLookup.Values)
+                {
+                    foreach (var member in value.closureMember)
+                    {
+                        if (memberDefinition == member)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            foreach (var item in entryPointLookup)
+            {
+                foreach (var value in entryPointLookup.Values)
+                {
+                    foreach (var member in value.closureMember)
+                    {
+                        if (memberDefinition == member)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
 
         internal bool TryGetClosure(ICodeElement codeElement, out ClosureLookup closureLookup) {
             if (codeElement.SafeIs(out IInternalMethodDefinition methodDefinition) && methodLookup.TryGetValue(methodDefinition, out closureLookup)) {

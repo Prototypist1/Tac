@@ -564,3 +564,35 @@ imp { }
 type {} // type is fine
 
 
+
+================================= what about "this"?
+
+object {
+     x := 5;
+     y := method { x return; };
+}
+
+or
+
+object {
+     x := 5;
+     y := method { this.x return; };
+}
+
+actually I think "that" is better than "this", "this" would be the method, "that" is the object containing the method
+once you have that it makes sense to chian them:
+
+object {
+     x := 5;
+     y := object {
+        x := 5;
+        y :=:= object {
+            x := 5;
+            y := method { that.that.that.x return; };
+        }
+    }
+}
+
+this will give you the outer most object's x
+
+right now I don't have a keyword for 'this' or 'that' and things will walk up the scope looking for a match I should write some tests around this

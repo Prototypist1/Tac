@@ -17,6 +17,11 @@ using Tac.Model.Operations;
 namespace Tac.Backend.Emit.Walkers
 {
 
+    internal class Enclosed<T> {
+        public T value;
+    }
+
+
     public class IndexerList {
 
         public IIsPossibly<int> GetOrAdd(IVerifiableType fromType, IVerifiableType toType) {
@@ -269,15 +274,12 @@ namespace Tac.Backend.Emit.Walkers
 
         public readonly GeneratorHolder generatorHolder;
 
-        // TODO 
-        // this should be a lot better
-        // 1 - mutliple AssemblerVisitor are going to share a evaluationStackDepth
-        // so it need to be a reference of some sort
-        // 2 - I think it should be bound to emit in some way, so I can't forget to modify the stack depth
-
-
-
         private IReadOnlyList<ICodeElement> stack;
+        private readonly Stack<LocalVariableInfo> thisStack = new Stack<LocalVariableInfo>();
+
+
+
+
         // I think I want an object to hold the state
         // I need it for stuff like entryPointField
         // since I am creating a new visitor for each run
@@ -476,6 +478,87 @@ namespace Tac.Backend.Emit.Walkers
             return typeof(TacMethod_Simple_Simple<,>).MakeGenericType(input,output).GetConstructor(new[] { typeof(Func<,>).MakeGenericType(input, output), typeof(IVerifiableType) }) ?? throw new NullReferenceException("should not be null!");
         }
 
+
+        internal IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> CurrentContext() {
+            foreach (var item in stack.Reverse())
+            {
+                if (item.SafeIs(out IEntryPointDefinition entryPointDefinition)) {
+                    return OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(entryPointDefinition);
+                }
+
+                if (item.SafeIs(out IImplementationDefinition implementationDefinition))
+                {
+                    return OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(implementationDefinition);
+                }
+
+                if (item.SafeIs(out IInternalMethodDefinition internalMethodDefinition))
+                {
+                    return OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(internalMethodDefinition);
+                }
+
+                if (item.SafeIs(out IRootScope rootScope))
+                {
+                    return OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(rootScope);
+                }
+            }
+            throw new Exception("context not found");
+        }
+
+        internal bool IsLocal(IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> context, IMemberDefinition member, out IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> orType)
+        {
+            // or:
+            // 1. is in our closure
+            // 2. is a local but not in anyone's closure
+            if (extensionLookup.TryGetClosure(context.GetValueAs(out ICodeElement _), out var closure) && closure.closureMember.Contains(member)) {
+                orType = context;
+                return true;
+            }
+            
+            orType = default;
+            return !extensionLookup.InAnyCLosure(member) && memberKindLookup.IsLocal(member, out orType);
+
+        }
+
+        // note an enclosed argument counts as an enclosed local 
+        // a local that needs to go in a closure
+        internal bool IsEnclosedLocal(IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> context, IMemberDefinition member, out IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> orType)
+        {
+            // or:
+            // is a local but in someone's closure
+            // is a argument but in someone's closure
+            if (extensionLookup.InAnyCLosure(member)) {
+                if (memberKindLookup.IsLocal(member, out orType)){
+                    return true;
+                }
+                if (memberKindLookup.IsArgument(member, out var argOrType)) {
+
+                    orType = argOrType.SwitchReturns(x => OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(x),
+                        x => OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(x));
+                    return true;
+                }
+            }
+            orType = default;
+            return false;
+        }
+
+        internal bool IsArgument(IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> context, IMemberDefinition member, out IOrType<IImplementationDefinition, IInternalMethodDefinition> orType)
+        {
+            // is a argument but not in anyone's closure 
+            orType = default;
+            return !extensionLookup.InAnyCLosure(member) && memberKindLookup.IsArgument(member, out orType);
+        }
+
+        internal bool IsField(IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> context, IMemberDefinition member, out IOrType<IImplementationDefinition, IInternalMethodDefinition, IEntryPointDefinition, IObjectDefiniton, IInterfaceType, ITypeOr> orType)
+        {
+            return memberKindLookup.IsField(member, out orType);
+        }
+
+        internal bool IsStaticField(IMemberDefinition member, out FieldInfo module)
+        {
+            return memberKindLookup.IsStaticField(member, out module);
+        }
+
+
         public Nothing AssignOperation(IAssignOperation co)
         {
 
@@ -492,50 +575,10 @@ namespace Tac.Backend.Emit.Walkers
             // the kind of thing the taget is define how we proceed
             if (co.Right.SafeIs(out IMemberReference memberReference))
             {
-                // see if it is on the closure 
-                // walk up the stack and hope you run in to it
-                foreach (var frame in stack.Reverse())
-                {
-                    if (extensionLookup.TryGetClosure(frame, out var closure))
-                    {
-                        // these are fields!!
+                var context = CurrentContext();
 
-                        if (closure.closureMember.Contains(memberReference.MemberDefinition))
-                        {
-                            // this
-                            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_0);
 
-                            var realizedMethod = realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(frame));
-
-                            var field = realizedMethod.fields[memberReference.MemberDefinition];
-
-                            co.Left.Convert(this.Push(co));
-                            PossiblyConvert(co.Left.Returns(), co.Right.Returns());
-
-                            if (leaveOnStack)
-                            {
-                                // {6820D180-0335-40E4-A9AA-22130FB3BC6D} I do this in other places
-
-                                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
-
-                                var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[memberReference.MemberDefinition.Type], Guid.NewGuid());
-                                StoreLocal(loc.LocalIndex);
-
-                                generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
-
-                                LoadLocal(loc.LocalIndex);
-                            }
-                            else
-                            {
-                                generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
-                            }
-
-                            return new Nothing();
-                        }
-                    }
-                }
-
-                if (memberKindLookup.IsArgument(memberReference.MemberDefinition, out var orTypeArg))
+                if (IsArgument(context,memberReference.MemberDefinition, out var orTypeArg))
                 {
                     // I only allow 1 argument 
                     // 0th arg is this
@@ -549,7 +592,8 @@ namespace Tac.Backend.Emit.Walkers
                     return new Nothing();
                 }
 
-                if (memberKindLookup.IsLocal(memberReference.MemberDefinition, out var orTypeLocal))
+
+                if (IsEnclosedLocal(context, memberReference.MemberDefinition, out var _))
                 {
                     co.Left.Convert(this.Push(co));
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
@@ -557,105 +601,84 @@ namespace Tac.Backend.Emit.Walkers
                     {
                         generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
                     }
-                    return storeLocal(memberReference.MemberDefinition, orTypeLocal);
+
+                    LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberReference.MemberDefinition));
+
+                    var field = typeof(Enclosed<>).MakeGenericType(typeCache[memberReference.MemberDefinition.Type]).GetField(nameof(Enclosed<int>.value));
+
+                    generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
                 }
 
-                if (memberKindLookup.IsField(memberReference.MemberDefinition, out var orTypeField))
+
+                if (IsLocal(context, memberReference.MemberDefinition, out var _))
                 {
-                    // TODO
-                    // so serious duplicate code
-                    return orTypeField.SwitchReturns(
-                        imp =>
-                        {
+                    co.Left.Convert(this.Push(co));
+                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+                    if (leaveOnStack)
+                    {
+                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
+                    }
+                    return StoreLocal(memberReference.MemberDefinition);
+                }
 
-                            // this is the closure
 
-                            // I need a reference to this
-                            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg, (short)0);
+                // field includes stuff on the closure
+                if (IsField(context, memberReference.MemberDefinition, out var orTypeField))
+                {
+                    var realizedMethodOrIndex = orTypeField.SwitchReturns(
+                        imp => OrType.Make < RealizedMethod ,int>( realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(imp))),
+                        method =>  OrType.Make<RealizedMethod, int>(realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(method))),
+                        entryPoint => OrType.Make<RealizedMethod, int>(realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(entryPoint))),
+                        obj => OrType.Make<RealizedMethod, int>(Array.IndexOf(obj.Scope.Members.OrderBy(x => ((NameKey)x.Key).Name).Select(x => x.Value.Value).ToArray(), memberReference.MemberDefinition)),
+                        type => throw new Exception("this should be part of a path"),
+                        orType => throw new Exception("this should be part of a path"));
 
-                            co.Left.Convert(this.Push(co));
-                            PossiblyConvert(co.Left.Returns(), co.Right.Returns());
 
-                            // I need the field info...
-                            var realizedMethod = realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(imp));
-                            var field = realizedMethod.fields[memberReference.MemberDefinition];
+                    return realizedMethodOrIndex.SwitchReturns(
+                        realizedMethod => {
+                            // this
+                            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_0);
 
-                            if (leaveOnStack)
-                            {
-
-                                // TODO I could end up with many of this switching locals of the same type in one method
-                                // i should probably store and reuse them
-                                // {6820D180-0335-40E4-A9AA-22130FB3BC6D} I do this in other places
-
-                                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
-
-                                var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[memberReference.MemberDefinition.Type], Guid.NewGuid());
-                                StoreLocal(loc.LocalIndex);
-
-                                generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
-
-                                LoadLocal(loc.LocalIndex);
-                            }
-                            else {
-                                generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
-                            }
-
-                            return new Nothing();
-                        },
-                        obj =>
-                        {
-
-                            // object would usally need to be part of a path
-                            // how else would you know what where to look for the field
-                            // but there is one excpetion
-                            // object initiation
-                            if (!stack.Last().SafeIs(out IObjectDefiniton _)) {
-                                throw new Exception("this should only happen in object init");
-                            }
-
-                            // we count on having a reference to the object already on the stack
-
-                            // 1st parm, the new value
-                            co.Left.Convert(this.Push(co));
-                            PossiblyConvert(co.Left.Returns(), co.Right.Returns());
-
-                            // second parm, the index
-                            var index = Array.IndexOf(obj.Scope.Members.Values.Select(x => x.Value).ToArray(), memberReference.MemberDefinition);
-                            LoadInt(index);
-
-                            if (typeCache[memberReference.MemberDefinition.Type] == typeof(ITacObject))
-                            {
-                                switch (memberReference.MemberDefinition.Access)
+                            return realizedMethod.fieldOrFieldPair[memberReference.MemberDefinition].SwitchReturns(
+                                field =>
                                 {
-                                    case Access.ReadOnly:
-                                        throw new Exception("this should have benn handled inside assignment");
-                                    case Access.ReadWrite:
-                                        generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new System.Type[] { });
-                                        return new Nothing();
-                                    case Access.WriteOnly:
-                                        generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new System.Type[] { });
-                                        return new Nothing();
-                                    default:
-                                        throw new Exception("that is unexpected");
-                                }
-                            }
-                            else
-                            {
-                                generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[memberReference.MemberDefinition.Type]), new System.Type[] { });
-                                return new Nothing();
-                            }
+                                    co.Left.Convert(this.Push(co));
+                                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+                                    StoreField(field, leaveOnStack, memberReference);
+
+                                    return new Nothing();
+                                },
+                                pair =>
+                                {
+                                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, pair.funcField);
+
+                                    co.Left.Convert(this.Push(co));
+                                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+
+                                    StoreField(pair.path, leaveOnStack, memberReference);
+
+                                    return new Nothing();
+                                },
+                                pair =>
+                                {
+                                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, pair.funcField);
 
 
-                            throw new Exception("this is part of a path and we are explictily not part of a path, we are a member ref directly inside an assignment");
+                                    // 1st parm, the new value
+                                    co.Left.Convert(this.Push(co));
+                                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
 
+                                    // second parm, the index
+                                    var index = Array.IndexOf(pair.scope.Members.OrderBy(x => ((NameKey)x.Key).Name).Select(x => x.Value.Value).ToArray(), memberReference.MemberDefinition);
+                                    LoadInt(index);
+                                    return CallSet(leaveOnStack, memberReference);
+
+                                    throw new Exception("this is part of a path and we are explictily not part of a path, we are a member ref directly inside an assignment");
+
+                                });
                         },
-                        typ => {
-
-                            // object would usally need to be part of a path
-                            // how else would you know what where to look for the field
-                            // but there is one excpetion
-                            // object initiation
-                            if (!stack.Last().SafeIs(out IObjectDefiniton _))
+                        index => {
+                            if (!stack.Last().SafeIs<ICodeElement, IObjectDefiniton>(out var _))
                             {
                                 throw new Exception("this should only happen in object init");
                             }
@@ -667,85 +690,15 @@ namespace Tac.Backend.Emit.Walkers
                             PossiblyConvert(co.Left.Returns(), co.Right.Returns());
 
                             // second parm, the index
-                            var index = Array.IndexOf(typ.Members.ToArray(), memberReference.MemberDefinition);
                             LoadInt(index);
-
-                            if (typeCache[memberReference.MemberDefinition.Type] == typeof(ITacObject))
-                            {
-                                switch (memberReference.MemberDefinition.Access)
-                                {
-                                    case Access.ReadOnly:
-                                        throw new Exception("this should have benn handled inside assignment");
-                                    case Access.ReadWrite:
-                                        generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new System.Type[] { });
-                                        return new Nothing();
-                                    case Access.WriteOnly:
-                                        generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new System.Type[] { });
-                                        return new Nothing();
-                                    default:
-                                        throw new Exception("that is unexpected");
-                                }
-                            }
-                            else
-                            {
-                                generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[memberReference.MemberDefinition.Type]), new System.Type[] { });
-                                return new Nothing();
-                            }
-
-
-                            throw new Exception("this is part of a path and we are explictily not part of a path, we are a member ref directly inside an assignment");
-
-                        },
-                        orType => {
-
-                            // object would usally need to be part of a path
-                            // how else would you know what where to look for the field
-                            // but there is one excpetion
-                            // object initiation
-                            if (!stack.Last().SafeIs(out IObjectDefiniton _))
-                            {
-                                throw new Exception("this should only happen in object init");
-                            }
-
-                            // we count on having a reference to the object already on the stack
-
-                            // 1st parm, the new value
-                            co.Left.Convert(this.Push(co));
-                            PossiblyConvert(co.Left.Returns(), co.Right.Returns());
-
-                            // second parm, the index
-                            var index = Array.IndexOf(orType.Members.ToArray(), memberReference.MemberDefinition);
-                            LoadInt(index);
-
-                            if (typeCache[memberReference.MemberDefinition.Type] == typeof(ITacObject))
-                            {
-                                switch (memberReference.MemberDefinition.Access)
-                                {
-                                    case Access.ReadOnly:
-                                        throw new Exception("this should have benn handled inside assignment");
-                                    case Access.ReadWrite:
-                                        generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new System.Type[] { });
-                                        return new Nothing();
-                                    case Access.WriteOnly:
-                                        generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new System.Type[] { });
-                                        return new Nothing();
-                                    default:
-                                        throw new Exception("that is unexpected");
-                                }
-                            }
-                            else
-                            {
-                                generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[memberReference.MemberDefinition.Type]), new System.Type[] { });
-                                return new Nothing();
-                            }
-
+                            return CallSet(leaveOnStack, memberReference);
 
                             throw new Exception("this is part of a path and we are explictily not part of a path, we are a member ref directly inside an assignment");
 
                         });
                 }
 
-                if (memberKindLookup.IsStaticField(memberReference.MemberDefinition, out var fieldInfo))
+                if (IsStaticField(memberReference.MemberDefinition, out var fieldInfo))
                 {
 
                     generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldsfld, rootSelfField);
@@ -783,121 +736,34 @@ namespace Tac.Backend.Emit.Walkers
             {
                 // who we are calling it on
                 path.Left.Convert(this.Push(co));
+                PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+
                 if (path.Right.SafeIs(out IMemberReference pathMemberReference))
                 {
 
                     // this "b" inside a path like: a.b
                     // we count on "a" to have already been load
-                    if (memberKindLookup.IsField(pathMemberReference.MemberDefinition, out var orTypeField))
+
+                    var returned = path.Left.Returns();
+
+                    if (returned.SafeIs(out IInterfaceType obj))
                     {
+                        var index = Array.IndexOf(obj.Members.OrderBy(x => ((NameKey)x.Key).Name).ToArray(), memberReference.MemberDefinition);
 
-                        // TODO
-                        // so serious duplicate code
-                        return orTypeField.SwitchReturns(
-                            imp =>
-                            {
-                                throw new Exception("we are part of a path so we know it is an ojbect");
-                            },
-                            obj =>
-                            {
-                                // 1st parm, the new value
-                                co.Left.Convert(this.Push(co));
-                                PossiblyConvert(co.Left.Returns(), co.Right.Returns());
-
-                                // second parm, the index
-                                var index = Array.IndexOf(obj.Scope.Members.Values.Select(x => x.Value).ToArray(), pathMemberReference.MemberDefinition);
-                                LoadInt(index);
-
-                                if (typeCache[pathMemberReference.MemberDefinition.Type] == typeof(ITacObject))
-                                {
-                                    switch (pathMemberReference.MemberDefinition.Access)
-                                    {
-                                        case Access.ReadOnly:
-                                            throw new Exception("this should have benn handled inside assignment");
-                                        case Access.ReadWrite:
-                                            generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new System.Type[] { });
-                                            return new Nothing();
-                                        case Access.WriteOnly:
-                                            generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new System.Type[] { });
-                                            return new Nothing();
-                                        default:
-                                            throw new Exception("that is unexpected");
-                                    }
-                                }
-                                else
-                                {
-                                    generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[pathMemberReference.MemberDefinition.Type]), new System.Type[] { });
-                                    return new Nothing();
-                                }
-                            },
-                            typ => {
-
-                                // 1st parm, the new value
-                                co.Left.Convert(this.Push(co));
-                                PossiblyConvert(co.Left.Returns(), co.Right.Returns());
-
-                                // second parm, the index
-                                var index = Array.IndexOf(typ.Members.ToArray(), pathMemberReference.MemberDefinition);
-                                LoadInt(index);
-
-                                if (typeCache[pathMemberReference.MemberDefinition.Type] == typeof(ITacObject))
-                                {
-                                    switch (pathMemberReference.MemberDefinition.Access)
-                                    {
-                                        case Access.ReadOnly:
-                                            throw new Exception("this should have benn handled inside assignment");
-                                        case Access.ReadWrite:
-                                            generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new System.Type[] { });
-                                            return new Nothing();
-                                        case Access.WriteOnly:
-                                            generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new System.Type[] { });
-                                            return new Nothing();
-                                        default:
-                                            throw new Exception("that is unexpected");
-                                    }
-                                }
-                                else
-                                {
-                                    generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[pathMemberReference.MemberDefinition.Type]), new System.Type[] { });
-                                    return new Nothing();
-                                }
-                            },
-                            orType => {
-
-                                // 1st parm, the new value
-                                co.Left.Convert(this.Push(co));
-                                PossiblyConvert(co.Left.Returns(), co.Right.Returns());
-
-                                // second parm, the index
-                                var index = Array.IndexOf(orType.Members.ToArray(), pathMemberReference.MemberDefinition);
-                                LoadInt(index);
-
-                                if (typeCache[pathMemberReference.MemberDefinition.Type] == typeof(ITacObject))
-                                {
-                                    switch (pathMemberReference.MemberDefinition.Access)
-                                    {
-                                        case Access.ReadOnly:
-                                            throw new Exception("this should have benn handled inside assignment");
-                                        case Access.ReadWrite:
-                                            generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new System.Type[] { });
-                                            return new Nothing();
-                                        case Access.WriteOnly:
-                                            generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new System.Type[] { });
-                                            return new Nothing();
-                                        default:
-                                            throw new Exception("that is unexpected");
-                                    }
-                                }
-                                else
-                                {
-                                    generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[pathMemberReference.MemberDefinition.Type]), new System.Type[] { });
-                                    return new Nothing();
-                                }
-                            });
+                        // second parm, the index
+                        LoadInt(index);
+                        return CallSet(leaveOnStack, memberReference);
                     }
-                    else
+                    else if (returned.SafeIs(out ITypeOr typeOr))
                     {
-                        throw new Exception("should be a field");
+                        var index = Array.IndexOf(typeOr.Members.OrderBy(x => ((NameKey)x.Key).Name).ToArray(), memberReference.MemberDefinition);
+
+                        // second parm, the index
+                        LoadInt(index);
+                        return CallSet(leaveOnStack, memberReference);
+                    }
+                    else {
+                        throw new Exception("we are in a path, so it need to be something with members");
                     }
                 }
                 else
@@ -908,6 +774,52 @@ namespace Tac.Backend.Emit.Walkers
             else
             {
                 throw new Exception("if it is not a reference.... what is it?");
+            }
+        }
+
+        private void StoreField(FieldInfo field, bool leaveOnStack, IMemberReference memberReference)
+        {
+            if (leaveOnStack)
+            {
+                // {6820D180-0335-40E4-A9AA-22130FB3BC6D} I do this in other places
+
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
+
+                var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[memberReference.MemberDefinition.Type], Guid.NewGuid());
+                StoreLocal(loc.LocalIndex);
+
+                generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
+
+                LoadLocal(loc.LocalIndex);
+            }
+            else
+            {
+                generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
+            }
+        }
+
+        private Nothing CallSet(bool leaveOnStack, IMemberReference memberReference)
+        {
+            if (typeCache[memberReference.MemberDefinition.Type] == typeof(ITacObject))
+            {
+                switch (memberReference.MemberDefinition.Access)
+                {
+                    case Access.ReadOnly:
+                        throw new Exception("this should have benn handled inside assignment");
+                    case Access.ReadWrite:
+                        generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new System.Type[] { });
+                        return new Nothing();
+                    case Access.WriteOnly:
+                        generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new System.Type[] { });
+                        return new Nothing();
+                    default:
+                        throw new Exception("that is unexpected");
+                }
+            }
+            else
+            {
+                generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[memberReference.MemberDefinition.Type]), new System.Type[] { });
+                return new Nothing();
             }
         }
 
@@ -1013,19 +925,18 @@ namespace Tac.Backend.Emit.Walkers
 
             var realizedMethod = realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(entryPointDefinition));
             var myMethod = realizedMethod.type.DefineMethod(
-                GenerateName(), 
-                MethodAttributes.Public, 
-                CallingConventions.HasThis, 
+                GenerateName(),
+                MethodAttributes.Public,
+                CallingConventions.HasThis,
                 typeof(object), new[] { typeof(object) });
 
 
             var gen = new DebuggableILGenerator(myMethod.GetILGenerator(), "main");
 
             // I need to declare the locals
-            foreach (var local in entryPointDefinition.Scope.Members)
-            {
-                gen.DeclareLocal(typeCache[ local.Value.Value.Type], local.Value.Value);
-            }
+            DeclareLocals(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(entryPointDefinition), entryPointDefinition.Scope, gen);
+
+
 
             var inner = this.Push(entryPointDefinition, gen);
             foreach (var line in entryPointDefinition.Body)
@@ -1042,24 +953,7 @@ namespace Tac.Backend.Emit.Walkers
 
             // pass stuff in to the closure
             // this is similar to the code in method but not quite the same
-            if (extensionLookup.TryGetClosure(entryPointDefinition, out var ourClosure))
-            {
-
-                foreach (var member in ourClosure.closureMember)
-                {
-                    if (realizedMethod.fields.TryGetValue(member, out var fieldInfo))
-                    {
-
-                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
-
-                        // it's a local
-                        EmitMemberReference(member);
-                        
-                        // now we need to push the new value on to out closure 
-                        generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, fieldInfo);
-                    }
-                }
-            }
+            PopulateTheClosure(entryPointDefinition, realizedMethod);
 
             // now I need to make a TacMethod or whatever
 
@@ -1071,6 +965,33 @@ namespace Tac.Backend.Emit.Walkers
             generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, mainField);
 
             return new Nothing();
+        }
+
+        private void DeclareLocals(IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> context, IFinalizedScope scope, DebuggableILGenerator gen)
+        {
+            foreach (var local in scope.Members)
+            {
+                if (IsLocal(context, local.Value.Value, out var _))
+                {
+                    gen.DeclareLocal(typeCache[local.Value.Value.Type], local.Value.Value);
+                }
+                else if (IsEnclosedLocal(context, local.Value.Value, out var _))
+                {
+                    var enclosedType = typeof(Enclosed<>).MakeGenericType(typeCache[local.Value.Value.Type]);
+
+                    var loc =  gen.DeclareLocal(enclosedType, local.Value.Value);
+
+                    // for enclosed locals we also need to init them 
+
+                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Newobj, enclosedType.GetConstructors().First());
+
+                    StoreLocal(loc.LocalIndex);
+                }
+                else
+                {
+                    throw new Exception("should really be a local or an enclosed local");
+                }
+            }
         }
 
         public Nothing IfTrueOperation(IIfOperation co)
@@ -1163,32 +1084,6 @@ namespace Tac.Backend.Emit.Walkers
 
             // {870866D9-D3EC-47B1-B7D3-6966EE651F5F}
             // storing and loading have a lot in commmon
-
-            // see if it is on the closure 
-            // walk up the stack and hope you run in to it
-
-            foreach (var frame in stack.Reverse())
-            {
-                if (extensionLookup.TryGetClosure(frame, out var closure))
-                {
-                    // these are fields!!
-
-                    if (closure.closureMember.Contains(memberReference.MemberDefinition))
-                    {
-                        // this
-                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_0);
-
-                        var realizedMethod = realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(frame));
-
-                        var field = realizedMethod.fields[memberReference.MemberDefinition];
-
-                        generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, field);
-
-                        return new Nothing();
-                    }
-                }
-            }
-
             return  EmitMemberReference(memberReference.MemberDefinition);
 
         }
@@ -1196,164 +1091,80 @@ namespace Tac.Backend.Emit.Walkers
         /// this does not look in the closure
         private Nothing EmitMemberReference(IMemberDefinition memberDefinition) {
 
+            var context = CurrentContext();
 
-            if (memberKindLookup.IsArgument(memberDefinition, out var orTypeArg))
+
+            if (IsArgument(context,memberDefinition, out var _))
             {
-                return orTypeArg.SwitchReturns(
-                    imp =>
-                    {
-                        // I only allow 1 argument 
-                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_1);
-                        return new Nothing();
-                    },
-                    method =>
-                    {
-                        // I only allow 1 argument 
-                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_1);
-                        return new Nothing();
-                    });
+                // I only allow 1 argument 
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_1);
+                return new Nothing();
             }
 
-            if (memberKindLookup.IsLocal(memberDefinition, out var orTypeLocal))
+            if (IsEnclosedLocal(context, memberDefinition, out var _))
             {
-                return orTypeLocal.SwitchReturns(
-                    entryPoint =>
-                    {
-                        LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDefinition));
-                        return new Nothing();
-                    },
-                    imp =>
-                    {
-                        LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDefinition));
-                        return new Nothing();
-                    },
-                    method =>
-                    {
-                        LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDefinition));
-                        return new Nothing();
-                    },
-                    rootScope =>
-                    {
-                        LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDefinition));
-                        return new Nothing();
-                    });
+                LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDefinition));
+                var field = typeof(Enclosed<>).MakeGenericType(typeCache[memberDefinition.Type]).GetField(nameof(Enclosed<int>.value));
+                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, field);
+                return new Nothing();
             }
 
-            if (memberKindLookup.IsField(memberDefinition, out var orTypeField))
+            if (IsLocal(context,memberDefinition, out var _))
             {
-                // TODO
-                // so serious duplicate code
-                return orTypeField.SwitchReturns(
-                    imp =>
-                    {
-                        // this is the closure
+                LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDefinition));
+                return new Nothing();
+            }
 
-                        // I need a reference to this
-                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_1);
+            if (IsField(context, memberDefinition, out var orTypeField))
+            {
 
-                        // I need the field info...
-                        var realizedMethod = realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(imp));
-                        var field = realizedMethod.fields[memberDefinition];
+                var realizedMethodOrIndex = orTypeField.SwitchReturns(
+                    imp => OrType.Make<RealizedMethod, int>(realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(imp))),
+                    method => OrType.Make<RealizedMethod, int>(realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(method))),
+                    entryPoint => OrType.Make<RealizedMethod, int>(realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(entryPoint))),
+                    obj => OrType.Make<RealizedMethod, int>(Array.IndexOf(obj.Scope.Members.OrderBy(x => ((NameKey)x.Key).Name).Select(x => x.Value.Value).ToArray(), memberDefinition)),
+                    type => OrType.Make<RealizedMethod, int>(Array.IndexOf(type.Members.OrderBy(x => ((NameKey)x.Key).Name).ToArray(), memberDefinition)),
+                    orType => OrType.Make<RealizedMethod, int>(Array.IndexOf(orType.Members.OrderBy(x => ((NameKey)x.Key).Name).ToArray(), memberDefinition)));
 
-                        generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, field);
-                        // no change in stack
 
-                        return new Nothing();
+
+                return realizedMethodOrIndex.SwitchReturns(
+                    realizedMethod => {
+                            // this
+                            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_0);
+
+                        return realizedMethod.fieldOrFieldPair[memberDefinition].SwitchReturns(
+                            field =>
+                            {
+                                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, field);
+                                return new Nothing();
+                            },
+                            pair =>
+                            {
+                                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, pair.funcField);
+                                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, pair.path);
+                                return new Nothing();
+                            },
+                            pair =>
+                            {
+                                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, pair.funcField);
+
+                                var index = Array.IndexOf(pair.scope.Members.OrderBy(x => ((NameKey)x.Key).Name).Select(x => x.Value.Value).ToArray(), memberDefinition);
+                                LoadInt(index);
+                                return CallGet(memberDefinition);
+                            });
                     },
-                    obj =>
-                    {
+                    index => {
 
                         // this "b" inside a path like: a.b
                         // we count on "a" to have already been load
 
-                        var index = Array.IndexOf(obj.Scope.Members.Values.Select(x => x.Value).ToArray(), memberDefinition);
                         LoadInt(index);
-
-                        if (typeCache[memberDefinition.Type] == typeof(ITacObject))
-                        {
-                            switch (memberDefinition.Access)
-                            {
-                                case Access.ReadOnly:
-                                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexReadonlyMember.Value, new System.Type[] { });
-                                    return new Nothing();
-                                case Access.ReadWrite:
-                                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexMember.Value, new System.Type[] {  });
-                                    return new Nothing();
-                                case Access.WriteOnly:
-                                    throw new Exception("this should have benn handled inside assignment");
-                                default:
-                                    throw new Exception("that is unexpected");
-                            }
-                        }
-                        else
-                        {
-                            generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getSimpleMember.Value.MakeGenericMethod(typeCache[memberDefinition.Type]), new System.Type[] { });
-                            return new Nothing();
-                        }
-                    },
-                    typ => {
-
-                        // this "b" inside a path like: a.b
-                        // we count on "a" to have already been load
-
-                        var index = Array.IndexOf(typ.Members.ToArray(), memberDefinition);
-                        LoadInt(index);
-
-                        if (typeCache[memberDefinition.Type] == typeof(ITacObject))
-                        {
-                            switch (memberDefinition.Access)
-                            {
-                                case Access.ReadOnly:
-                                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexReadonlyMember.Value, new System.Type[] { });
-                                    return new Nothing();
-                                case Access.ReadWrite:
-                                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexMember.Value, new System.Type[] { });
-                                    return new Nothing();
-                                case Access.WriteOnly:
-                                    throw new Exception("this should have benn handled inside assignment");
-                                default:
-                                    throw new Exception("that is unexpected");
-                            }
-                        }
-                        else
-                        {
-                            generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getSimpleMember.Value.MakeGenericMethod(typeCache[memberDefinition.Type]), new System.Type[] { });
-                            return new Nothing();
-                        }
-                    },
-                    orType => {
-
-                        // this "b" inside a path like: a.b
-                        // we count on "a" to have already been load
-
-                        var index = Array.IndexOf(orType.Members.ToArray(), memberDefinition);
-                        LoadInt(index);
-
-                        if (typeCache[memberDefinition.Type] == typeof(ITacObject))
-                        {
-                            switch (memberDefinition.Access)
-                            {
-                                case Access.ReadOnly:
-                                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexReadonlyMember.Value, new System.Type[] { });
-                                    return new Nothing();
-                                case Access.ReadWrite:
-                                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexMember.Value, new System.Type[] { });
-                                    return new Nothing();
-                                case Access.WriteOnly:
-                                    throw new Exception("this should have benn handled inside assignment");
-                                default:
-                                    throw new Exception("that is unexpected");
-                            }
-                        }
-                        else
-                        {
-                            generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getSimpleMember.Value.MakeGenericMethod(typeCache[memberDefinition.Type]), new System.Type[] { });
-                            return new Nothing();
-                        }
+                        return CallGet(memberDefinition);
                     });
             }
 
-            if (memberKindLookup.IsStaticField(memberDefinition, out var fieldInfo))
+            if (IsStaticField(memberDefinition, out var fieldInfo))
             {
                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldsfld, rootSelfField);
 
@@ -1366,6 +1177,30 @@ namespace Tac.Backend.Emit.Walkers
             throw new Exception("how did we end up here?");
         }
 
+        private Nothing CallGet(IMemberDefinition memberDefinition)
+        {
+            if (typeCache[memberDefinition.Type] == typeof(ITacObject))
+            {
+                switch (memberDefinition.Access)
+                {
+                    case Access.ReadOnly:
+                        generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexReadonlyMember.Value, new System.Type[] { });
+                        return new Nothing();
+                    case Access.ReadWrite:
+                        generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexMember.Value, new System.Type[] { });
+                        return new Nothing();
+                    case Access.WriteOnly:
+                        throw new Exception("this should have benn handled inside assignment");
+                    default:
+                        throw new Exception("that is unexpected");
+                }
+            }
+            else
+            {
+                generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getSimpleMember.Value.MakeGenericMethod(typeCache[memberDefinition.Type]), new System.Type[] { });
+                return new Nothing();
+            }
+        }
 
         private readonly Lazy<MethodInfo> getComplexReadonlyMember = new Lazy<MethodInfo>(() =>
         {
@@ -1530,17 +1365,25 @@ namespace Tac.Backend.Emit.Walkers
 
             var realizedMethod = realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(method));
             var name = GenerateName();
-            var myMethod = realizedMethod.type.DefineMethod(name, MethodAttributes.Public, CallingConventions.HasThis, ToITacObjectOrOject(typeCache[ method.OutputType]), new[] { ToITacObjectOrOject(typeCache[method.InputType]) });
+            var myMethod = realizedMethod.type.DefineMethod(name, MethodAttributes.Public, CallingConventions.HasThis, ToITacObjectOrOject(typeCache[method.OutputType]), new[] { ToITacObjectOrOject(typeCache[method.InputType]) });
 
-            var gen = new DebuggableILGenerator( myMethod.GetILGenerator(), name);
+            var gen = new DebuggableILGenerator(myMethod.GetILGenerator(), name);
 
+            var context = OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(method);
+            
             // I need to declare the locals
-            foreach (var local in method.Scope.Members)
-            {
-                if (local.Value.Value != method.ParameterDefinition)
-                {
-                    gen.DeclareLocal(typeCache[local.Value.Value.Type], local.Value.Value);
-                }
+            DeclareLocals(context, method.Scope, gen); ;
+
+
+            // I might need to enclose the argument
+            if (IsEnclosedLocal(context, method.ParameterDefinition, out var _)) {
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_1);
+
+                LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(method.ParameterDefinition));
+
+                var field = typeof(Enclosed<>).MakeGenericType(typeCache[method.ParameterDefinition.Type]).GetField(nameof(Enclosed<int>.value));
+
+                generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
             }
 
             var inner = this.Push(method, gen);
@@ -1557,32 +1400,7 @@ namespace Tac.Backend.Emit.Walkers
 
 
             // pass stuff in to the closure
-            if (extensionLookup.TryGetClosure(method, out var ourClosure))
-            {
-                // find our parent
-                var frame = stack.Reverse().Select(frame => { return extensionLookup.TryGetClosure(frame, out var _)? frame:null; }).Where(x => x != null).First() ?? throw new ArgumentNullException("should find one") ;
-
-                foreach (var member in ourClosure.closureMember)
-                {
-                    if (realizedMethod.fields.TryGetValue(member, out var fieldInfo)) {
-
-                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
-
-                        var outerRealizedMethod = realizedMethodLookup.GetValueOrThrow(ConvertToMethodlike(frame));
-                        // if it is on the closure read the field
-                        if (outerRealizedMethod.fields.TryGetValue(member, out var field))
-                        {
-                            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, field);
-                        }
-                        else {
-                            EmitMemberReference(member);
-                        }
-
-                        // now we need to push the new value on to out closure 
-                        generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, fieldInfo);
-                    }
-                }
-            }
+            PopulateTheClosure(method, realizedMethod);
 
             // now I need to make a TacMethod or whatever
 
@@ -1605,7 +1423,8 @@ namespace Tac.Backend.Emit.Walkers
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Newobj, tacMethod_Complex_SimpleConstructor(typeCache[method.OutputType]));
                 }
             }
-            else {
+            else
+            {
                 if (typeCache[method.OutputType] == typeof(ITacObject))
                 {
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Newobj, tacMethod_Simple_ComplexConstructor(typeCache[method.InputType]));
@@ -1617,6 +1436,51 @@ namespace Tac.Backend.Emit.Walkers
             }
 
             return new Nothing();
+        }
+
+        private void PopulateTheClosure(ICodeElement method, RealizedMethod realizedMethod)
+        {
+            if (extensionLookup.TryGetClosure(method, out var ourClosure))
+            {
+                foreach (var member in ourClosure.closureMember)
+                {
+
+                    if (realizedMethod.fieldOrFieldPair.TryGetValue(member, out var fieldInfoOr))
+                    {
+
+                        var fieldInfo = fieldInfoOr.SwitchReturns(fieldInfo => fieldInfo, pair => pair.funcField, pair => pair.funcField);
+
+                        generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
+
+                        if (fieldInfoOr.Is3(out var _))
+                        {
+                            // an object was captured by the closure
+                            
+                            // the object could have been captured by a series of closures
+                            // object { x:=5 ; y = method { method { x return; } return }; };
+                            var context = CurrentContext();
+                            if (IsField(context, member, out var _))
+                            {
+                                EmitMemberReference(member);
+                            }
+                            else if (thisStack.TryPeek(out var localVariableInfo))
+                            {
+                                LoadLocal(localVariableInfo.LocalIndex);
+                            }
+                            else {
+                                throw new Exception("I don't know what's going on");
+                            }
+                        }
+                        else { 
+                            EmitMemberReference(member);
+                        }
+
+                        // now we need to push the new value on to out closure 
+                        generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, fieldInfo);
+
+                    }
+                }
+            }
         }
 
 
@@ -1736,6 +1600,10 @@ namespace Tac.Backend.Emit.Walkers
                 generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
             }
 
+            // store this
+            var thisLocal = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeof(ITacObject) , Guid.NewGuid());
+            thisStack.Push(thisLocal);
+
             // init members
             var next = this.Push(@object);
             foreach (var assignment in @object.Assignments)
@@ -1743,6 +1611,8 @@ namespace Tac.Backend.Emit.Walkers
                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
                 assignment.Convert(next);
             }
+
+            thisStack.Pop();
 
             // duplicate code {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
             // TODO
@@ -1840,25 +1710,35 @@ namespace Tac.Backend.Emit.Walkers
 
             generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Brfalse, topOfElseLabel);
 
-            if (memberKindLookup.IsLocal(memberDef, out var orTypeLocal))
+            if (typeCache[memberDef.Type] == typeof(bool))
             {
-                if (typeCache[memberDef.Type] == typeof(bool))
-                {
-                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Unbox_Any, typeof(bool));
-                }
-                else
-                if (typeCache[memberDef.Type] == typeof(double))
-                {
-                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Unbox_Any, typeof(double));
-                }
-                else
-                {
-                    GetVerifyableType(memberDef.Type);
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Call, typeof(AssemblyWalkerHelp).GetMethod(nameof(AssemblyWalkerHelp.TryAssignOperationHelper_Cast)), new System.Type[] { });
-                }
-                storeLocal(memberDef, orTypeLocal);
+                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Unbox_Any, typeof(bool));
             }
-            else {
+            else if (typeCache[memberDef.Type] == typeof(double))
+            {
+                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Unbox_Any, typeof(double));
+            }
+            else
+            {
+                GetVerifyableType(memberDef.Type);
+                generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Call, typeof(AssemblyWalkerHelp).GetMethod(nameof(AssemblyWalkerHelp.TryAssignOperationHelper_Cast)), new System.Type[] { });
+            }
+
+            var context = CurrentContext();
+
+            if (IsLocal(context,memberDef, out var _))
+            {
+                StoreLocal(memberDef);
+            }
+            else if (IsEnclosedLocal(context, memberDef, out var _))
+            {
+                LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDef));
+
+                var field = typeof(Enclosed<>).MakeGenericType(typeCache[memberDef.Type]).GetField(nameof(Enclosed<int>.value));
+
+                generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
+
+            } else {
                 throw new Exception("should always be a local");
             }
 
@@ -1873,29 +1753,10 @@ namespace Tac.Backend.Emit.Walkers
             return new Nothing();
         }
 
-        private Nothing storeLocal(IMemberDefinition memberDef, IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> orTypeLocal)
+        private Nothing StoreLocal(IMemberDefinition memberDef)
         {
-            return orTypeLocal.SwitchReturns(
-                entryPoint =>
-                {
-                    StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDef));
-                    return new Nothing();
-                },
-                imp =>
-                {
-                    StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDef));
-                    return new Nothing();
-                },
-                method =>
-                {
-                    StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDef));
-                    return new Nothing();
-                },
-                rootScope =>
-                {
-                    StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDef));
-                    return new Nothing();
-                });
+            StoreLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDef));
+            return new Nothing();
         }
 
         private Nothing Walk(IEnumerable<ICodeElement> elements, ICodeElement element)

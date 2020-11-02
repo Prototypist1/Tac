@@ -10,6 +10,8 @@ using Tac.Model.Elements;
 
 namespace Tac.Backend.Emit.Lookup
 {
+ 
+    
     class MemberKindLookup
     {
         private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>> locals = new ConcurrentIndexed<IMemberDefinition, IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>>();
@@ -51,7 +53,7 @@ namespace Tac.Backend.Emit.Lookup
         {
             return arguments.TryGetValue(member, out orType);
         }
-        internal bool IsField(IMemberDefinition member, out IOrType<IImplementationDefinition, IObjectDefiniton, IInterfaceType, ITypeOr> orType)
+        internal bool IsField(IMemberDefinition member, out IOrType<IImplementationDefinition, IInternalMethodDefinition, IEntryPointDefinition , IObjectDefiniton, IInterfaceType, ITypeOr> orType)
         {
             return fields.TryGetValue(member, out orType);
         }

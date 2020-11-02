@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using Tac.Backend.Emit.Lookup;
+using Tac.Backend.Emit.Support;
 using Tac.Backend.Emit.Walkers;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -20,7 +21,7 @@ namespace Tac.Backend.Emit.Visitors
         private readonly ExtensionLookup extensionLookup;
         private readonly RealizedMethodLookup realizedMethodLookup;
         public readonly Dictionary<IVerifiableType, System.Type> typeCache;
-
+        private readonly Stack<IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope, IObjectDefiniton>> contextStack = new Stack<IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope, IObjectDefiniton>>();
         public MethodMakerVisitor(ModuleBuilder moduleBuilder, ExtensionLookup extensionLookup, RealizedMethodLookup realizedMethodLookup, Dictionary<IVerifiableType, System.Type> typeCache)
         {
             this.moduleBuilder = moduleBuilder ?? throw new ArgumentNullException(nameof(moduleBuilder));
@@ -29,29 +30,70 @@ namespace Tac.Backend.Emit.Visitors
             this.typeCache = typeCache ?? throw new ArgumentNullException(nameof(typeCache));
         }
 
-        private void Walk(IEnumerable<ICodeElement> codeElements)
+
+        private Action MaybePsuh(ICodeElement current) {
+
+            if (current.SafeIs(out IEntryPointDefinition entryPointDefinition)) {
+                contextStack.Push(
+                    OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope, IObjectDefiniton>(entryPointDefinition));
+                return () => { contextStack.Pop(); };
+            }
+
+            if (current.SafeIs(out IImplementationDefinition imp))
+            {
+                contextStack.Push(
+                    OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope, IObjectDefiniton>(imp));
+                return () => { contextStack.Pop(); };
+            }
+
+            if (current.SafeIs(out IInternalMethodDefinition method))
+            {
+                contextStack.Push(
+                    OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope, IObjectDefiniton>(method));
+                return () => { contextStack.Pop(); };
+            }
+
+            if (current.SafeIs(out IRootScope root))
+            {
+                contextStack.Push(
+                    OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope, IObjectDefiniton>(root));
+                return () => { contextStack.Pop(); };
+            }
+
+            if (current.SafeIs(out IObjectDefiniton obj))
+            {
+                contextStack.Push(
+                    OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope, IObjectDefiniton>(obj));
+                return () => { contextStack.Pop(); };
+            }
+            return () => { };
+        }
+
+        private void Walk(IEnumerable<ICodeElement> codeElements, ICodeElement current)
         {
+            var maybePop = MaybePsuh(current);
             foreach (var element in codeElements)
             {
                 element.Convert(this);
             }
+            maybePop();
         }
 
         public Nothing AddOperation(IAddOperation co)
         {
-            Walk(co.Operands);
+            Walk(co.Operands, co);
             return new Nothing();
         }
 
         public Nothing AssignOperation(IAssignOperation co)
         {
-            Walk(co.Operands);
+            Walk(co.Operands,co);
             return new Nothing();
         }
 
         public Nothing BlockDefinition(IBlockDefinition codeElement)
         {
-            Walk(codeElement.Body);
+            Walk(codeElement.Body, codeElement);
             return new Nothing();
         }
 
@@ -72,7 +114,7 @@ namespace Tac.Backend.Emit.Visitors
 
         public Nothing ElseOperation(IElseOperation co)
         {
-            Walk(co.Operands);
+            Walk(co.Operands, co);
             return new Nothing();
         }
 
@@ -85,7 +127,7 @@ namespace Tac.Backend.Emit.Visitors
 
         public Nothing IfTrueOperation(IIfOperation co)
         {
-            Walk(co.Operands);
+            Walk(co.Operands, co);
             return new Nothing();
         }
 
@@ -98,7 +140,7 @@ namespace Tac.Backend.Emit.Visitors
             var myConstructorIL = constructor.GetILGenerator();
             myConstructorIL.Emit(OpCodes.Ret);
 
-            var map = new Dictionary<IMemberDefinition, FieldInfo>();
+            var map = new Dictionary<IMemberDefinition, IOrType<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>>();
 
             if (extensionLookup.implementationLookup.TryGetValue(codeElement, out var closure))
             {
@@ -117,7 +159,7 @@ namespace Tac.Backend.Emit.Visitors
 
             realizedMethodLookup.Add(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(codeElement), new RealizedMethod(map, typeBuilder, constructor));
 
-            Walk(codeElement.MethodBody);
+            Walk(codeElement.MethodBody, codeElement);
             return new Nothing();
         }
 
@@ -129,7 +171,43 @@ namespace Tac.Backend.Emit.Visitors
             var myConstructorIL = constructor.GetILGenerator();
             myConstructorIL.Emit(OpCodes.Ret);
 
-            var map = new Dictionary<IMemberDefinition, FieldInfo>();
+            var map = new Dictionary<IMemberDefinition, IOrType<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>>();
+
+            var context = contextStack.Peek();
+
+
+            if (extensionLookup.methodLookup.TryGetValue(co, out var closure))
+            {
+                foreach (var member in closure.closureMember)
+                {
+                    member.Value.Switch(
+                        method => {
+                            // everything is enclosed
+                            var myType = typeof(Enclosed<>).MakeGenericType(TranslateType(member.Key.Type));
+                            var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
+                            map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>((field, myType.GetField(nameof(Enclosed<int>.value))));
+                        }, 
+                        imp => {
+                            // everything is enclosed
+                            var myType = typeof(Enclosed<>).MakeGenericType(TranslateType(member.Key.Type));
+                            var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
+                            map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>((field, myType.GetField(nameof(Enclosed<int>.value))));
+                        }, 
+                        entryPoint => {
+                            // everything is enclosed
+                            var myType = typeof(Enclosed<>).MakeGenericType(TranslateType(member.Key.Type));
+                            var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
+                            map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>((field, myType.GetField(nameof(Enclosed<int>.value))));
+                        }, 
+                        obj => {
+                            var myType = typeof(ITacObject);
+                            var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
+                            map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>((field, obj.Scope));
+                        });
+                }
+            }
+
+
 
             if (extensionLookup.methodLookup.TryGetValue(co, out var closure)) {
 
@@ -142,7 +220,7 @@ namespace Tac.Backend.Emit.Visitors
 
             realizedMethodLookup.Add(OrType.Make< IInternalMethodDefinition , IImplementationDefinition , IEntryPointDefinition >( co), new RealizedMethod(map, typeBuilder, constructor));
 
-            Walk(co.Body);
+            Walk(co.Body, co);
             return new Nothing();
         }
 
@@ -154,7 +232,7 @@ namespace Tac.Backend.Emit.Visitors
             var myConstructorIL = constructor.GetILGenerator();
             myConstructorIL.Emit(OpCodes.Ret);
 
-            var map = new Dictionary<IMemberDefinition, FieldInfo>();
+            var map = new Dictionary<IMemberDefinition, IOrType<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>>();
 
 
             if (extensionLookup.entryPointLookup.TryGetValue(entryPointDefinition, out var closure))
@@ -169,7 +247,7 @@ namespace Tac.Backend.Emit.Visitors
 
             realizedMethodLookup.Add(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(entryPointDefinition), new RealizedMethod(map, typeBuilder, constructor));
 
-            Walk(entryPointDefinition.Body);
+            Walk(entryPointDefinition.Body, entryPointDefinition);
             return new Nothing();
         }
 
@@ -196,13 +274,13 @@ namespace Tac.Backend.Emit.Visitors
 
         public Nothing LastCallOperation(ILastCallOperation co)
         {
-            Walk(co.Operands);
+            Walk(co.Operands, co);
             return new Nothing();
         }
 
         public Nothing LessThanOperation(ILessThanOperation co)
         {
-            Walk(co.Operands);
+            Walk(co.Operands, co);
             return new Nothing();
         }
 
@@ -218,43 +296,43 @@ namespace Tac.Backend.Emit.Visitors
 
         public Nothing MultiplyOperation(IMultiplyOperation co)
         {
-            Walk(co.Operands);
+            Walk(co.Operands, co);
             return new Nothing();
         }
 
         public Nothing NextCallOperation(INextCallOperation co)
         {
-            Walk(co.Operands);
+            Walk(co.Operands, co);
             return new Nothing();
         }
 
         public Nothing ObjectDefinition(IObjectDefiniton codeElement)
         {
-            Walk(codeElement.Assignments);
+            Walk(codeElement.Assignments, codeElement);
             return new Nothing();
         }
 
         public Nothing PathOperation(IPathOperation co)
         {
-            Walk(co.Operands);
+            Walk(co.Operands, co);
             return new Nothing();
         }
 
         public Nothing ReturnOperation(IReturnOperation co)
         {
-            Walk(co.Operands);
+            Walk(co.Operands, co);
             return new Nothing();
         }
 
         public Nothing SubtractOperation(ISubtractOperation co)
         {
-            Walk(co.Operands);
+            Walk(co.Operands, co);
             return new Nothing();
         }
 
         public Nothing TryAssignOperation(ITryAssignOperation tryAssignOperation)
         {
-            Walk(tryAssignOperation.Operands);
+            Walk(tryAssignOperation.Operands, tryAssignOperation);
             return new Nothing();
         }
 
