@@ -9,9 +9,9 @@ namespace Tac.Backend.Emit.Extensions
     class ClosureLookup
     {
         // the member and who orignally defined it 
-        public readonly IReadOnlyDictionary<IMemberDefinition, IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition, IObjectDefiniton >> closureMember;
+        public readonly IReadOnlyDictionary<IMemberDefinition, IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition, IBlockDefinition, IRootScope, IObjectDefiniton >> closureMember;
 
-        public ClosureLookup(IReadOnlyDictionary<IMemberDefinition, IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition, IObjectDefiniton>> closureMember)
+        public ClosureLookup(IReadOnlyDictionary<IMemberDefinition, IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition, IBlockDefinition, IRootScope, IObjectDefiniton>> closureMember)
         {
             this.closureMember = closureMember ?? throw new ArgumentNullException(nameof(closureMember));
         }

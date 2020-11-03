@@ -21,7 +21,7 @@ namespace Tac.Backend.Emit.Visitors
         private readonly ExtensionLookup extensionLookup;
         private readonly RealizedMethodLookup realizedMethodLookup;
         public readonly Dictionary<IVerifiableType, System.Type> typeCache;
-        private readonly Stack<IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope, IObjectDefiniton>> contextStack = new Stack<IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope, IObjectDefiniton>>();
+        
         public MethodMakerVisitor(ModuleBuilder moduleBuilder, ExtensionLookup extensionLookup, RealizedMethodLookup realizedMethodLookup, Dictionary<IVerifiableType, System.Type> typeCache)
         {
             this.moduleBuilder = moduleBuilder ?? throw new ArgumentNullException(nameof(moduleBuilder));
@@ -30,53 +30,12 @@ namespace Tac.Backend.Emit.Visitors
             this.typeCache = typeCache ?? throw new ArgumentNullException(nameof(typeCache));
         }
 
-
-        private Action MaybePsuh(ICodeElement current) {
-
-            if (current.SafeIs(out IEntryPointDefinition entryPointDefinition)) {
-                contextStack.Push(
-                    OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope, IObjectDefiniton>(entryPointDefinition));
-                return () => { contextStack.Pop(); };
-            }
-
-            if (current.SafeIs(out IImplementationDefinition imp))
-            {
-                contextStack.Push(
-                    OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope, IObjectDefiniton>(imp));
-                return () => { contextStack.Pop(); };
-            }
-
-            if (current.SafeIs(out IInternalMethodDefinition method))
-            {
-                contextStack.Push(
-                    OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope, IObjectDefiniton>(method));
-                return () => { contextStack.Pop(); };
-            }
-
-            if (current.SafeIs(out IRootScope root))
-            {
-                contextStack.Push(
-                    OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope, IObjectDefiniton>(root));
-                return () => { contextStack.Pop(); };
-            }
-
-            if (current.SafeIs(out IObjectDefiniton obj))
-            {
-                contextStack.Push(
-                    OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope, IObjectDefiniton>(obj));
-                return () => { contextStack.Pop(); };
-            }
-            return () => { };
-        }
-
         private void Walk(IEnumerable<ICodeElement> codeElements, ICodeElement current)
         {
-            var maybePop = MaybePsuh(current);
             foreach (var element in codeElements)
             {
                 element.Convert(this);
             }
-            maybePop();
         }
 
         public Nothing AddOperation(IAddOperation co)
@@ -147,14 +106,13 @@ namespace Tac.Backend.Emit.Visitors
 
                 foreach (var member in closure.closureMember)
                 {
-                    var field = typeBuilder.DefineField(TranslateName(member.Key.SafeCastTo(out NameKey _).Name), TranslateType(member.Type), FieldAttributes.Public);
-                    map[member] = field;
+                    PopulateMap(typeBuilder, map, member);
                 }
             }
 
             {
                 var field = typeBuilder.DefineField(TranslateName(codeElement.ContextDefinition.Key.SafeCastTo(out NameKey _).Name), TranslateType(codeElement.ContextDefinition.Type), FieldAttributes.Public);
-                map[codeElement.ContextDefinition] = field;
+                map[codeElement.ContextDefinition] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>(field);
             }
 
             realizedMethodLookup.Add(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(codeElement), new RealizedMethod(map, typeBuilder, constructor));
@@ -173,48 +131,11 @@ namespace Tac.Backend.Emit.Visitors
 
             var map = new Dictionary<IMemberDefinition, IOrType<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>>();
 
-            var context = contextStack.Peek();
-
-
             if (extensionLookup.methodLookup.TryGetValue(co, out var closure))
             {
                 foreach (var member in closure.closureMember)
                 {
-                    member.Value.Switch(
-                        method => {
-                            // everything is enclosed
-                            var myType = typeof(Enclosed<>).MakeGenericType(TranslateType(member.Key.Type));
-                            var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
-                            map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>((field, myType.GetField(nameof(Enclosed<int>.value))));
-                        }, 
-                        imp => {
-                            // everything is enclosed
-                            var myType = typeof(Enclosed<>).MakeGenericType(TranslateType(member.Key.Type));
-                            var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
-                            map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>((field, myType.GetField(nameof(Enclosed<int>.value))));
-                        }, 
-                        entryPoint => {
-                            // everything is enclosed
-                            var myType = typeof(Enclosed<>).MakeGenericType(TranslateType(member.Key.Type));
-                            var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
-                            map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>((field, myType.GetField(nameof(Enclosed<int>.value))));
-                        }, 
-                        obj => {
-                            var myType = typeof(ITacObject);
-                            var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
-                            map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>((field, obj.Scope));
-                        });
-                }
-            }
-
-
-
-            if (extensionLookup.methodLookup.TryGetValue(co, out var closure)) {
-
-                foreach (var member in closure.closureMember)
-                {
-                    var field = typeBuilder.DefineField(TranslateName(member.Key.SafeCastTo(out NameKey _).Name), TranslateType(member.Type), FieldAttributes.Public);
-                    map[member] = field;
+                    PopulateMap(typeBuilder, map, member);
                 }
             }
 
@@ -222,6 +143,52 @@ namespace Tac.Backend.Emit.Visitors
 
             Walk(co.Body, co);
             return new Nothing();
+        }
+
+        private void PopulateMap(TypeBuilder typeBuilder, Dictionary<IMemberDefinition, IOrType<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>> map, KeyValuePair<IMemberDefinition, IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition,IBlockDefinition,IRootScope, IObjectDefiniton>> member)
+        {
+            member.Value.Switch(
+                method =>
+                {
+                    // everything is enclosed
+                    var myType = typeof(Enclosed<>).MakeGenericType(TranslateType(member.Key.Type));
+                    var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
+                    map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>((field, myType.GetField(nameof(Enclosed<int>.value))));
+                },
+                imp =>
+                {
+                    // everything is enclosed
+                    var myType = typeof(Enclosed<>).MakeGenericType(TranslateType(member.Key.Type));
+                    var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
+                    map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>((field, myType.GetField(nameof(Enclosed<int>.value))));
+                },
+                entryPoint =>
+                {
+                    // everything is enclosed
+                    var myType = typeof(Enclosed<>).MakeGenericType(TranslateType(member.Key.Type));
+                    var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
+                    map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>((field, myType.GetField(nameof(Enclosed<int>.value))));
+                },
+                block =>
+                {
+                    // everything is enclosed
+                    var myType = typeof(Enclosed<>).MakeGenericType(TranslateType(member.Key.Type));
+                    var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
+                    map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>((field, myType.GetField(nameof(Enclosed<int>.value))));
+                },
+                rootScope =>
+                {
+                    // everything is enclosed
+                    var myType = typeof(Enclosed<>).MakeGenericType(TranslateType(member.Key.Type));
+                    var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
+                    map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>((field, myType.GetField(nameof(Enclosed<int>.value))));
+                },
+                obj =>
+                {
+                    var myType = typeof(ITacObject);
+                    var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
+                    map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>((field, obj.Scope));
+                });
         }
 
         public Nothing EntryPoint(IEntryPointDefinition entryPointDefinition)
@@ -237,11 +204,9 @@ namespace Tac.Backend.Emit.Visitors
 
             if (extensionLookup.entryPointLookup.TryGetValue(entryPointDefinition, out var closure))
             {
-
                 foreach (var member in closure.closureMember)
                 {
-                    var field = typeBuilder.DefineField(TranslateName(member.Key.SafeCastTo(out NameKey _).Name), TranslateType(member.Type), FieldAttributes.Public);
-                    map[member] = field;
+                    PopulateMap(typeBuilder, map, member);
                 }
             }
 

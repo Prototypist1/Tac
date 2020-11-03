@@ -46,43 +46,34 @@ namespace Tac.Backend.Emit
 
 
         internal bool InAnyCLosure(IMemberDefinition memberDefinition) {
-            foreach (var item in methodLookup)
+            foreach (var item in methodLookup.Values)
             {
-                foreach (var value in entryPointLookup.Values)
+                foreach (var member in item.closureMember)
                 {
-                    foreach (var member in value.closureMember)
-                    {
-                        if (memberDefinition == member) {
-                            return true;
-                        }
+                    if (memberDefinition == member.Key) {
+                        return true;
                     }
                 }
             }
 
-            foreach (var item in implementationLookup)
+            foreach (var item in implementationLookup.Values)
             {
-                foreach (var value in entryPointLookup.Values)
+                foreach (var member in item.closureMember)
                 {
-                    foreach (var member in value.closureMember)
+                    if (memberDefinition == member.Key)
                     {
-                        if (memberDefinition == member)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }
 
-            foreach (var item in entryPointLookup)
+            foreach (var item in entryPointLookup.Values)
             {
-                foreach (var value in entryPointLookup.Values)
+                foreach (var member in item.closureMember)
                 {
-                    foreach (var member in value.closureMember)
+                    if (memberDefinition == member.Key)
                     {
-                        if (memberDefinition == member)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }

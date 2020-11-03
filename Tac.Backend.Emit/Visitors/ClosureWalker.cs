@@ -1,4 +1,5 @@
-﻿using Prototypist.Toolbox.Dictionary;
+﻿using Prototypist.Toolbox;
+using Prototypist.Toolbox.Dictionary;
 using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
@@ -23,9 +24,21 @@ namespace Tac.Backend.Emit.Walkers
     {
         private readonly ExtensionLookup extensionLookup;
 
+        private Dictionary<IMemberDefinition, IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition,IBlockDefinition, IRootScope, IObjectDefiniton>> definedBy = new Dictionary<IMemberDefinition, IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition, IBlockDefinition, IRootScope, IObjectDefiniton>>();
+
+
         public ClosureVisitor(ExtensionLookup extensionLookup)
         {
             this.extensionLookup = extensionLookup ?? throw new ArgumentNullException(nameof(extensionLookup));
+        }
+
+
+        private void UpdateDefinedBy(IFinalizedScope scope, IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition, IBlockDefinition, IRootScope, IObjectDefiniton> owner)
+        {
+            foreach (var member in scope.Members.Values.Select(x=>x.Value))
+            {
+                definedBy[member] = owner;
+            }
         }
 
         public IReadOnlyList<IMemberDefinition> AddOperation(IAddOperation co)
@@ -51,6 +64,7 @@ namespace Tac.Backend.Emit.Walkers
 
         public IReadOnlyList<IMemberDefinition> BlockDefinition(IBlockDefinition codeElement)
         {
+            UpdateDefinedBy(codeElement.Scope, OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition, IBlockDefinition, IRootScope, IObjectDefiniton>(codeElement));
 
             var implementationClosure = Walk(codeElement.Body);
 
@@ -82,6 +96,8 @@ namespace Tac.Backend.Emit.Walkers
 
         public IReadOnlyList<IMemberDefinition> EntryPoint(IEntryPointDefinition entryPointDefinition)
         {
+            UpdateDefinedBy(entryPointDefinition.Scope, OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition, IBlockDefinition, IRootScope, IObjectDefiniton>(entryPointDefinition));
+
             // an entry point totally has a closure:
             // x := 2;
             // entrypoint {
@@ -92,9 +108,9 @@ namespace Tac.Backend.Emit.Walkers
 
                 return new ClosureLookup(implementationClosure
                     .Except(entryPointDefinition.Scope.Members.Select(x => x.Value.Value))
-                    .ToArray());
+                    .ToDictionary(x=>x, x=>definedBy[x]));
 
-            }).closureMember;
+            }).closureMember.Keys.ToArray();
         }
 
         public IReadOnlyList<IMemberDefinition> IfTrueOperation(IIfOperation co)
@@ -104,14 +120,16 @@ namespace Tac.Backend.Emit.Walkers
 
         public IReadOnlyList<IMemberDefinition> ImplementationDefinition(IImplementationDefinition implementation)
         {
+            UpdateDefinedBy(implementation.Scope, OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition, IBlockDefinition, IRootScope, IObjectDefiniton>(implementation));
+
             return extensionLookup.implementationLookup.GetOrAdd(implementation, () => {
                 var implementationClosure = Walk(implementation.MethodBody);
 
                 return new ClosureLookup(implementationClosure
                     .Except(implementation.IntermediateScope.Members.Select(x => x.Value.Value))
-                    .Except(implementation.Scope.Members.Select(x => x.Value.Value)).ToArray());
+                    .ToDictionary(x => x, x => definedBy[x]));
 
-            }).closureMember;
+            }).closureMember.Keys.ToArray();
         }
 
         public IReadOnlyList<IMemberDefinition> LastCallOperation(ILastCallOperation co)
@@ -138,14 +156,17 @@ namespace Tac.Backend.Emit.Walkers
 
         public IReadOnlyList<IMemberDefinition> MethodDefinition(IInternalMethodDefinition method)
         {
+
+            UpdateDefinedBy(method.Scope, OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition, IBlockDefinition, IRootScope, IObjectDefiniton>(method));
+
             return extensionLookup.methodLookup.GetOrAdd(method, () => {
                 var implementationClosure = Walk(method.Body);
 
                 return new ClosureLookup(implementationClosure
-                .Except(method.Scope.Members.Select(x => x.Value.Value))
-                .ToArray());
+                    .Except(method.Scope.Members.Select(x => x.Value.Value))
+                    .ToDictionary(x => x, x => definedBy[x]));
 
-            }).closureMember;
+            }).closureMember.Keys.ToArray();
         }
 
         public IReadOnlyList<IMemberDefinition> MultiplyOperation(IMultiplyOperation co)
@@ -160,6 +181,8 @@ namespace Tac.Backend.Emit.Walkers
 
         public IReadOnlyList<IMemberDefinition> ObjectDefinition(IObjectDefiniton @object)
         {
+            UpdateDefinedBy(@object.Scope, OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition, IBlockDefinition, IRootScope, IObjectDefiniton>(@object));
+
             var membersReferenced= Walk(@object.Assignments);
 
             return membersReferenced
@@ -199,6 +222,9 @@ namespace Tac.Backend.Emit.Walkers
 
         public IReadOnlyList<IMemberDefinition> RootScope(IRootScope co)
         {
+
+            UpdateDefinedBy(co.Scope, OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition, IBlockDefinition, IRootScope, IObjectDefiniton>(co));
+
             foreach (var item in co.Assignments)
             {
                 item.Convert(this);

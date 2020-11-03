@@ -17,7 +17,7 @@ using Tac.Model.Operations;
 namespace Tac.Backend.Emit.Walkers
 {
 
-    internal class Enclosed<T> {
+    public class Enclosed<T> {
         public T value;
     }
 
@@ -506,14 +506,7 @@ namespace Tac.Backend.Emit.Walkers
 
         internal bool IsLocal(IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> context, IMemberDefinition member, out IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> orType)
         {
-            // or:
-            // 1. is in our closure
-            // 2. is a local but not in anyone's closure
-            if (extensionLookup.TryGetClosure(context.GetValueAs(out ICodeElement _), out var closure) && closure.closureMember.Contains(member)) {
-                orType = context;
-                return true;
-            }
-            
+            // is a local but not in anyone's closure          
             orType = default;
             return !extensionLookup.InAnyCLosure(member) && memberKindLookup.IsLocal(member, out orType);
 
@@ -524,13 +517,17 @@ namespace Tac.Backend.Emit.Walkers
         internal bool IsEnclosedLocal(IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> context, IMemberDefinition member, out IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> orType)
         {
             // or:
-            // is a local but in someone's closure
-            // is a argument but in someone's closure
+            // is our local but in someone's closure
+            // is our argument but in someone's closure
             if (extensionLookup.InAnyCLosure(member)) {
-                if (memberKindLookup.IsLocal(member, out orType)){
+
+                context.Is(out ICodeElement lookingFor);
+
+                if (memberKindLookup.IsLocal(member, out orType) && orType.Is(out ICodeElement found)  && lookingFor.Equals(found))
+                {
                     return true;
                 }
-                if (memberKindLookup.IsArgument(member, out var argOrType)) {
+                if (memberKindLookup.IsArgument(member, out var argOrType) && orType.Is(out ICodeElement found2) && lookingFor.Equals(found2)) {
 
                     orType = argOrType.SwitchReturns(x => OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(x),
                         x => OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(x));
@@ -541,16 +538,34 @@ namespace Tac.Backend.Emit.Walkers
             return false;
         }
 
-        internal bool IsArgument(IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> context, IMemberDefinition member, out IOrType<IImplementationDefinition, IInternalMethodDefinition> orType)
+        internal bool IsArgument(IMemberDefinition member, out IOrType<IImplementationDefinition, IInternalMethodDefinition> orType)
         {
             // is a argument but not in anyone's closure 
             orType = default;
             return !extensionLookup.InAnyCLosure(member) && memberKindLookup.IsArgument(member, out orType);
         }
 
-        internal bool IsField(IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> context, IMemberDefinition member, out IOrType<IImplementationDefinition, IInternalMethodDefinition, IEntryPointDefinition, IObjectDefiniton, IInterfaceType, ITypeOr> orType)
+        internal bool IsField(IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> context, IMemberDefinition member, out IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition> orType)
         {
-            return memberKindLookup.IsField(member, out orType);
+
+            if (memberKindLookup.IsField(member, out var orTypes)) {
+                context.Is(out ICodeElement lookingFor );
+
+                if (orTypes.Any(x => x.Is(out ICodeElement found) && found.Equals(lookingFor))) {
+                    orType = context.SwitchReturns(x => OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>(x),
+                        x => OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>(x),
+                        x => OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>(x),
+                        x => throw new Exception("can't be roorScope"));
+                    return true;
+                }
+            }
+            orType = default;
+            return false;
+        }
+
+        internal bool IsTacField(IMemberDefinition member, out IOrType<IObjectDefiniton, IInterfaceType, ITypeOr> orType)
+        {
+            return memberKindLookup.IsTacField(member, out orType);
         }
 
         internal bool IsStaticField(IMemberDefinition member, out FieldInfo module)
@@ -578,7 +593,7 @@ namespace Tac.Backend.Emit.Walkers
                 var context = CurrentContext();
 
 
-                if (IsArgument(context,memberReference.MemberDefinition, out var orTypeArg))
+                if (IsArgument(memberReference.MemberDefinition, out var orTypeArg))
                 {
                     // I only allow 1 argument 
                     // 0th arg is this
@@ -595,6 +610,9 @@ namespace Tac.Backend.Emit.Walkers
 
                 if (IsEnclosedLocal(context, memberReference.MemberDefinition, out var _))
                 {
+
+                    LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberReference.MemberDefinition));
+
                     co.Left.Convert(this.Push(co));
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
                     if (leaveOnStack)
@@ -602,11 +620,10 @@ namespace Tac.Backend.Emit.Walkers
                         generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
                     }
 
-                    LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberReference.MemberDefinition));
-
                     var field = typeof(Enclosed<>).MakeGenericType(typeCache[memberReference.MemberDefinition.Type]).GetField(nameof(Enclosed<int>.value));
 
                     generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
+                    return new Nothing();
                 }
 
 
@@ -622,74 +639,75 @@ namespace Tac.Backend.Emit.Walkers
                 }
 
 
-                // field includes stuff on the closure
-                if (IsField(context, memberReference.MemberDefinition, out var orTypeField))
+                if (IsTacField(memberReference.MemberDefinition, out var orTypeTacField))
                 {
-                    var realizedMethodOrIndex = orTypeField.SwitchReturns(
-                        imp => OrType.Make < RealizedMethod ,int>( realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(imp))),
-                        method =>  OrType.Make<RealizedMethod, int>(realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(method))),
-                        entryPoint => OrType.Make<RealizedMethod, int>(realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(entryPoint))),
-                        obj => OrType.Make<RealizedMethod, int>(Array.IndexOf(obj.Scope.Members.OrderBy(x => ((NameKey)x.Key).Name).Select(x => x.Value.Value).ToArray(), memberReference.MemberDefinition)),
+                    var index = orTypeTacField.SwitchReturns(
+                        obj => Array.IndexOf(obj.Scope.Members.OrderBy(x => ((NameKey)x.Key).Name).Select(x => x.Value.Value).ToArray(), memberReference.MemberDefinition),
                         type => throw new Exception("this should be part of a path"),
                         orType => throw new Exception("this should be part of a path"));
 
+                    if (!stack.Last().SafeIs<ICodeElement, IObjectDefiniton>(out var _))
+                    {
+                        throw new Exception("this should only happen in object init");
+                    }
 
-                    return realizedMethodOrIndex.SwitchReturns(
-                        realizedMethod => {
-                            // this
-                            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_0);
+                    // we count on having a reference to the object already on the stack
 
-                            return realizedMethod.fieldOrFieldPair[memberReference.MemberDefinition].SwitchReturns(
-                                field =>
-                                {
-                                    co.Left.Convert(this.Push(co));
-                                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
-                                    StoreField(field, leaveOnStack, memberReference);
+                    // 1st parm, the new value
+                    co.Left.Convert(this.Push(co));
+                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
 
-                                    return new Nothing();
-                                },
-                                pair =>
-                                {
-                                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, pair.funcField);
+                    // second parm, the index
+                    LoadInt(index);
+                    return CallSet(leaveOnStack, memberReference);
 
-                                    co.Left.Convert(this.Push(co));
-                                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+                    throw new Exception("this is part of a path and we are explictily not part of a path, we are a member ref directly inside an assignment");
 
-                                    StoreField(pair.path, leaveOnStack, memberReference);
+                }
 
-                                    return new Nothing();
-                                },
-                                pair =>
-                                {
-                                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, pair.funcField);
+                // field includes stuff on the closure
+                if (IsField(context,memberReference.MemberDefinition, out var _))
+                {
+                    var realizedMethod = context.SwitchReturns(
+                        entryPoint => realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(entryPoint)),
+                        imp =>  realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(imp)),
+                        method => realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(method)),
+                        root => throw new Exception("a root scope can't have a field"));
 
+                    // this
+                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_0);
 
-                                    // 1st parm, the new value
-                                    co.Left.Convert(this.Push(co));
-                                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+                    return realizedMethod.fieldOrFieldPair[memberReference.MemberDefinition].SwitchReturns(
+                        field =>
+                        {
+                            co.Left.Convert(this.Push(co));
+                            PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+                            StoreField(field, leaveOnStack, memberReference);
 
-                                    // second parm, the index
-                                    var index = Array.IndexOf(pair.scope.Members.OrderBy(x => ((NameKey)x.Key).Name).Select(x => x.Value.Value).ToArray(), memberReference.MemberDefinition);
-                                    LoadInt(index);
-                                    return CallSet(leaveOnStack, memberReference);
-
-                                    throw new Exception("this is part of a path and we are explictily not part of a path, we are a member ref directly inside an assignment");
-
-                                });
+                            return new Nothing();
                         },
-                        index => {
-                            if (!stack.Last().SafeIs<ICodeElement, IObjectDefiniton>(out var _))
-                            {
-                                throw new Exception("this should only happen in object init");
-                            }
+                        pair =>
+                        {
+                            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, pair.funcField);
 
-                            // we count on having a reference to the object already on the stack
+                            co.Left.Convert(this.Push(co));
+                            PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+
+                            StoreField(pair.path, leaveOnStack, memberReference);
+
+                            return new Nothing();
+                        },
+                        pair =>
+                        {
+                            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, pair.funcField);
+
 
                             // 1st parm, the new value
                             co.Left.Convert(this.Push(co));
                             PossiblyConvert(co.Left.Returns(), co.Right.Returns());
 
                             // second parm, the index
+                            var index = Array.IndexOf(pair.scope.Members.OrderBy(x => ((NameKey)x.Key).Name).Select(x => x.Value.Value).ToArray(), memberReference.MemberDefinition);
                             LoadInt(index);
                             return CallSet(leaveOnStack, memberReference);
 
@@ -934,11 +952,12 @@ namespace Tac.Backend.Emit.Walkers
             var gen = new DebuggableILGenerator(myMethod.GetILGenerator(), "main");
 
             // I need to declare the locals
-            DeclareLocals(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(entryPointDefinition), entryPointDefinition.Scope, gen);
+            
 
 
 
             var inner = this.Push(entryPointDefinition, gen);
+            inner.DeclareLocals(entryPointDefinition.Scope);
             foreach (var line in entryPointDefinition.Body)
             {
                 line.Convert(inner);
@@ -967,19 +986,21 @@ namespace Tac.Backend.Emit.Walkers
             return new Nothing();
         }
 
-        private void DeclareLocals(IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> context, IFinalizedScope scope, DebuggableILGenerator gen)
+        private void DeclareLocals(IFinalizedScope scope)
         {
+            var context = CurrentContext();
+
             foreach (var local in scope.Members)
             {
                 if (IsLocal(context, local.Value.Value, out var _))
                 {
-                    gen.DeclareLocal(typeCache[local.Value.Value.Type], local.Value.Value);
+                    generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[local.Value.Value.Type], local.Value.Value);
                 }
                 else if (IsEnclosedLocal(context, local.Value.Value, out var _))
                 {
                     var enclosedType = typeof(Enclosed<>).MakeGenericType(typeCache[local.Value.Value.Type]);
 
-                    var loc =  gen.DeclareLocal(enclosedType, local.Value.Value);
+                    var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(enclosedType, local.Value.Value);
 
                     // for enclosed locals we also need to init them 
 
@@ -987,7 +1008,9 @@ namespace Tac.Backend.Emit.Walkers
 
                     StoreLocal(loc.LocalIndex);
                 }
-                else
+                else if (IsArgument(local.Value.Value,out var _)) { 
+                    // do nothing
+                }else
                 {
                     throw new Exception("should really be a local or an enclosed local");
                 }
@@ -1084,18 +1107,23 @@ namespace Tac.Backend.Emit.Walkers
 
             // {870866D9-D3EC-47B1-B7D3-6966EE651F5F}
             // storing and loading have a lot in commmon
-            return  EmitMemberReference(memberReference.MemberDefinition);
+            return  EmitMemberReference(memberReference.MemberDefinition,false);
 
         }
 
         /// this does not look in the closure
-        private Nothing EmitMemberReference(IMemberDefinition memberDefinition) {
+        private Nothing EmitMemberReference(IMemberDefinition memberDefinition, bool forClosure) {
 
             var context = CurrentContext();
 
 
-            if (IsArgument(context,memberDefinition, out var _))
+            if (IsArgument(memberDefinition, out var _))
             {
+                if (forClosure)
+                {
+                    throw new Exception("a closure should not be picking up a arg");
+                }
+
                 // I only allow 1 argument 
                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_1);
                 return new Nothing();
@@ -1104,64 +1132,84 @@ namespace Tac.Backend.Emit.Walkers
             if (IsEnclosedLocal(context, memberDefinition, out var _))
             {
                 LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDefinition));
-                var field = typeof(Enclosed<>).MakeGenericType(typeCache[memberDefinition.Type]).GetField(nameof(Enclosed<int>.value));
-                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, field);
+                if (!forClosure)
+                {
+                    var field = typeof(Enclosed<>).MakeGenericType(typeCache[memberDefinition.Type]).GetField(nameof(Enclosed<int>.value));
+                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, field);
+                }
                 return new Nothing();
             }
 
             if (IsLocal(context,memberDefinition, out var _))
             {
+                if (forClosure)
+                {
+                    throw new Exception("a closure should not be picking up a local");
+                }
+
                 LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDefinition));
                 return new Nothing();
             }
 
-            if (IsField(context, memberDefinition, out var orTypeField))
+            if (IsTacField(memberDefinition, out var orTypeTacField)) {
+
+                if (forClosure)
+                {
+                    // I think?
+                    throw new Exception("a closure should not be picking up a tac field");
+                }
+
+                var index = orTypeTacField.SwitchReturns(
+                    obj => Array.IndexOf(obj.Scope.Members.OrderBy(x => ((NameKey)x.Key).Name).Select(x => x.Value.Value).ToArray(), memberDefinition),
+                    type => Array.IndexOf(type.Members.OrderBy(x => ((NameKey)x.Key).Name).ToArray(), memberDefinition),
+                    orType => Array.IndexOf(orType.Members.OrderBy(x => ((NameKey)x.Key).Name).ToArray(), memberDefinition));
+
+
+                // this "b" inside a path like: a.b
+                // we count on "a" to have already been load
+
+                LoadInt(index);
+                return CallGet(memberDefinition);
+            }
+
+            if (IsField(context, memberDefinition, out var _))
             {
+                var realizedMethod = context.SwitchReturns(
+                    entryPoint => realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(entryPoint)),
+                    imp => realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(imp)),
+                    method => realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(method)),
+                    root => throw new Exception("a root scope can't have a field"));
 
-                var realizedMethodOrIndex = orTypeField.SwitchReturns(
-                    imp => OrType.Make<RealizedMethod, int>(realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(imp))),
-                    method => OrType.Make<RealizedMethod, int>(realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(method))),
-                    entryPoint => OrType.Make<RealizedMethod, int>(realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(entryPoint))),
-                    obj => OrType.Make<RealizedMethod, int>(Array.IndexOf(obj.Scope.Members.OrderBy(x => ((NameKey)x.Key).Name).Select(x => x.Value.Value).ToArray(), memberDefinition)),
-                    type => OrType.Make<RealizedMethod, int>(Array.IndexOf(type.Members.OrderBy(x => ((NameKey)x.Key).Name).ToArray(), memberDefinition)),
-                    orType => OrType.Make<RealizedMethod, int>(Array.IndexOf(orType.Members.OrderBy(x => ((NameKey)x.Key).Name).ToArray(), memberDefinition)));
+                // this
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_0);
 
-
-
-                return realizedMethodOrIndex.SwitchReturns(
-                    realizedMethod => {
-                            // this
-                            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_0);
-
-                        return realizedMethod.fieldOrFieldPair[memberDefinition].SwitchReturns(
-                            field =>
-                            {
-                                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, field);
-                                return new Nothing();
-                            },
-                            pair =>
-                            {
-                                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, pair.funcField);
-                                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, pair.path);
-                                return new Nothing();
-                            },
-                            pair =>
-                            {
-                                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, pair.funcField);
-
-                                var index = Array.IndexOf(pair.scope.Members.OrderBy(x => ((NameKey)x.Key).Name).Select(x => x.Value.Value).ToArray(), memberDefinition);
-                                LoadInt(index);
-                                return CallGet(memberDefinition);
-                            });
+                return realizedMethod.fieldOrFieldPair[memberDefinition].SwitchReturns(
+                    field =>
+                    {
+                        generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, field);
+                        return new Nothing();
                     },
-                    index => {
-
-                        // this "b" inside a path like: a.b
-                        // we count on "a" to have already been load
-
-                        LoadInt(index);
-                        return CallGet(memberDefinition);
+                    pair =>
+                    {
+                        generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, pair.funcField);
+                        if (!forClosure)
+                        {
+                            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, pair.path);
+                        }
+                        return new Nothing();
+                    },
+                    pair =>
+                    {
+                        generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, pair.funcField);
+                        if (!forClosure)
+                        {
+                            var index = Array.IndexOf(pair.scope.Members.OrderBy(x => ((NameKey)x.Key).Name).Select(x => x.Value.Value).ToArray(), memberDefinition);
+                            LoadInt(index);
+                            CallGet(memberDefinition);
+                        }
+                        return new Nothing(); 
                     });
+
             }
 
             if (IsStaticField(memberDefinition, out var fieldInfo))
@@ -1369,24 +1417,11 @@ namespace Tac.Backend.Emit.Walkers
 
             var gen = new DebuggableILGenerator(myMethod.GetILGenerator(), name);
 
-            var context = OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(method);
-            
-            // I need to declare the locals
-            DeclareLocals(context, method.Scope, gen); ;
-
-
-            // I might need to enclose the argument
-            if (IsEnclosedLocal(context, method.ParameterDefinition, out var _)) {
-                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_1);
-
-                LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(method.ParameterDefinition));
-
-                var field = typeof(Enclosed<>).MakeGenericType(typeCache[method.ParameterDefinition.Type]).GetField(nameof(Enclosed<int>.value));
-
-                generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
-            }
-
             var inner = this.Push(method, gen);
+            // I need to declare the locals
+            inner.DeclareLocals(method.Scope);
+            // I might need to enclose the argument
+            EncloseArg(method);
             foreach (var line in method.Body)
             {
                 line.Convert(inner);
@@ -1438,6 +1473,21 @@ namespace Tac.Backend.Emit.Walkers
             return new Nothing();
         }
 
+        private void EncloseArg(IInternalMethodDefinition method)
+        {
+            var context = CurrentContext();
+            if (IsEnclosedLocal(context, method.ParameterDefinition, out var _))
+            {
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_1);
+
+                LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(method.ParameterDefinition));
+
+                var field = typeof(Enclosed<>).MakeGenericType(typeCache[method.ParameterDefinition.Type]).GetField(nameof(Enclosed<int>.value));
+
+                generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
+            }
+        }
+
         private void PopulateTheClosure(ICodeElement method, RealizedMethod realizedMethod)
         {
             if (extensionLookup.TryGetClosure(method, out var ourClosure))
@@ -1445,7 +1495,7 @@ namespace Tac.Backend.Emit.Walkers
                 foreach (var member in ourClosure.closureMember)
                 {
 
-                    if (realizedMethod.fieldOrFieldPair.TryGetValue(member, out var fieldInfoOr))
+                    if (realizedMethod.fieldOrFieldPair.TryGetValue(member.Key, out var fieldInfoOr))
                     {
 
                         var fieldInfo = fieldInfoOr.SwitchReturns(fieldInfo => fieldInfo, pair => pair.funcField, pair => pair.funcField);
@@ -1459,9 +1509,9 @@ namespace Tac.Backend.Emit.Walkers
                             // the object could have been captured by a series of closures
                             // object { x:=5 ; y = method { method { x return; } return }; };
                             var context = CurrentContext();
-                            if (IsField(context, member, out var _))
+                            if (IsField(context, member.Key, out var _))
                             {
-                                EmitMemberReference(member);
+                                EmitMemberReference(member.Key, true);
                             }
                             else if (thisStack.TryPeek(out var localVariableInfo))
                             {
@@ -1472,7 +1522,7 @@ namespace Tac.Backend.Emit.Walkers
                             }
                         }
                         else { 
-                            EmitMemberReference(member);
+                            EmitMemberReference(member.Key, true);
                         }
 
                         // now we need to push the new value on to out closure 
@@ -1772,13 +1822,14 @@ namespace Tac.Backend.Emit.Walkers
 
         public Nothing RootScope(IRootScope rootScope)
         {
-            foreach (var local in rootScope.Scope.Members)
+            var inner = this.Push(rootScope);
+            inner.DeclareLocals(rootScope.Scope);
+            foreach (var line in rootScope.Assignments)
             {
-                generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[local.Value.Value.Type], local.Value.Value);
+                line.Convert(inner);
             }
 
-            Walk( rootScope.Assignments,rootScope);
-            rootScope.EntryPoint.Convert(this.Push(rootScope));
+            rootScope.EntryPoint.Convert(inner);
 
             return new Nothing();
         }

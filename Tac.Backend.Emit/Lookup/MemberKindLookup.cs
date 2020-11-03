@@ -16,7 +16,8 @@ namespace Tac.Backend.Emit.Lookup
     {
         private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>> locals = new ConcurrentIndexed<IMemberDefinition, IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>>();
         private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IInternalMethodDefinition>> arguments = new ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IInternalMethodDefinition>>();
-        private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IObjectDefiniton, IInterfaceType, ITypeOr>> fields = new ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IObjectDefiniton, IInterfaceType, ITypeOr>>();
+        private readonly ConcurrentIndexed<IMemberDefinition, List<IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>>> fields = new ConcurrentIndexed<IMemberDefinition, List<IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>>>();
+        private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IObjectDefiniton, IInterfaceType, ITypeOr>> tacFields = new ConcurrentIndexed<IMemberDefinition, IOrType<IObjectDefiniton, IInterfaceType, ITypeOr>>();
         private readonly ConcurrentIndexed<IMemberDefinition, FieldInfo> staticFields = new ConcurrentIndexed<IMemberDefinition, FieldInfo>();
 
         internal void AddLocal(IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> owner, IMemberDefinition value)
@@ -29,14 +30,30 @@ namespace Tac.Backend.Emit.Lookup
             arguments.AddOrThrow(parameterDefinition, codeElement);
         }
 
-        internal void AddField(IOrType<IImplementationDefinition, IObjectDefiniton, IInterfaceType, ITypeOr> codeElement, IMemberDefinition contextDefinition)
+        internal void AddTacField(IOrType<IObjectDefiniton, IInterfaceType, ITypeOr> codeElement, IMemberDefinition contextDefinition)
         {
-            fields.AddOrThrow(contextDefinition, codeElement);
+            tacFields.AddOrThrow(contextDefinition, codeElement);
         }
 
-        internal void TryAddField(IOrType<IImplementationDefinition, IObjectDefiniton, IInterfaceType, ITypeOr> codeElement, IMemberDefinition contextDefinition)
+        internal void AddField(IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition> codeElement, IMemberDefinition contextDefinition)
         {
-            fields.TryAdd(contextDefinition, codeElement);
+            fields.TryAdd(contextDefinition, new List<IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>>());
+
+            var list = fields.GetOrThrow(contextDefinition);
+
+            if (!list.Contains(codeElement)) {
+                list.Add(codeElement);
+            }
+        }
+
+        internal void TryAddTacField(IOrType<IObjectDefiniton, IInterfaceType, ITypeOr> codeElement, IMemberDefinition contextDefinition)
+        {
+            tacFields.TryAdd(contextDefinition, codeElement);
+        }
+
+        internal void TryAddField(IOrType<IObjectDefiniton, IInterfaceType, ITypeOr> codeElement, IMemberDefinition contextDefinition)
+        {
+            tacFields.TryAdd(contextDefinition, codeElement);
         }
 
         internal void AddStaticField(FieldInfo fieldInfo, IMemberDefinition member)
@@ -53,10 +70,15 @@ namespace Tac.Backend.Emit.Lookup
         {
             return arguments.TryGetValue(member, out orType);
         }
-        internal bool IsField(IMemberDefinition member, out IOrType<IImplementationDefinition, IInternalMethodDefinition, IEntryPointDefinition , IObjectDefiniton, IInterfaceType, ITypeOr> orType)
+        internal bool IsField(IMemberDefinition member, out List<IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>> orType)
         {
             return fields.TryGetValue(member, out orType);
         }
+        internal bool IsTacField(IMemberDefinition member, out IOrType<IObjectDefiniton, IInterfaceType, ITypeOr> orType) {
+
+            return tacFields.TryGetValue(member, out orType);
+        }
+
         internal bool IsStaticField(IMemberDefinition member, out FieldInfo module)
         {
             return staticFields.TryGetValue(member, out module);

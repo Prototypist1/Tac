@@ -54,7 +54,7 @@ namespace Tac.Backend.Emit
             rootScope.Convert(closureVisitor);
 
             var memberKindLookup = new MemberKindLookup();
-            var memberKindVisitor = MemberKindVisitor.Make(memberKindLookup);
+            var memberKindVisitor = MemberKindVisitor.Make(memberKindLookup, extensionLookup);
             rootScope.Convert(memberKindVisitor);
 
             var typeCache = new Dictionary<IVerifiableType, System.Type>();

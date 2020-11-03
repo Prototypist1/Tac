@@ -19,15 +19,17 @@ namespace Tac.Backend.Emit.Visitors
 
         private IReadOnlyList<ICodeElement> stack;
         private readonly MemberKindLookup lookup;
+        private readonly ExtensionLookup extensionLookup;
 
-        private MemberKindVisitor(IReadOnlyList<ICodeElement> stack, MemberKindLookup lookup)
+        private MemberKindVisitor(IReadOnlyList<ICodeElement> stack, MemberKindLookup lookup, ExtensionLookup extensionLookup)
         {
             this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
             this.lookup = lookup ?? throw new ArgumentNullException(nameof(lookup));
+            this.extensionLookup = extensionLookup ?? throw new ArgumentNullException(nameof(extensionLookup));
         }
 
-        public static MemberKindVisitor Make(MemberKindLookup lookup) {
-            var res = new MemberKindVisitor(new List<ICodeElement>(), lookup);
+        public static MemberKindVisitor Make(MemberKindLookup lookup, ExtensionLookup extensionLookup) {
+            var res = new MemberKindVisitor(new List<ICodeElement>(), lookup, extensionLookup);
             //res.Init();
             return res;
         }
@@ -44,7 +46,7 @@ namespace Tac.Backend.Emit.Visitors
         {
             var list = stack.ToList();
             list.Add(another);
-            return new MemberKindVisitor(list, lookup);
+            return new MemberKindVisitor(list, lookup, extensionLookup);
         }
 
         private void Walk(IEnumerable<ICodeElement> codeElements) {
@@ -184,7 +186,7 @@ namespace Tac.Backend.Emit.Visitors
         {
             foreach (var member in typeOr.Members)
             {
-                lookup.TryAddField(OrType.Make<IImplementationDefinition, IObjectDefiniton, IInterfaceType, ITypeOr>(typeOr), member);
+                lookup.TryAddTacField(OrType.Make<IObjectDefiniton, IInterfaceType, ITypeOr>(typeOr), member);
             }
 
             return new Nothing();
@@ -194,7 +196,7 @@ namespace Tac.Backend.Emit.Visitors
         {
             foreach (var member in codeElement.Members)
             {
-                lookup.TryAddField(OrType.Make<IImplementationDefinition, IObjectDefiniton, IInterfaceType, ITypeOr>(codeElement), member);
+                lookup.TryAddTacField(OrType.Make<IObjectDefiniton, IInterfaceType, ITypeOr>(codeElement), member);
             }
 
             return new Nothing();
@@ -211,6 +213,14 @@ namespace Tac.Backend.Emit.Visitors
             foreach (var entry in entryPointDefinition.Scope.Members.Values.Select(x => x.Value))
             {
                 lookup.AddLocal(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(entryPointDefinition), entry);
+            }
+
+            if (extensionLookup.entryPointLookup.TryGetValue(entryPointDefinition, out var found))
+            {
+                foreach (var member in found.closureMember.Keys)
+                {
+                    lookup.AddField(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>(entryPointDefinition), member);
+                }
             }
 
             var next = Push(entryPointDefinition);
@@ -249,6 +259,14 @@ namespace Tac.Backend.Emit.Visitors
             }
             lookup.AddArgument(OrType.Make<IImplementationDefinition, IInternalMethodDefinition>(co), co.ParameterDefinition);
 
+            if (extensionLookup.methodLookup.TryGetValue(co, out var found))
+            {
+                foreach (var member in found.closureMember.Keys)
+                {
+                    lookup.AddField(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>(co), member);
+                }
+            }
+
             next.Walk(co.Body);
 
             return new Nothing();
@@ -271,7 +289,15 @@ namespace Tac.Backend.Emit.Visitors
             }
 
             lookup.AddArgument(OrType.Make < IImplementationDefinition, IInternalMethodDefinition > (codeElement),codeElement.ParameterDefinition);
-            lookup.AddField(OrType .Make< IImplementationDefinition, IObjectDefiniton, IInterfaceType, ITypeOr>( codeElement), codeElement.ContextDefinition);
+            lookup.AddField(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>( codeElement), codeElement.ContextDefinition);
+
+            if (extensionLookup.implementationLookup.TryGetValue(codeElement, out var found)) {
+
+                foreach (var member in found.closureMember.Keys)
+                {
+                    lookup.AddField(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>(codeElement), member);
+                } 
+            }
 
             next.Walk(codeElement.MethodBody);
 
@@ -288,7 +314,7 @@ namespace Tac.Backend.Emit.Visitors
 
             foreach (var member in codeElement.Scope.Members.Values.Select(x => x.Value))
             {
-                lookup.AddField(OrType.Make<IImplementationDefinition, IObjectDefiniton, IInterfaceType, ITypeOr>(codeElement), member);
+                lookup.AddTacField(OrType.Make<IObjectDefiniton, IInterfaceType, ITypeOr>(codeElement), member);
             }
 
             var next = Push(codeElement);
