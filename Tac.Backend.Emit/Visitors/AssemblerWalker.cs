@@ -527,7 +527,7 @@ namespace Tac.Backend.Emit.Walkers
                 {
                     return true;
                 }
-                if (memberKindLookup.IsArgument(member, out var argOrType) && orType.Is(out ICodeElement found2) && lookingFor.Equals(found2)) {
+                if (memberKindLookup.IsArgument(member, out var argOrType) && argOrType.Is(out ICodeElement found2) && lookingFor.Equals(found2)) {
 
                     orType = argOrType.SwitchReturns(x => OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(x),
                         x => OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(x));
@@ -605,7 +605,7 @@ namespace Tac.Backend.Emit.Walkers
                     }
                     generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Starg, (short)1);
                     return new Nothing();
-                }
+                } else
 
 
                 if (IsEnclosedLocal(context, memberReference.MemberDefinition, out var _))
@@ -624,7 +624,7 @@ namespace Tac.Backend.Emit.Walkers
 
                     generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
                     return new Nothing();
-                }
+                } else
 
 
                 if (IsLocal(context, memberReference.MemberDefinition, out var _))
@@ -641,6 +641,13 @@ namespace Tac.Backend.Emit.Walkers
 
                 if (IsTacField(memberReference.MemberDefinition, out var orTypeTacField))
                 {
+                    
+                    // we count on having a reference to the object already on the stack
+
+                    // 1st parm, the new value
+                    co.Left.Convert(this.Push(co));
+                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+
                     var index = orTypeTacField.SwitchReturns(
                         obj => Array.IndexOf(obj.Scope.Members.OrderBy(x => ((NameKey)x.Key).Name).Select(x => x.Value.Value).ToArray(), memberReference.MemberDefinition),
                         type => throw new Exception("this should be part of a path"),
@@ -651,11 +658,9 @@ namespace Tac.Backend.Emit.Walkers
                         throw new Exception("this should only happen in object init");
                     }
 
-                    // we count on having a reference to the object already on the stack
-
-                    // 1st parm, the new value
-                    co.Left.Convert(this.Push(co));
-                    PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+                    if (index < 0) {
+                        throw new Exception("index should not be negetive!");
+                    }
 
                     // second parm, the index
                     LoadInt(index);
@@ -663,7 +668,7 @@ namespace Tac.Backend.Emit.Walkers
 
                     throw new Exception("this is part of a path and we are explictily not part of a path, we are a member ref directly inside an assignment");
 
-                }
+                } else
 
                 // field includes stuff on the closure
                 if (IsField(context,memberReference.MemberDefinition, out var _))
@@ -708,13 +713,19 @@ namespace Tac.Backend.Emit.Walkers
 
                             // second parm, the index
                             var index = Array.IndexOf(pair.scope.Members.OrderBy(x => ((NameKey)x.Key).Name).Select(x => x.Value.Value).ToArray(), memberReference.MemberDefinition);
+
+                            if (index < 0)
+                            {
+                                throw new Exception("index should not be negetive!");
+                            }
+
                             LoadInt(index);
                             return CallSet(leaveOnStack, memberReference);
 
                             throw new Exception("this is part of a path and we are explictily not part of a path, we are a member ref directly inside an assignment");
 
                         });
-                }
+                } else
 
                 if (IsStaticField(memberReference.MemberDefinition, out var fieldInfo))
                 {
@@ -752,9 +763,24 @@ namespace Tac.Backend.Emit.Walkers
             }
             else if (co.Right.SafeIs(out IPathOperation path))
             {
+
+                // the value
+                // we evaulate this first and then store it in a local
+                // (a > b).x =: (c > d).y
+                // the user expects a > b to go before c > d
+                // even tho it is the second parameter of setComplexMember/setSimpleMember
+                co.Left.Convert(this.Push(co));
+
+                var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[co.Left.Returns()], Guid.NewGuid());
+                StoreLocal(loc.LocalIndex);
+
                 // who we are calling it on
                 path.Left.Convert(this.Push(co));
+
+                // load the value out of the local
+                LoadLocal(loc.LocalIndex);
                 PossiblyConvert(co.Left.Returns(), co.Right.Returns());
+
 
                 if (path.Right.SafeIs(out IMemberReference pathMemberReference))
                 {
@@ -766,19 +792,29 @@ namespace Tac.Backend.Emit.Walkers
 
                     if (returned.SafeIs(out IInterfaceType obj))
                     {
-                        var index = Array.IndexOf(obj.Members.OrderBy(x => ((NameKey)x.Key).Name).ToArray(), memberReference.MemberDefinition);
+                        var index = Array.IndexOf(obj.Members.OrderBy(x => ((NameKey)x.Key).Name).ToArray(), pathMemberReference.MemberDefinition);
+
+                        if (index < 0)
+                        {
+                            throw new Exception("index should not be negetive!");
+                        }
 
                         // second parm, the index
                         LoadInt(index);
-                        return CallSet(leaveOnStack, memberReference);
+                        return CallSet(leaveOnStack, pathMemberReference);
                     }
                     else if (returned.SafeIs(out ITypeOr typeOr))
                     {
-                        var index = Array.IndexOf(typeOr.Members.OrderBy(x => ((NameKey)x.Key).Name).ToArray(), memberReference.MemberDefinition);
+                        var index = Array.IndexOf(typeOr.Members.OrderBy(x => ((NameKey)x.Key).Name).ToArray(), pathMemberReference.MemberDefinition);
+
+                        if (index < 0)
+                        {
+                            throw new Exception("index should not be negetive!");
+                        }
 
                         // second parm, the index
                         LoadInt(index);
-                        return CallSet(leaveOnStack, memberReference);
+                        return CallSet(leaveOnStack, pathMemberReference);
                     }
                     else {
                         throw new Exception("we are in a path, so it need to be something with members");
@@ -1164,6 +1200,10 @@ namespace Tac.Backend.Emit.Walkers
                     type => Array.IndexOf(type.Members.OrderBy(x => ((NameKey)x.Key).Name).ToArray(), memberDefinition),
                     orType => Array.IndexOf(orType.Members.OrderBy(x => ((NameKey)x.Key).Name).ToArray(), memberDefinition));
 
+                if (index < 0)
+                {
+                    throw new Exception("index should not be negetive!");
+                }
 
                 // this "b" inside a path like: a.b
                 // we count on "a" to have already been load
@@ -1204,6 +1244,12 @@ namespace Tac.Backend.Emit.Walkers
                         if (!forClosure)
                         {
                             var index = Array.IndexOf(pair.scope.Members.OrderBy(x => ((NameKey)x.Key).Name).Select(x => x.Value.Value).ToArray(), memberDefinition);
+
+                            if (index < 0)
+                            {
+                                throw new Exception("index should not be negetive!");
+                            }
+
                             LoadInt(index);
                             CallGet(memberDefinition);
                         }
@@ -1421,7 +1467,7 @@ namespace Tac.Backend.Emit.Walkers
             // I need to declare the locals
             inner.DeclareLocals(method.Scope);
             // I might need to enclose the argument
-            EncloseArg(method);
+            inner.EncloseArg(method);
             foreach (var line in method.Body)
             {
                 line.Convert(inner);
@@ -1475,12 +1521,11 @@ namespace Tac.Backend.Emit.Walkers
 
         private void EncloseArg(IInternalMethodDefinition method)
         {
-            var context = CurrentContext();
-            if (IsEnclosedLocal(context, method.ParameterDefinition, out var _))
+            if (IsEnclosedLocal(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(method), method.ParameterDefinition, out var _))
             {
-                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_1);
-
                 LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(method.ParameterDefinition));
+
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_1);
 
                 var field = typeof(Enclosed<>).MakeGenericType(typeCache[method.ParameterDefinition.Type]).GetField(nameof(Enclosed<int>.value));
 

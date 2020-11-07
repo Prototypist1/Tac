@@ -1064,7 +1064,7 @@ namespace Tac.Backend.Emit.Test
         }
 
         // maybe a member on an or type
-        //  object {number a := 1; number b := 2; number c := 3} is type { number a } | type {number b} a-or-b { a-or-b.a =: a-or-b.a }
+        //  object {number a := 1; number b := 2; number c := 3} is type { number a } | type {number a; number b} a-or-b { a-or-b.a =: a-or-b.a }
         [Fact]
         public void MemberOnOrType()
         {
@@ -1124,11 +1124,11 @@ namespace Tac.Backend.Emit.Test
                                         new List<ICodeElement>{
                                             AssignOperation.CreateAndBuild(
                                                 PathOperation.CreateAndBuild(
-                                                Model.Instantiated.MemberReference.CreateAndBuild(a_or_ab),
-                                                Model.Instantiated.MemberReference.CreateAndBuild(orType_a)),
-                                            PathOperation.CreateAndBuild(
-                                                Model.Instantiated.MemberReference.CreateAndBuild(a_or_ab),
-                                                Model.Instantiated.MemberReference.CreateAndBuild(orType_a)))
+                                                    Model.Instantiated.MemberReference.CreateAndBuild(a_or_ab),
+                                                    Model.Instantiated.MemberReference.CreateAndBuild(orType_a)),
+                                                PathOperation.CreateAndBuild(
+                                                    Model.Instantiated.MemberReference.CreateAndBuild(a_or_ab),
+                                                    Model.Instantiated.MemberReference.CreateAndBuild(orType_a)))
                                         },
                                         Array.Empty<ICodeElement>()
                                     ),

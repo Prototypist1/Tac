@@ -26,7 +26,7 @@ namespace Tac.Model.Instantiated
         {
             buildableScope.Set(scope);
             buildableAssignments.Set(assignments);
-            type = InterfaceType.CreateAndBuild(scope.Members.Values.Select(x => MemberDefinition.CreateAndBuild(x.Value.Key, x.Value.Type, x.Value.Access)).ToList());
+            type = InterfaceType.CreateAndBuild(scope.Members.Values.Select(x => x.Value).ToList());
         }
 
         public static (IObjectDefiniton, IObjectDefinitonBuilder) Create()
