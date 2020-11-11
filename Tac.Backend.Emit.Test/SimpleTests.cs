@@ -4,9 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Text;
+using Tac.Backend.Emit.Support;
 using Tac.Backend.Emit.Visitors;
+using Tac.Backend.Emit.Walkers;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -1437,5 +1441,252 @@ namespace Tac.Backend.Emit.Test
         }
 
 
+        // 3 =: x
+        // method [ double, double ] test { test + x return } =: method-member
+        // 4 =: x
+        // 2 > method-member return
+        [Fact]
+        public void Closure2()
+        {
+
+            var memberDefinition = MemberDefinition.CreateAndBuild(new NameKey("x"), new NumberType(), Model.Elements.Access.ReadWrite);
+            var methodMember = MemberDefinition.CreateAndBuild(new NameKey("method-member"), MethodType.CreateAndBuild(new NumberType(), new NumberType()), Model.Elements.Access.ReadWrite);
+
+            var input = MemberDefinition.CreateAndBuild(new NameKey("test"), new NumberType(), Model.Elements.Access.ReadWrite);
+
+            var res = Compiler.BuildAndRun(
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
+                    EntryPointDefinition.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                            new IsStatic(memberDefinition, false),
+                            new IsStatic(methodMember, false)
+                        }),
+                        new List<ICodeElement> {
+                            AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(3) , Tac.Model.Instantiated.MemberReference.CreateAndBuild(memberDefinition)),
+                            AssignOperation.CreateAndBuild(
+                                Model.Instantiated.MethodDefinition.CreateAndBuild(
+                                        new NumberType(),
+                                        new NumberType(),
+                                        input,
+                                        Scope.CreateAndBuild(new List<IsStatic>{
+                                            new IsStatic(input,false)
+                                        }),
+                                        new List<ICodeElement>{
+                                            ReturnOperation.CreateAndBuild(
+                                                AddOperation.CreateAndBuild(
+                                                    Tac.Model.Instantiated.MemberReference.CreateAndBuild(input),
+                                                    Tac.Model.Instantiated.MemberReference.CreateAndBuild(memberDefinition)
+                                                    ))
+                                        },
+                                        Array.Empty<ICodeElement>()),
+                                Tac.Model.Instantiated.MemberReference.CreateAndBuild(methodMember)),
+                            AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(4), Tac.Model.Instantiated.MemberReference.CreateAndBuild(memberDefinition)),
+                            ReturnOperation.CreateAndBuild(
+                                NextCallOperation.CreateAndBuild(
+                                    ConstantNumber.CreateAndBuild(2),
+                                    Tac.Model.Instantiated.MemberReference.CreateAndBuild(methodMember)))
+                        },
+                    Array.Empty<ICodeElement>()))
+                , null);
+
+            Assert.Equal(6.0, res);
+        }
+
+        // object { 3 =: x} =: o
+        // method [ double, double ] test { test + o.x return } =: method-member
+        // 4 =: o.x
+        // 2 > method-member return
+        [Fact]
+        public void Closure3()
+        {
+
+            var memA = MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite);
+
+            var object1 = ObjectDefiniton.CreateAndBuild(
+                      Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(memA, false),
+                      }),
+                      new List<IAssignOperation>{
+                                        AssignOperation.CreateAndBuild(
+                                            ConstantNumber.CreateAndBuild(3),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(memA))
+                      });
+
+            var o_member = MemberDefinition.CreateAndBuild(new NameKey("o"), object1.Returns(), Model.Elements.Access.ReadWrite);
+            var method_member = MemberDefinition.CreateAndBuild(new NameKey("method-member"), MethodType.CreateAndBuild(new NumberType(), new NumberType()), Model.Elements.Access.ReadWrite);
+
+            var input = MemberDefinition.CreateAndBuild(new NameKey("test"), new NumberType(), Model.Elements.Access.ReadWrite);
+
+            var res = Compiler.BuildAndRun(
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
+                    EntryPointDefinition.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                            new IsStatic(o_member, false),
+                            new IsStatic(method_member, false)
+                        }),
+                        new List<ICodeElement> {
+                            AssignOperation.CreateAndBuild(object1 , Tac.Model.Instantiated.MemberReference.CreateAndBuild(o_member)),
+                            AssignOperation.CreateAndBuild(
+                                Model.Instantiated.MethodDefinition.CreateAndBuild(
+                                        new NumberType(),
+                                        new NumberType(),
+                                        input,
+                                        Scope.CreateAndBuild(new List<IsStatic>{
+                                            new IsStatic(input,false)
+                                        }),
+                                        new List<ICodeElement>{
+                                            ReturnOperation.CreateAndBuild(
+                                                AddOperation.CreateAndBuild(
+                                                    Tac.Model.Instantiated.MemberReference.CreateAndBuild(input),
+                                                    PathOperation.CreateAndBuild( Tac.Model.Instantiated.MemberReference.CreateAndBuild(o_member), Tac.Model.Instantiated.MemberReference.CreateAndBuild(memA))
+                                                    ))
+                                        },
+                                        Array.Empty<ICodeElement>()),
+                                Tac.Model.Instantiated.MemberReference.CreateAndBuild(method_member)),
+                            AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(4), PathOperation.CreateAndBuild( Tac.Model.Instantiated.MemberReference.CreateAndBuild(o_member), Tac.Model.Instantiated.MemberReference.CreateAndBuild(memA))),
+                            ReturnOperation.CreateAndBuild(
+                                NextCallOperation.CreateAndBuild(
+                                    ConstantNumber.CreateAndBuild(2),
+                                    Tac.Model.Instantiated.MemberReference.CreateAndBuild(method_member)))
+                        },
+                    Array.Empty<ICodeElement>()))
+                , null);
+
+            Assert.Equal(6.0, res);
+        }
+
+
+        // this will be useful to keep around 
+        //[Fact]
+        public void WTF() {
+
+            var assemblyName = new AssemblyName();
+            assemblyName.Name = "WTF_Assembly";
+            var dynamicAssembly = System.Reflection.Emit.AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndCollect);
+
+            var moduleBuilder = dynamicAssembly.DefineDynamicModule("WTF_Module");
+
+            var typebuilder = moduleBuilder.DefineType("WTF_Compilation", TypeAttributes.Public & TypeAttributes.Class, typeof(TacCompilation));
+            var selfField = typebuilder.DefineField("WTF_Compilation_self", typebuilder, FieldAttributes.Static | FieldAttributes.Public);
+
+            var initMethod = typebuilder.DefineMethod(nameof(TacCompilation.Init), MethodAttributes.Public | MethodAttributes.Virtual);
+            typebuilder.DefineMethodOverride(initMethod, typeof(TacCompilation).GetMethod(nameof(TacCompilation.Init)));
+
+            var intiGen = initMethod.GetILGenerator();
+
+            // set the self field
+            intiGen.Emit(OpCodes.Ldarg_0);
+            intiGen.Emit(OpCodes.Stsfld, selfField);
+
+            var outerTypeBuilder = moduleBuilder.DefineType("Outer");
+            var outerTypeConstructor = outerTypeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new System.Type[] { });
+            {
+                var myConstructorIL = outerTypeConstructor.GetILGenerator();
+                myConstructorIL.Emit(OpCodes.Ldarg_0);
+                myConstructorIL.Emit(OpCodes.Call, typeof(object).GetConstructors().First());
+                myConstructorIL.Emit(OpCodes.Ret);
+            }
+
+            var methodTypeBuilder = moduleBuilder.DefineType("myfunc");
+            var methodTypeConstructor = methodTypeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new System.Type[] { });
+            {
+                var myConstructorIL = methodTypeConstructor.GetILGenerator();
+                myConstructorIL.Emit(OpCodes.Ldarg_0);
+                myConstructorIL.Emit(OpCodes.Call, typeof(object).GetConstructors().First());
+                myConstructorIL.Emit(OpCodes.Ret);
+            }
+
+            var mainMethod = outerTypeBuilder.DefineMethod(
+                "mainMethod",
+                MethodAttributes.Public,
+                CallingConventions.HasThis,
+                typeof(object), new[] { typeof(object) });
+            var mainGen = mainMethod.GetILGenerator();
+
+            mainGen.Emit(OpCodes.Ldc_R8, 3.0);
+            mainGen.DeclareLocal(typeof(double));
+            mainGen.Emit(OpCodes.Stloc_0);
+
+
+            var innerMethod = methodTypeBuilder.DefineMethod(
+                "methodMethod",
+                MethodAttributes.Public,
+                CallingConventions.HasThis,
+                typeof(double), new[] { typeof(double) });
+
+            var innerMethodIlGenerator = innerMethod.GetILGenerator();
+            innerMethodIlGenerator.Emit(OpCodes.Ldarg_1);
+            innerMethodIlGenerator.Emit(OpCodes.Ldc_R8, 2.0);
+            innerMethodIlGenerator.Emit(OpCodes.Add_Ovf);
+            innerMethodIlGenerator.Emit(OpCodes.Ret);
+
+
+
+            mainGen.Emit(OpCodes.Newobj, methodTypeConstructor);
+
+            mainGen.Emit(OpCodes.Ldftn, innerMethod);
+            mainGen.Emit(OpCodes.Newobj, typeof(Func<double, double>).GetConstructors().First());
+
+            mainGen.Emit(OpCodes.Ldsfld, selfField);
+            mainGen.Emit(OpCodes.Ldfld, typesField.Value);
+            mainGen.Emit(OpCodes.Ldc_I4_0);
+            mainGen.Emit(OpCodes.Ldelem_Ref);
+
+
+            mainGen.Emit(OpCodes.Newobj, tacMethod_Simple_SimpleConstructor(typeof(double), typeof(double)));
+
+
+
+            mainGen.Emit(OpCodes.Ldloc_0);
+
+
+            var callSimpleSimple = typeof(ITacObject).GetMethod(nameof(ITacObject.Call_Simple_Simple)) ?? throw new NullReferenceException("should not be null!");
+            var generic = callSimpleSimple.MakeGenericMethod(typeof(double), typeof(double));
+
+            mainGen.Emit(OpCodes.Callvirt, generic);
+
+            mainGen.Emit(OpCodes.Box, typeof(double));
+
+            mainGen.Emit(OpCodes.Ret);
+
+            intiGen.Emit(OpCodes.Ldarg_0);
+            intiGen.Emit(OpCodes.Newobj, outerTypeConstructor);
+            intiGen.Emit(OpCodes.Ldftn, mainMethod);
+            intiGen.Emit(OpCodes.Newobj, typeof(Func<object, object>).GetConstructors().First());
+            intiGen.Emit(OpCodes.Stfld, typeof(TacCompilation).GetField(nameof(TacCompilation.main)));
+
+            intiGen.Emit(OpCodes.Ret);
+
+
+            methodTypeBuilder.CreateType();
+            typebuilder.CreateType();
+            outerTypeBuilder.CreateType();
+
+
+            var complitation = (TacCompilation)dynamicAssembly.CreateInstance("WTF_Compilation");
+
+            complitation.indexerArray = new Indexer[] { };
+            complitation.verifyableTypesArray = new IVerifiableType[] { MethodType.CreateAndBuild(new NumberType(), new NumberType()) };
+            complitation.Init();
+            
+            var res = complitation.main(null);
+
+            Assert.Equal(5.0, res);
+
+        }
+
+        private ConstructorInfo tacMethod_Simple_SimpleConstructor(System.Type input, System.Type output)
+        {
+            return typeof(TacMethod_Simple_Simple<,>).MakeGenericType(input, output).GetConstructor(new[] { typeof(Func<,>).MakeGenericType(input, output), typeof(IVerifiableType) }) ?? throw new NullReferenceException("should not be null!");
+        }
+
+        private readonly Lazy<FieldInfo> typesField = new Lazy<FieldInfo>(() =>
+        {
+            return typeof(TacCompilation).GetField(nameof(TacCompilation.verifyableTypesArray)) ?? throw new NullReferenceException("should not be null!");
+        });
     }
 }

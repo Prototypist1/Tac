@@ -45,6 +45,7 @@ namespace Tac.Backend.Emit.Support
 
     public class TacMethod_Complex_Complex: ITacObject
     {
+
         public Func<ITacObject, ITacObject> backing;
         private readonly IVerifiableType type;
 
@@ -123,6 +124,7 @@ namespace Tac.Backend.Emit.Support
     }
     public class TacMethod_Simple_Complex<T1>: ITacObject
     {
+
         public Func<T1, ITacObject> backing;
         private readonly IVerifiableType type;
 
@@ -205,10 +207,10 @@ namespace Tac.Backend.Emit.Support
             return tacCastObject;
         }
         public IVerifiableType TacType() => type;
+
     }
     public class TacMethod_Complex_Simple<T2>: ITacObject
     {
-
         public Func<ITacObject, T2> backing;
         private readonly IVerifiableType type;
 
@@ -293,6 +295,7 @@ namespace Tac.Backend.Emit.Support
     }
     public class TacMethod_Simple_Simple<T1,T2>: ITacObject
     {
+
         public Func<T1,T2> backing;
         private readonly IVerifiableType type;
 
@@ -379,6 +382,7 @@ namespace Tac.Backend.Emit.Support
 
     public class TacCastObject : ITacObject
     {
+
         public ITacObject @object;
         public Indexer indexer;
 
@@ -482,6 +486,7 @@ namespace Tac.Backend.Emit.Support
     //why does everything else not have a consturctor
     public class TacObject : ITacObject
     {
+ 
         // this is: null, double, string, bool or TacCastObject
         public object[] members;
         public IVerifiableType type;

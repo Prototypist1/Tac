@@ -86,7 +86,7 @@ namespace Tac.Backend.Emit.Walkers
 
         internal void Emit(OpCode code, string str)
         {
-            str += code.ToString() + ", " + str + Environment.NewLine;
+            debugString += code.ToString() + ", " + str + Environment.NewLine;
             backing.Emit(code, str);
         }
 
@@ -200,10 +200,16 @@ namespace Tac.Backend.Emit.Walkers
             return res;
         }
 
-        internal void EmitCall(OpCode code, MethodInfo methodInfo, System.Type[]? optionalTypes)
+        //internal void EmitCall(OpCode code, MethodInfo methodInfo, System.Type[]? optionalTypes)
+        //{
+        //    debugString += EvaluationStackDepth + ": " +Tabs() + code.ToString() + ", " + methodInfo.Name + /*"(" + string.Join<string>(',', methodInfo.GetParameters().Select(x => x.ParameterType.Name)) + ")" +*/ Environment.NewLine;
+        //    backing.EmitCall(code,methodInfo,optionalTypes);
+        //}
+
+        internal void EmitCall(OpCode code, MethodInfo methodInfo)
         {
-            debugString += EvaluationStackDepth + ": " +Tabs() + code.ToString() + ", " + methodInfo.Name + /*"(" + string.Join<string>(',', methodInfo.GetParameters().Select(x => x.ParameterType.Name)) + ")" +*/ Environment.NewLine;
-            backing.EmitCall(code,methodInfo,optionalTypes);
+            debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + ", " + methodInfo.Name + /*"(" + string.Join<string>(',', methodInfo.GetParameters().Select(x => x.ParameterType.Name)) + ")" +*/ Environment.NewLine;
+            backing.Emit(code, methodInfo);
         }
 
         internal void MarkLabel(Label topOfElseLabel)
@@ -258,7 +264,7 @@ namespace Tac.Backend.Emit.Walkers
     {
 
         public readonly List<DebuggableILGenerator> gens ;
-
+        private readonly ModuleBuilder moduleBuilder;
         public readonly IndexerList indexerList;
         public readonly VerifyableTypesList verifyableTypesList;
 
@@ -365,6 +371,10 @@ namespace Tac.Backend.Emit.Walkers
 
         public Nothing AddOperation(IAddOperation co)
         {
+            //generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_1);
+            //generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldc_R8, 2.0);
+            //generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Add_Ovf);
+
             Walk(co.Operands, co);
             generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Add_Ovf);
             return new Nothing();
@@ -418,7 +428,7 @@ namespace Tac.Backend.Emit.Walkers
                 LoadInt(definateIndexer.Value);
                 generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Ldelem_Ref);
 
-                generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Newobj, castConstructor.Value);
+                generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Newobj, castConstructor.Value);
             }
         }
 
@@ -861,10 +871,10 @@ namespace Tac.Backend.Emit.Walkers
                     case Access.ReadOnly:
                         throw new Exception("this should have benn handled inside assignment");
                     case Access.ReadWrite:
-                        generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value, new System.Type[] { });
+                        generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexMemberReturn.Value : setComplexMember.Value);
                         return new Nothing();
                     case Access.WriteOnly:
-                        generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value, new System.Type[] { });
+                        generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, leaveOnStack ? setComplexWriteonlyMemberReturn.Value : setComplexWriteonlyMember.Value);
                         return new Nothing();
                     default:
                         throw new Exception("that is unexpected");
@@ -872,7 +882,7 @@ namespace Tac.Backend.Emit.Walkers
             }
             else
             {
-                generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[memberReference.MemberDefinition.Type]), new System.Type[] { });
+                generatorHolder.GetGeneratorAndUpdateStack(leaveOnStack ? -2 : -3).EmitCall(OpCodes.Callvirt, (leaveOnStack ? setSimpleMemberReturn.Value : setSimpleMember.Value).MakeGenericMethod(typeCache[memberReference.MemberDefinition.Type]));
                 return new Nothing();
             }
         }
@@ -1278,10 +1288,10 @@ namespace Tac.Backend.Emit.Walkers
                 switch (memberDefinition.Access)
                 {
                     case Access.ReadOnly:
-                        generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexReadonlyMember.Value, new System.Type[] { });
+                        generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexReadonlyMember.Value);
                         return new Nothing();
                     case Access.ReadWrite:
-                        generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexMember.Value, new System.Type[] { });
+                        generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getComplexMember.Value);
                         return new Nothing();
                     case Access.WriteOnly:
                         throw new Exception("this should have benn handled inside assignment");
@@ -1291,7 +1301,7 @@ namespace Tac.Backend.Emit.Walkers
             }
             else
             {
-                generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getSimpleMember.Value.MakeGenericMethod(typeCache[memberDefinition.Type]), new System.Type[] { });
+                generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, getSimpleMember.Value.MakeGenericMethod(typeCache[memberDefinition.Type]));
                 return new Nothing();
             }
         }
@@ -1456,10 +1466,10 @@ namespace Tac.Backend.Emit.Walkers
 
         public Nothing MethodDefinition(IInternalMethodDefinition method)
         {
-
+           
             var realizedMethod = realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(method));
             var name = GenerateName();
-            var myMethod = realizedMethod.type.DefineMethod(name, MethodAttributes.Public, CallingConventions.HasThis, ToITacObjectOrOject(typeCache[method.OutputType]), new[] { ToITacObjectOrOject(typeCache[method.InputType]) });
+            var myMethod = realizedMethod.type.DefineMethod(name, MethodAttributes.Public, CallingConventions.HasThis, typeCache[method.OutputType], new[] { typeCache[method.InputType] });
 
             var gen = new DebuggableILGenerator(myMethod.GetILGenerator(), name);
 
@@ -1475,9 +1485,7 @@ namespace Tac.Backend.Emit.Walkers
 
             // create new instance
             // get the default constuctor 
-            var constructor = realizedMethod.defaultConstructor;
-
-            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Newobj, constructor);
+            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Newobj, realizedMethod.defaultConstructor);
 
 
             // pass stuff in to the closure
@@ -1630,7 +1638,7 @@ namespace Tac.Backend.Emit.Walkers
                 if (outType == typeof(ITacObject))
                 {
                     PossiblyConvert(co.Left.Returns(), method.InputType);
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callComplexComplex.Value, new System.Type[] {  });
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callComplexComplex.Value);
                     if (!leaveOnStack)
                     {
                         generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Pop);
@@ -1639,7 +1647,7 @@ namespace Tac.Backend.Emit.Walkers
                 else
                 {
                     PossiblyConvert(co.Left.Returns(), method.InputType);
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callComplexSimple.Value.MakeGenericMethod(outType), new System.Type[] { });
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callComplexSimple.Value.MakeGenericMethod(outType));
                     if (!leaveOnStack)
                     {
                         generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Pop);
@@ -1650,7 +1658,7 @@ namespace Tac.Backend.Emit.Walkers
                 if (outType == typeof(ITacObject))
                 {
                     PossiblyConvert(co.Left.Returns(), method.InputType);
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callSimpleComplex.Value.MakeGenericMethod(inType), new System.Type[] { });
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callSimpleComplex.Value.MakeGenericMethod(inType));
                     if (!leaveOnStack)
                     {
                         generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Pop);
@@ -1659,7 +1667,7 @@ namespace Tac.Backend.Emit.Walkers
                 else
                 {
                     PossiblyConvert(co.Left.Returns(), method.InputType);
-                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callSimpleSimple.Value.MakeGenericMethod(inType,outType), new System.Type[] { });
+                    generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, callSimpleSimple.Value.MakeGenericMethod(inType,outType));
                    
                     if (!leaveOnStack)
                     {
@@ -1801,7 +1809,7 @@ namespace Tac.Backend.Emit.Walkers
             GetVerifyableType(memberDef.Type);
 
             // I am just going to write this staticly in C#
-            generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Call, typeof(AssemblyWalkerHelp).GetMethod(nameof(AssemblyWalkerHelp.TryAssignOperationHelper_Is)), new System.Type[] { });
+            generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Call, typeof(AssemblyWalkerHelp).GetMethod(nameof(AssemblyWalkerHelp.TryAssignOperationHelper_Is)));
 
             generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Brfalse, topOfElseLabel);
 
@@ -1816,7 +1824,7 @@ namespace Tac.Backend.Emit.Walkers
             else
             {
                 GetVerifyableType(memberDef.Type);
-                generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Call, typeof(AssemblyWalkerHelp).GetMethod(nameof(AssemblyWalkerHelp.TryAssignOperationHelper_Cast)), new System.Type[] { });
+                generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Call, typeof(AssemblyWalkerHelp).GetMethod(nameof(AssemblyWalkerHelp.TryAssignOperationHelper_Cast)));
             }
 
             var context = CurrentContext();

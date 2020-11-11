@@ -97,6 +97,8 @@ namespace Tac.Backend.Emit.Visitors
 
             var constructor = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new System.Type[] { });
             var myConstructorIL = constructor.GetILGenerator();
+            myConstructorIL.Emit(OpCodes.Ldarg_0);
+            myConstructorIL.Emit(OpCodes.Call, typeof(object).GetConstructors().First());
             myConstructorIL.Emit(OpCodes.Ret);
 
             var map = new Dictionary<IMemberDefinition, IOrType<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>>();
@@ -127,6 +129,8 @@ namespace Tac.Backend.Emit.Visitors
             var typeBuilder = moduleBuilder.DefineType(name);
             var constructor = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new System.Type[] { });
             var myConstructorIL = constructor.GetILGenerator();
+            myConstructorIL.Emit(OpCodes.Ldarg_0);
+            myConstructorIL.Emit(OpCodes.Call, typeof(object).GetConstructors().First());
             myConstructorIL.Emit(OpCodes.Ret);
 
             var map = new Dictionary<IMemberDefinition, IOrType<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>>();
@@ -197,6 +201,8 @@ namespace Tac.Backend.Emit.Visitors
             var typeBuilder = moduleBuilder.DefineType(name);
             var constructor = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new System.Type[] { });
             var myConstructorIL = constructor.GetILGenerator();
+            myConstructorIL.Emit(OpCodes.Ldarg_0);
+            myConstructorIL.Emit(OpCodes.Call, typeof(object).GetConstructors().First());
             myConstructorIL.Emit(OpCodes.Ret);
 
             var map = new Dictionary<IMemberDefinition, IOrType<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>>();
