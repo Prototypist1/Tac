@@ -38,13 +38,13 @@ namespace Tac.Backend.Emit
             return Assembly.Value.DefineDynamicModule(GenerateName());
         });
 
-        public static object BuildAndRun(IRootScope rootScope, object input)
+        public static TOut BuildAndRun<Tin,TOut>(IRootScope rootScope, Tin input)
         {
-            var complitation = Build(rootScope);
+            var complitation = Build<Tin,TOut>(rootScope);
             return complitation.main(input);
         }
 
-        private static TacCompilation Build(IRootScope rootScope)
+        private static TacCompilation<Tin, TOut> Build<Tin, TOut>(IRootScope rootScope)
         {
             // I think we are actually not making an assembly,
             // just a type 
@@ -72,8 +72,9 @@ namespace Tac.Backend.Emit
                 extensionLookup,
                 typeCache,
                 module.Value,
-                realizedMethodLookup
-                );
+                realizedMethodLookup,
+                typeCache[rootScope.EntryPoint.InputType],
+                typeCache[rootScope.EntryPoint.OutputType]);
                 rootScope.Convert(assemblerVisitor);
 
             //finish up
@@ -92,7 +93,7 @@ namespace Tac.Backend.Emit
             complitation.indexerArray = assemblerVisitor.indexerList.indexers.ToArray();
             complitation.verifyableTypesArray = assemblerVisitor.verifyableTypesList.types.ToArray();
             complitation.Init();
-            return complitation;
+            return (TacCompilation<Tin, TOut>)complitation;
         }
     }
 }

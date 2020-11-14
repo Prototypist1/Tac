@@ -15,7 +15,7 @@ namespace Tac.Backend.Emit.Lookup
     class MemberKindLookup
     {
         private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>> locals = new ConcurrentIndexed<IMemberDefinition, IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>>();
-        private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IInternalMethodDefinition>> arguments = new ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IInternalMethodDefinition>>();
+        private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IInternalMethodDefinition, IEntryPointDefinition>> arguments = new ConcurrentIndexed<IMemberDefinition, IOrType<IImplementationDefinition, IInternalMethodDefinition, IEntryPointDefinition>>();
         private readonly ConcurrentIndexed<IMemberDefinition, List<IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>>> fields = new ConcurrentIndexed<IMemberDefinition, List<IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>>>();
         private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IObjectDefiniton, IInterfaceType, ITypeOr>> tacFields = new ConcurrentIndexed<IMemberDefinition, IOrType<IObjectDefiniton, IInterfaceType, ITypeOr>>();
         private readonly ConcurrentIndexed<IMemberDefinition, FieldInfo> staticFields = new ConcurrentIndexed<IMemberDefinition, FieldInfo>();
@@ -25,7 +25,7 @@ namespace Tac.Backend.Emit.Lookup
             locals.AddOrThrow(value, owner);
         }
 
-        internal void AddArgument(IOrType<IImplementationDefinition, IInternalMethodDefinition> codeElement, IMemberDefinition parameterDefinition)
+        internal void AddArgument(IOrType<IImplementationDefinition, IInternalMethodDefinition, IEntryPointDefinition> codeElement, IMemberDefinition parameterDefinition)
         {
             arguments.AddOrThrow(parameterDefinition, codeElement);
         }
@@ -66,7 +66,7 @@ namespace Tac.Backend.Emit.Lookup
             return locals.TryGetValue(member, out orType);
         }
 
-        internal bool IsArgument(IMemberDefinition member, out IOrType<IImplementationDefinition, IInternalMethodDefinition> orType)
+        internal bool IsArgument(IMemberDefinition member, out IOrType<IImplementationDefinition, IInternalMethodDefinition, IEntryPointDefinition> orType)
         {
             return arguments.TryGetValue(member, out orType);
         }

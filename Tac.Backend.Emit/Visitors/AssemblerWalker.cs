@@ -251,11 +251,17 @@ namespace Tac.Backend.Emit.Walkers
         }
     }
 
-    public abstract class TacCompilation {
+
+    public abstract class TacCompilation
+    {
         public Indexer[] indexerArray;
         public IVerifiableType[] verifyableTypesArray;
-        public Func<object, object> main;
         public abstract void Init();
+    }
+    public abstract class TacCompilation<Tin,Tout>: TacCompilation
+    {
+
+        public Func<Tin, Tout> main;
     } 
 
 
@@ -322,14 +328,16 @@ namespace Tac.Backend.Emit.Walkers
             MemberKindLookup memberKindLookup,
             ExtensionLookup extensionLookup,
             Dictionary<IVerifiableType, System.Type> typeCache,
-             ModuleBuilder moduleBuilder,
-             RealizedMethodLookup realizedMethodLookup)
+            ModuleBuilder moduleBuilder,
+            RealizedMethodLookup realizedMethodLookup,
+            System.Type tin,
+            System.Type tout)
         {
-            var typebuilder = moduleBuilder.DefineType(GenerateName(), TypeAttributes.Public & TypeAttributes.Class, typeof(TacCompilation));
+            var typebuilder = moduleBuilder.DefineType(GenerateName(), TypeAttributes.Public & TypeAttributes.Class, typeof(TacCompilation<,>).MakeGenericType(tin, tout));
             var selfField = typebuilder.DefineField(GenerateName() + "_self", typebuilder, FieldAttributes.Static | FieldAttributes.Public);
 
-            var initMethod = typebuilder.DefineMethod(nameof(TacCompilation.Init), MethodAttributes.Public | MethodAttributes.Virtual);
-            typebuilder.DefineMethodOverride(initMethod, typeof(TacCompilation).GetMethod(nameof(TacCompilation.Init)));
+            var initMethod = typebuilder.DefineMethod(nameof(TacCompilation<int,int>.Init), MethodAttributes.Public | MethodAttributes.Virtual);
+            typebuilder.DefineMethodOverride(initMethod, typeof(TacCompilation<,>).MakeGenericType(tin,tout).GetMethod(nameof(TacCompilation<int,int>.Init)));
 
             var gen = new DebuggableILGenerator(initMethod.GetILGenerator(), "Init");
 
@@ -539,7 +547,9 @@ namespace Tac.Backend.Emit.Walkers
                 }
                 if (memberKindLookup.IsArgument(member, out var argOrType) && argOrType.Is(out ICodeElement found2) && lookingFor.Equals(found2)) {
 
-                    orType = argOrType.SwitchReturns(x => OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(x),
+                    orType = argOrType.SwitchReturns(
+                        x => OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(x),
+                        x => OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(x),
                         x => OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(x));
                     return true;
                 }
@@ -548,7 +558,7 @@ namespace Tac.Backend.Emit.Walkers
             return false;
         }
 
-        internal bool IsArgument(IMemberDefinition member, out IOrType<IImplementationDefinition, IInternalMethodDefinition> orType)
+        internal bool IsArgument(IMemberDefinition member, out IOrType<IImplementationDefinition, IInternalMethodDefinition, IEntryPointDefinition> orType)
         {
             // is a argument but not in anyone's closure 
             orType = default;
@@ -562,7 +572,8 @@ namespace Tac.Backend.Emit.Walkers
                 context.Is(out ICodeElement lookingFor );
 
                 if (orTypes.Any(x => x.Is(out ICodeElement found) && found.Equals(lookingFor))) {
-                    orType = context.SwitchReturns(x => OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>(x),
+                    orType = context.SwitchReturns(
+                        x => OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>(x),
                         x => OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>(x),
                         x => OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>(x),
                         x => throw new Exception("can't be roorScope"));
@@ -992,15 +1003,13 @@ namespace Tac.Backend.Emit.Walkers
                 GenerateName(),
                 MethodAttributes.Public,
                 CallingConventions.HasThis,
-                typeof(object), new[] { typeof(object) });
+                typeCache[entryPointDefinition.OutputType], new System.Type[] { typeCache[entryPointDefinition.InputType] });
 
 
             var gen = new DebuggableILGenerator(myMethod.GetILGenerator(), "main");
 
             // I need to declare the locals
             
-
-
 
             var inner = this.Push(entryPointDefinition, gen);
             inner.DeclareLocals(entryPointDefinition.Scope);
@@ -1023,9 +1032,9 @@ namespace Tac.Backend.Emit.Walkers
             // now I need to make a TacMethod or whatever
 
             generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldftn, myMethod);
-            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Newobj, typeof(Func<object, object>).GetConstructors().First());           // TODO lazy this reflection
+            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Newobj, typeof(Func<,>).MakeGenericType(typeCache[entryPointDefinition.InputType], typeCache[entryPointDefinition.OutputType]).GetConstructors().First());           // TODO lazy this reflection
 
-            var mainField = typeof(TacCompilation).GetField(nameof(TacCompilation.main)) ?? throw new NullReferenceException("that field better exist");
+            var mainField = typeof(TacCompilation<,>).MakeGenericType(typeCache[entryPointDefinition.InputType],typeCache[entryPointDefinition.OutputType]).GetField(nameof(TacCompilation<int,int>.main)) ?? throw new NullReferenceException("that field better exist");
 
             generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, mainField);
 
@@ -1769,7 +1778,7 @@ namespace Tac.Backend.Emit.Walkers
 
                 if (frame.SafeIs(out IEntryPointDefinition entryPoint))
                 {
-                    PossiblyConvert(co.Result.Returns(), new Tac.Model.Instantiated.AnyType());
+                    PossiblyConvert(co.Result.Returns(), entryPoint.OutputType);
                     goto end;
                 }
             }

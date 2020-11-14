@@ -226,6 +226,8 @@ namespace Tac.Backend.Emit.Walkers
             HandleLines(entryPointDefinition.Body);
             HandleLines(entryPointDefinition.StaticInitailizers);
             HandleScope(entryPointDefinition.Scope);
+            entryPointDefinition.ParameterDefinition.Convert(this);
+            HandleType(entryPointDefinition.OutputType);
             return new Nothing();
         }
 

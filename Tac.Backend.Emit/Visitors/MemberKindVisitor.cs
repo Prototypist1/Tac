@@ -210,10 +210,20 @@ namespace Tac.Backend.Emit.Visitors
             }
 
 
-            foreach (var entry in entryPointDefinition.Scope.Members.Values.Select(x => x.Value))
+            var next = Push(entryPointDefinition);
+
+            entryPointDefinition.ParameterDefinition.Convert(next);
+            if (entryPointDefinition.OutputType.SafeIs(out IInterfaceType type))
+            {
+                type.Convert(next);
+            }
+
+            foreach (var entry in entryPointDefinition.Scope.Members.Values.Select(x => x.Value).Except(new[] { entryPointDefinition.ParameterDefinition }))
             {
                 lookup.AddLocal(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(entryPointDefinition), entry);
             }
+            lookup.AddArgument(OrType.Make<IImplementationDefinition, IInternalMethodDefinition, IEntryPointDefinition>(entryPointDefinition), entryPointDefinition.ParameterDefinition);
+
 
             if (extensionLookup.entryPointLookup.TryGetValue(entryPointDefinition, out var found))
             {
@@ -223,7 +233,6 @@ namespace Tac.Backend.Emit.Visitors
                 }
             }
 
-            var next = Push(entryPointDefinition);
             next.Walk(entryPointDefinition.Body);
 
             return new Nothing();
@@ -257,7 +266,7 @@ namespace Tac.Backend.Emit.Visitors
             {
                 lookup.AddLocal(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(co), entry);
             }
-            lookup.AddArgument(OrType.Make<IImplementationDefinition, IInternalMethodDefinition>(co), co.ParameterDefinition);
+            lookup.AddArgument(OrType.Make<IImplementationDefinition, IInternalMethodDefinition,IEntryPointDefinition>(co), co.ParameterDefinition);
 
             if (extensionLookup.methodLookup.TryGetValue(co, out var found))
             {
@@ -288,7 +297,7 @@ namespace Tac.Backend.Emit.Visitors
                 lookup.AddLocal(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(codeElement), entry);
             }
 
-            lookup.AddArgument(OrType.Make < IImplementationDefinition, IInternalMethodDefinition > (codeElement),codeElement.ParameterDefinition);
+            lookup.AddArgument(OrType.Make < IImplementationDefinition, IInternalMethodDefinition,IEntryPointDefinition> (codeElement),codeElement.ParameterDefinition);
             lookup.AddField(OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>( codeElement), codeElement.ContextDefinition);
 
             if (extensionLookup.implementationLookup.TryGetValue(codeElement, out var found)) {
