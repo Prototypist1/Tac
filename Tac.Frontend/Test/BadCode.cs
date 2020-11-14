@@ -47,7 +47,7 @@ namespace Tac.Tests
         public void ImpossibleIs()
         {
             var res = TestSupport.Tokenize(
-@"entry-point {
+@"entry-point  [empty, empty] input {
     5 =: i;
     i is type { number x; number y; } t { };
 }");
@@ -79,7 +79,7 @@ namespace Tac.Tests
         [Fact]
         public void YouCantInvokeANumber()
         {
-            var res = TestSupport.Tokenize("entry-point { 5 =: x ; 5 > x ; }");
+            var res = TestSupport.Tokenize("entry-point [empty, empty] input { 5 =: x ; 5 > x ; }");
             var converted = TestSupport.ConvertToWeak(res);
 
             var db = converted.Validate().ToArray();

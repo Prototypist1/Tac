@@ -31,7 +31,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         {
             private readonly IReadOnlyDictionary<ILookUpType, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> map;
             private readonly IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts;
-            private readonly IReadOnlyDictionary<IStaticScope, TypeProblem2.Scope> moduleEntryPoint;
+            //private readonly IReadOnlyDictionary<IStaticScope, TypeProblem2.Scope> moduleEntryPoint;
 
             private readonly IReadOnlyDictionary<TypeProblem2.MethodType, IFlowNode<TypeProblem2.MethodType>> methodFlowNodes;
             private readonly IReadOnlyDictionary<TypeProblem2.Type, IFlowNode<TypeProblem2.Type>> typeFlowNodes;
@@ -42,7 +42,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             public TypeSolution(
                 IReadOnlyDictionary<ILookUpType, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> map, 
                 IReadOnlyDictionary<TypeProblem2.OrType, (TypeProblem2.TypeReference, TypeProblem2.TypeReference)> orTypeElememts, 
-                IReadOnlyDictionary<IStaticScope, TypeProblem2.Scope> moduleEntryPoint, 
+                //IReadOnlyDictionary<IStaticScope, TypeProblem2.Scope> moduleEntryPoint, 
                 IReadOnlyDictionary<TypeProblem2.MethodType, IFlowNode<TypeProblem2.MethodType>> methodFlowNodes, 
                 IReadOnlyDictionary<TypeProblem2.Type, IFlowNode<TypeProblem2.Type>> typeFlowNodes, 
                 IReadOnlyDictionary<TypeProblem2.Object, IFlowNode<TypeProblem2.Object>> objectFlowNodes, 
@@ -51,7 +51,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 this.map = map ?? throw new ArgumentNullException(nameof(map));
                 this.orTypeElememts = orTypeElememts ?? throw new ArgumentNullException(nameof(orTypeElememts));
-                this.moduleEntryPoint = moduleEntryPoint ?? throw new ArgumentNullException(nameof(moduleEntryPoint));
+                //this.moduleEntryPoint = moduleEntryPoint ?? throw new ArgumentNullException(nameof(moduleEntryPoint));
                 this.methodFlowNodes = methodFlowNodes ?? throw new ArgumentNullException(nameof(methodFlowNodes));
                 this.typeFlowNodes = typeFlowNodes ?? throw new ArgumentNullException(nameof(typeFlowNodes));
                 this.objectFlowNodes = objectFlowNodes ?? throw new ArgumentNullException(nameof(objectFlowNodes));
@@ -112,12 +112,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return cacheMember2[member];
             }
 
-            private readonly Dictionary<TypeProblem2.Method, IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition>>> cacheMethod = new Dictionary<TypeProblem2.Method, IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition>>>();
-            public IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition>> GetMethod(TypeProblem2.Method method)
+            private readonly Dictionary<TypeProblem2.Method, IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>>> cacheMethod = new Dictionary<TypeProblem2.Method, IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>>>();
+            public IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition>> GetMethod(TypeProblem2.Method method)
             {
                 if (!cacheMethod.ContainsKey(method))
                 {
-                    var box = new Box<IOrType<WeakMethodDefinition, WeakImplementationDefinition>>();
+                    var box = new Box<IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>>();
                     cacheMethod[method] = box;
                     box.Fill(method.Converter.Convert(this, method));
                 }
@@ -414,14 +414,14 @@ namespace Tac.Frontend.New.CrzayNamespace
             //    throw new Exception("that should not happen for a method");
             //}
 
-            public IIsPossibly<TypeProblem2.Scope> GetEntryPoint(IStaticScope from)
-            {
-                if (moduleEntryPoint.TryGetValue(from, out var res))
-                {
-                    return Possibly.Is(res);
-                }
-                return Possibly.IsNot<TypeProblem2.Scope>();
-            }
+            //public IIsPossibly<TypeProblem2.Scope> GetEntryPoint(IStaticScope from)
+            //{
+            //    if (moduleEntryPoint.TryGetValue(from, out var res))
+            //    {
+            //        return Possibly.Is(res);
+            //    }
+            //    return Possibly.IsNot<TypeProblem2.Scope>();
+            //}
 
             public IIsPossibly<IOrType<NameKey, ImplicitKey>[]> HasPlacholders(TypeProblem2.Type type)
             {

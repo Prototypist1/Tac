@@ -50,7 +50,6 @@ method [ number ; pair [ number ; ] ] input {
                 new [] {
                     AssignOperation.CreateAndBuild(
                         MethodDefinition.CreateAndBuild(
-                            new NumberType(),
                             pairTypeNumber,
                             input,
                             methodScope,
@@ -72,7 +71,7 @@ method [ number ; pair [ number ; ] ] input {
                                         }))},
                             Array.Empty<ICodeElement>()),
                     MemberReference.CreateAndBuild(pairify))},
-                EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));
+                EntryPointDefinition.CreateAndBuild(new EmptyType(), MemberDefinition.CreateAndBuild(new NameKey("input"), new NumberType(), Access.ReadWrite), Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));
         }
     }
 }

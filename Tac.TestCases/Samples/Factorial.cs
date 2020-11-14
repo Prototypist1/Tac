@@ -34,7 +34,6 @@ namespace Tac.Tests.Samples
                         AssignOperation.CreateAndBuild(
                                 MethodDefinition.CreateAndBuild(
                                     new NumberType(),
-                                    new NumberType(),
                                     input,
                                     methodScope,
                                     new ICodeElement[]{
@@ -64,7 +63,7 @@ namespace Tac.Tests.Samples
                                     Array.Empty<ICodeElement>()),
                                 MemberReference.CreateAndBuild(fac)
                         ) },
-                    EntryPointDefinition.CreateAndBuild(Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>())
+                    EntryPointDefinition.CreateAndBuild(new EmptyType(), MemberDefinition.CreateAndBuild(new NameKey("input"), new NumberType(), Access.ReadWrite), Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>())
                     );
         }
 

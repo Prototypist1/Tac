@@ -318,7 +318,12 @@ namespace Tac.Parser
 
         public RootScopePopulateScope ParseFile(FileToken file)
         {
-            IOrType<EntryPointDefinitionPopulateScope, IError> defaultEntryPoint = OrType.Make<EntryPointDefinitionPopulateScope, IError>(new EntryPointDefinitionPopulateScope(Array.Empty<IOrType<EntryPointDefinitionPopulateScope, IError >>()));
+            IOrType<EntryPointDefinitionPopulateScope, IError> defaultEntryPoint = OrType.Make<EntryPointDefinitionPopulateScope, IError>(
+                new EntryPointDefinitionPopulateScope(
+                    new TypeReferancePopulateScope(new NameKey("empty")), 
+                    Array.Empty<IOrType<EntryPointDefinitionPopulateScope, IError >>(), 
+                    new TypeReferancePopulateScope(new NameKey("empty")), 
+                    "unused"));
             var entryToReturn = defaultEntryPoint;
 
             var assignments = new List<IOrType<WeakAssignOperationPopulateScope, IError>>();

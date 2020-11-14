@@ -376,7 +376,7 @@ namespace Tac.Frontend
         }
     }
 
-    internal class WeakMethodDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>>
+    internal class WeakMethodDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition>>
     {
         private readonly IBox<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>> body;
 
@@ -385,9 +385,9 @@ namespace Tac.Frontend
             this.body = body ?? throw new ArgumentNullException(nameof(body));
         }
 
-        public IOrType<WeakMethodDefinition, WeakImplementationDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from)
+        public IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from)
         {
-            return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition>( new WeakMethodDefinition(
+            return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>( new WeakMethodDefinition(
                 typeSolution.GetType(typeSolution.GetFlowNode2(from.Returns.GetOrThrow())),
                 typeSolution.GetMember(from.Input.GetOrThrow()),
                 body.GetValue().Select(x => x.TransformInner(y=>y.Run(typeSolution))).ToArray(),
@@ -398,7 +398,7 @@ namespace Tac.Frontend
         
     }
 
-    internal class WeakImplementationDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>>
+    internal class WeakImplementationDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>>
     {
 
         private readonly IBox<IResolve<IBox<IFrontendCodeElement>>[]> body;
@@ -413,12 +413,12 @@ namespace Tac.Frontend
             this.inner = inner ?? throw new ArgumentNullException(nameof(inner));
         }
 
-        public IOrType<WeakMethodDefinition, WeakImplementationDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from)
+        public IOrType<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from)
         {
             //
             
 
-            return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition>(new WeakImplementationDefinition(
+            return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition>(new WeakImplementationDefinition(
                 typeSolution.GetMember(from.Input.GetOrThrow()), // that is never going to work!
                 typeSolution.GetMember(inner.GetValue().Input.GetOrThrow()),
                 typeSolution.GetType(typeSolution.GetFlowNode2( inner.GetValue().Returns.GetOrThrow())),
@@ -511,29 +511,25 @@ namespace Tac.Frontend
         }
     }
 
-    internal class WeakEntryPointConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>
+    internal class WeakEntryPointConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>>
     {
-        private Box<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]> body;
-        private Box<IResolve<IBox<WeakMemberReference>>> inputBox;
-        private Box<IResolve<IBox<IFrontendType>>> outputBox;
+        private readonly IBox<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>> body;
 
-        public WeakEntryPointConverter(Box<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]> body, Box<IResolve<IBox<WeakMemberReference>>> inputBox, Box<IResolve<IBox<IFrontendType>>> outputBox)
+        public WeakEntryPointConverter(IBox<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>> body)
         {
             this.body = body ?? throw new ArgumentNullException(nameof(body));
-            this.inputBox = inputBox ?? throw new ArgumentNullException(nameof(inputBox));
-            this.outputBox = outputBox ?? throw new ArgumentNullException(nameof(outputBox));
         }
 
-        public IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Scope from)
+        public IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from)
         {
-            return OrType.Make<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>(
-                new WeakEntryPointDefinition(
-                    new UnwrappingInferredBox(outputBox.GetValue().Run(typeSolution)),
-                    new UnWrappingMemberReference(inputBox.GetValue().Run(typeSolution)),
-                    body.GetValue().Select(x => x.TransformInner(y=>y.Run(typeSolution))).ToArray(),
-                    OrType.Make<IBox<WeakScope>, IError>(new Box<WeakScope>(Help.GetScope(typeSolution, from))),
-                    Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>()));
+            return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>(new WeakEntryPointDefinition(
+                typeSolution.GetType(typeSolution.GetFlowNode2(from.Returns.GetOrThrow())),
+                typeSolution.GetMember(from.Input.GetOrThrow()),
+                body.GetValue().Select(x => x.TransformInner(y => y.Run(typeSolution))).ToArray(),
+                OrType.Make<IBox<WeakScope>, IError>(new Box<WeakScope>(Help.GetScope(typeSolution, from))),
+                Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>()));
         }
+
     }
 
     internal class WeakScopeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>

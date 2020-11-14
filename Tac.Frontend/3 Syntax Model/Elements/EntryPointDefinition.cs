@@ -99,10 +99,10 @@ namespace Tac.SemanticModel
                 return TokenMatching<ISetUp<IBox<WeakEntryPointDefinition>, Tpn.IScope>>.MakeMatch(
                     tokenMatching,
                     new EntryPointDefinitionPopulateScope(
-                        new MemberDefinitionPopulateScope(new NameKey(parameterName!.Item),false, inputType!),
+                         inputType!,
                         elements,
-                        outputType!
-                        ),
+                        outputType!,
+                        parameterName!.Item),
                     matched.EndIndex
                     );
             }
@@ -113,58 +113,70 @@ namespace Tac.SemanticModel
     }
 
 
-    internal class EntryPointDefinitionPopulateScope : ISetUp<IBox<WeakEntryPointDefinition>, Tpn.IScope>
+    internal class EntryPointDefinitionPopulateScope : ISetUp<IBox<WeakEntryPointDefinition>, Tpn.TypeProblem2.Method>
     {
-        private readonly MemberDefinitionPopulateScope parameterDefinition;
+
+        private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> parameterDefinition;
         private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
         private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> output;
+        private readonly string parameterName;
 
         public EntryPointDefinitionPopulateScope(
-            MemberDefinitionPopulateScope parameterDefinition,
+            ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> parameterDefinition,
             IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements,
-            ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> output
+            ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> output,
+            string parameterName
             )
         {
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             this.output = output ?? throw new ArgumentNullException(nameof(output));
+            this.parameterName = parameterName ?? throw new ArgumentNullException(nameof(parameterName));
         }
 
-        public ISetUpResult<IBox<WeakEntryPointDefinition>, Tpn.IScope> Run(Tpn.IStaticScope scope, ISetUpContext context)
+        public ISetUpResult<IBox<WeakEntryPointDefinition>, Tpn.TypeProblem2.Method> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-            var box = new Box<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]>();
+            //var box = new Box<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]>();
 
-            var inputBox = new Box<IResolve<IBox<WeakMemberReference>>>();
-            var outputBox = new Box<IResolve<IBox<IFrontendType>>>();
+            //var inputBox = new Box<IResolve<IBox<WeakMemberReference>>>();
+            //var outputBox = new Box<IResolve<IBox<IFrontendType>>>();
 
-            var innerScope = context.TypeProblem.CreateScope(scope, new WeakEntryPointConverter(box, inputBox, outputBox));
-            context.TypeProblem.HasEntryPoint(scope, innerScope);
+            //var innerScope = context.TypeProblem.CreateScope(scope, new WeakEntryPointConverter(box, inputBox, outputBox));
+            //context.TypeProblem.HasEntryPoint(scope, innerScope);
 
-            inputBox.Fill(parameterDefinition.Run(innerScope, context.CreateChildContext(this)).Resolve);
-            outputBox.Fill(output.Run(innerScope, context.CreateChildContext(this)).Resolve);
+            //inputBox.Fill(parameterDefinition.Run(innerScope, context.CreateChildContext(this)).Resolve);
+            //outputBox.Fill(output.Run(innerScope, context.CreateChildContext(this)).Resolve);
 
-            box.Fill(elements.Select(x =>
-                x.SwitchReturns(
-                    y => OrType.Make<IResolve<IBox<IFrontendCodeElement>>, IError>(y.Run(innerScope, context.CreateChildContext(this)).Resolve),
-                    y => OrType.Make<IResolve<IBox<IFrontendCodeElement>>, IError>(y)))
-            .ToArray());
+            //if (!(scope is Tpn.IScope runtimeScope))
+            //{
+            //    throw new NotImplementedException("this should be an IError");
+            //}
 
-            return new SetUpResult<IBox<WeakEntryPointDefinition>, Tpn.IScope>(new EntryPointDefinitionResolveReferance(innerScope), OrType.Make<Tpn.IScope, IError>(innerScope));
+            var realizedInput = parameterDefinition.Run(scope, context.CreateChildContext(this));
+            var realizedOutput = output.Run(scope, context.CreateChildContext(this));
+
+            var box = new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>();
+            var converter = new WeakEntryPointConverter(box);
+            var method = context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey(parameterName)));
+
+            box.Fill(elements.Select(x => x.TransformInner(y => y.Run(method, context.CreateChildContext(this)).Resolve)).ToArray());
+
+            return new SetUpResult<IBox<WeakEntryPointDefinition>, Tpn.TypeProblem2.Method > (new EntryPointDefinitionResolveReferance(method), OrType.Make<Tpn.TypeProblem2.Method, IError>(method));
         }
     }
 
     internal class EntryPointDefinitionResolveReferance : IResolve<IBox<WeakEntryPointDefinition>>
     {
-        private readonly Tpn.TypeProblem2.Scope scope;
+        private readonly Tpn.TypeProblem2.Method scope;
 
-        public EntryPointDefinitionResolveReferance(Tpn.TypeProblem2.Scope scope)
+        public EntryPointDefinitionResolveReferance(Tpn.TypeProblem2.Method scope)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
         public IBox<WeakEntryPointDefinition> Run(Tpn.TypeSolution context)
         {
-            var res = context.GetScope(scope);
+            var res = context.GetMethod(scope);
             if (res.GetValue().Is3(out var v3))
             {
                 return new Box<WeakEntryPointDefinition>(v3);

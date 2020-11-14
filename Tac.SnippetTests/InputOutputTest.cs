@@ -16,7 +16,7 @@ namespace Tac.SnippetTests
             Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Input(intIn ,stringIn,boolIn)},
  @"
-entry-point {
+entry-point [empty; empty;] input {
     new-empty > (in.read-string);
 };");
 
@@ -36,7 +36,7 @@ entry-point {
             Tac.Runner.Runner.RunInterpeted("test",
                 new[] {BasicInputOutput.Input(intIn ,stringIn, boolIn) },
 @"
-entry-point {
+entry-point [empty; empty;] input {
     new-empty > (in.read-number);
 };");
 
@@ -63,7 +63,7 @@ entry-point {
                     BasicInputOutput.Input(intIn, stringIn, boolIn),
                     BasicInputOutput.Output(intOut, stringOut, boolOut) },
 @"
-entry-point {
+entry-point [empty; empty;] input {
     new-empty > (in.read-bool) > (out.write-bool);
 };");
 
@@ -86,7 +86,7 @@ entry-point {
             Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
- entry-point {
+ entry-point [empty; empty;] input {
      2 * 2 > (out.write-number);
      3 * 2 > (out.write-number);
      4 * 2 > (out.write-number);
@@ -107,7 +107,7 @@ entry-point {
 
             Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
-                @"entry-point{2*2>(out.write-number);3*2>(out.write-number);4*2>(out.write-number);5*2>(out.write-number);};");
+                @"entry-point[empty; empty;] input {2*2>(out.write-number);3*2>(out.write-number);4*2>(out.write-number);5*2>(out.write-number);};");
 
             verifyIntIn();
             verifyStringIn();
@@ -124,7 +124,7 @@ entry-point {
             Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
- entry-point {
+ entry-point [empty; empty;] input {
      2 - 2 > (out.write-number);
      3 - 2 > (out.write-number);
      4 - 2 > (out.write-number);
@@ -147,7 +147,7 @@ entry-point {
             Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
- entry-point { };");
+ entry-point [empty; empty;] input { };");
 
             verifyIntIn();
             verifyStringIn();
@@ -166,7 +166,7 @@ entry-point {
             Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
- entry-point {
+ entry-point [empty; empty;] input {
      2 + 2 > (out.write-number);
  };");
 
@@ -185,7 +185,7 @@ entry-point {
             Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
- entry-point {
+ entry-point [empty; empty;] input {
      ((((((((((2)) + ((2))))))) > (((out.write-number))))));
  };");
 
@@ -206,7 +206,7 @@ entry-point {
             Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
- entry-point {
+ entry-point [empty; empty;] input {
      2 + 2 > (out . write-number);
      3 + 2 > (out . write-number);
      4 + 2 > (out . write-number);
@@ -228,7 +228,7 @@ entry-point {
             Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
- entry-point {
+ entry-point [empty; empty;] input {
      1 <? 2 > (out.write-bool);
      2 <? 2 > (out.write-bool);
      3 <? 2 > (out.write-bool);
@@ -249,7 +249,7 @@ entry-point {
             Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
- entry-point {
+ entry-point [empty; empty;] input {
      2 > (out.write-number);
  };");
 
@@ -269,7 +269,7 @@ entry-point {
             Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
- entry-point {
+ entry-point [empty; empty;] input {
      true then { 2.0 > (out.write-number); };
      false then { 1.0 > (out.write-number); };
  };");
@@ -289,7 +289,7 @@ entry-point {
             Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
- entry-point {
+ entry-point [empty; empty;] input {
      true else { 1.0 > (out.write-number); };
      false else { 2.0 > (out.write-number); };
  };");
@@ -310,7 +310,7 @@ entry-point {
             Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
-entry-point {
+entry-point [empty; empty;] input {
    ""hello world"" > (out.write-string);
 };");
 
@@ -331,7 +331,7 @@ entry-point {
             Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
-entry-point {
+entry-point  [empty; empty;] input{
     5 =: bool | number x;
 
     x is number y { y > (out.write-number) };
@@ -354,7 +354,7 @@ entry-point {
             Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
  @"
-entry-point {
+entry-point [empty; empty;] input {
     true =: (bool|number) x;
 
     x is number y { y > (out.write-number) };
@@ -376,7 +376,7 @@ entry-point {
             Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
 @"
-entry-point {
+entry-point [empty; empty;] input {
     true =: bool | bool x;
 
     x  > (out.write-bool) ;
@@ -398,7 +398,7 @@ entry-point {
             Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
 @"
-entry-point {
+entry-point  [empty; empty;] input{
     object { true =: bool b; 5 =: number a } =: type { bool b; number a;} | type { bool b; number num;} x;
 
     x.b  > (out.write-bool) ;
@@ -420,7 +420,7 @@ entry-point {
             Tac.Runner.Runner.RunInterpeted("test", new[] {
                     BasicInputOutput.Output(intIn ,stringIn,boolIn)},
 @"
-entry-point {
+entry-point  [empty; empty;] input{
     true =: bool | ( bool| bool) | bool x;
 
     x  > (out.write-bool) ;
@@ -441,7 +441,7 @@ entry-point {
             Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
 @"
-entry-point {
+entry-point  [empty; empty;] input{
     object { true =: bool b; 5 =: number a } =: type { bool b; number a;} | bool x;
 
     x is type { bool b; number a;} z { z.a > (out.write-number) } ;
@@ -463,7 +463,7 @@ entry-point {
             Tac.Runner.Runner.RunInterpeted("test", new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)},
 @"
-entry-point {
+entry-point [empty; empty;] input {
     object { true =: bool b; 5 =: number a } =: type { bool b; number a;} | type { bool b; number a;} x;
 
     x.a is number a { a > out.write-number };

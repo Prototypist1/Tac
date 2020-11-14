@@ -254,8 +254,7 @@ namespace Tac.SemanticModel
                 realizedOutput.SetUpSideNode, 
                 parameterName, 
                 new WeakMethodDefinitionConverter(
-                    linesBox, 
-                    false), 
+                    linesBox), 
                 new WeakMemberDefinitionConverter(
                     Access.ReadWrite, 
                     new NameKey(parameterName)));

@@ -60,9 +60,10 @@ namespace Tac.Frontend.TypeProblem.Test
                 Array.Empty<IOrType<WeakAssignOperationPopulateScope, IError>>(),
                 OrType.Make<EntryPointDefinitionPopulateScope, IError>(
                     new EntryPointDefinitionPopulateScope (
-                        Array.Empty<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>>()
-                        )
-                    ),
+                        new TypeReferancePopulateScope(new NameKey("empty")),
+                        Array.Empty<IOrType<EntryPointDefinitionPopulateScope, IError>>(),
+                        new TypeReferancePopulateScope(new NameKey("empty")), 
+                        "unused")),
                 Array.Empty<IOrType<TypeDefinitionPopulateScope, IError>>(),
                 Array.Empty<IOrType<GenericTypeDefinitionPopulateScope, IError>>()
                 );
@@ -117,7 +118,7 @@ namespace Tac.Frontend.TypeProblem.Test
             x.builder.CreatePublicMember(hello, hello, new NameKey("y"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("y")));
 
             var input = x.builder.CreateValue(x.ModuleRoot.InitizationScope, new NameKey("hello"), new PlaceholderValueConverter());
-            var method = x.builder.CreateMethod(x.ModuleRoot, "input", new WeakMethodDefinitionConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>()), false), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("input")));
+            var method = x.builder.CreateMethod(x.ModuleRoot, "input", new WeakMethodDefinitionConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>())), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("input")));
 
             var input_x = x.builder.CreateHopefulMember(method.Input(), new NameKey("x"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("x")));
             var input_y = x.builder.CreateHopefulMember(method.Input(), new NameKey("y"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("y")));

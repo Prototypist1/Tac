@@ -41,10 +41,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                     parent.Refs.Add(reference);
                 }
 
-                public void HasEntryPoint(IStaticScope parent, Scope entry)
-                {
-                    parent.EntryPoints.Add(entry);
-                }
+                //public void HasEntryPoint(IStaticScope parent, Scope entry)
+                //{
+                //    parent.EntryPoints.Add(entry);
+                //}
 
                 public static void HasType(IStaticScope parent, IKey key, Type type)
                 {
@@ -311,7 +311,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return res;
                 }
 
-                public Method CreateMethod(IStaticScope parent, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> inputConverter)
+                public Method CreateMethod(IStaticScope parent, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition>> converter, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> inputConverter)
                 {
                     var res = new Method(this, $"method{{inputName:{inputName}}}", converter);
                     IsChildOf(parent, res);
@@ -325,7 +325,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
 
-                public Method CreateMethod(IStaticScope parent, IOrType<TypeReference, IError> inputType, IOrType<TypeReference, IError> outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> inputConverter)
+                public Method CreateMethod(IStaticScope parent, IOrType<TypeReference, IError> inputType, IOrType<TypeReference, IError> outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>> converter, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> inputConverter)
                 {
                     if (!inputType.Is1(out var inputTypeValue))
                     {
@@ -462,7 +462,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // it is just something of type method
                 // it is really just a type
                 //
-                public Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> inputConverter)
+                public Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>> converter, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> inputConverter)
                 {
                     var thing = CreateTransientMember(parent);
                     var method = CreateMethod(parent, "input", converter, inputConverter);

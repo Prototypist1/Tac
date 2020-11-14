@@ -9,7 +9,7 @@ namespace Tac.Tests
         public void TypeInParns()
         {
             var res = TestSupport.Tokenize(
-@"entry-point {
+@"entry-point [empty;empty;] unused {
     true =: ((((bool)|number)| type { number x; })) x;
 }");
             var converted = TestSupport.ConvertToWeak(res);
@@ -23,7 +23,7 @@ namespace Tac.Tests
         public void Method()
         {
             var res = TestSupport.Tokenize(
-    @"entry-point {
+    @"entry-point [empty;empty;] unused {
         true =: bool | method[bool;bool;] x;
     }");
             var converted = TestSupport.ConvertToWeak(res);
@@ -39,7 +39,7 @@ namespace Tac.Tests
         public void ComplexMethod()
         {
             var res = TestSupport.Tokenize(
-    @"entry-point {
+    @"entry-point [empty;empty;] unused {
         true =: bool | method[method[bool;bool;];method[bool;bool;];] x;
     }");
             var converted = TestSupport.ConvertToWeak(res);

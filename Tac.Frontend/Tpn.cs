@@ -101,7 +101,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             public Dictionary<IKey, TypeProblem2.MethodType> MethodTypes { get; }
             public Dictionary<IKey, TypeProblem2.Method> Methods { get; }
             public Dictionary<IKey, TypeProblem2.Object> Objects { get; }
-            public List<TypeProblem2.Scope> EntryPoints { get; }
+            //public List<TypeProblem2.Scope> EntryPoints { get; }
         }
 
         internal interface IScope: IStaticScope,IHavePrivateMembers, IHavePossibleMembers

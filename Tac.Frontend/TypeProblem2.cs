@@ -146,7 +146,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Member> PublicMembers { get; } = new Dictionary<IKey, Member>();
 
                 public IIsPossibly<Guid> PrimitiveId { get; }
-                public List<Scope> EntryPoints { get; } = new List<Scope>();
+                //public List<Scope> EntryPoints { get; } = new List<Scope>();
                 public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
                 public List<TypeReference> Refs { get; } = new List<TypeReference>();
                 public Dictionary<IKey, OrType> OrTypes { get; } = new Dictionary<IKey, OrType>();
@@ -173,7 +173,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public IIsPossibly<IStaticScope> Parent { get; set; } = Possibly.IsNot<IStaticScope>();
                 public Dictionary<IKey, Member> PrivateMembers { get; } = new Dictionary<IKey, Member>();
-                public List<Scope> EntryPoints { get; } = new List<Scope>();
+                //public List<Scope> EntryPoints { get; } = new List<Scope>();
                 public List<Value> Values { get; } = new List<Value>();
                 public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
                 public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
@@ -217,7 +217,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 public IIsPossibly<IStaticScope> Parent { get; set; } = Possibly.IsNot<IStaticScope>();
                 public Dictionary<IKey, Member> PrivateMembers { get; } = new Dictionary<IKey, Member>();
-                public List<Scope> EntryPoints { get; } = new List<Scope>();
+                //public List<Scope> EntryPoints { get; } = new List<Scope>();
                 public List<Value> Values { get; } = new List<Value>();
                 public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
                 public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
@@ -241,7 +241,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public readonly Scope InitizationScope;
                 public IIsPossibly<IStaticScope> Parent { get; set; } = Possibly.IsNot<IStaticScope>();
                 public Dictionary<IKey, Member> PublicMembers { get; } = new Dictionary<IKey, Member>();
-                public List<Scope> EntryPoints { get; } = new List<Scope>();
+                //public List<Scope> EntryPoints { get; } = new List<Scope>();
                 public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
                 public List<TypeReference> Refs { get; } = new List<TypeReference>();
                 public Dictionary<IKey, OrType> OrTypes { get; } = new Dictionary<IKey, OrType>();
@@ -255,14 +255,14 @@ namespace Tac.Frontend.New.CrzayNamespace
             // methods don't really have members in the way other things do
             // they have members while they are executing
             // but you can't really access their members
-            public class Method : TypeProblemNode<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>>, IScope, IHaveInputAndOutput, IHavePossibleMembers
+            public class Method : TypeProblemNode<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>>, IScope, IHaveInputAndOutput, IHavePossibleMembers
             {
-                public Method(Builder problem, string debugName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>> converter) : base(problem, debugName, converter)
+                public Method(Builder problem, string debugName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>> converter) : base(problem, debugName, converter)
                 {
                 }
                 public IIsPossibly<IStaticScope> Parent { get; set; } = Possibly.IsNot<IStaticScope>();
                 public Dictionary<IKey, Member> PrivateMembers { get; } = new Dictionary<IKey, Member>();
-                public List<Scope> EntryPoints { get; } = new List<Scope>();
+                //public List<Scope> EntryPoints { get; } = new List<Scope>();
                 public List<Value> Values { get; } = new List<Value>();
                 public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
                 public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
@@ -600,7 +600,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return new TypeSolution(
                     typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>).ToDictionary(x => x, x => x.LooksUp.GetOrThrow()),
                     typeProblemNodes.OfType<OrType>().ToDictionary(x => x, x => (x.Left.GetOrThrow(), x.Right.GetOrThrow())),
-                    typeProblemNodes.OfType<IStaticScope>().Where(x => x.EntryPoints.Any()).ToDictionary(x => x, x => x.EntryPoints.Single()),
+                    //typeProblemNodes.OfType<IStaticScope>().Where(x => x.EntryPoints.Any()).ToDictionary(x => x, x => x.EntryPoints.Single()),
                     orsToFlowNodesLookup.Where(x=> x.Key.Is1(out var y) && y is MethodType).Select(x=>((MethodType)x.Key.Is1OrThrow(), (IFlowNode<MethodType>)x.Value.GetValueAs(out IFlowNode _))).ToDictionary(x=>x.Item1, x=>x.Item2),
                     orsToFlowNodesLookup.Where(x => x.Key.Is1(out var y) && y is Type).Select(x => ((Type)x.Key.Is1OrThrow(), (IFlowNode<Type>)x.Value.GetValueAs(out IFlowNode _))).ToDictionary(x => x.Item1, x => x.Item2),
                     orsToFlowNodesLookup.Where(x => x.Key.Is1(out var y) && y is Object).Select(x => ((Object)x.Key.Is1OrThrow(), (IFlowNode<Object>)x.Value.GetValueAs(out IFlowNode _))).ToDictionary(x => x.Item1, x => x.Item2),
