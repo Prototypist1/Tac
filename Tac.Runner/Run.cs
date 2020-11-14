@@ -8,7 +8,7 @@ using Tac.SemanticModel.CodeStuff;
 using static Tac.Backend.Interpreted.Public.AssemblyBuilder;
 
 // yeah, I really do not need a project for this...
-namespace Tac.Runner
+namespace Tac.Interpreted.Runner
 {
     public static class Runner
     {

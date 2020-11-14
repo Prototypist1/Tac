@@ -12,7 +12,7 @@ using static Tac.Backend.Interpreted.Public.AssemblyBuilder;
 using Prototypist.Toolbox;
 using Prototypist.Toolbox.Object;
 
-namespace Tac.SnippetTests
+namespace Tac.Interpreted.SnippetTests
 {
 
 

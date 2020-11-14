@@ -38,6 +38,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             private readonly IReadOnlyDictionary<TypeProblem2.Object, IFlowNode<TypeProblem2.Object>> objectFlowNodes;
             private readonly IReadOnlyDictionary<TypeProblem2.OrType, IFlowNode<TypeProblem2.OrType>> orFlowNodes;
             private readonly IReadOnlyDictionary<TypeProblem2.InferredType, IFlowNode<TypeProblem2.InferredType>> inferredFlowNodes;
+            private readonly IReadOnlyDictionary<IValue, IValue> deference;
 
             public TypeSolution(
                 IReadOnlyDictionary<ILookUpType, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> map, 
@@ -47,7 +48,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IReadOnlyDictionary<TypeProblem2.Type, IFlowNode<TypeProblem2.Type>> typeFlowNodes, 
                 IReadOnlyDictionary<TypeProblem2.Object, IFlowNode<TypeProblem2.Object>> objectFlowNodes, 
                 IReadOnlyDictionary<TypeProblem2.OrType, IFlowNode<TypeProblem2.OrType>> orFlowNodes, 
-                IReadOnlyDictionary<TypeProblem2.InferredType, IFlowNode<TypeProblem2.InferredType>> inferredFlowNodes)
+                IReadOnlyDictionary<TypeProblem2.InferredType, IFlowNode<TypeProblem2.InferredType>> inferredFlowNodes,
+                IReadOnlyDictionary<IValue, IValue> deference)
             {
                 this.map = map ?? throw new ArgumentNullException(nameof(map));
                 this.orTypeElememts = orTypeElememts ?? throw new ArgumentNullException(nameof(orTypeElememts));
@@ -57,6 +59,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 this.objectFlowNodes = objectFlowNodes ?? throw new ArgumentNullException(nameof(objectFlowNodes));
                 this.orFlowNodes = orFlowNodes ?? throw new ArgumentNullException(nameof(orFlowNodes));
                 this.inferredFlowNodes = inferredFlowNodes ?? throw new ArgumentNullException(nameof(inferredFlowNodes));
+                this.deference = deference ?? throw new ArgumentNullException(nameof(deference));
             }
 
             //public TypeSolution(
@@ -89,6 +92,14 @@ namespace Tac.Frontend.New.CrzayNamespace
             // just takes the type of the member
             public IBox<WeakMemberDefinition> GetMember(TypeProblem2.Member member)
             {
+                while (deference.TryGetValue(member, out var value)) {
+                    if (!(value is TypeProblem2.Member nextMember)) {
+                        throw new Exception("a member should defer to a member");
+                    }
+                    member = nextMember;
+                }
+
+
                 if (!cacheMember.ContainsKey(member))
                 {
                     var box = new Box<WeakMemberDefinition>();
@@ -176,6 +187,15 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public IBox<PlaceholderValue> GetValue(TypeProblem2.Value value)
             {
+                while (deference.TryGetValue(value, out var nextVal))
+                {
+                    if (!(nextVal is TypeProblem2.Value nextValClass))
+                    {
+                        throw new Exception("a class should defer to a class");
+                    }
+                    value = nextValClass;
+                }
+
                 if (!cacheValue.ContainsKey(value))
                 {
                     var box = new Box<PlaceholderValue>();

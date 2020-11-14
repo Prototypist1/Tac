@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Nullable>enable</Nullable>
+    <AssemblyName>Tac.Interpreted.Runner</AssemblyName>
+    <RootNamespace>Tac.Interpreted.Runner</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

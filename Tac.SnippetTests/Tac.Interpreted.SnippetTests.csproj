@@ -4,6 +4,8 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <AssemblyName>Tac.Interpreted.SnippetTests</AssemblyName>
+    <RootNamespace>Tac.Interpreted.SnippetTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,7 +13,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Prototypist.TaskChain" Version="1.0.12" />
     <PackageReference Include="Prototypist.Toolbox" Version="1.0.0.24" />
@@ -25,7 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Tac.Backend.Interpreted\Tac.Backend.Interpreted.csproj" />
     <ProjectReference Include="..\Tac.Model\Tac.Model.csproj" />
-    <ProjectReference Include="..\Tac.Runner\Tac.Runner.csproj" />
+    <ProjectReference Include="..\Tac.Runner\Tac.Interpreted.Runner.csproj" />
   </ItemGroup>
 
 </Project>

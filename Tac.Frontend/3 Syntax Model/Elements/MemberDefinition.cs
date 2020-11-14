@@ -38,33 +38,34 @@ namespace Tac.Parser
 namespace Tac.SemanticModel
 {
 
+
     // very tac-ian 
-    internal static class MemberDefinitionShared
-    {
+    //internal static class MemberDefinitionShared
+    //{
 
-        public static IMemberDefinition Convert(IBox<IOrType<IFrontendType, IError>> Type, IConversionContext context, Access access, IKey Key)
-        {
-            var (def, builder) = MemberDefinition.Create();
+    //    public static IMemberDefinition Convert(IBox<IOrType<IFrontendType, IError>> Type, IConversionContext context, Access access, IKey Key)
+    //    {
+    //        var (def, builder) = MemberDefinition.Create();
 
-            //uhh seems bad
-            var buildIntention = Type.GetValue().TransformInner(x => x.CastTo<IConvertable<IVerifiableType>>().GetBuildIntention(context));
-            var built = buildIntention.TransformInner(x => { x.Build(); return x.Tobuild; });
-            builder.Build(Key, built.Is1OrThrow(), access);
-            return def;
-        }
-        public static IBuildIntention<IMemberDefinition> GetBuildIntention(IBox<IOrType<IFrontendType, IError>> Type, IConversionContext context, Access access, IKey Key)
-        {
-            var (toBuild, maker) = MemberDefinition.Create();
-            return new BuildIntention<IMemberDefinition>(toBuild, () =>
-            {
-                maker.Build(
-                    Key,
-                    Type.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
-                    access);
-            });
-        }
+    //        //uhh seems bad
+    //        var buildIntention = Type.GetValue().TransformInner(x => x.CastTo<IConvertable<IVerifiableType>>().GetBuildIntention(context));
+    //        var built = buildIntention.TransformInner(x => { x.Build(); return x.Tobuild; });
+    //        builder.Build(Key, built.Is1OrThrow(), access);
+    //        return def;
+    //    }
+    //    public static IBuildIntention<IMemberDefinition> GetBuildIntention(IBox<IOrType<IFrontendType, IError>> Type, IConversionContext context, Access access, IKey Key)
+    //    {
+    //        var (toBuild, maker) = MemberDefinition.Create();
+    //        return new BuildIntention<IMemberDefinition>(toBuild, () =>
+    //        {
+    //            maker.Build(
+    //                Key,
+    //                Type.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
+    //                access);
+    //        });
+    //    }
 
-    }
+    //}
 
     // is this really a frontend type??
     // do I really need an interface?
@@ -94,14 +95,21 @@ namespace Tac.SemanticModel
         public Access Access { get; }
         public IKey Key { get; }
 
-        public IMemberDefinition Convert(IConversionContext context)
-        {
-            return MemberDefinitionShared.Convert(Type, context, Access, Key);
-        }
+        //public IMemberDefinition Convert(IConversionContext context)
+        //{
+        //    return MemberDefinitionShared.Convert(Type, context, Access, Key);
+        //}
 
         public IBuildIntention<IMemberDefinition> GetBuildIntention(IConversionContext context)
         {
-            return MemberDefinitionShared.GetBuildIntention(Type, context, Access, Key);
+            var (toBuild, maker) = MemberDefinition.Create();
+            return new BuildIntention<IMemberDefinition>(toBuild, () =>
+            {
+                maker.Build(
+                    Key,
+                    Type.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
+                    Access);
+            });
         }
 
         public IOrType<IFrontendType, IError> Returns()

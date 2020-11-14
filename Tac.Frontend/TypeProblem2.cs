@@ -333,6 +333,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 // members that might be on parents 
                 var orTypeMembers = new Dictionary<OrType, Dictionary<IKey, Member>>();
+                var deference = new Dictionary<IValue, IValue>();
 
                 foreach (var node in typeProblemNodes)
                 {
@@ -340,7 +341,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         foreach (var pair in possibleMembers.PossibleMembers)
                         {
-                            TryGetMember(staticScope, pair.Key).IfElse(member => TryMerge(pair.Value, member!), () =>
+                            TryGetMember(staticScope, pair.Key).IfElse(member => TryMerge(pair.Value, member!, deference), () =>
                             {
 
                                 if (node is IHavePublicMembers havePublicMembers)
@@ -370,7 +371,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     foreach (var pair in hopeful)
                     {
-                        HandleHopefulMember(pair.Key, pair.Value, GetType(node));
+                        HandleHopefulMember(pair.Key, pair.Value, GetType(node), deference);
                     }
                 }
 
@@ -388,11 +389,11 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                                 var defererReturns = definately.Value.Returns.GetOrThrow();
                                 var deferredToReturns = methodType.Returns.GetOrThrow();
-                                TryMerge(defererReturns, deferredToReturns);
+                                TryMerge(defererReturns, deferredToReturns, deference);
 
                                 var defererInput = definately.Value.Input.GetOrThrow();
                                 var deferredToInput = methodType.Input.GetOrThrow();
-                                TryMerge(defererInput, deferredToInput);
+                                TryMerge(defererInput, deferredToInput, deference);
                             }
                         }
                         else if (type.Is5(out var dummy))
@@ -605,7 +606,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     orsToFlowNodesLookup.Where(x => x.Key.Is1(out var y) && y is Type).Select(x => ((Type)x.Key.Is1OrThrow(), (IFlowNode<Type>)x.Value.GetValueAs(out IFlowNode _))).ToDictionary(x => x.Item1, x => x.Item2),
                     orsToFlowNodesLookup.Where(x => x.Key.Is1(out var y) && y is Object).Select(x => ((Object)x.Key.Is1OrThrow(), (IFlowNode<Object>)x.Value.GetValueAs(out IFlowNode _))).ToDictionary(x => x.Item1, x => x.Item2),
                     orsToFlowNodesLookup.Where(x => x.Key.Is1(out var y) && y is OrType).Select(x => ((OrType)x.Key.Is1OrThrow(), (IFlowNode<OrType>)x.Value.GetValueAs(out IFlowNode _))).ToDictionary(x => x.Item1, x => x.Item2),
-                    orsToFlowNodesLookup.Where(x => x.Key.Is1(out var y) && y is InferredType).Select(x => ((InferredType)x.Key.Is1OrThrow(), (IFlowNode<InferredType>)x.Value.GetValueAs(out IFlowNode _))).ToDictionary(x => x.Item1, x => x.Item2));
+                    orsToFlowNodesLookup.Where(x => x.Key.Is1(out var y) && y is InferredType).Select(x => ((InferredType)x.Key.Is1OrThrow(), (IFlowNode<InferredType>)x.Value.GetValueAs(out IFlowNode _))).ToDictionary(x => x.Item1, x => x.Item2),
+                    deference);
             }
 
             #region Helpers
@@ -638,8 +640,16 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
             // probably a method on defered type
-            void TryMerge(IValue deferer, IValue deferredTo)
+            void TryMerge(IValue deferer, IValue deferredTo, Dictionary<IValue, IValue> deference)
             {
+
+                if (deference.TryGetValue(deferer, out var currentDeferredTo)) {
+                    if (currentDeferredTo != deferredTo) {
+                        throw new Exception("how can one thing defer to two things?");
+                    }
+                    return;
+                }
+                deference.Add(deferer, deferredTo);
 
                 var defererType = GetType(deferer);
                 if (defererType.Is5(out var deferringInferred).Not())
@@ -712,13 +722,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         if (deferringInferred.Returns is IIsDefinately<TransientMember> deferringReturns && deferredToMethod.Returns is IIsDefinately<TransientMember> deferredToReturns)
                         {
-                            TryMerge(deferringReturns.Value, deferredToReturns.Value);
+                            TryMerge(deferringReturns.Value, deferredToReturns.Value, deference);
                         }
 
 
                         if (deferringInferred.Input is IIsDefinately<Member> deferringInput && deferredToMethod.Input is IIsDefinately<Member> deferredToInput)
                         {
-                            TryMerge(deferringInput.Value, deferredToInput.Value);
+                            TryMerge(deferringInput.Value, deferredToInput.Value, deference);
                         }
                     }
                 }
@@ -732,7 +742,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             if (hasMembers!.PublicMembers.TryGetValue(memberPair.Key, out var deferedToMember))
                             {
-                                TryMerge(memberPair.Value, deferedToMember);
+                                TryMerge(memberPair.Value, deferedToMember, deference);
                             }
                             else
                             {
@@ -751,7 +761,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         foreach (var memberPair in deferringInferred.PublicMembers)
                         {
-                            MergeIntoOrType(orType, memberPair);
+                            MergeIntoOrType(orType, memberPair, deference);
                         }
                     }
                 }
@@ -765,7 +775,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             if (deferredToInferred.PublicMembers.TryGetValue(memberPair.Key, out var deferedToMember))
                             {
-                                TryMerge(memberPair.Value, deferedToMember);
+                                TryMerge(memberPair.Value, deferedToMember, deference);
                             }
                             else
                             {
@@ -779,7 +789,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             if (deferredToInferred.Returns is IIsDefinately<TransientMember> deferredToInferredReturns)
                             {
-                                TryMerge(deferringInferredReturns.Value, deferredToInferredReturns.Value);
+                                TryMerge(deferringInferredReturns.Value, deferredToInferredReturns.Value, deference);
                             }
                             else
                             {
@@ -791,7 +801,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             if (deferredToInferred.Input is IIsDefinately<Member> deferredToInferredInput)
                             {
-                                TryMerge(deferringInferredInput.Value, deferredToInferredInput.Value);
+                                TryMerge(deferringInferredInput.Value, deferredToInferredInput.Value, deference);
                             }
                             else
                             {
@@ -802,7 +812,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            void MergeIntoOrType(OrType orType, KeyValuePair<IKey, Member> memberPair)
+            void MergeIntoOrType(OrType orType, KeyValuePair<IKey, Member> memberPair, Dictionary<IValue,IValue> deference)
             {
 
                 if (orType.Left is IIsDefinately<TypeReference> leftRef)
@@ -812,7 +822,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         if (leftWithPublicMembers.PublicMembers.TryGetValue(memberPair.Key, out var deferedToMember))
                         {
-                            TryMerge(memberPair.Value, deferedToMember);
+                            TryMerge(memberPair.Value, deferedToMember, deference);
                         }
                         else
                         {
@@ -825,7 +835,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     if (bigOr.Is<OrType>(out var leftOr))
                     {
-                        MergeIntoOrType(leftOr, memberPair);
+                        MergeIntoOrType(leftOr, memberPair, deference);
                     }
                 }
 
@@ -836,7 +846,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         if (rightWithPublicMembers.PublicMembers.TryGetValue(memberPair.Key, out var deferedToMember))
                         {
-                            TryMerge(memberPair.Value, deferedToMember);
+                            TryMerge(memberPair.Value, deferedToMember, deference);
                         }
                         else
                         {
@@ -849,7 +859,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     if (bigOr.Is<OrType>(out var RightOr))
                     {
-                        MergeIntoOrType(RightOr, memberPair);
+                        MergeIntoOrType(RightOr, memberPair, deference);
                     }
                 }
             }
@@ -1048,7 +1058,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            void HandleHopefulMember(IKey key, Member hopeful, IOrType<MethodType, Type, Object, OrType, InferredType, IError> type)
+            void HandleHopefulMember(IKey key, Member hopeful, IOrType<MethodType, Type, Object, OrType, InferredType, IError> type, Dictionary<IValue,IValue> deference)
             {
                 type.Switch(
                     x => { },
@@ -1056,7 +1066,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         if (x.PublicMembers.TryGetValue(key, out var member))
                         {
-                            TryMerge(hopeful, member);
+                            TryMerge(hopeful, member, deference);
                         }
                         // uhh this member is an error
                         // do I need to do something?
@@ -1065,7 +1075,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         if (x.PublicMembers.TryGetValue(key, out var member))
                         {
-                            TryMerge(hopeful, member);
+                            TryMerge(hopeful, member, deference);
                         }
                         // uhh this member is an error
                         // do I need to do something?
@@ -1109,7 +1119,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         if (inferredType.PublicMembers.TryGetValue(key, out var member))
                         {
-                            TryMerge(hopeful, member);
+                            TryMerge(hopeful, member, deference);
                         }
                         else
                         {
