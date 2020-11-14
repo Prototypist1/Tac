@@ -59,7 +59,6 @@ namespace Tac.SemanticModel
             return new BuildIntention<IInternalMethodDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    InputType.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
                     OutputType.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
                     ParameterDefinition.GetValue().Convert(context),
                     Scope.Is1OrThrow().GetValue().Convert(context),
@@ -116,7 +115,6 @@ namespace Tac.SemanticModel
                         inputType!,
                         elements,
                         outputType!,
-                        false,
                         parameterName!.Item),
                     matched.EndIndex
                     );
@@ -135,21 +133,18 @@ namespace Tac.SemanticModel
         private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> parameterDefinition;
         private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
         private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> output;
-        private readonly bool isEntryPoint;
         private readonly string parameterName;
 
         public MethodDefinitionPopulateScope(
             ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> parameterDefinition,
             IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements,
             ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> output,
-            bool isEntryPoint,
             string parameterName
             )
         {
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
             this.output = output ?? throw new ArgumentNullException(nameof(output));
-            this.isEntryPoint = isEntryPoint;
             this.parameterName = parameterName ?? throw new ArgumentNullException(nameof(parameterName));
         }
 
@@ -166,7 +161,7 @@ namespace Tac.SemanticModel
             var realizedOutput = output.Run(scope, context.CreateChildContext(this));
 
             var box = new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>();
-            var converter = new WeakMethodDefinitionConverter(box, isEntryPoint);
+            var converter = new WeakMethodDefinitionConverter(box);
             var method = context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey(parameterName)));
 
             box.Fill(elements.Select(x => x.TransformInner(y => y.Run(method, context.CreateChildContext(this)).Resolve)).ToArray());

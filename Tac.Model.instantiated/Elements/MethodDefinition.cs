@@ -6,12 +6,18 @@ using Tac.Model.Operations;
 
 namespace Tac.Model.Instantiated
 {
+    // yes these are the same
+    // but a little different
+    // maybe they should be one thing
+    // but atleast they are close together so it is hard to change one without changing the other 
 
     public class EntryPointDefinition: IEntryPointDefinition,IEntryPointDefinitionBuilder
     {
         private readonly Buildable<IReadOnlyList<ICodeElement>> buildableStaticInitailizers = new Buildable<IReadOnlyList<ICodeElement>>();
         private readonly Buildable<IReadOnlyList<ICodeElement>> buildableBody = new Buildable<IReadOnlyList<ICodeElement>>();
         private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
+        private readonly Buildable<IVerifiableType> buildableOutputType = new Buildable<IVerifiableType>();
+        private readonly Buildable<IMemberDefinition> buildableParameterDefinition = new Buildable<IMemberDefinition>();
 
 
         private EntryPointDefinition() { }
@@ -24,25 +30,34 @@ namespace Tac.Model.Instantiated
         public IFinalizedScope Scope { get => buildableScope.Get(); }
         public IReadOnlyList<ICodeElement> Body { get => buildableBody.Get(); }
         public IReadOnlyList<ICodeElement> StaticInitailizers { get => buildableStaticInitailizers.Get(); }
+        public IVerifiableType InputType => buildableParameterDefinition.Get().Type;
+        public IVerifiableType OutputType => buildableOutputType.Get();
+        public IMemberDefinition ParameterDefinition => buildableParameterDefinition.Get();
 
 
         public void Build(
+            IVerifiableType outputType,
+            IMemberDefinition parameterDefinition,
             IFinalizedScope scope,
             IReadOnlyList<ICodeElement> body,
             IReadOnlyList<ICodeElement> staticInitailizers)
         {
+            buildableOutputType.Set(outputType);
+            buildableParameterDefinition.Set(parameterDefinition);
             buildableScope.Set(scope);
             buildableBody.Set(body);
             buildableStaticInitailizers.Set(staticInitailizers);
         }
 
         public static IEntryPointDefinition CreateAndBuild(
+            IVerifiableType outputType,
+            IMemberDefinition parameterDefinition,
             IFinalizedScope scope,
             IReadOnlyList<ICodeElement> body,
             IReadOnlyList<ICodeElement> staticInitailizers)
         {
             var (x, y) = Create();
-            y.Build( scope, body, staticInitailizers);
+            y.Build(outputType, parameterDefinition,  scope, body, staticInitailizers);
             return x;
         }
 
@@ -63,6 +78,8 @@ namespace Tac.Model.Instantiated
     public interface IEntryPointDefinitionBuilder {
 
         void Build(
+            IVerifiableType outputType,
+            IMemberDefinition parameterDefinition,
             IFinalizedScope scope,
             IReadOnlyList<ICodeElement> body,
             IReadOnlyList<ICodeElement> staticInitailizers);
@@ -83,7 +100,7 @@ namespace Tac.Model.Instantiated
 
         #region IMethodDefinition
 
-        public IVerifiableType InputType => buildableInputType.Get();
+        public IVerifiableType InputType => buildableParameterDefinition.Get().Type;
         public IVerifiableType OutputType => buildableOutputType.Get();
         public IMemberDefinition ParameterDefinition => buildableParameterDefinition.Get();
         public IFinalizedScope Scope { get => buildableScope.Get(); }
@@ -104,14 +121,12 @@ namespace Tac.Model.Instantiated
         #endregion
         
         public void Build(
-            IVerifiableType inputType,
             IVerifiableType outputType,
             IMemberDefinition parameterDefinition,
             IFinalizedScope scope,
             IReadOnlyList<ICodeElement> body,
             IReadOnlyList<ICodeElement> staticInitailizers)
         {
-            buildableInputType.Set(inputType);
             buildableOutputType.Set(outputType);
             buildableParameterDefinition.Set(parameterDefinition);
             buildableScope.Set(scope);
@@ -127,7 +142,6 @@ namespace Tac.Model.Instantiated
         }
 
         public static IInternalMethodDefinition CreateAndBuild(
-            IVerifiableType inputType,
             IVerifiableType outputType,
             IMemberDefinition parameterDefinition,
             IFinalizedScope scope,
@@ -135,7 +149,7 @@ namespace Tac.Model.Instantiated
             IReadOnlyList<ICodeElement> staticInitailizers)
         {
             var (x, y) = Create();
-            y.Build(inputType, outputType, parameterDefinition, scope, body, staticInitailizers);
+            y.Build(outputType, parameterDefinition, scope, body, staticInitailizers);
             return x;
         }
     }
@@ -143,7 +157,6 @@ namespace Tac.Model.Instantiated
     public interface IMethodDefinitionBuilder
     {
         void Build(
-            IVerifiableType inputType,
             IVerifiableType outputType,
             IMemberDefinition parameterDefinition,
             IFinalizedScope scope,

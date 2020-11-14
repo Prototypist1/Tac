@@ -37,12 +37,19 @@ namespace Tac.SemanticModel
         WeakAbstractBlockDefinition<IEntryPointDefinition>
     {
         public WeakEntryPointDefinition(
+            IBox<IOrType<IFrontendType, IError>> outputType,
+            IBox<WeakMemberDefinition> parameterDefinition,
             IOrType<IBox<IFrontendCodeElement>,IError>[] body,
             IOrType<IBox<WeakScope>, IError> scope,
             IReadOnlyList<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
-            
+                        OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
+            ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
         }
+
+        public IBox<IOrType<IFrontendType, IError>> InputType => ParameterDefinition.GetValue().Type;
+        public IBox<IOrType<IFrontendType, IError>> OutputType { get; }
+        public IBox<WeakMemberDefinition> ParameterDefinition { get; }
 
         public override IBuildIntention<IEntryPointDefinition> GetBuildIntention(IConversionContext context)
         {
@@ -50,6 +57,8 @@ namespace Tac.SemanticModel
             return new BuildIntention<IEntryPointDefinition>(toBuild, () =>
             {
                 maker.Build(
+                    OutputType.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
+                    ParameterDefinition.GetValue().Convert(context),
                     Scope.Is1OrThrow().GetValue().Convert(context),
                     Body.Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray());
@@ -65,32 +74,74 @@ namespace Tac.SemanticModel
 
         public ITokenMatching<ISetUp<IBox<WeakEntryPointDefinition>, Tpn.IScope>> TryMake(IMatchedTokenMatching tokenMatching)
         {
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+            ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> inputType = null, outputType = null;
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+
             var matching = tokenMatching
-                    .Has(new KeyWordMaker("entry-point"), out var _)
-                    .Has(new BodyMaker());
-            return matching.ConvertIfMatched((_,block) => new EntryPointDefinitionPopulateScope(matching.Context.ParseBlock(block)), tokenMatching);
+                .Has(new KeyWordMaker("entry-point"), out var _)
+                .HasSquare(x => x
+                    .HasLine(y => y
+                        .Has(new TypeMaker(), out inputType)
+                        .Has(new DoneMaker()))
+                    .HasLine(y => y
+                        .Has(new TypeMaker(), out outputType)
+                        .Has(new DoneMaker()))
+                    .Has(new DoneMaker()))
+                .OptionalHas(new NameMaker(), out var parameterName)
+                .Has(new BodyMaker(), out var body);
+
+            if (matching
+                 is IMatchedTokenMatching matched)
+            {
+                var elements = matching.Context.ParseBlock(body);
+
+                return TokenMatching<ISetUp<IBox<WeakEntryPointDefinition>, Tpn.IScope>>.MakeMatch(
+                    tokenMatching,
+                    new EntryPointDefinitionPopulateScope(
+                        new MemberDefinitionPopulateScope(new NameKey(parameterName!.Item),false, inputType!),
+                        elements,
+                        outputType!
+                        ),
+                    matched.EndIndex
+                    );
+            }
+
+            return TokenMatching<ISetUp<IBox<WeakEntryPointDefinition>, Tpn.IScope>>.MakeNotMatch(
+                    matching.Context);
         }
     }
 
 
     internal class EntryPointDefinitionPopulateScope : ISetUp<IBox<WeakEntryPointDefinition>, Tpn.IScope>
     {
+        private readonly MemberDefinitionPopulateScope parameterDefinition;
         private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
+        private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> output;
 
         public EntryPointDefinitionPopulateScope(
-            IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements
+            MemberDefinitionPopulateScope parameterDefinition,
+            IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements,
+            ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> output
             )
         {
+            this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
             this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+            this.output = output ?? throw new ArgumentNullException(nameof(output));
         }
 
         public ISetUpResult<IBox<WeakEntryPointDefinition>, Tpn.IScope> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-
-
             var box = new Box<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]>();
-            var innerScope = context.TypeProblem.CreateScope(scope, new WeakEntryPointConverter(box));
+
+            var inputBox = new Box<IResolve<IBox<WeakMemberReference>>>();
+            var outputBox = new Box<IResolve<IBox<IFrontendType>>>();
+
+            var innerScope = context.TypeProblem.CreateScope(scope, new WeakEntryPointConverter(box, inputBox, outputBox));
             context.TypeProblem.HasEntryPoint(scope, innerScope);
+
+            inputBox.Fill(parameterDefinition.Run(innerScope, context.CreateChildContext(this)).Resolve);
+            outputBox.Fill(output.Run(innerScope, context.CreateChildContext(this)).Resolve);
 
             box.Fill(elements.Select(x =>
                 x.SwitchReturns(

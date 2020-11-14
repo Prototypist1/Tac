@@ -177,10 +177,10 @@ namespace Tac.SemanticModel
         private readonly Access access;
         private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> type;
 
-        public MemberDefinitionPopulateScope(IKey item, bool v, ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> typeToken)
+        public MemberDefinitionPopulateScope(IKey item, bool isReadonly, ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> typeToken)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
-            access = v? Access.ReadOnly: Access.ReadWrite;
+            access = isReadonly ? Access.ReadOnly: Access.ReadWrite;
             type = typeToken ?? throw new ArgumentNullException(nameof(typeToken));
         }
 

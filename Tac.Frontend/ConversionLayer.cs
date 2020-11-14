@@ -83,9 +83,9 @@ namespace Tac.Frontend
     }
 
 
-    internal class UnWrappingObjectBox : IBox<IOrType<IFrontendType,IError>>
+    internal class UnWrappingObjectBox : IBox<IOrType<IFrontendType, IError>>
     {
-        private readonly IBox<IOrType<WeakObjectDefinition,  WeakRootScope>> box;
+        private readonly IBox<IOrType<WeakObjectDefinition, WeakRootScope>> box;
 
         public UnWrappingObjectBox(IBox<IOrType<WeakObjectDefinition, WeakRootScope>> box)
         {
@@ -96,6 +96,19 @@ namespace Tac.Frontend
         {
             var inner = box.GetValue();
             return inner.SwitchReturns(x => x.Returns(), x => x.Returns());
+        }
+    }
+
+    internal class UnWrappingMemberReference: IBox<WeakMemberDefinition>{
+        private readonly IBox<IWeakMemberReference> box;
+
+        public UnWrappingMemberReference(IBox<IWeakMemberReference> box) {
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
+        }
+
+        public WeakMemberDefinition GetValue()
+        {
+            return box.GetValue().MemberDefinition.GetValue();
         }
     }
 
@@ -366,19 +379,17 @@ namespace Tac.Frontend
     internal class WeakMethodDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition>>
     {
         private readonly IBox<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>> body;
-        private readonly bool isEntryPoint;
 
-        public WeakMethodDefinitionConverter(IBox<IReadOnlyList<IOrType< IResolve<IBox<IFrontendCodeElement>>,IError>>> body, bool isEntryPoint)
+        public WeakMethodDefinitionConverter(IBox<IReadOnlyList<IOrType< IResolve<IBox<IFrontendCodeElement>>,IError>>> body)
         {
             this.body = body ?? throw new ArgumentNullException(nameof(body));
-            this.isEntryPoint = isEntryPoint;
         }
 
         public IOrType<WeakMethodDefinition, WeakImplementationDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from)
         {
             return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition>( new WeakMethodDefinition(
                 typeSolution.GetType(typeSolution.GetFlowNode2(from.Returns.GetOrThrow())),
-                 typeSolution.GetMember(from.Input.GetOrThrow()),
+                typeSolution.GetMember(from.Input.GetOrThrow()),
                 body.GetValue().Select(x => x.TransformInner(y=>y.Run(typeSolution))).ToArray(),
                 OrType.Make<IBox<WeakScope>, IError>(new Box<WeakScope>(Help.GetScope(typeSolution, from))),
                 Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>()));
@@ -502,18 +513,23 @@ namespace Tac.Frontend
 
     internal class WeakEntryPointConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>
     {
+        private Box<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]> body;
+        private Box<IResolve<IBox<WeakMemberReference>>> inputBox;
+        private Box<IResolve<IBox<IFrontendType>>> outputBox;
 
-        private readonly IBox<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]> body;
-
-        public WeakEntryPointConverter(IBox<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]> body)
+        public WeakEntryPointConverter(Box<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]> body, Box<IResolve<IBox<WeakMemberReference>>> inputBox, Box<IResolve<IBox<IFrontendType>>> outputBox)
         {
             this.body = body ?? throw new ArgumentNullException(nameof(body));
+            this.inputBox = inputBox ?? throw new ArgumentNullException(nameof(inputBox));
+            this.outputBox = outputBox ?? throw new ArgumentNullException(nameof(outputBox));
         }
 
         public IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Scope from)
         {
             return OrType.Make<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>(
                 new WeakEntryPointDefinition(
+                    new UnwrappingInferredBox(outputBox.GetValue().Run(typeSolution)),
+                    new UnWrappingMemberReference(inputBox.GetValue().Run(typeSolution)),
                     body.GetValue().Select(x => x.TransformInner(y=>y.Run(typeSolution))).ToArray(),
                     OrType.Make<IBox<WeakScope>, IError>(new Box<WeakScope>(Help.GetScope(typeSolution, from))),
                     Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>()));
