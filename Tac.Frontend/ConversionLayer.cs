@@ -142,7 +142,13 @@ namespace Tac.Frontend
                 return OrType.Make<WeakScope, IError>(error);
             }
 
-            return OrType.Make<WeakScope, IError>(new WeakScope(publicMembersOr.Is1OrThrow().Select(x => typeSolution.GetMember(x, new WeakMemberDefinitionConverter(Access.ReadWrite, x.Key))).ToList()));
+            return OrType.Make<WeakScope, IError>(
+                new WeakScope(publicMembersOr.Is1OrThrow()
+                    .Select(x => typeSolution.GetMember(
+                        haveMembers,
+                        x.Key,
+                        y => new WeakMemberDefinitionConverter(Access.ReadWrite, x.Key).Convert(y,x.FlowNode)))
+                    .ToList()));
         }
 
         public static IBox<IOrType<IFrontendType, IError>> GetType(Tpn.TypeSolution typeSolution, Tpn.ILookUpType lookUpType)

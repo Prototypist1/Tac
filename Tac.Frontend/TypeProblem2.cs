@@ -341,23 +341,25 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         foreach (var pair in possibleMembers.PossibleMembers)
                         {
-                            TryGetMember(staticScope, pair.Key).IfElse(member => TryMerge(pair.Value, member!, deference), () =>
-                            {
+                            TryGetMember(staticScope, pair.Key).IfElse(
+                                member => {
+                                    TryMerge(pair.Value, member!, deference);
+                                },
+                                () => {
 
-                                if (node is IHavePublicMembers havePublicMembers)
-                                {
-
-                                    Builder.HasPublicMember(havePublicMembers, pair.Key, pair.Value);
-                                }
-                                else if (node is IHavePrivateMembers havePrivateMembers)
-                                {
-                                    Builder.HasPrivateMember(havePrivateMembers, pair.Key, pair.Value);
-                                }
-                                else
-                                {
-                                    throw new Exception("uhhhh");
-                                }
-                            });
+                                    if (node is IHavePublicMembers havePublicMembers)
+                                    {
+                                        Builder.HasPublicMember(havePublicMembers, pair.Key, pair.Value);
+                                    }
+                                    else if (node is IHavePrivateMembers havePrivateMembers)
+                                    {
+                                        Builder.HasPrivateMember(havePrivateMembers, pair.Key, pair.Value);
+                                    }
+                                    else
+                                    {
+                                        throw new Exception("uhhhh");
+                                    }
+                                });
                         }
                     }
                 }
@@ -428,6 +430,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
+                // 
+
+
+
                 // ------------ flow time!
 
                 var ors = typeProblemNodes.Select(node => TryGetType(node)).OfType<IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>>().Select(x => x.Value).Distinct().ToArray();
@@ -476,7 +482,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var concrete = new ConcreteFlowNode<Tpn.TypeProblem2.InferredType>(inferred);
                     orsToFlowNodesBuild.Add(key, ToOr(concrete));
                     var inferredFlowNode = new InferredFlowNode(Possibly.Is(inferred));
-                    inferredFlowNode.Sources.Add(new SourcePath(Prototypist.Toolbox.OrType.Make<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>(concrete),new List<IOrType< Tpn.Member, Tpn.Input, Tpn.Output>>()));
+                    inferredFlowNode.Sources.Add(new SourcePath(Prototypist.Toolbox.OrType.Make<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>(concrete), new List<IOrType<Tpn.Member, Tpn.Input, Tpn.Output>>()));
                     orsToFlowNodesLookup.Add(key, ToOr(inferredFlowNode));
                 }
                 foreach (var error in ors.Select(x => (x.Is6(out var v), v)).Where(x => x.Item1).Select(x => x.v))
@@ -514,7 +520,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                         throw new Exception("we are probably stuck");
                     }
                 }
-
 
                 // we create members on our new representation
                 foreach (var hasPublicMembers in ors.Select(x => (x.Is(out IHavePublicMembers members), members)).Where(x => x.Item1).Select(x => x.members))
@@ -598,6 +603,55 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 } while (go);
 
+                // we record what members come from where
+                var memberLookup = new Dictionary<Member, (IKey Key , IVirtualFlowNode Owner) >();
+
+                foreach (var pair in orsToFlowNodesLookup)
+                {
+                    if (pair.Key.Is1(out var typeProblemNode))
+                    {
+                        if (typeProblemNode is IHavePublicMembers hasPublicMembers) {
+
+                            foreach (var member in hasPublicMembers.PublicMembers)
+                            {
+                                memberLookup.Add(member.Value, (member.Key, pair.Value.GetValueAs(out IVirtualFlowNode _)));
+                            }
+                        }
+                    }
+                }
+
+                foreach (var pair in orsToFlowNodesLookup)
+                {
+                    if (pair.Key.Is1(out var typeProblemNode))
+                    {
+                        if (typeProblemNode is IHavePrivateMembers hasPrivateMembers)
+                        {
+                            foreach (var member in hasPrivateMembers.PrivateMembers)
+                            {
+                                memberLookup.Add(member.Value, (member.Key, pair.Value.GetValueAs(out IVirtualFlowNode _)));
+                            }
+                        }
+                    }
+                }
+
+                foreach (var startingMember in typeProblemNodes.OfType<Member>())
+                {
+                    if (memberLookup.ContainsKey(startingMember)) {
+                        continue;
+                    }
+
+                    var localMember = startingMember;
+                    while (deference.TryGetValue(localMember, out var value))
+                    {
+                        if (!(value is TypeProblem2.Member nextMember))
+                        {
+                            throw new Exception("a member should defer to a member");
+                        }
+                        localMember = nextMember;
+                    }
+                    memberLookup.Add(startingMember, memberLookup[localMember]);
+                }
+
                 return new TypeSolution(
                     typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>).ToDictionary(x => x, x => x.LooksUp.GetOrThrow()),
                     typeProblemNodes.OfType<OrType>().ToDictionary(x => x, x => (x.Left.GetOrThrow(), x.Right.GetOrThrow())),
@@ -607,7 +661,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     orsToFlowNodesLookup.Where(x => x.Key.Is1(out var y) && y is Object).Select(x => ((Object)x.Key.Is1OrThrow(), (IFlowNode<Object>)x.Value.GetValueAs(out IFlowNode _))).ToDictionary(x => x.Item1, x => x.Item2),
                     orsToFlowNodesLookup.Where(x => x.Key.Is1(out var y) && y is OrType).Select(x => ((OrType)x.Key.Is1OrThrow(), (IFlowNode<OrType>)x.Value.GetValueAs(out IFlowNode _))).ToDictionary(x => x.Item1, x => x.Item2),
                     orsToFlowNodesLookup.Where(x => x.Key.Is1(out var y) && y is InferredType).Select(x => ((InferredType)x.Key.Is1OrThrow(), (IFlowNode<InferredType>)x.Value.GetValueAs(out IFlowNode _))).ToDictionary(x => x.Item1, x => x.Item2),
-                    deference);
+                    memberLookup);
             }
 
             #region Helpers
