@@ -38,7 +38,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             private readonly IReadOnlyDictionary<TypeProblem2.Object, IFlowNode<TypeProblem2.Object>> objectFlowNodes;
             private readonly IReadOnlyDictionary<TypeProblem2.OrType, IFlowNode<TypeProblem2.OrType>> orFlowNodes;
             private readonly IReadOnlyDictionary<TypeProblem2.InferredType, IFlowNode<TypeProblem2.InferredType>> inferredFlowNodes;
-            private readonly IReadOnlyDictionary<TypeProblem2.Member, (IKey Key, IVirtualFlowNode Owner)> memberLookup;
+            private readonly IReadOnlyDictionary<TypeProblem2.Member, (IKey Key, IOrType<IVirtualFlowNode, TypeProblem2.Method, TypeProblem2.Scope> Owner)> memberLookup;
 
             public TypeSolution(
                 IReadOnlyDictionary<ILookUpType, IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> map, 
@@ -49,7 +49,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IReadOnlyDictionary<TypeProblem2.Object, IFlowNode<TypeProblem2.Object>> objectFlowNodes, 
                 IReadOnlyDictionary<TypeProblem2.OrType, IFlowNode<TypeProblem2.OrType>> orFlowNodes, 
                 IReadOnlyDictionary<TypeProblem2.InferredType, IFlowNode<TypeProblem2.InferredType>> inferredFlowNodes,
-                IReadOnlyDictionary<TypeProblem2.Member, (IKey Key, IVirtualFlowNode Owner)> memberLookup)
+                IReadOnlyDictionary<TypeProblem2.Member, (IKey Key, IOrType<IVirtualFlowNode, TypeProblem2.Method, TypeProblem2.Scope> Owner)> memberLookup)
             {
                 this.map = map ?? throw new ArgumentNullException(nameof(map));
                 this.orTypeElememts = orTypeElememts ?? throw new ArgumentNullException(nameof(orTypeElememts));
@@ -96,17 +96,22 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            private readonly Dictionary<(IVirtualFlowNode Owner,IKey Key), IBox<WeakMemberDefinition>> cacheMember = new Dictionary<(IVirtualFlowNode Owner, IKey Key), IBox<WeakMemberDefinition>>();
+            private readonly Dictionary<(IOrType<IVirtualFlowNode, TypeProblem2.Method, TypeProblem2.Scope> Owner,IKey Key), IBox<WeakMemberDefinition>> cacheMember = new Dictionary<(IOrType<IVirtualFlowNode, TypeProblem2.Method, TypeProblem2.Scope> Owner, IKey Key), IBox<WeakMemberDefinition>>();
 
             public IBox<WeakMemberDefinition> GetMember(Tpn.IVirtualFlowNode owner , IKey key,  Func<TypeSolution, WeakMemberDefinition> convert)
             {
-                if (!cacheMember.ContainsKey((owner,key)))
+                return GetMember(OrType.Make<IVirtualFlowNode, TypeProblem2.Method, TypeProblem2.Scope>(owner), key, convert);
+            }
+            public IBox<WeakMemberDefinition> GetMember(IOrType<IVirtualFlowNode, TypeProblem2.Method, TypeProblem2.Scope> owner, IKey key, Func<TypeSolution, WeakMemberDefinition> convert)
+            {
+                var keyTuple = (owner, key);
+                if (!cacheMember.ContainsKey(keyTuple))
                 {
                     var box = new Box<WeakMemberDefinition>();
-                    cacheMember[(owner, key)] = box;
+                    cacheMember[keyTuple] = box;
                     box.Fill(convert(this));
                 }
-                return cacheMember[(owner, key)];
+                return cacheMember[keyTuple];
             }
 
             private readonly Dictionary<TypeProblem2.Method, IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>>> cacheMethod = new Dictionary<TypeProblem2.Method, IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>>>();

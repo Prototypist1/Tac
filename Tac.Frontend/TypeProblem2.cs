@@ -430,10 +430,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
-                // 
-
-
-
                 // ------------ flow time!
 
                 var ors = typeProblemNodes.Select(node => TryGetType(node)).OfType<IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>>().Select(x => x.Value).Distinct().ToArray();
@@ -604,7 +600,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 } while (go);
 
                 // we record what members come from where
-                var memberLookup = new Dictionary<Member, (IKey Key , IVirtualFlowNode Owner) >();
+                // not every member will nessisarily be here
+                // so members will never be lookup
+                var memberLookup = new Dictionary<Member, (IKey Key , IOrType< IVirtualFlowNode,Method, Scope> Owner) >();
 
                 foreach (var pair in orsToFlowNodesLookup)
                 {
@@ -614,23 +612,39 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                             foreach (var member in hasPublicMembers.PublicMembers)
                             {
-                                memberLookup.Add(member.Value, (member.Key, pair.Value.GetValueAs(out IVirtualFlowNode _)));
+                                memberLookup.Add(member.Value, (member.Key, Prototypist.Toolbox.OrType.Make<IVirtualFlowNode, Method, Scope>(pair.Value.GetValueAs(out IVirtualFlowNode _))));
                             }
                         }
-                    }
-                }
 
-                foreach (var pair in orsToFlowNodesLookup)
-                {
-                    if (pair.Key.Is1(out var typeProblemNode))
-                    {
                         if (typeProblemNode is IHavePrivateMembers hasPrivateMembers)
                         {
                             foreach (var member in hasPrivateMembers.PrivateMembers)
                             {
-                                memberLookup.Add(member.Value, (member.Key, pair.Value.GetValueAs(out IVirtualFlowNode _)));
+                                memberLookup.Add(member.Value, (member.Key, Prototypist.Toolbox.OrType.Make<IVirtualFlowNode, Method, Scope>(pair.Value.GetValueAs(out IVirtualFlowNode _))));
                             }
                         }
+
+                        // this might be a bit pointless 
+                        //if (typeProblemNode is InferredType inferredType && inferredType.Input.Is(out var member1))
+                        //{
+                        //    memberLookup.Add(member1, (new ImplicitKey(Guid.NewGuid()), Prototypist.Toolbox.OrType.Make<IVirtualFlowNode, Method, Scope>(pair.Value.GetValueAs(out IVirtualFlowNode _))));
+                        //}
+                    }
+                }
+
+                foreach (var node in typeProblemNodes.OfType<Method>())
+                {
+                    foreach (var member in node.PrivateMembers)
+                    {
+                        memberLookup.Add(member.Value, (member.Key, Prototypist.Toolbox.OrType.Make<IVirtualFlowNode, Method, Scope>(node)));
+                    }
+                }
+
+                foreach (var node in typeProblemNodes.OfType<Scope>())
+                {
+                    foreach (var member in node.PrivateMembers)
+                    {
+                        memberLookup.Add(member.Value, (member.Key, Prototypist.Toolbox.OrType.Make<IVirtualFlowNode, Method, Scope>(node)));
                     }
                 }
 
@@ -649,7 +663,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                         localMember = nextMember;
                     }
-                    memberLookup.Add(startingMember, memberLookup[localMember]);
+                    if (memberLookup.TryGetValue(localMember, out var localMemberLookup))
+                    {
+                        memberLookup.Add(startingMember, memberLookup[localMember]);
+                    }
                 }
 
                 return new TypeSolution(
@@ -691,6 +708,20 @@ namespace Tac.Frontend.New.CrzayNamespace
                 res = default;
                 return false;
             }
+
+            // do I really need types to defer?
+            // can this just be catured through thow flowing?
+            // 
+            // type { a; b }  | type { a;c } x; 
+            // x.a =: number y
+            //
+            // so a is number on both the types in the or
+            // I think this info could flow to the types
+            // but the hopeful members has to make it in to the flow 
+            // right now I don't think it does
+
+            // I am not sure I need any of the merging
+
 
 
             // probably a method on defered type
@@ -1115,7 +1146,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             void HandleHopefulMember(IKey key, Member hopeful, IOrType<MethodType, Type, Object, OrType, InferredType, IError> type, Dictionary<IValue,IValue> deference)
             {
                 type.Switch(
-                    x => { },
+                    x => {
+                        throw new Exception("a method can't have a hopeful member");
+                    },
                     x =>
                     {
                         if (x.PublicMembers.TryGetValue(key, out var member))
@@ -1406,8 +1439,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var possible in innerFromScope.PossibleMembers)
                             {
-                                var newValue = Copy(possible.Value, new Member(this.builder, $"copied from {((TypeProblemNode)possible.Value).debugName}", possible.Value.Converter));
-                                Builder.HasMembersPossiblyOnParent(innerScopeTo, possible.Key, newValue);
+                                Builder.HasMembersPossiblyOnParent(innerScopeTo, possible.Key, ()=> Copy(possible.Value, new Member(this.builder, $"copied from {((TypeProblemNode)possible.Value).debugName}", possible.Value.Converter)));
                             }
                         }
                     }
@@ -1449,8 +1481,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         foreach (var possible in innerFromHopeful.HopefulMembers)
                         {
-                            var newValue = Copy(possible.Value, new Member(this.builder, $"copied from {((TypeProblemNode)possible.Value).debugName}", possible.Value.Converter));
-                            Builder.HasHopefulMember(innerToHopeful, possible.Key, newValue);
+                            Builder.HasHopefulMember(innerToHopeful, possible.Key, ()=> Copy(possible.Value, new Member(this.builder, $"copied from {((TypeProblemNode)possible.Value).debugName}", possible.Value.Converter)));
                         }
 
 

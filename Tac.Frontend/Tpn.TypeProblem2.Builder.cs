@@ -83,16 +83,24 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     parent.TransientMembers.Add(member);
                 }
-                public static Member HasMembersPossiblyOnParent(IHavePossibleMembers parent, IKey key, Member member)
+                public static Member HasMembersPossiblyOnParent(IHavePossibleMembers parent, IKey key, Func<Member> member)
                 {
-
-                    parent.PossibleMembers.TryAdd(key, member);
-                    return parent.PossibleMembers[key];
+                    if (parent.PossibleMembers.TryGetValue(key, out var res))
+                    {
+                        return res;
+                    }
+                    res = member();
+                    parent.PossibleMembers.Add(key, res);
+                    return res;
                 }
-                public static Member HasHopefulMember(IValue parent, IKey key, Member member)
+                public static Member HasHopefulMember(IValue parent, IKey key, Func<Member> member)
                 {
-                    parent.HopefulMembers.TryAdd(key, member);
-                    return parent.HopefulMembers[key];
+                    if (parent.HopefulMembers.TryGetValue(key, out var res)) {
+                        return res;
+                    }
+                    res = member();
+                    parent.HopefulMembers.Add(key, res);
+                    return res;
                 }
 
 
@@ -230,8 +238,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         return res1;
                     }
 
-                    var res = new Member(this, "possibly on parent -" + key.ToString(), converter);
-                    res = HasMembersPossiblyOnParent(havePossibleMembers, key, res);
+                    var res = HasMembersPossiblyOnParent(havePossibleMembers, key, ()=> new Member(this, "possibly on parent -" + key.ToString(), converter));
                     res.Context = Possibly.Is(scope);
                     return res;
                 }
@@ -363,8 +370,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public Member CreateHopefulMember(IValue scope, IKey key, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter)
                 {
-                    var res = new Member(this, "hopeful - " + key.ToString()!, converter);
-                    res = HasHopefulMember(scope, key, res);
+                    var res = HasHopefulMember(scope, key, ()=> new Member(this, "hopeful - " + key.ToString()!, converter));
                     return res;
                 }
 
