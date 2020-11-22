@@ -101,9 +101,7 @@ namespace Tac.Frontend.TypeProblem.Test
             // code is something like this
             // type hello {x;y;}
             //
-            // hello z;
-            //
-            // z -> method {
+            // hello z > method {
             //      input.x =: x;
             //      input.y =: y;
             //      input return;

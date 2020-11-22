@@ -479,9 +479,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public Member GetInput(IValue value)
                 {
-                    if (value.HopefulMethod is IIsDefinately<InferredType> inferredType)
+                    if (value.HopefulMethod.Is(out var inferredType))
                     {
-                        return inferredType.Value.Input.GetOrThrow();
+                        return inferredType.Input.GetOrThrow();
                     }
                     else
                     {

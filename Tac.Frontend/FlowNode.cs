@@ -215,6 +215,25 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     changes |= toMember.GetValueAs(out IFlowNode _).Flow(fromMember.Value.Is1OrThrow(), alreadyFlowing.ToList());
                 }
+                else {
+                    // we end up here because we try to flow all the values in an or type
+                    // below are two code snipits:
+
+                    // in this one, A's "num" and "a" have to be numbers
+
+                    // type A { num; a;}
+                    // A a;
+                    // a =: type {number num; number a} | type {number a; number b;} c
+
+
+                    // in this one, A's "b" and "a" have to be numbers
+
+                    // type A { b; a;}
+                    // A a;
+                    // a =: type {number num; number a} | type {number a; number b;} c
+
+                    // for them both to work the or type has to flow all of it's member definitions
+                }
                 return changes;
             }
 

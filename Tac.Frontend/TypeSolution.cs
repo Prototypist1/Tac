@@ -102,6 +102,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 return GetMember(OrType.Make<IVirtualFlowNode, TypeProblem2.Method, TypeProblem2.Scope>(owner), key, convert);
             }
+
             public IBox<WeakMemberDefinition> GetMember(IOrType<IVirtualFlowNode, TypeProblem2.Method, TypeProblem2.Scope> owner, IKey key, Func<TypeSolution, WeakMemberDefinition> convert)
             {
                 var keyTuple = (owner, key);

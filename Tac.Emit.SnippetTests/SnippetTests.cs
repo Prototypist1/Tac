@@ -33,8 +33,8 @@ method [ number ; number ; ] input {
     input <? 2 then {
         1 return ;
     } else {
-        ( input - 1 > fac ) * input return ;      
-    } ;
+        ( input - 1 > fac ) * input return ;  
+    }
 } =: fac ;
 
 entry-point [number; number;] input { input > fac return; }", 3.0);

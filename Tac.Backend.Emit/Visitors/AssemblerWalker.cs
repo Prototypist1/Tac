@@ -92,7 +92,7 @@ namespace Tac.Backend.Emit.Walkers
 
         internal void Emit(OpCode code, MethodInfo method)
         {
-            debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + ", " + method.Name + /*"(" + string.Join<string>(',', method.GetParameters().Select(x => x.ParameterType.Name)) + ")" +*/ Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + ", " + method.Name  + "<" + string.Join<string>(", ", method.GetGenericArguments().Select(x => x.FullName)) + ">" + Environment.NewLine;
             backing.Emit(code, method);
         }
 
@@ -123,7 +123,7 @@ namespace Tac.Backend.Emit.Walkers
 
         internal void Emit(OpCode code, System.Type type)
         {
-            debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + ", " + type.Name + Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + ", " + type.FullName + Environment.NewLine;
             backing.Emit(code, type);
         }
         internal void Emit(OpCode code, FieldInfo field)
@@ -139,7 +139,7 @@ namespace Tac.Backend.Emit.Walkers
         }
         internal void Emit(OpCode code, ConstructorInfo rootSelfField)
         {
-            debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + ", " + rootSelfField.DeclaringType.FullName + /*"(" + string.Join<string>(',', rootSelfField.GetParameters().Select(x=>x.ParameterType.Name)) + ")"+*/ Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + ", " + rootSelfField.DeclaringType.FullName + /*"<" + string.Join<string>(", ", rootSelfField.GetGenericArguments().Select(x => x.FullName)) + ">" +*/ Environment.NewLine;
             backing.Emit(code, rootSelfField);
         }
 
@@ -151,7 +151,7 @@ namespace Tac.Backend.Emit.Walkers
             }
 
             locals.Add(or);
-            debugString += EvaluationStackDepth + ": " + Tabs() + "local, " + type.Name + ", " + member.Key + Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + Tabs() + "local, " + type.FullName + ", " + member.Key + Environment.NewLine;
             return backing.DeclareLocal(type);
         }
 
@@ -166,7 +166,7 @@ namespace Tac.Backend.Emit.Walkers
 
             locals.Add(or);
 
-            debugString += EvaluationStackDepth + ": " + Tabs() + "local, " + type.Name + ", " +  id + Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + Tabs() + "local, " + type.FullName + ", " +  id + Environment.NewLine;
             return backing.DeclareLocal(type);
         }
 
@@ -208,7 +208,7 @@ namespace Tac.Backend.Emit.Walkers
 
         internal void EmitCall(OpCode code, MethodInfo methodInfo)
         {
-            debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + ", " + methodInfo.Name + /*"(" + string.Join<string>(',', methodInfo.GetParameters().Select(x => x.ParameterType.Name)) + ")" +*/ Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + ", " + methodInfo.Name + "<" + string.Join<string>(", ", methodInfo.GetGenericArguments().Select(x => x.FullName)) + ">" + Environment.NewLine;
             backing.Emit(code, methodInfo);
         }
 
@@ -949,7 +949,6 @@ namespace Tac.Backend.Emit.Walkers
 
                 var nextNext = next.Push(myIf);
                 var topOfElseLabel = generatorHolder.GetGeneratorAndUpdateStack(0).DefineLabel();
-                var bottomOfElse = generatorHolder.GetGeneratorAndUpdateStack(0).DefineLabel();
                 myIf.Operands[0].Convert(nextNext);
                 // duplicate code {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
                 if (this.stack.Any() && this.stack.Last().SafeIs(out IOperation _))
@@ -967,10 +966,24 @@ namespace Tac.Backend.Emit.Walkers
                 }
                 generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Brfalse, topOfElseLabel);
                 myIf.Operands[1].Convert(nextNext);
-                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Br, bottomOfElse);
-                generatorHolder.GetGeneratorAndUpdateStack(0).MarkLabel(topOfElseLabel);
-                co.Operands[1].Convert(next);
-                generatorHolder.GetGeneratorAndUpdateStack(0).MarkLabel(bottomOfElse);
+
+                // if we are the last line in the method
+                // say
+                // ture then { 1 return } else { 0 return }
+                // than the branch produces invalid code 
+                if (IsLastLine(co))
+                {
+                    generatorHolder.GetGeneratorAndUpdateStack(0).MarkLabel(topOfElseLabel);
+                    co.Operands[1].Convert(next);
+                }
+                else
+                {
+                    var bottomOfElse = generatorHolder.GetGeneratorAndUpdateStack(0).DefineLabel();
+                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Br, bottomOfElse);
+                    generatorHolder.GetGeneratorAndUpdateStack(0).MarkLabel(topOfElseLabel);
+                    co.Operands[1].Convert(next);
+                    generatorHolder.GetGeneratorAndUpdateStack(0).MarkLabel(bottomOfElse);
+                }
 
                 return new Nothing();
             }
@@ -992,6 +1005,32 @@ namespace Tac.Backend.Emit.Walkers
             }
         }
 
+        private bool IsLastLine(ICodeElement co)
+        {
+            foreach (var item in stack.Reverse())
+            {
+                if (item is IOperation) {
+                    return false;
+                }
+                if (item is IInternalMethodDefinition  method) {
+                    return method.Body.Last() == co;
+                }
+                if (item is IEntryPointDefinition entry)
+                {
+                    return entry.Body.Last() == co;
+                }
+                if (item is IBlockDefinition block) {
+                    if (block.Body.Last() == co)
+                    {
+                        co = block;
+                    }
+                    else {
+                        return false;
+                    }
+                }
+            }
+            throw new Exception("I don't think you should get here");
+        }
 
         public Nothing EntryPoint(IEntryPointDefinition entryPointDefinition)
         {
@@ -1633,7 +1672,7 @@ namespace Tac.Backend.Emit.Walkers
             // {6820D180-0335-40E4-A9AA-22130FB3BC6D} I do this in other places
 
             co.Left.Convert(this.Push(co));
-            var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(inType, Guid.NewGuid());
+            var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[co.Left.Returns()], Guid.NewGuid());
             StoreLocal(loc.LocalIndex);
 
             co.Right.Convert(this.Push(co));
