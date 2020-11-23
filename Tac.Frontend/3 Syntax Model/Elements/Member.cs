@@ -141,5 +141,4 @@ namespace Tac.SemanticModel
             return new Box<WeakMemberReference>(new WeakMemberReference(context.GetMember(member)));
         }
     }
-
 }

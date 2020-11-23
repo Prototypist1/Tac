@@ -93,13 +93,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                     parent.PossibleMembers.Add(key, res);
                     return res;
                 }
-                public static Member HasHopefulMember(IValue parent, IKey key, Func<Member> member)
+                public Member HasHopefulMember(IValue parent, IKey key, Func<Member> member)
                 {
-                    if (parent.HopefulMembers.TryGetValue(key, out var res)) {
+                    if (!parent.Hopeful.Is(out var inferredType))
+                    {
+                        inferredType = new InferredType(this, $"generated infered hopeful member type. for key {key}");
+                    }
+
+                    if (inferredType.PublicMembers.TryGetValue(key, out var res)) {
                         return res;
                     }
+
                     res = member();
-                    parent.HopefulMembers.Add(key, res);
+                    inferredType.PublicMembers.Add(key, res);
                     return res;
                 }
 
@@ -479,14 +485,14 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public Member GetInput(IValue value)
                 {
-                    if (value.HopefulMethod.Is(out var inferredType))
+                    if (value.Hopeful.Is(out var inferredType))
                     {
                         return inferredType.Input.GetOrThrow();
                     }
                     else
                     {
-                        var inferredMethodType = new InferredType(this, "generated infered method type");
-                        value.HopefulMethod = Possibly.Is(inferredMethodType);
+                        var inferredMethodType = new InferredType(this, "generated infered method type for input");
+                        value.Hopeful = Possibly.Is(inferredMethodType);
 
                         // shared code {A9E37392-760B-427D-852E-8829EEFCAE99}
                         // we don't use has member input/output doesn't go in the member list
@@ -541,14 +547,14 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public TransientMember GetReturns(IValue value)
                 {
-                    if (value.HopefulMethod is IIsDefinately<InferredType> inferredType)
+                    if (value.Hopeful is IIsDefinately<InferredType> inferredType)
                     {
                         return inferredType.Value.Returns.GetOrThrow();
                     }
                     else
                     {
-                        var inferredMethodType = new InferredType(this, "generated infered method type");
-                        value.HopefulMethod = Possibly.Is(inferredMethodType);
+                        var inferredMethodType = new InferredType(this, "generated infered method type for output");
+                        value.Hopeful = Possibly.Is(inferredMethodType);
 
                         // shared code {A9E37392-760B-427D-852E-8829EEFCAE99}
                         // we don't use has member input/output doesn't go in the member list

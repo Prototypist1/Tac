@@ -85,8 +85,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         internal interface ICanBeAssignedTo : ITypeProblemNode, ILookUpType { }
         internal interface IValue : ITypeProblemNode, ILookUpType, ICanAssignFromMe
         {
-            public Dictionary<IKey, TypeProblem2.Member> HopefulMembers { get; }
-            public IIsPossibly<TypeProblem2.InferredType> HopefulMethod { get; set; }
+            public IIsPossibly<TypeProblem2.InferredType> Hopeful { get; set; }
         }
         //public interface Member :  IValue, ILookUpType, ICanBeAssignedTo {bool IsReadonly { get; }}
         internal interface IExplicitType : IStaticScope, IHavePublicMembers { 

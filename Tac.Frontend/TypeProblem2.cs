@@ -73,13 +73,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IIsPossibly<IStaticScope> Context { get; set; } = Possibly.IsNot<IStaticScope>();
                 public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType, IError>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
 
-                public Dictionary<IKey, Member> HopefulMembers { get; } = new Dictionary<IKey, Member>();
-                public IIsPossibly<InferredType> HopefulMethod { get; set; } = Possibly.IsNot<InferredType>();
+                public IIsPossibly<InferredType> Hopeful { get; set; } = Possibly.IsNot<InferredType>();
 
-                public IReadOnlyDictionary<IKey, Member> GetPublicMembers()
-                {
-                    return HopefulMembers;
-                }
+                //public IReadOnlyDictionary<IKey, Member> GetPublicMembers()
+                //{
+                //    return HopefulMembers;
+                //}
             }
             public class Member : TypeProblemNode<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition>, IMember
             {
@@ -90,13 +89,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IOrType<IKey, IError, Unset> TypeKey { get; set; } = Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(new Unset());
                 public IIsPossibly<IStaticScope> Context { get; set; } = Possibly.IsNot<IStaticScope>();
                 public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType, IError>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
-                public Dictionary<IKey, Member> HopefulMembers { get; } = new Dictionary<IKey, Member>();
-                public IIsPossibly<InferredType> HopefulMethod { get; set; } = Possibly.IsNot<InferredType>();
+                public IIsPossibly<InferredType> Hopeful { get; set; } = Possibly.IsNot<InferredType>();
 
-                public IReadOnlyDictionary<IKey, Member> GetPublicMembers()
-                {
-                    return HopefulMembers;
-                }
+                //public IReadOnlyDictionary<IKey, Member> GetPublicMembers()
+                //{
+                //    return HopefulMembers;
+                //}
             }
 
             public class TransientMember : TypeProblemNode, IMember
@@ -108,13 +106,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IOrType<IKey, IError, Unset> TypeKey { get; set; } = Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(new Unset());
                 public IIsPossibly<IStaticScope> Context { get; set; } = Possibly.IsNot<IStaticScope>();
                 public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType, IError>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
-                public Dictionary<IKey, Member> HopefulMembers { get; } = new Dictionary<IKey, Member>();
-                public IIsPossibly<InferredType> HopefulMethod { get; set; } = Possibly.IsNot<InferredType>();
+                public IIsPossibly<InferredType> Hopeful { get; set; } = Possibly.IsNot<InferredType>();
 
-                public IReadOnlyDictionary<IKey, Member> GetPublicMembers()
-                {
-                    return HopefulMembers;
-                }
+                //public IReadOnlyDictionary<IKey, Member> GetPublicMembers()
+                //{
+                //    return HopefulMembers;
+                //}
             }
 
             // I don't really think possible members belong here
@@ -337,10 +334,47 @@ namespace Tac.Frontend.New.CrzayNamespace
                     toLookUp = typeProblemNodes.OfType<ILookUpType>().Where(x => !(x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>)).ToArray();
                 }
 
+                // assignemtns become flow
+                // this is a more flexable type
+                // assignments are values
+                // flow are types
+                // you can flow types without having values
+                // we do this with hopeful stuff 
+                // we could not use types before because maybe values don't have types until solve 
+
+                var flows = new List<(IOrType<ITypeProblemNode, IError> From, IOrType<ITypeProblemNode, IError> To)> { };
+
+                var deferingTypes = new Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ITypeProblemNode, IError>> { };
+
+                foreach (var (from, to) in assignments)
+                {
+                    var toType = to.LooksUp.GetOrThrow().SwitchReturns(
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x));
+                    var fromType = from.LooksUp.GetOrThrow().SwitchReturns(
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x));
+
+                    // this looks backwords but it's not
+                    // things flow upstream
+                    // y =: number x
+                    // y is a number
+                    // we flow from the target of assignment to the source of assignment 
+                    flows.Add((From: toType, To: fromType));
+                }
+
                 // members that might be on parents 
                 // parents need to be done before children 
                 var orTypeMembers = new Dictionary<OrType, Dictionary<IKey, Member>>();
-                var deference = new Dictionary<IValue, IValue>();
+                //var deference = new Dictionary<IValue, IValue>();
 
                 foreach (var (possibleMembers, staticScope, node) in typeProblemNodes
                     .SelectMany(node => {
@@ -356,7 +390,24 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         TryGetMember(staticScope, pair.Key).IfElse(
                             member => {
-                                TryMerge(pair.Value, member!, deference);
+                                var flowFrom = pair.Value.LooksUp.GetOrThrow().SwitchReturns(
+                                        x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                        x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                        x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                        x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                        x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                        x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x));
+
+                                var flowTo = member.LooksUp.GetOrThrow().SwitchReturns(
+                                        x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                        x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                        x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                        x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                        x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                        x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x));
+
+                                flows.Add((From: flowFrom, To: flowTo));
+                                deferingTypes.Add(flowFrom, flowTo);
                             },
                             () => {
 
@@ -380,81 +431,102 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // hopeful members and methods are a little rough around the edges
                 // they are very similar yet implemented differently 
 
+
                 // hopeful members 
-                foreach (var (node, hopeful) in typeProblemNodes.OfType<IValue>().Select(x => (x, x.HopefulMembers)))
+                foreach (var node in typeProblemNodes.OfType<IValue>())
                 {
-                    foreach (var pair in hopeful)
-                    {
-                        HandleHopefulMember(pair.Key, pair.Value, GetType(node), deference);
+                    if (node.Hopeful.Is(out var hopeful)) {
+                        var flowFrom = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hopeful);
+                        var flowTo = node.LooksUp.GetOrThrow().SwitchReturns(
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x));
+
+                        flows.Add((From: flowFrom, To: flowTo));
+                        deferingTypes.Add(flowFrom, flowTo);
                     }
                 }
 
-                // hopeful methods 
-                foreach (var (node, hopefulMethod) in typeProblemNodes.OfType<IValue>().Select(x => (x, x.HopefulMethod)))
-                {
-                    if (hopefulMethod is IIsDefinately<InferredType> definately)
-                    {
-                        var type = GetType(node);
-                        if (type.Is1(out var methodType))
-                        {
-                            if (!methodType.Equals(hopefulMethod))
-                            {
-                                node.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(methodType));
 
-                                var defererReturns = definately.Value.Returns.GetOrThrow();
-                                var deferredToReturns = methodType.Returns.GetOrThrow();
-                                TryMerge(defererReturns, deferredToReturns, deference);
+                //// hopeful members 
+                //foreach (var (node, hopeful) in typeProblemNodes.OfType<IValue>().Select(x => (x, x.HopefulMembers)))
+                //{
+                //    foreach (var pair in hopeful)
+                //    {
+                //        HandleHopefulMember(pair.Key, pair.Value, GetType(node), deference);
+                //    }
+                //}
 
-                                var defererInput = definately.Value.Input.GetOrThrow();
-                                var deferredToInput = methodType.Input.GetOrThrow();
-                                TryMerge(defererInput, deferredToInput, deference);
-                            }
-                        }
-                        else if (type.Is5(out var dummy))
-                        {
-                            // these need to be merged 
-                            // dummy could have hopeful members
-                            // altho if it does that is an exception
-                            // the merge logic is alittle different
-                            // for now I will throw if dummy has members
-                            if (dummy.PublicMembers.Any())
-                            {
-                                node.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(
-                                    Error.Other("you can't have hopeful members and be a hopeful method")));
-                            }
+                //// hopeful methods 
+                //foreach (var (node, hopefulMethod) in typeProblemNodes.OfType<IValue>().Select(x => (x, x.HopefulMethod)))
+                //{
+                //    if (hopefulMethod is IIsDefinately<InferredType> definately)
+                //    {
+                //        var type = GetType(node);
+                //        if (type.Is1(out var methodType))
+                //        {
+                //            if (!methodType.Equals(hopefulMethod))
+                //            {
+                //                node.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(methodType));
+
+                //                var defererReturns = definately.Value.Returns.GetOrThrow();
+                //                var deferredToReturns = methodType.Returns.GetOrThrow();
+                //                TryMerge(defererReturns, deferredToReturns, deference);
+
+                //                var defererInput = definately.Value.Input.GetOrThrow();
+                //                var deferredToInput = methodType.Input.GetOrThrow();
+                //                TryMerge(defererInput, deferredToInput, deference);
+                //            }
+                //        }
+                //        else if (type.Is5(out var dummy))
+                //        {
+                //            // these need to be merged 
+                //            // dummy could have hopeful members
+                //            // altho if it does that is an exception
+                //            // the merge logic is alittle different
+                //            // for now I will throw if dummy has members
+                //            if (dummy.PublicMembers.Any())
+                //            {
+                //                node.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(
+                //                    Error.Other("you can't have hopeful members and be a hopeful method")));
+                //            }
 
 
-                            // we pass the "input" and "returns" on to the type we look up to (we used to use update ourself so we lookup to the hopefulMethod)
-                            // we do it this way because may nodes could look up to the same type
-                            // makes me wonder why we have a whole inferredType there
-                            // I guess it is ok since we know it will never have members
-                            if (!dummy.Input.Is(out var inferredInput))
-                            {
-                                dummy.Input = definately.Value.Input;
-                            }
-                            else {
-                                TryMerge(dummy.Input.GetOrThrow(), inferredInput, deference);
-                            }
+                //            // we pass the "input" and "returns" on to the type we look up to (we used to use update ourself so we lookup to the hopefulMethod)
+                //            // we do it this way because may nodes could look up to the same type
+                //            // makes me wonder why we have a whole inferredType there
+                //            // I guess it is ok since we know it will never have members
+                //            if (!dummy.Input.Is(out var inferredInput))
+                //            {
+                //                dummy.Input = definately.Value.Input;
+                //            }
+                //            else {
+                //                TryMerge(dummy.Input.GetOrThrow(), inferredInput, deference);
+                //            }
 
-                            if (!dummy.Returns.Is(out var inferredReturns))
-                            {
-                                dummy.Returns = definately.Value.Returns;
-                            }
-                            else
-                            {
-                                TryMerge(dummy.Returns.GetOrThrow(), inferredReturns, deference);
-                            }
-                            
-                        }
-                        else
-                        {
-                            throw new Exception("no good!");
-                        }
-                    }
-                }
+                //            if (!dummy.Returns.Is(out var inferredReturns))
+                //            {
+                //                dummy.Returns = definately.Value.Returns;
+                //            }
+                //            else
+                //            {
+                //                TryMerge(dummy.Returns.GetOrThrow(), inferredReturns, deference);
+                //            }
+
+                //        }
+                //        else
+                //        {
+                //            throw new Exception("no good!");
+                //        }
+                //    }
+                //}
 
                 // ------------ flow time!
 
+                // debugging
                 //var z = typeProblemNodes.Select(node => TryGetType(node)).ToArray();
                 //var zz = z.OfType<IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>>().ToArray();
                 //var zzz = zz.Select(x => x.Value).ToArray();
@@ -462,7 +534,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
                 var ors = typeProblemNodes
-                    .Select(node => TryGetType(node)).OfType<IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>>()
+                    .Select(node => TryGetType(node))
+                    .OfType<IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>>()
                     .Select(x => x.Value)
                     .Distinct()
                     .ToArray();
@@ -631,26 +704,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     go = false;
 
-                    foreach (var (from, to) in assignments)
+                    foreach (var (from, to) in flows)
                     {
-                        var toType = orsToFlowNodesLookup[to.LooksUp.GetOrThrow().SwitchReturns(
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))];
-                        var fromType = orsToFlowNodesLookup[from.LooksUp.GetOrThrow().SwitchReturns(
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))];
-
                         //if (fromType.GetValueAs(out IFlowNode _).CanFlow(toType.GetValueAs(out IVirtualFlowNode _), new List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>()))
                         //{
-                            go |= fromType.GetValueAs(out IFlowNode _).Flow(toType.GetValueAs(out IVirtualFlowNode _), new List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
+                            go |= orsToFlowNodesLookup[to].GetValueAs(out IFlowNode _).Flow(
+                                orsToFlowNodesLookup[from].GetValueAs(out IVirtualFlowNode _), 
+                                new List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
                         //}
                     }
 
@@ -675,7 +735,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                             foreach (var member in hasPublicMembers.PublicMembers)
                             {
-                                memberLookup.Add(member.Value, (member.Key, Prototypist.Toolbox.OrType.Make<IVirtualFlowNode, Method, Scope>(pair.Value.GetValueAs(out IVirtualFlowNode _))));
+                                memberLookup.Add(member.Value, (member.Key, Prototypist.Toolbox.OrType.Make<IVirtualFlowNode, Method, Scope>(Defer(pair.Key, deferingTypes, orsToFlowNodesLookup))));
                             }
                         }
 
@@ -711,38 +771,38 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
-                foreach (var (node, hopeful) in typeProblemNodes.OfType<IValue>().Select(x => (x, x.HopefulMembers)))
-                {
-                    foreach (var pair in hopeful)
-                    {
-                        if (GetType(node).Is4(out var orType))
-                        {
-                            var target = orsToFlowNodesLookup[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(orType)];
-                            memberLookup.Add(pair.Value, (pair.Key, Prototypist.Toolbox.OrType.Make<IVirtualFlowNode, Method, Scope>(target.GetValueAs(out IVirtualFlowNode _))));
-                        }
-                    }
-                }
+                //foreach (var (node, hopeful) in typeProblemNodes.OfType<IValue>().Select(x => (x, x.HopefulMembers)))
+                //{
+                //    foreach (var pair in hopeful)
+                //    {
+                //        if (GetType(node).Is4(out var orType))
+                //        {
+                //            var target = orsToFlowNodesLookup[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(orType)];
+                //            memberLookup.Add(pair.Value, (pair.Key, Prototypist.Toolbox.OrType.Make<IVirtualFlowNode, Method, Scope>(target.GetValueAs(out IVirtualFlowNode _))));
+                //        }
+                //    }
+                //}
 
-                foreach (var startingMember in typeProblemNodes.OfType<Member>())
-                {
-                    if (memberLookup.ContainsKey(startingMember)) {
-                        continue;
-                    }
+                //foreach (var startingMember in typeProblemNodes.OfType<Member>())
+                //{
+                //    if (memberLookup.ContainsKey(startingMember)) {
+                //        continue;
+                //    }
 
-                    var localMember = startingMember;
-                    while (deference.TryGetValue(localMember, out var value))
-                    {
-                        if (!(value is TypeProblem2.Member nextMember))
-                        {
-                            throw new Exception("a member should defer to a member");
-                        }
-                        localMember = nextMember;
-                    }
-                    if (memberLookup.TryGetValue(localMember, out var localMemberLookup))
-                    {
-                        memberLookup.Add(startingMember, memberLookup[localMember]);
-                    }
-                }
+                //    var localMember = startingMember;
+                //    while (deference.TryGetValue(localMember, out var value))
+                //    {
+                //        if (!(value is TypeProblem2.Member nextMember))
+                //        {
+                //            throw new Exception("a member should defer to a member");
+                //        }
+                //        localMember = nextMember;
+                //    }
+                //    if (memberLookup.TryGetValue(localMember, out var localMemberLookup))
+                //    {
+                //        memberLookup.Add(startingMember, memberLookup[localMember]);
+                //    }
+                //}
 
                 return new TypeSolution(
                     typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>).ToDictionary(x => x, x => x.LooksUp.GetOrThrow()),
@@ -756,8 +816,21 @@ namespace Tac.Frontend.New.CrzayNamespace
                     memberLookup);
             }
 
+
+
             #region Helpers
 
+            private IVirtualFlowNode Defer(
+                IOrType<ITypeProblemNode, IError> key, 
+                Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ITypeProblemNode, IError>> deferingTypes, 
+                Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> orsToFlowNodesLookup)
+            {
+                while (deferingTypes.TryGetValue(key, out var nextKey)) {
+                    key = nextKey;
+                }
+
+                return orsToFlowNodesLookup[key].GetValueAs(out IVirtualFlowNode _);
+            }
 
             private static int Height(IStaticScope staticScope) {
                 var res = 0;
@@ -809,244 +882,244 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
             // probably a method on defered type
-            void TryMerge(IValue deferer, IValue deferredTo, Dictionary<IValue, IValue> deference)
-            {
-                if (deferer == deferredTo) {
-                    return;
-                }
+            //void TryMerge(IValue deferer, IValue deferredTo, Dictionary<IValue, IValue> deference)
+            //{
+            //    if (deferer == deferredTo) {
+            //        return;
+            //    }
 
-                if (deference.TryGetValue(deferer, out var currentDeferredTo))
-                {
-                    if (currentDeferredTo != deferredTo)
-                    {
-                        throw new Exception("how can one thing defer to two things?");
-                    }
-                    return;
-                }
+            //    if (deference.TryGetValue(deferer, out var currentDeferredTo))
+            //    {
+            //        if (currentDeferredTo != deferredTo)
+            //        {
+            //            throw new Exception("how can one thing defer to two things?");
+            //        }
+            //        return;
+            //    }
 
-                deference.Add(deferer, deferredTo);
+            //    deference.Add(deferer, deferredTo);
 
 
-                // this removes the deferer from all assignments
-                // replacing it with what is is defered to
-                // why do I need this?
-                {
-                    if (deferredTo.SafeIs<ITypeProblemNode, ICanAssignFromMe>(out var deferredToLeft))
-                    {
-                        if (deferredTo.SafeIs<ITypeProblemNode, ICanBeAssignedTo>(out var deferredToRight))
-                        {
-                            var nextAssignments = new List<(ILookUpType, ILookUpType)>();
-                            foreach (var assignment in assignments)
-                            {
-                                var left = assignment.Item1 == deferer ? deferredToLeft : assignment.Item1;
-                                var right = assignment.Item2 == deferer ? deferredToRight : assignment.Item2;
-                                nextAssignments.Add((left, right));
-                            }
-                            assignments = nextAssignments;
-                        }
-                        else
-                        {
-                            var nextAssignments = new List<(ILookUpType, ILookUpType)>();
-                            foreach (var assignment in assignments)
-                            {
-                                var left = assignment.Item1 == deferer ? deferredToLeft : assignment.Item1;
-                                nextAssignments.Add((left, assignment.Item2));
-                            }
-                            assignments = nextAssignments;
-                        }
-                    }
-                    else if (deferredTo.SafeIs<ITypeProblemNode, ICanBeAssignedTo>(out var deferredToRight))
-                    {
-                        var nextAssignments = new List<(ILookUpType, ILookUpType)>();
+            //    // this removes the deferer from all assignments
+            //    // replacing it with what is is defered to
+            //    // why do I need this?
+            //    {
+            //        if (deferredTo.SafeIs<ITypeProblemNode, ICanAssignFromMe>(out var deferredToLeft))
+            //        {
+            //            if (deferredTo.SafeIs<ITypeProblemNode, ICanBeAssignedTo>(out var deferredToRight))
+            //            {
+            //                var nextAssignments = new List<(ILookUpType, ILookUpType)>();
+            //                foreach (var assignment in assignments)
+            //                {
+            //                    var left = assignment.Item1 == deferer ? deferredToLeft : assignment.Item1;
+            //                    var right = assignment.Item2 == deferer ? deferredToRight : assignment.Item2;
+            //                    nextAssignments.Add((left, right));
+            //                }
+            //                assignments = nextAssignments;
+            //            }
+            //            else
+            //            {
+            //                var nextAssignments = new List<(ILookUpType, ILookUpType)>();
+            //                foreach (var assignment in assignments)
+            //                {
+            //                    var left = assignment.Item1 == deferer ? deferredToLeft : assignment.Item1;
+            //                    nextAssignments.Add((left, assignment.Item2));
+            //                }
+            //                assignments = nextAssignments;
+            //            }
+            //        }
+            //        else if (deferredTo.SafeIs<ITypeProblemNode, ICanBeAssignedTo>(out var deferredToRight))
+            //        {
+            //            var nextAssignments = new List<(ILookUpType, ILookUpType)>();
 
-                        foreach (var assignment in assignments)
-                        {
-                            var right = assignment.Item2 == deferer ? deferredToRight : assignment.Item2;
-                            nextAssignments.Add((assignment.Item1, right));
-                        }
-                        assignments = nextAssignments;
-                    }
-                }
+            //            foreach (var assignment in assignments)
+            //            {
+            //                var right = assignment.Item2 == deferer ? deferredToRight : assignment.Item2;
+            //                nextAssignments.Add((assignment.Item1, right));
+            //            }
+            //            assignments = nextAssignments;
+            //        }
+            //    }
 
-                var defererType = GetType(deferer);
-                var deferredToType = GetType(deferredTo);
+            //    var defererType = GetType(deferer);
+            //    var deferredToType = GetType(deferredTo);
 
-                DeferType(deference, defererType, deferredToType);
-            }
+            //    DeferType(deference, defererType, deferredToType);
+            //}
 
-            private void DeferType(Dictionary<IValue, IValue> deference, IOrType<MethodType, Type, Object, OrType, InferredType, IError> defererType, IOrType<MethodType, Type, Object, OrType, InferredType, IError> deferredToType)
-            {
-                if (defererType.Is5(out var deferringInferred).Not())
-                {
-                    throw new Exception("we can't merge that!");
-                }
-                // seems like good clean up 
-                defererType.Switch(x => typeProblemNodes.Remove(x), x => typeProblemNodes.Remove(x), x => typeProblemNodes.Remove(x), x => typeProblemNodes.Remove(x), x => typeProblemNodes.Remove(x), x => { });
+            //private void DeferType(Dictionary<IValue, IValue> deference, IOrType<MethodType, Type, Object, OrType, InferredType, IError> defererType, IOrType<MethodType, Type, Object, OrType, InferredType, IError> deferredToType)
+            //{
+            //    if (defererType.Is5(out var deferringInferred).Not())
+            //    {
+            //        throw new Exception("we can't merge that!");
+            //    }
+            //    // seems like good clean up 
+            //    defererType.Switch(x => typeProblemNodes.Remove(x), x => typeProblemNodes.Remove(x), x => typeProblemNodes.Remove(x), x => typeProblemNodes.Remove(x), x => typeProblemNodes.Remove(x), x => { });
                 
-                // we replace anything looking up the deferer
-                // it will now look up the deferredTo
-                var toReplace = new List<ILookUpType>();
+            //    // we replace anything looking up the deferer
+            //    // it will now look up the deferredTo
+            //    var toReplace = new List<ILookUpType>();
 
-                foreach (var lookUper in typeProblemNodes.OfType<ILookUpType>())
-                {
-                    if (lookUper.LooksUp.Is(out var lookUperLooksUp) && lookUperLooksUp.Equals(defererType))
-                    {
-                        toReplace.Add(lookUper);
-                    }
-                }
+            //    foreach (var lookUper in typeProblemNodes.OfType<ILookUpType>())
+            //    {
+            //        if (lookUper.LooksUp.Is(out var lookUperLooksUp) && lookUperLooksUp.Equals(defererType))
+            //        {
+            //            toReplace.Add(lookUper);
+            //        }
+            //    }
 
-                foreach (var key in toReplace)
-                {
-                    key.LooksUp = Possibly.Is(deferredToType);
-                }
+            //    foreach (var key in toReplace)
+            //    {
+            //        key.LooksUp = Possibly.Is(deferredToType);
+            //    }
 
-                // we merge input and output if we are defering to a method type
-                {
-                    if (deferredToType.Is1(out var deferredToMethod))
-                    {
-                        if (deferringInferred.Returns is IIsDefinately<TransientMember> deferringReturns && deferredToMethod.Returns is IIsDefinately<TransientMember> deferredToReturns)
-                        {
-                            TryMerge(deferringReturns.Value, deferredToReturns.Value, deference);
-                        }
+            //    // we merge input and output if we are defering to a method type
+            //    {
+            //        if (deferredToType.Is1(out var deferredToMethod))
+            //        {
+            //            if (deferringInferred.Returns is IIsDefinately<TransientMember> deferringReturns && deferredToMethod.Returns is IIsDefinately<TransientMember> deferredToReturns)
+            //            {
+            //                TryMerge(deferringReturns.Value, deferredToReturns.Value, deference);
+            //            }
 
 
-                        if (deferringInferred.Input is IIsDefinately<Member> deferringInput && deferredToMethod.Input is IIsDefinately<Member> deferredToInput)
-                        {
-                            TryMerge(deferringInput.Value, deferredToInput.Value, deference);
-                        }
-                    }
-                }
+            //            if (deferringInferred.Input is IIsDefinately<Member> deferringInput && deferredToMethod.Input is IIsDefinately<Member> deferredToInput)
+            //            {
+            //                TryMerge(deferringInput.Value, deferredToInput.Value, deference);
+            //            }
+            //        }
+            //    }
 
-                // if we are defering to an Type, Object
-                // flow members
-                {
-                    if (IsNotInferedHasMembers(deferredToType, out var hasMembers))
-                    {
-                        foreach (var memberPair in deferringInferred.PublicMembers)
-                        {
-                            if (hasMembers!.PublicMembers.TryGetValue(memberPair.Key, out var deferedToMember))
-                            {
-                                TryMerge(memberPair.Value, deferedToMember, deference);
-                            }
-                            else
-                            {
-                                throw new Exception("the implicit type has members the real type does not");
-                                //var newValue = new Member(this, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
-                                //HasMember(deferredToHaveType, memberPair.Key, newValue);
-                                //lookUps[newValue] = lookUps[memberPair.Value];
-                            }
-                        }
-                    }
-                }
+            //    // if we are defering to an Type, Object
+            //    // flow members
+            //    {
+            //        if (IsNotInferedHasMembers(deferredToType, out var hasMembers))
+            //        {
+            //            foreach (var memberPair in deferringInferred.PublicMembers)
+            //            {
+            //                if (hasMembers!.PublicMembers.TryGetValue(memberPair.Key, out var deferedToMember))
+            //                {
+            //                    TryMerge(memberPair.Value, deferedToMember, deference);
+            //                }
+            //                else
+            //                {
+            //                    throw new Exception("the implicit type has members the real type does not");
+            //                    //var newValue = new Member(this, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
+            //                    //HasMember(deferredToHaveType, memberPair.Key, newValue);
+            //                    //lookUps[newValue] = lookUps[memberPair.Value];
+            //                }
+            //            }
+            //        }
+            //    }
 
-                // OrType needs to be its own block and we need to flow in to both sides
-                {
-                    if (deferredToType.Is4(out var orType))
-                    {
-                        foreach (var memberPair in deferringInferred.PublicMembers)
-                        {
-                            MergeIntoOrType(orType, memberPair, deference);
-                        }
-                    }
-                }
+            //    // OrType needs to be its own block and we need to flow in to both sides
+            //    {
+            //        if (deferredToType.Is4(out var orType))
+            //        {
+            //            foreach (var memberPair in deferringInferred.PublicMembers)
+            //            {
+            //                MergeIntoOrType(orType, memberPair, deference);
+            //            }
+            //        }
+            //    }
 
-                // if we are defering to an infered type
-                {
-                    if (deferredToType.Is5(out var deferredToInferred))
-                    {
+            //    // if we are defering to an infered type
+            //    {
+            //        if (deferredToType.Is5(out var deferredToInferred))
+            //        {
 
-                        foreach (var memberPair in deferringInferred.PublicMembers)
-                        {
-                            if (deferredToInferred.PublicMembers.TryGetValue(memberPair.Key, out var deferedToMember))
-                            {
-                                TryMerge(memberPair.Value, deferedToMember, deference);
-                            }
-                            else
-                            {
-                                var newValue = new Member(this.builder, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
-                                Builder.HasPublicMember(deferredToInferred, memberPair.Key, newValue);
-                                newValue.LooksUp = memberPair.Value.LooksUp;
-                            }
-                        }
+            //            foreach (var memberPair in deferringInferred.PublicMembers)
+            //            {
+            //                if (deferredToInferred.PublicMembers.TryGetValue(memberPair.Key, out var deferedToMember))
+            //                {
+            //                    TryMerge(memberPair.Value, deferedToMember, deference);
+            //                }
+            //                else
+            //                {
+            //                    var newValue = new Member(this.builder, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
+            //                    Builder.HasPublicMember(deferredToInferred, memberPair.Key, newValue);
+            //                    newValue.LooksUp = memberPair.Value.LooksUp;
+            //                }
+            //            }
 
-                        if (deferringInferred.Returns is IIsDefinately<TransientMember> deferringInferredReturns)
-                        {
-                            if (deferredToInferred.Returns is IIsDefinately<TransientMember> deferredToInferredReturns)
-                            {
-                                TryMerge(deferringInferredReturns.Value, deferredToInferredReturns.Value, deference);
-                            }
-                            else
-                            {
-                                deferredToInferred.Returns = deferringInferred.Returns;
-                            }
-                        }
+            //            if (deferringInferred.Returns is IIsDefinately<TransientMember> deferringInferredReturns)
+            //            {
+            //                if (deferredToInferred.Returns is IIsDefinately<TransientMember> deferredToInferredReturns)
+            //                {
+            //                    TryMerge(deferringInferredReturns.Value, deferredToInferredReturns.Value, deference);
+            //                }
+            //                else
+            //                {
+            //                    deferredToInferred.Returns = deferringInferred.Returns;
+            //                }
+            //            }
 
-                        if (deferringInferred.Input is IIsDefinately<Member> deferringInferredInput)
-                        {
-                            if (deferredToInferred.Input is IIsDefinately<Member> deferredToInferredInput)
-                            {
-                                TryMerge(deferringInferredInput.Value, deferredToInferredInput.Value, deference);
-                            }
-                            else
-                            {
-                                deferredToInferred.Input = deferringInferred.Input;
-                            }
-                        }
-                    }
-                }
-            }
+            //            if (deferringInferred.Input is IIsDefinately<Member> deferringInferredInput)
+            //            {
+            //                if (deferredToInferred.Input is IIsDefinately<Member> deferredToInferredInput)
+            //                {
+            //                    TryMerge(deferringInferredInput.Value, deferredToInferredInput.Value, deference);
+            //                }
+            //                else
+            //                {
+            //                    deferredToInferred.Input = deferringInferred.Input;
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
 
-            void MergeIntoOrType(OrType orType, KeyValuePair<IKey, Member> memberPair, Dictionary<IValue,IValue> deference)
-            {
+            //void MergeIntoOrType(OrType orType, KeyValuePair<IKey, Member> memberPair, Dictionary<IValue,IValue> deference)
+            //{
 
-                if (orType.Left is IIsDefinately<TypeReference> leftRef)
-                {
-                    var bigOr = GetType(leftRef.Value);
-                    if (bigOr.Is<IHavePublicMembers>(out var leftWithPublicMembers))
-                    {
-                        if (leftWithPublicMembers.PublicMembers.TryGetValue(memberPair.Key, out var deferedToMember))
-                        {
-                            TryMerge(memberPair.Value, deferedToMember, deference);
-                        }
-                        else
-                        {
-                            throw new Exception("the implicit type has members the real type does not");
-                            //var newValue = new Member(this, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
-                            //HasMember(deferredToHaveType, memberPair.Key, newValue);
-                            //lookUps[newValue] = lookUps[memberPair.Value];
-                        }
-                    }
+            //    if (orType.Left is IIsDefinately<TypeReference> leftRef)
+            //    {
+            //        var bigOr = GetType(leftRef.Value);
+            //        if (bigOr.Is<IHavePublicMembers>(out var leftWithPublicMembers))
+            //        {
+            //            if (leftWithPublicMembers.PublicMembers.TryGetValue(memberPair.Key, out var deferedToMember))
+            //            {
+            //                TryMerge(memberPair.Value, deferedToMember, deference);
+            //            }
+            //            else
+            //            {
+            //                throw new Exception("the implicit type has members the real type does not");
+            //                //var newValue = new Member(this, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
+            //                //HasMember(deferredToHaveType, memberPair.Key, newValue);
+            //                //lookUps[newValue] = lookUps[memberPair.Value];
+            //            }
+            //        }
 
-                    if (bigOr.Is<OrType>(out var leftOr))
-                    {
-                        MergeIntoOrType(leftOr, memberPair, deference);
-                    }
-                }
+            //        if (bigOr.Is<OrType>(out var leftOr))
+            //        {
+            //            MergeIntoOrType(leftOr, memberPair, deference);
+            //        }
+            //    }
 
-                if (orType.Right is IIsDefinately<TypeReference> rightRef)
-                {
-                    var bigOr = GetType(rightRef.Value);
-                    if (bigOr.Is<IHavePublicMembers>(out var rightWithPublicMembers))
-                    {
-                        if (rightWithPublicMembers.PublicMembers.TryGetValue(memberPair.Key, out var deferedToMember))
-                        {
-                            TryMerge(memberPair.Value, deferedToMember, deference);
-                        }
-                        else
-                        {
-                            throw new Exception("the implicit type has members the real type does not");
-                            //var newValue = new Member(this, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
-                            //HasMember(deferredToHaveType, memberPair.Key, newValue);
-                            //lookUps[newValue] = lookUps[memberPair.Value];
-                        }
-                    }
+            //    if (orType.Right is IIsDefinately<TypeReference> rightRef)
+            //    {
+            //        var bigOr = GetType(rightRef.Value);
+            //        if (bigOr.Is<IHavePublicMembers>(out var rightWithPublicMembers))
+            //        {
+            //            if (rightWithPublicMembers.PublicMembers.TryGetValue(memberPair.Key, out var deferedToMember))
+            //            {
+            //                TryMerge(memberPair.Value, deferedToMember, deference);
+            //            }
+            //            else
+            //            {
+            //                throw new Exception("the implicit type has members the real type does not");
+            //                //var newValue = new Member(this, $"copied from {memberPair.Value.debugName}", memberPair.Value.Converter);
+            //                //HasMember(deferredToHaveType, memberPair.Key, newValue);
+            //                //lookUps[newValue] = lookUps[memberPair.Value];
+            //            }
+            //        }
 
-                    if (bigOr.Is<OrType>(out var RightOr))
-                    {
-                        MergeIntoOrType(RightOr, memberPair, deference);
-                    }
-                }
-            }
+            //        if (bigOr.Is<OrType>(out var RightOr))
+            //        {
+            //            MergeIntoOrType(RightOr, memberPair, deference);
+            //        }
+            //    }
+            //}
 
             IOrType<MethodType, Type, Object, OrType, InferredType, IError> LookUpOrOverlayOrThrow(ILookUpType node, Dictionary<GenericTypeKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> realizedGeneric)
             {
@@ -1242,83 +1315,83 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            void HandleHopefulMember(IKey key, Member hopeful, IOrType<MethodType, Type, Object, OrType, InferredType, IError> type, Dictionary<IValue,IValue> deference)
-            {
-                type.Switch(
-                    x => {
-                        throw new Exception("a method can't have a hopeful member");
-                    },
-                    x =>
-                    {
-                        if (x.PublicMembers.TryGetValue(key, out var member))
-                        {
-                            TryMerge(hopeful, member, deference);
-                        }
-                        // uhh this member is an error
-                        // do I need to do something?
-                    },
-                    x =>
-                    {
-                        if (x.PublicMembers.TryGetValue(key, out var member))
-                        {
-                            TryMerge(hopeful, member, deference);
-                        }
-                        // uhh this member is an error
-                        // do I need to do something?
-                    },
-                    orType =>
-                    {
-                        // we pretty much need to recurse
-                        // we hope this member is on both sides
+            //void HandleHopefulMember(IKey key, Member hopeful, IOrType<MethodType, Type, Object, OrType, InferredType, IError> type, Dictionary<IValue,IValue> deference)
+            //{
+            //    type.Switch(
+            //        x => {
+            //            throw new Exception("a method can't have a hopeful member");
+            //        },
+            //        x =>
+            //        {
+            //            if (x.PublicMembers.TryGetValue(key, out var member))
+            //            {
+            //                TryMerge(hopeful, member, deference);
+            //            }
+            //            // uhh this member is an error
+            //            // do I need to do something?
+            //        },
+            //        x =>
+            //        {
+            //            if (x.PublicMembers.TryGetValue(key, out var member))
+            //            {
+            //                TryMerge(hopeful, member, deference);
+            //            }
+            //            // uhh this member is an error
+            //            // do I need to do something?
+            //        },
+            //        orType =>
+            //        {
+            //            // we pretty much need to recurse
+            //            // we hope this member is on both sides
 
-                        // can or types even be implicit?
-                        // no but they can have members that are implicit 
-                        // plus maybe they could be in the future this some sort of implicit key word
-                        // number || implict 
-                        //orType.Left.If(x => HandleHopefulMember(key, hopeful, GetType(x)));
-                        //orType.Right.If(x => HandleHopefulMember(key, hopeful, GetType(x)));
+            //            // can or types even be implicit?
+            //            // no but they can have members that are implicit 
+            //            // plus maybe they could be in the future this some sort of implicit key word
+            //            // number || implict 
+            //            //orType.Left.If(x => HandleHopefulMember(key, hopeful, GetType(x)));
+            //            //orType.Right.If(x => HandleHopefulMember(key, hopeful, GetType(x)));
 
-                        //orType.Left.IfElse(x => 
-                        //    orType.Right.IfElse(
-                        //        y => HandleHopefulMember(key, hopeful,  GetType(x), GetType(y)),
-                        //        ()=> HandleHopefulMember(key, hopeful, GetType(x))),
-                        //    () => orType.Right.If(x => HandleHopefulMember(key, hopeful, GetType(x))));
+            //            //orType.Left.IfElse(x => 
+            //            //    orType.Right.IfElse(
+            //            //        y => HandleHopefulMember(key, hopeful,  GetType(x), GetType(y)),
+            //            //        ()=> HandleHopefulMember(key, hopeful, GetType(x))),
+            //            //    () => orType.Right.If(x => HandleHopefulMember(key, hopeful, GetType(x))));
 
-                        // you are here!
-                        // after the first one merges it might not be a infered type
-                        // so it can't merge
+            //            // you are here!
+            //            // after the first one merges it might not be a infered type
+            //            // so it can't merge
 
-                        // how does this work?? or them and then merge?
-                        // yes, you or them and then merge
+            //            // how does this work?? or them and then merge?
+            //            // yes, you or them and then merge
 
-                        //--- no!
-                        // I think it actually does not defer
-                        // maybe it just has an assignment relationship to each?
+            //            //--- no!
+            //            // I think it actually does not defer
+            //            // maybe it just has an assignment relationship to each?
 
-                        // maybe it just doesn't defer?
-                        // ok for now it just doesn't defer 
-                        // kind of makes sense, who would it defer to?
-
-
+            //            // maybe it just doesn't defer?
+            //            // ok for now it just doesn't defer 
+            //            // kind of makes sense, who would it defer to?
 
 
-                    },
-                    inferredType =>
-                    {
-                        if (inferredType.PublicMembers.TryGetValue(key, out var member))
-                        {
-                            TryMerge(hopeful, member, deference);
-                        }
-                        else
-                        {
-                            Builder.HasPublicMember(inferredType, key, hopeful);
-                        }
-                    },
-                    error =>
-                    {
 
-                    });
-            }
+
+            //        },
+            //        inferredType =>
+            //        {
+            //            if (inferredType.PublicMembers.TryGetValue(key, out var member))
+            //            {
+            //                TryMerge(hopeful, member, deference);
+            //            }
+            //            else
+            //            {
+            //                Builder.HasPublicMember(inferredType, key, hopeful);
+            //            }
+            //        },
+            //        error =>
+            //        {
+
+            //        });
+            //}
 
             IOrType<MethodType, Type> CopyTree(IOrType<MethodType, Type> from, IOrType<MethodType, Type> to, IReadOnlyDictionary<IOrType<MethodType, Type, Object, OrType, InferredType, IError>, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> overlayed)
             {
@@ -1579,17 +1652,10 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     if (innerFrom.SafeIs<ITypeProblemNode, IValue>(out var innerFromHopeful) && innerTo.SafeIs<ITypeProblemNode, IValue>(out var innerToHopeful))
                     {
-
-                        foreach (var possible in innerFromHopeful.HopefulMembers)
+                        if (innerFromHopeful.Hopeful.Is(out var infered))
                         {
-                            Builder.HasHopefulMember(innerToHopeful, possible.Key, ()=> Copy(possible.Value, new Member(this.builder, $"copied from {((TypeProblemNode)possible.Value).debugName}", possible.Value.Converter)));
-                        }
-
-
-                        if (innerFromHopeful.HopefulMethod is IIsDefinately<InferredType> infered)
-                        {
-                            var newValue = Copy(infered.Value, new InferredType(this.builder, $"copied from {((TypeProblemNode)infered.Value).debugName}"));
-                            innerToHopeful.HopefulMethod = Possibly.Is(newValue);
+                            var newValue = Copy(infered, new InferredType(this.builder, $"copied from {((TypeProblemNode)infered).debugName}"));
+                            innerToHopeful.Hopeful = Possibly.Is(newValue);
                         }
                     }
 
@@ -1719,6 +1785,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 if (value.SafeIs(out OrType orType))
                 {
                     return Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(orType));
+                }
+                if (value.SafeIs(out InferredType inferred))
+                {
+                    return Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(inferred));
                 }
                 return Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
             }
