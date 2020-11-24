@@ -12,6 +12,7 @@ using Tac.SemanticModel.Operations;
 using Tac.Frontend.SyntaxModel.Operations;
 using Prototypist.Toolbox;
 using Tac.Frontend.Parser;
+using System.Collections.Generic;
 
 namespace Tac.Parser
 {
@@ -87,13 +88,26 @@ namespace Tac.SemanticModel
                 throw new NotImplementedException("this should be an IError");
             }
 
+            var scopeList = new List<Tpn.IStaticScope>();
+
+            scopeList.Add(scope);
+
+            var at = scope;
+            while (at.Parent.Is(out var nextScope))
+            {
+                at = nextScope;
+                scopeList.Add(at);
+            }
+
             var nameKey = new NameKey(memberName);
             var member = GetMember(scope, context, possibleScope, nameKey);
-            return new SetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>(new MemberResolveReferance(member), OrType.Make<Tpn.TypeProblem2.Member, IError>(member));
+            return new SetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>(new MemberResolveReferance(member, scopeList), OrType.Make<Tpn.TypeProblem2.Member, IError>(member));
         }
 
         private static Tpn.TypeProblem2.Member GetMember(Tpn.IStaticScope scope, ISetUpContext context, Tpn.IHavePossibleMembers possibleScope, NameKey nameKey)
         {
+
+
 
             // TODO
             // there needs to be a case about being directly in a type
@@ -130,10 +144,12 @@ namespace Tac.SemanticModel
     internal class MemberResolveReferance : IResolve<IBox<WeakMemberReference>>
     {
         private readonly Tpn.TypeProblem2.Member member;
+        private readonly List<Tpn.IStaticScope> staticScopes;
 
-        public MemberResolveReferance(Tpn.TypeProblem2.Member member)
+        public MemberResolveReferance(Tpn.TypeProblem2.Member member, List<Tpn.IStaticScope> staticScopes)
         {
             this.member = member ?? throw new ArgumentNullException(nameof(member));
+            this.staticScopes = staticScopes ?? throw new ArgumentNullException(nameof(staticScopes));
         }
 
         public IBox<WeakMemberReference> Run(Tpn.TypeSolution context)

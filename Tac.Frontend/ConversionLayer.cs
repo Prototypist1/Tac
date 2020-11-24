@@ -265,12 +265,13 @@ namespace Tac.Frontend
         }
     }
 
-    internal class InferredTypeConverter2 : Tpn.IConvertTo<Tpn.VirtualNode, IOrType< IFrontendType,IError>>
+    internal class InferredTypeConverter2 : Tpn.IConvertTo<Tpn.VirtualNode, IOrType<IFrontendType, IError>>
     {
         public IOrType<IFrontendType, IError> Convert(Tpn.TypeSolution typeSolution, Tpn.VirtualNode flowNode)
         {
-            if (flowNode.Or.Count == 0) {
-                return OrType.Make < IFrontendType, IError > (new AnyType());
+            if (flowNode.Or.Count == 0)
+            {
+                return OrType.Make<IFrontendType, IError>(new AnyType());
             }
 
             if (flowNode.Or.Count == 1)

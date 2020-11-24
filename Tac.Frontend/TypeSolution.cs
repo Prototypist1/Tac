@@ -1,5 +1,6 @@
 ﻿using Prototypist.Toolbox;
 using Prototypist.Toolbox.Bool;
+using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -88,12 +89,12 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             // just takes the type of the member
-            public IBox<WeakMemberDefinition> GetMember(TypeProblem2.Member member)
-            {
-                var (key,owner)= memberLookup[member];
+            //public IBox<WeakMemberDefinition> GetMember(TypeProblem2.Member member)
+            //{
+            //    var (key,owner)= memberLookup[member];
 
-                return GetMember(owner, key, x => member.Converter.Convert(x, GetFlowNode2(member)));
-            }
+            //    return GetMember(owner, key, x => member.Converter.Convert(x, GetFlowNode2(member)));
+            //}
 
 
             private readonly Dictionary<(IOrType<IVirtualFlowNode, TypeProblem2.Method, TypeProblem2.Scope> Owner,IKey Key), IBox<WeakMemberDefinition>> cacheMember = new Dictionary<(IOrType<IVirtualFlowNode, TypeProblem2.Method, TypeProblem2.Scope> Owner, IKey Key), IBox<WeakMemberDefinition>>();
@@ -101,6 +102,87 @@ namespace Tac.Frontend.New.CrzayNamespace
             public IBox<WeakMemberDefinition> GetMember(Tpn.IVirtualFlowNode owner , IKey key,  Func<TypeSolution, WeakMemberDefinition> convert)
             {
                 return GetMember(OrType.Make<IVirtualFlowNode, TypeProblem2.Method, TypeProblem2.Scope>(owner), key, convert);
+            }
+            private readonly Dictionary<(Tpn.ITypeProblemNode Owner, IKey Key), IBox<WeakMemberDefinition>> cacheMember2 = new Dictionary<(Tpn.ITypeProblemNode Owner, IKey Key), IBox<WeakMemberDefinition>>();
+            public IBox<WeakMemberDefinition> GetMember((Tpn.ITypeProblemNode Owner, IKey Key) key, Func<WeakMemberDefinition> convert) {
+
+                if (!cacheMember2.ContainsKey(key))
+                {
+                    var box = new Box<WeakMemberDefinition>();
+                    cacheMember2[key] = box;
+                    box.Fill(convert());
+                }
+                return cacheMember2[key];
+            }
+
+            public IOrType<IIsPossibly<IBox<WeakMemberDefinition>>,IError> StaticScope(Tpn.IStaticScope staticScope, IKey key, WeakMemberDefinitionConverter converter) 
+            {
+                { 
+                    if (staticScope.SafeIs(out TypeProblem2.Type type)) {
+                        return GetFlowNode(type).VirtualMembers().TransformInner(items =>
+                        {
+                            foreach (var item in items)
+                            {
+                                if (item.Key.Equals(key)) {
+                                    return Possibly.Is(GetMember((Owner: type, Key: key), () => converter.Convert(this, item.Value)));
+                                }
+                            }
+                            return Possibly.IsNot<IBox<WeakMemberDefinition>>();
+                        });
+                    }
+                }
+                {
+                    if (staticScope.SafeIs(out TypeProblem2.MethodType methodType))
+                    {
+                        return GetFlowNode(methodType).VirtualMembers().TransformInner(items =>
+                        {
+                            foreach (var item in items)
+                            {
+                                if (item.Key.Equals(key))
+                                {
+                                    return Possibly.Is(GetMember((Owner: methodType, Key: key), () => converter.Convert(this, item.Value)));
+                                }
+                            }
+                            return Possibly.IsNot<IBox<WeakMemberDefinition>>();
+                        });
+                    }
+                }
+                {
+                    if (staticScope.SafeIs(out TypeProblem2.Scope scope))
+                    {
+                        if (scope.PrivateMembers.TryGetValue(key, out var member)) {
+                            return OrType.Make<IIsPossibly<IBox<WeakMemberDefinition>>, IError>(Possibly.Is(GetMember((Owner: scope, Key: key), () => converter.Convert(this, GetFlowNode2(member)))));
+                        }
+                        return OrType.Make<IIsPossibly<IBox<WeakMemberDefinition>>, IError>(Possibly.IsNot<IBox<WeakMemberDefinition>>());
+                    }
+                }
+                {
+                    if (staticScope.SafeIs(out TypeProblem2.Object @object))
+                    {
+                        return GetFlowNode(@object).VirtualMembers().TransformInner(items =>
+                        {
+                            foreach (var item in items)
+                            {
+                                if (item.Key.Equals(key))
+                                {
+                                    return Possibly.Is(GetMember((Owner: @object, Key: key), () => converter.Convert(this, item.Value)));
+                                }
+                            }
+                            return Possibly.IsNot<IBox<WeakMemberDefinition>>();
+                        });
+                    }
+                }
+                {
+                    if (staticScope.SafeIs(out TypeProblem2.Method method))
+                    {
+                        if (method.PrivateMembers.TryGetValue(key, out var member))
+                        {
+                            return OrType.Make<IIsPossibly<IBox<WeakMemberDefinition>>, IError>(Possibly.Is(GetMember((Owner: method, Key: key), () => converter.Convert(this, GetFlowNode2(member)))));
+                        }
+                        return OrType.Make<IIsPossibly<IBox<WeakMemberDefinition>>, IError>(Possibly.IsNot<IBox<WeakMemberDefinition>>());
+                    }
+                }
+                throw new Exception("should have been one of those");
             }
 
             public IBox<WeakMemberDefinition> GetMember(IOrType<IVirtualFlowNode, TypeProblem2.Method, TypeProblem2.Scope> owner, IKey key, Func<TypeSolution, WeakMemberDefinition> convert)
@@ -425,6 +507,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             //    }
             //    return Possibly.IsNot<TypeProblem2.Scope>();
             //}
+
 
             public IIsPossibly<IOrType<NameKey, ImplicitKey>[]> HasPlacholders(TypeProblem2.Type type)
             {
