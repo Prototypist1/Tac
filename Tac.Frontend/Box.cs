@@ -43,5 +43,22 @@ namespace Tac.SemanticModel
             return t;
         }
     }
-    
+
+
+
+    public class FuncBox<T> : IBox<T>
+        where T : class
+    {
+        public FuncBox(Func<T> innerType)
+        {
+            InnerType = new Lazy<T>( innerType) ?? throw new System.ArgumentNullException(nameof(innerType));
+        }
+
+        private Lazy<T> InnerType { get; set; }
+
+        public T GetValue()
+        {
+            return InnerType.Value;
+        }
+    }
 }

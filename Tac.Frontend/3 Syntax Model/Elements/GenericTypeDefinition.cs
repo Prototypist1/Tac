@@ -38,14 +38,8 @@ namespace Tac.Parser
 namespace Tac.SemanticModel
 {
 
-    //internal interface IWeakGenericTypeDefinition: IFrontendCodeElement, IScoped
-    //{
-    //    IIsPossibly<IOrType<NameKey, ImplicitKey>> Key { get; }
-    //}
-
-
-    // TODO this returns a type
-    // it is probably just an object type tho
+    // I am a little thrown off by the fact that this doesn't convert
+    // why doesn't this convert?
     internal class WeakGenericTypeDefinition : IFrontendCodeElement//, IIsType //: //IWeakGenericTypeDefinition
     {
         public WeakGenericTypeDefinition(
@@ -56,15 +50,24 @@ namespace Tac.SemanticModel
             this.TypeParameterDefinitions = TypeParameterDefinitions ?? throw new ArgumentNullException(nameof(TypeParameterDefinitions));
             Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            
+            // lazy was just blindly copied from WeakTypeDefinition
+            lazy = new Lazy<IOrType<IFrontendType, IError>>(() =>
+                Scope.SwitchReturns(
+                    x => OrType.Make<IFrontendType, IError>(new HasMembersType(x.GetValue())),
+                    x => OrType.Make<IFrontendType, IError>(x)));
         }
 
         public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
         public IIsPossibly<IOrType<NameKey, ImplicitKey>> Key { get; }
         public IOrType<IBox<WeakScope>, IError> Scope { get; }
 
-        public SyntaxModel.Elements.AtomicTypes.AnyType FrontendType()
+
+        private readonly Lazy<IOrType<IFrontendType, IError>> lazy;
+
+        public IOrType<IFrontendType, IError> FrontendType()
         {
-            return new SyntaxModel.Elements.AtomicTypes.AnyType();
+            return lazy.Value;
         }
 
         public IEnumerable<IError> Validate() => Scope.SwitchReturns(x => x.GetValue().Validate(), x => new IError[] { x });

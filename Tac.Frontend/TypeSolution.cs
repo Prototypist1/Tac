@@ -97,13 +97,18 @@ namespace Tac.Frontend.New.CrzayNamespace
             //}
 
 
-            private readonly Dictionary<(IOrType<IVirtualFlowNode, TypeProblem2.Method, TypeProblem2.Scope> Owner,IKey Key), IBox<WeakMemberDefinition>> cacheMember = new Dictionary<(IOrType<IVirtualFlowNode, TypeProblem2.Method, TypeProblem2.Scope> Owner, IKey Key), IBox<WeakMemberDefinition>>();
+            //private readonly Dictionary<(IOrType<IVirtualFlowNode, TypeProblem2.Method, TypeProblem2.Scope> Owner,IKey Key), IBox<WeakMemberDefinition>> cacheMember = new Dictionary<(IOrType<IVirtualFlowNode, TypeProblem2.Method, TypeProblem2.Scope> Owner, IKey Key), IBox<WeakMemberDefinition>>();
 
-            public IBox<WeakMemberDefinition> GetMember(Tpn.IVirtualFlowNode owner , IKey key,  Func<TypeSolution, WeakMemberDefinition> convert)
-            {
-                return GetMember(OrType.Make<IVirtualFlowNode, TypeProblem2.Method, TypeProblem2.Scope>(owner), key, convert);
-            }
+            //public IBox<WeakMemberDefinition> GetMember(Tpn.IVirtualFlowNode owner , IKey key,  Func<TypeSolution, WeakMemberDefinition> convert)
+            //{
+            //    return GetMember(OrType.Make<IVirtualFlowNode, TypeProblem2.Method, TypeProblem2.Scope>(owner), key, convert);
+            //}
             private readonly Dictionary<(Tpn.ITypeProblemNode Owner, IKey Key), IBox<WeakMemberDefinition>> cacheMember2 = new Dictionary<(Tpn.ITypeProblemNode Owner, IKey Key), IBox<WeakMemberDefinition>>();
+            
+            // GetMember is more painful to use than the other methods in this class
+            // the problem is members can be created in the type probelm
+            // and hopeful members need to be tracked back to the real member they long for 
+            // the safe way to do is this just to provide a context and key and look up the member 
             public IBox<WeakMemberDefinition> GetMember((Tpn.ITypeProblemNode Owner, IKey Key) key, Func<WeakMemberDefinition> convert) {
 
                 if (!cacheMember2.ContainsKey(key))
@@ -185,17 +190,17 @@ namespace Tac.Frontend.New.CrzayNamespace
                 throw new Exception("should have been one of those");
             }
 
-            public IBox<WeakMemberDefinition> GetMember(IOrType<IVirtualFlowNode, TypeProblem2.Method, TypeProblem2.Scope> owner, IKey key, Func<TypeSolution, WeakMemberDefinition> convert)
-            {
-                var keyTuple = (owner, key);
-                if (!cacheMember.ContainsKey(keyTuple))
-                {
-                    var box = new Box<WeakMemberDefinition>();
-                    cacheMember[keyTuple] = box;
-                    box.Fill(convert(this));
-                }
-                return cacheMember[keyTuple];
-            }
+            //public IBox<WeakMemberDefinition> GetMember(IOrType<IVirtualFlowNode, TypeProblem2.Method, TypeProblem2.Scope> owner, IKey key, Func<TypeSolution, WeakMemberDefinition> convert)
+            //{
+            //    var keyTuple = (owner, key);
+            //    if (!cacheMember.ContainsKey(keyTuple))
+            //    {
+            //        var box = new Box<WeakMemberDefinition>();
+            //        cacheMember[keyTuple] = box;
+            //        box.Fill(convert(this));
+            //    }
+            //    return cacheMember[keyTuple];
+            //}
 
             private readonly Dictionary<TypeProblem2.Method, IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>>> cacheMethod = new Dictionary<TypeProblem2.Method, IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>>>();
             public IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition>> GetMethod(TypeProblem2.Method method)
@@ -328,9 +333,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IVirtualFlowNode Of { get; }
             }
 
-            public IReadOnlyList<TypeProblem2.Member> GetPrivateMembers(IHavePrivateMembers privateMembers)
+            public IEnumerable<KeyValuePair<IKey ,TypeProblem2.Member>> GetPrivateMembers(IHavePrivateMembers privateMembers)
             {
-                return privateMembers.PrivateMembers.Values.ToList();
+                return privateMembers.PrivateMembers;
             }
 
             public IOrType< IReadOnlyList<FlowNodeMember>,IError> GetPublicMembers(IVirtualFlowNode from)
@@ -439,6 +444,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 member = default;
                 return false;
             }
+
+
+
+
 
             public IBox<IOrType<IFrontendType,IError>> GetType(IOrType<IVirtualFlowNode, IError> or)
             {

@@ -40,13 +40,7 @@ namespace Tac.SemanticModel
 {
 
     internal interface IWeakTypeDefinition: IConvertableFrontendCodeElement<IInterfaceType>, IScoped {
-        //IIsPossibly<IKey> Key { get; }
     }
-
-
-    //internal interface IIsType {
-    //    public IOrType< IConvertableFrontendType<IVerifiableType>,IError> FrontendType();
-    //}
 
 
     internal class WeakTypeDefinition : IWeakTypeDefinition//, IIsType

@@ -12,6 +12,26 @@ using Tac.Model.Elements;
 namespace Tac.Frontend.New.CrzayNamespace
 {
 
+    internal class EqualibleHashSet<T>
+    {
+        public readonly IReadOnlySet<T> backing;
+
+        public EqualibleHashSet(IReadOnlySet<T> backing)
+        {
+            this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is EqualibleHashSet<T> set &&
+                set.backing.SetEquals(backing);
+        }
+
+        public override int GetHashCode()
+        {
+            return backing.Sum(x => x.GetHashCode());
+        }
+    }
     internal partial class Tpn
     {
         // ok so next a try they shared virtual representation
@@ -57,13 +77,14 @@ namespace Tac.Frontend.New.CrzayNamespace
             IIsPossibly<IOrType< VirtualNode,IError>> VirtualOutput();
             IIsPossibly<IOrType<VirtualNode, IError>> VirtualInput();
             IOrType<IEnumerable<KeyValuePair<IKey, IOrType<VirtualNode, IError>>>, IError> VirtualMembers();
-            IOrType<HashSet<CombinedTypesAnd>, IError> ToRep();
+            IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> ToRep();
             IOrType<IIsPossibly<Guid>,IError> Primitive();
             // this is a bit of a stinker
             // CombinedAndNode does not have one 
             // but everyone else does
             IIsPossibly<SourcePath> SourcePath();
         }
+
 
         public interface IFlowNode: IVirtualFlowNode
         {
@@ -88,12 +109,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return OrType.Make<IIsPossibly<Guid>, IError>( Possibly.Is(Guid));
             }
 
-            public IOrType<HashSet<CombinedTypesAnd>, IError> ToRep()
+            public IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> ToRep()
             {
-                return OrType.Make<HashSet<CombinedTypesAnd>, IError>(new HashSet<CombinedTypesAnd>
+                return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd>
                 {
                     new CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(this) })
-                });
+                }));
             }
 
             public bool Flow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing) {
@@ -158,12 +179,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return OrType.Make<IIsPossibly<Guid>, IError>(Possibly.IsNot<Guid>());
             }
 
-            public IOrType<HashSet<CombinedTypesAnd>, IError> ToRep()
+            public IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> ToRep()
             {
-                return OrType.Make<HashSet<CombinedTypesAnd>, IError>(new HashSet<CombinedTypesAnd>
+                return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd>
                 {
                     new CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(this) })
-                });
+                }));
             }
 
 
@@ -246,7 +267,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         public class OrFlowNode : IFlowNode<TypeProblem2.OrType>
         {
 
-            public IOrType<HashSet<CombinedTypesAnd>, IError> ToRep()
+            public IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> ToRep()
             {
                 var couldBeErrors = this.Or.Select(x => x.GetValueAs(out IVirtualFlowNode _).ToRep());
 
@@ -258,10 +279,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }).ToArray();
 
                 if (errors.Any()) {
-                    return OrType.Make<HashSet<CombinedTypesAnd>, IError>(Error.Cascaded("", errors));
+                    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(Error.Cascaded("", errors));
                 }
 
-                return OrType.Make<HashSet<CombinedTypesAnd>, IError>(couldBeErrors.SelectMany(x => x.Is1OrThrow()).Distinct().ToHashSet());
+                return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(couldBeErrors.SelectMany(x => x.Is1OrThrow().backing).Distinct().ToHashSet()));
             }
 
             public bool Flow(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
@@ -466,7 +487,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 get;
             }
 
-            public IOrType<HashSet<CombinedTypesAnd>,IError> ToRep()
+            public IOrType<EqualibleHashSet<CombinedTypesAnd>,IError> ToRep()
             {
                 var nodeOrError = Flatten(new List<InferredFlowNode> { this });
 
@@ -479,7 +500,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }).ToArray();
 
                 if (errors.Any()) {
-                    return OrType.Make<HashSet<CombinedTypesAnd>, IError>(Error.Cascaded("", errors));
+                    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(Error.Cascaded("", errors));
                 }
 
                 var setOrError = nodeOrError.Select(x => x.Is1OrThrow().ToRep()).ToArray();
@@ -495,19 +516,19 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 if (errors.Any())
                 {
-                    return OrType.Make<HashSet<CombinedTypesAnd>, IError>(Error.Cascaded("", errors));
+                    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(Error.Cascaded("", errors));
                 }
 
                 var sets = setOrError.Select(x => x.Is1OrThrow()).ToArray();
 
                 if (sets.Length == 0)
                 {
-                    return OrType.Make<HashSet<CombinedTypesAnd>, IError>(new HashSet<CombinedTypesAnd>());
+                    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd>()));
                 }
 
                 if (sets.Length == 1)
                 {
-                    return OrType.Make<HashSet<CombinedTypesAnd>, IError>(sets.First());
+                    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(sets.First());
                 }
 
                 var at = sets.First();
@@ -515,11 +536,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     var or = Union(at, item);
                     if (or.Is2(out var error)) {
-                        return OrType.Make<HashSet<CombinedTypesAnd>, IError>(error);
+                        return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(error);
                     }
                     at = or.Is1OrThrow();
                 }
-                return OrType.Make<HashSet<CombinedTypesAnd>, IError>(at);
+                return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(at);
             }
 
             // this song an dance is to avoid stack overflows
@@ -588,11 +609,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return Possibly.Is( new SourcePath(OrType.Make<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>(this), new List<IOrType<Member, Input, Output>>()));
             }
 
-            internal static IOrType<HashSet<CombinedTypesAnd>, IError> Union(HashSet<CombinedTypesAnd> left, HashSet<CombinedTypesAnd> right) {
+            internal static IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> Union(EqualibleHashSet<CombinedTypesAnd> left, EqualibleHashSet<CombinedTypesAnd> right) {
                 var res = new List<CombinedTypesAnd>();
-                foreach (var leftEntry in left)
+                foreach (var leftEntry in left.backing)
                 {
-                    foreach (var rightEntry in right)
+                    foreach (var rightEntry in right.backing)
                     {
                         var canMergeResult = CanMerge(leftEntry, rightEntry, new List<(HashSet<CombinedTypesAnd>, HashSet<CombinedTypesAnd>)>(), new List<(CombinedTypesAnd, CombinedTypesAnd)>());
                         if (!canMergeResult.Any())
@@ -603,10 +624,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 if (!res.Any()) {
-                    return OrType.Make<HashSet<CombinedTypesAnd>, IError>(Error.Other("nothing could union!"));
+                    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(Error.Other("nothing could union!"));
                 }
 
-                return OrType.Make<HashSet<CombinedTypesAnd>, IError>(res.Distinct().ToHashSet());
+                return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(res.Distinct().ToHashSet()));
             }
 
             private static CombinedTypesAnd Merge(CombinedTypesAnd left, CombinedTypesAnd right) {
@@ -932,9 +953,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return OrType.Make<IIsPossibly<Guid>, IError>(Possibly.IsNot<Guid>());
             }
 
-            public IOrType< HashSet<CombinedTypesAnd>,IError> ToRep()
+            public IOrType<EqualibleHashSet<CombinedTypesAnd>,IError> ToRep()
             {
-                return OrType.Make<HashSet<CombinedTypesAnd>, IError> (new HashSet<CombinedTypesAnd> { this });
+                return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError> (new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd> { this }));
             }
 
             public IIsPossibly<SourcePath> SourcePath()
@@ -948,17 +969,17 @@ namespace Tac.Frontend.New.CrzayNamespace
         public class VirtualNode : IVirtualFlowNode
         {
 
-            public HashSet<CombinedTypesAnd> Or = new HashSet<CombinedTypesAnd>();
+            public EqualibleHashSet<CombinedTypesAnd> Or;
 
 
-            public static IOrType<HashSet<CombinedTypesAnd>, IError> IsAll(IEnumerable<HashSet<CombinedTypesAnd>> toMerge)
+            public static IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> IsAll(IEnumerable<EqualibleHashSet<CombinedTypesAnd>> toMerge)
             {
                 if (toMerge.Count() == 0) {
                     throw new Exception("well that is unexpected!");
                 }
 
                 if (toMerge.Count() == 1) {
-                    return OrType.Make<HashSet<CombinedTypesAnd>, IError>(toMerge.First());
+                    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(toMerge.First());
                 }
 
                 var at = toMerge.First();
@@ -967,15 +988,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var or = InferredFlowNode.Union(at, item);
                     if (or.Is2(out var error))
                     {
-                        return OrType.Make<HashSet<CombinedTypesAnd>, IError>(error);
+                        return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(error);
                     }
                     at = or.Is1OrThrow();
                 }
-                return OrType.Make<HashSet<CombinedTypesAnd>, IError>(at);
+                return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(at);
 
             }
 
-            public static HashSet<CombinedTypesAnd> IsAny(IEnumerable<HashSet<CombinedTypesAnd>> toMerge)
+            public static EqualibleHashSet<CombinedTypesAnd> IsAny(IEnumerable<EqualibleHashSet<CombinedTypesAnd>> toMerge)
             {
                 if (toMerge.Count() == 0)
                 {
@@ -987,10 +1008,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return toMerge.First();
                 }
 
-                return toMerge.SelectMany(x => x).Distinct().ToHashSet();
+                return new EqualibleHashSet<CombinedTypesAnd>(toMerge.SelectMany(x => x.backing).Distinct().ToHashSet());
             }
 
-            public VirtualNode(HashSet<CombinedTypesAnd> or, IIsPossibly<SourcePath> sourcePath)
+            public VirtualNode(EqualibleHashSet<CombinedTypesAnd> or, IIsPossibly<SourcePath> sourcePath)
             {
                 Or = or ?? throw new ArgumentNullException(nameof(or));
                 this.sourcePath = sourcePath ?? throw new ArgumentNullException(nameof(sourcePath));
@@ -1017,19 +1038,19 @@ namespace Tac.Frontend.New.CrzayNamespace
             public override bool Equals(object? obj)
             {
                 return obj is VirtualNode node &&
-                       Or.SetEquals(node.Or);
+                       Or.Equals(Or);
             }
 
             public override int GetHashCode()
             {
-                return Or.Sum(x => x.GetHashCode());
+                return Or.GetHashCode();
             }
 
 
             public IOrType<IIsPossibly<Guid>, IError> Primitive()
             {
-                var first = Or.FirstOrDefault();
-                if (first != null && Or.Count == 1)
+                var first = Or.backing.FirstOrDefault();
+                if (first != null && Or.backing.Count == 1)
                 {
                     return first.Primitive();
                 }
@@ -1038,7 +1059,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public IOrType<IEnumerable<KeyValuePair<IKey, IOrType<VirtualNode, IError>>>, IError> VirtualMembers()
             {
-                var couldBeErrors = Or.Select(x => x.VirtualMembers()).ToArray();
+                var couldBeErrors = Or.backing.Select(x => x.VirtualMembers()).ToArray();
 
                 var error = couldBeErrors.SelectMany(x => {
                     if (x.Is2(out var error)) {
@@ -1091,7 +1112,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public IIsPossibly<IOrType<VirtualNode, IError>> VirtualInput()
             {
-                var errorCheck = Or.Select(x => x.VirtualInput()).OfType<IIsDefinately<IOrType<VirtualNode, IError>>>().Select(x=>x.Value).ToArray();
+                var errorCheck = Or.backing.Select(x => x.VirtualInput()).OfType<IIsDefinately<IOrType<VirtualNode, IError>>>().Select(x=>x.Value).ToArray();
 
                 var errors = errorCheck.SelectMany(x => {
                     if (x.Is2(out var error))
@@ -1131,7 +1152,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public IIsPossibly<IOrType<VirtualNode, IError>> VirtualOutput()
             {
-                var errorCheck = Or.Select(x => x.VirtualOutput()).OfType<IIsDefinately<IOrType<VirtualNode, IError>>>().Select(x => x.Value).ToArray();
+                var errorCheck = Or.backing.Select(x => x.VirtualOutput()).OfType<IIsDefinately<IOrType<VirtualNode, IError>>>().Select(x => x.Value).ToArray();
 
 
                 var errors = errorCheck.SelectMany(x => {
@@ -1170,7 +1191,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return Possibly.Is(OrType.Make<VirtualNode, IError>(new VirtualNode(IsAny(set.Select(x => x.Or)), sourcePath.TransformInner(x => x.Output()))));
             }
 
-            public IOrType< HashSet<CombinedTypesAnd>,IError> ToRep() => OrType.Make<HashSet<CombinedTypesAnd>, IError>( Or);
+            public IOrType<EqualibleHashSet<CombinedTypesAnd>,IError> ToRep() => OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(Or);
 
             private readonly IIsPossibly<SourcePath> sourcePath;
 
