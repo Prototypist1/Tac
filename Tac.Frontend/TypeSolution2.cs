@@ -12,18 +12,17 @@ using Tac.SyntaxModel.Elements.AtomicTypes;
 namespace Tac.Frontend.New.CrzayNamespace
 {
     internal partial class Tpn {
-        internal class TypeSolution2 {
-
-
-
-            Dictionary<IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>,
-                IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>> typeProblemNodeToFlowNodes;
-
+        internal class TypeSolution {
 
 
             readonly Dictionary<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, IBox<IOrType<
                 MethodType,WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType,WeakObjectDefinition, WeakRootScope,WeakTypeOrOperation,
-                IError>>> generalLookUp;
+                IError>>> generalLookUp = new Dictionary<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, IBox<IOrType<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>>>();
+
+
+            Dictionary<
+                IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, IOrType<Scope, IError>> scopeCache = new Dictionary<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, IOrType<Scope, IError>>();
+
 
             public void Init(
                 IReadOnlyList<IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>> things,
@@ -134,7 +133,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return OrType.Make<IFrontendType, IError>(typeSolution.GetExplicitType(single.Source.GetOrThrow()).GetValue().Is3OrThrow());
                 }
 
-                var scopeOr = GetScope(flowNode);
+                var scopeOr = GetMyScope(flowNode);
 
                 if (scopeOr.Is2(out var e4))
                 {
@@ -162,7 +161,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 var output = outputOr?.Is1OrThrow();
 
-                if ((input != default || output != default) && scope.Count > 1)
+                if ((input != default || output != default) && scope.members.Count > 1)
                 {
                     // this might be wrong
                     // methods might end up with more than one member
@@ -206,24 +205,56 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 // if it has members it must be a scope
-                if (scope.Any())
+                if (scope.members.Any())
                 {
-                    return new WeakTypeDefinition(OrType.Make<IBox<WeakScope>, IError>(new Box<WeakScope>(ToWeakScope(scope)))).FrontendType();
+                    return new WeakTypeDefinition(OrType.Make<IBox<WeakScope>, IError>(new Box<WeakScope>(scope.weakScope))).FrontendType();
                 }
 
                 return OrType.Make<IFrontendType, IError>(new AnyType());
             }
 
+            private IOrType<Scope, IError> GetMyScope(Tpn.IVirtualFlowNode node)
+            {
+                var rep = node.ToRep();
+
+                if (scopeCache.TryGetValue(rep, out var current)) {
+                    return current;
+                }
+                var scope = node.VirtualMembers().TransformInner(x => 
+                    new Scope(x.ToDictionary(
+                            pair => pair.Key,
+                            pair => generalLookUp[pair.Value.TransformInner(virtualNode => virtualNode.ToRep())]),
+                        this));
+                scopeCache[rep] = scope;
+                return scope;
+            }
+
+
+            private IOrType<WeakScope, IError> GetWeakScope(Tpn.IVirtualFlowNode node) {
+                return GetMyScope(node).TransformInner(x => x.weakScope);
+            }
+
+
+            private IOrType<WeakMemberDefinition, IError> GetMember(Tpn.IVirtualFlowNode node, IKey key)
+            {
+                return GetMyScope(node).TransformInner(x => x.members[key]);
+            }
+
+            private IBox<IOrType<IFrontendType, IError>> GetReturns(Tpn.IVirtualFlowNode node)
+            {
+                return new FuncBox<IOrType<IFrontendType, IError>>(()=>
+                    node.VirtualOutput().GetOrThrow().TransformInner(x => ToType(generalLookUp[x.ToRep()].GetValue())));
+            }
 
             public IOrType<IFrontendType, IError> ToType(IOrType<
-                                MethodType,
-                                WeakTypeDefinition,
-                                WeakGenericTypeDefinition,
-                                IPrimitiveType,
-                                WeakObjectDefinition,
-                                WeakRootScope,
-                                WeakTypeOrOperation,
-                                IError> typeOr)
+                    MethodType,
+                    WeakTypeDefinition,
+                    WeakGenericTypeDefinition,
+                    IPrimitiveType,
+                    WeakObjectDefinition,
+                    WeakRootScope,
+                    WeakTypeOrOperation,
+                    IError> typeOr)
             {
                 return typeOr.SwitchReturns(
                     methodType => OrType.Make<IFrontendType, IError>(methodType),
@@ -236,110 +267,28 @@ namespace Tac.Frontend.New.CrzayNamespace
                     error => OrType.Make<IFrontendType, IError>(error));
             }
 
-            public WeakScope ToWeakScope(Dictionary<
-                        IKey,
-                        IBox<
-                            IOrType<
-                                MethodType,
-                                WeakTypeDefinition,
-                                WeakGenericTypeDefinition,
-                                IPrimitiveType,
-                                WeakObjectDefinition,
-                                WeakRootScope,
-                                WeakTypeOrOperation,
-                                IError>>> betterView)
-            {
-                return new WeakScope(betterView.Select(x => (IBox<WeakMemberDefinition>) new Box<WeakMemberDefinition>(new WeakMemberDefinition(Model.Elements.Access.ReadWrite, x.Key, new FuncBox<IOrType<IFrontendType, IError>>(() => ToType(x.Value.GetValue())
-                 )))).ToList());
-            }
-
-
-            Dictionary<
-                IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, 
-                IOrType<
-                    Dictionary<
-                        IKey, 
-                        IBox<
-                            IOrType<
-                                MethodType, 
-                                WeakTypeDefinition, 
-                                WeakGenericTypeDefinition, 
-                                IPrimitiveType, 
-                                WeakObjectDefinition, 
-                                WeakRootScope, 
-                                WeakTypeOrOperation,
-                                IError>>>,
-                    IError>> scopeCache = null;
-
-            public IOrType<Dictionary<IKey,IBox<IOrType<MethodType,WeakTypeDefinition,WeakGenericTypeDefinition,IPrimitiveType,WeakObjectDefinition,WeakRootScope,WeakTypeOrOperation,IError>>>,IError> GetScope(Tpn.IVirtualFlowNode node)
-            {
-                var rep = node.ToRep();
-
-                if (scopeCache.TryGetValue(rep, out var current)) {
-                    return current;
-                }
-                var res = node.VirtualMembers().TransformInner(x => 
-                    x.ToDictionary(
-                        pair => pair.Key,
-                        pair => generalLookUp[pair.Value.TransformInner(virtualNode => virtualNode.ToRep())]));
-                scopeCache[rep] = res;
-                return res;
-            }
-
-            // I think I need get input and get returns
-            
-
-            Dictionary<EqualibleHashSet<CombinedTypesAnd>, IBox<IOrType<IFrontendType, IError>>> theLookUpIWishIHad;
-
-
-            // so I think i am just going to convert all the types
-            // 
-
-
-            //public void Thinger() {
-
-            //    Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> map = new Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
-
-            //    foreach (var item in map)
-            //    {
-            //        if (item.Key.Is1(out var typeProblemNode) && typeProblemNode is IConvertTo< TypeSolution2,IFrontendCodeElement> convertable) {
-
-            //            var rep = item.Value.GetValueAs(out IVirtualFlowNode _).ToRep();
-
-            //            convertable.Convert(this);
-            //        }
-            //    }
-
-
-            //}
-            //Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> orsToFlowNodesLookup = new Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
-
-
-            //Dictionary<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, IBox<WeakScope>> scopeCache = new Dictionary<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, IBox<WeakScope>>();
-            //public IBox<WeakScope> GetScope(IOrType<ITypeProblemNode, IError> orType){
-            //    var flowNode =  orsToFlowNodesLookup[orType];
-            //    var virtualNode = flowNode.GetValueAs(out IVirtualFlowNode _);
-            //    var rep =virtualNode.ToRep();
-            //    if (scopeCache.TryGetValue(rep, out var res)) {
-            //        return res;
-            //    }
-            //    var box = new Box<WeakScope>();
-            //    scopeCache[rep] = box;
-            //    box.Fill(
-            //    new WeakScope(virtualNode.VirtualMembers().Is1OrThrow().Select(x =>(IBox<WeakMemberDefinition>)new Box<WeakMemberDefinition>( new WeakMemberDefinition( Model.Elements.Access.ReadWrite,x.Key , theLookUpIWishIHad[x.Value.Is1OrThrow().Or]))).ToList()));
-
-            //    // we can actually use Or for lookup
-            //    // but we need to have already converted everything
-            //    // 
-
-
-
-            //}
-
-
             // I am thinking maybe the conversion layer is where we should protect against something being converted twice
             // everything can set a box on the first pass
             // and return the box on the next passes
+        }
+
+        private class Scope {
+            public readonly Dictionary<IKey, WeakMemberDefinition> members;
+            public readonly WeakScope weakScope;
+
+            public Scope(Dictionary<IKey, IBox<IOrType<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>>> members, TypeSolution typeSolution)
+            {
+                this.members = members?.ToDictionary(x=>x.Key, x=> new WeakMemberDefinition(Model.Elements.Access.ReadWrite, x.Key, new FuncBox<IOrType<IFrontendType, IError>>(() => typeSolution.ToType(x.Value.GetValue())
+                 ))) ?? throw new ArgumentNullException(nameof(members));
+                this.weakScope = ToWeakScope(this.members);
+            }
+
+            private WeakScope ToWeakScope(Dictionary<IKey, WeakMemberDefinition> betterView)
+            {
+                return new WeakScope(betterView.Select(x => (IBox<WeakMemberDefinition>)new Box<WeakMemberDefinition>(x.Value)).ToList());
+            }
+
+
         }
 
     }
