@@ -725,51 +725,51 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // we record what members come from where
                 // not every member will nessisarily be here
                 // so members will never be lookup
-                var memberLookup = new Dictionary<Member, (IKey Key , IOrType< IVirtualFlowNode,Method, Scope> Owner) >();
+                //var memberLookup = new Dictionary<Member, (IKey Key , IOrType< IVirtualFlowNode,Method, Scope> Owner) >();
 
-                foreach (var pair in orsToFlowNodesLookup)
-                {
-                    if (pair.Key.Is1(out var typeProblemNode))
-                    {
-                        if (typeProblemNode is IHavePublicMembers hasPublicMembers) {
+                //foreach (var pair in orsToFlowNodesLookup)
+                //{
+                //    if (pair.Key.Is1(out var typeProblemNode))
+                //    {
+                //        if (typeProblemNode is IHavePublicMembers hasPublicMembers) {
 
-                            foreach (var member in hasPublicMembers.PublicMembers)
-                            {
-                                memberLookup.Add(member.Value, (member.Key, Prototypist.Toolbox.OrType.Make<IVirtualFlowNode, Method, Scope>(Defer(pair.Key, deferingTypes, orsToFlowNodesLookup))));
-                            }
-                        }
+                //            foreach (var member in hasPublicMembers.PublicMembers)
+                //            {
+                //                memberLookup.Add(member.Value, (member.Key, Prototypist.Toolbox.OrType.Make<IVirtualFlowNode, Method, Scope>(Defer(pair.Key, deferingTypes, orsToFlowNodesLookup))));
+                //            }
+                //        }
 
-                        if (typeProblemNode is IHavePrivateMembers hasPrivateMembers)
-                        {
-                            foreach (var member in hasPrivateMembers.PrivateMembers)
-                            {
-                                memberLookup.Add(member.Value, (member.Key, Prototypist.Toolbox.OrType.Make<IVirtualFlowNode, Method, Scope>(pair.Value.GetValueAs(out IVirtualFlowNode _))));
-                            }
-                        }
+                //        if (typeProblemNode is IHavePrivateMembers hasPrivateMembers)
+                //        {
+                //            foreach (var member in hasPrivateMembers.PrivateMembers)
+                //            {
+                //                memberLookup.Add(member.Value, (member.Key, Prototypist.Toolbox.OrType.Make<IVirtualFlowNode, Method, Scope>(pair.Value.GetValueAs(out IVirtualFlowNode _))));
+                //            }
+                //        }
 
-                        // this might be a bit pointless 
-                        //if (typeProblemNode is InferredType inferredType && inferredType.Input.Is(out var member1))
-                        //{
-                        //    memberLookup.Add(member1, (new ImplicitKey(Guid.NewGuid()), Prototypist.Toolbox.OrType.Make<IVirtualFlowNode, Method, Scope>(pair.Value.GetValueAs(out IVirtualFlowNode _))));
-                        //}
-                    }
-                }
+                //        // this might be a bit pointless 
+                //        //if (typeProblemNode is InferredType inferredType && inferredType.Input.Is(out var member1))
+                //        //{
+                //        //    memberLookup.Add(member1, (new ImplicitKey(Guid.NewGuid()), Prototypist.Toolbox.OrType.Make<IVirtualFlowNode, Method, Scope>(pair.Value.GetValueAs(out IVirtualFlowNode _))));
+                //        //}
+                //    }
+                //}
 
-                foreach (var node in typeProblemNodes.OfType<Method>())
-                {
-                    foreach (var member in node.PrivateMembers)
-                    {
-                        memberLookup.Add(member.Value, (member.Key, Prototypist.Toolbox.OrType.Make<IVirtualFlowNode, Method, Scope>(node)));
-                    }
-                }
+                //foreach (var node in typeProblemNodes.OfType<Method>())
+                //{
+                //    foreach (var member in node.PrivateMembers)
+                //    {
+                //        memberLookup.Add(member.Value, (member.Key, Prototypist.Toolbox.OrType.Make<IVirtualFlowNode, Method, Scope>(node)));
+                //    }
+                //}
 
-                foreach (var node in typeProblemNodes.OfType<Scope>())
-                {
-                    foreach (var member in node.PrivateMembers)
-                    {
-                        memberLookup.Add(member.Value, (member.Key, Prototypist.Toolbox.OrType.Make<IVirtualFlowNode, Method, Scope>(node)));
-                    }
-                }
+                //foreach (var node in typeProblemNodes.OfType<Scope>())
+                //{
+                //    foreach (var member in node.PrivateMembers)
+                //    {
+                //        memberLookup.Add(member.Value, (member.Key, Prototypist.Toolbox.OrType.Make<IVirtualFlowNode, Method, Scope>(node)));
+                //    }
+                //}
 
                 //foreach (var (node, hopeful) in typeProblemNodes.OfType<IValue>().Select(x => (x, x.HopefulMembers)))
                 //{
@@ -804,16 +804,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //    }
                 //}
 
-                return new TypeSolution(
-                    typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>).ToDictionary(x => x, x => x.LooksUp.GetOrThrow()),
-                    typeProblemNodes.OfType<OrType>().ToDictionary(x => x, x => (x.Left.GetOrThrow(), x.Right.GetOrThrow())),
-                    //typeProblemNodes.OfType<IStaticScope>().Where(x => x.EntryPoints.Any()).ToDictionary(x => x, x => x.EntryPoints.Single()),
-                    orsToFlowNodesLookup.Where(x=> x.Key.Is1(out var y) && y is MethodType).Select(x=>((MethodType)x.Key.Is1OrThrow(), (IFlowNode<MethodType>)x.Value.GetValueAs(out IFlowNode _))).ToDictionary(x=>x.Item1, x=>x.Item2),
-                    orsToFlowNodesLookup.Where(x => x.Key.Is1(out var y) && y is Type).Select(x => ((Type)x.Key.Is1OrThrow(), (IFlowNode<Type>)x.Value.GetValueAs(out IFlowNode _))).ToDictionary(x => x.Item1, x => x.Item2),
-                    orsToFlowNodesLookup.Where(x => x.Key.Is1(out var y) && y is Object).Select(x => ((Object)x.Key.Is1OrThrow(), (IFlowNode<Object>)x.Value.GetValueAs(out IFlowNode _))).ToDictionary(x => x.Item1, x => x.Item2),
-                    orsToFlowNodesLookup.Where(x => x.Key.Is1(out var y) && y is OrType).Select(x => ((OrType)x.Key.Is1OrThrow(), (IFlowNode<OrType>)x.Value.GetValueAs(out IFlowNode _))).ToDictionary(x => x.Item1, x => x.Item2),
-                    orsToFlowNodesLookup.Where(x => x.Key.Is1(out var y) && y is InferredType).Select(x => ((InferredType)x.Key.Is1OrThrow(), (IFlowNode<InferredType>)x.Value.GetValueAs(out IFlowNode _))).ToDictionary(x => x.Item1, x => x.Item2),
-                    memberLookup);
+                return new TypeSolution(ors, orsToFlowNodesLookup);
             }
 
 
