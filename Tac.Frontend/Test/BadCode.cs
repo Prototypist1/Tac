@@ -25,7 +25,7 @@ namespace Tac.Tests
 
             Assert.NotEmpty(errors);
 
-            var line = Assert.Single(converted.Assignments);
+            var line = Assert.Single(converted.Assignments.GetValue());
             line.Is2OrThrow();
         }
 
@@ -39,7 +39,7 @@ namespace Tac.Tests
 
             Assert.NotEmpty(errors);
 
-            var lineOr = Assert.Single(converted.Assignments);
+            var lineOr = Assert.Single(converted.Assignments.GetValue());
             lineOr.Is2OrThrow();
         }
 
@@ -113,7 +113,7 @@ namespace Tac.Tests
 
             Assert.NotEmpty(errors);
 
-            var lineOr = Assert.Single(converted.Assignments);
+            var lineOr = Assert.Single(converted.Assignments.GetValue());
             var line = lineOr.Is1OrThrow().GetValue();
             var assign = line.SafeCastTo<IFrontendCodeElement, WeakAssignOperation>();
             var codeElement = assign.Left.Is1OrThrow().GetValue();
