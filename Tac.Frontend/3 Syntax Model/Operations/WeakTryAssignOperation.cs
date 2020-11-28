@@ -206,13 +206,13 @@ namespace Tac.SemanticModel.Operations
         public readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> left;
         public readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> right;
         private readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> block;
-        private readonly Tpn.IHavePrivateMembers haveMembers;
+        private readonly Tpn.TypeProblem2.Scope haveMembers;
 
         public TryAssignOperationResolveReferance(
             IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> value,
             IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> member,
            IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> block,
-           Tpn.IHavePrivateMembers haveMembers)
+           Tpn.TypeProblem2.Scope haveMembers)
         {
             left = value ?? throw new ArgumentNullException(nameof(value));
             right = member ?? throw new ArgumentNullException(nameof(member));
@@ -227,7 +227,7 @@ namespace Tac.SemanticModel.Operations
                 left.TransformInner(x => x.Run(context)),
                 right.TransformInner(x => x.Run(context)),
                 block.TransformInner(x=>x.Run(context)),
-                OrType.Make<IBox<WeakScope>, IError>(new Box<WeakScope>(new WeakScope(context.GetPrivateMembers(haveMembers).Select(x => context.GetMember(x)).ToList())))));
+                OrType.Make<IBox<WeakScope>,IError>( new Box<WeakScope>(context.GetWeakScope(haveMembers)))));
             return res;
         }
     }

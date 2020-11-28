@@ -15,14 +15,21 @@ namespace Tac.Frontend.New.CrzayNamespace
         internal class TypeSolution {
 
             readonly Dictionary<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, IBox<IOrType<IFrontendType, IError>>> generalLookUp = new Dictionary<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, IBox<IOrType<IFrontendType, IError>>>();
-
             readonly Dictionary<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, IOrType<Scope, IError>> scopeCache = new Dictionary<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, IOrType<Scope, IError>>();
+            readonly Dictionary<TypeProblem2.Object, IBox<IOrType<WeakObjectDefinition, WeakRootScope>>> objectCache = new Dictionary<TypeProblem2.Object, IBox<IOrType<WeakObjectDefinition, WeakRootScope>>>();
+            readonly Dictionary<TypeProblem2.Scope, IBox<IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>> scopeOrBlockCache = new Dictionary<TypeProblem2.Scope, IBox<IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>>();
+            readonly Dictionary<TypeProblem2.Method, IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>>> methodCache = new Dictionary<TypeProblem2.Method, IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>>>();
+            readonly Dictionary<TypeProblem2.Type, IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>> typeCache = new Dictionary<TypeProblem2.Type, IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>>();
+
+
 
             readonly Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodeLookUp;
 
             public TypeSolution(
                 IReadOnlyList<IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>> things,
                 Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodes) {
+
+                flowNodeLookUp = flowNodes ?? throw new ArgumentNullException(nameof(flowNodes));
 
                 var todo = new List<Action>();
 
@@ -40,20 +47,43 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }, 
                         type => {
                             generalLookUp[flowNodes[OrType.Make<ITypeProblemNode, IError>(type)].GetValueAs(out IVirtualFlowNode _).ToRep()] = box;
+                            var typeBox = new Box<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>();
+                            typeCache[type] = typeBox;
                             todo.Add(() => {
                                 type.Converter.Convert(this, type).Switch(
-                                    weakType=> box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakType))),
-                                    weakGenericType=> box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakGenericType))),
-                                    primitiveType => box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(primitiveType))))
+                                    weakType =>
+                                    {
+                                        box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakType)));
+                                        typeBox.Fill(OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(weakType));
+                                    },
+                                    weakGenericType =>
+                                    {
+                                        box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakGenericType)));
+                                        typeBox.Fill(OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(weakGenericType));
+                                    },
+                                    primitiveType =>
+                                    {
+                                        box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(primitiveType)));
+                                        typeBox.Fill(OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(primitiveType));
+                                    })
                                 ; 
                             });
                         }, 
                         obj => {
                             generalLookUp[flowNodes[OrType.Make<ITypeProblemNode, IError>(obj)].GetValueAs(out IVirtualFlowNode _).ToRep()] = box;
+                            var objBox= new Box<IOrType<WeakObjectDefinition, WeakRootScope>>();
+                            objectCache[obj] = objBox;
                             todo.Add(() => {
-                                obj.Converter.Convert(this, obj).Switch(
-                                    weakObj=> box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakObj))), 
-                                    weakRoot=> box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakRoot)))); 
+
+                            obj.Converter.Convert(this, obj).Switch(
+                                weakObj => {
+                                    box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakObj)));
+                                    objBox.Fill(OrType.Make<WeakObjectDefinition, WeakRootScope>(weakObj));
+                                },
+                                weakRoot => { 
+                                    box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakRoot)));
+                                    objBox.Fill(OrType.Make<WeakObjectDefinition, WeakRootScope>(weakRoot));
+                                }); 
                             });
                         }, 
                         orType => {
@@ -331,6 +361,23 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return GetMyScope(node).TransformInner(x => x.members[key]);
             }
 
+            public bool TryGetMember(Tpn.IVirtualFlowNode node, IKey key, out IOrType<WeakMemberDefinition, IError> res)
+            {
+                var foundIt = false;
+
+                var outer = GetMyScope(node).TransformInner(x => {
+                    foundIt = x.members.TryGetValue(key, out var member);
+                    return member;
+                    });
+                if (foundIt) {
+                    res = outer;
+                    return true;
+                }
+
+                res = default;
+                return false;
+            }
+
             public IBox<IOrType<IFrontendType, IError>> GetReturns(Tpn.IVirtualFlowNode node)
             {
                 return new FuncBox<IOrType<IFrontendType, IError>>(()=>
@@ -381,6 +428,43 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
             }
+            internal IVirtualFlowNode GetFlowNode(Tpn.IStaticScope from)
+            {
+                return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
+            }
+
+            internal IBox<IOrType<WeakObjectDefinition, WeakRootScope>> GetObject(TypeProblem2.Object from)
+            {
+                return objectCache[from];
+            }
+
+            internal IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> GetExplicitType(TypeProblem2.Type from)
+            {
+                return typeCache[from];
+            }
+
+            internal IBox<IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> GetScope(TypeProblem2.Scope from)
+            {
+                if (scopeOrBlockCache.TryGetValue(from, out var res)) {
+                    return res;
+                }
+                res = new Box<IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>( from.Converter.Convert(this, from));
+                scopeOrBlockCache[from] = res;
+                return res;
+            }
+
+
+            internal IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>> GetMethod(TypeProblem2.Method from)
+            {
+                if (methodCache.TryGetValue(from, out var res))
+                {
+                    return res;
+                }
+                res = new Box<IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>>(from.Converter.Convert(this, from));
+                methodCache[from] = res;
+                return res;
+            }
+
 
             internal IBox<IOrType<IFrontendType, IError>> GetType(IOrType<IVirtualFlowNode, IError> from)
             {
@@ -427,6 +511,20 @@ namespace Tac.Frontend.New.CrzayNamespace
                     error=> OrType.Make<ITypeProblemNode, IError>(error))]
                    .GetValueAs(out IVirtualFlowNode _).ToRep()];
             }
+
+            internal IVirtualFlowNode GetFlowNode(ILookUpType from)
+            {
+                return 
+                flowNodeLookUp[from.LooksUp.GetOrThrow().SwitchReturns(
+                    methodType => OrType.Make<ITypeProblemNode, IError>(methodType),
+                    type => OrType.Make<ITypeProblemNode, IError>(type),
+                    obj => OrType.Make<ITypeProblemNode, IError>(obj),
+                    orType => OrType.Make<ITypeProblemNode, IError>(orType),
+                    inferred => OrType.Make<ITypeProblemNode, IError>(inferred),
+                    error => OrType.Make<ITypeProblemNode, IError>(error))]
+                   .GetValueAs(out IVirtualFlowNode _);
+            }
+
 
             readonly Dictionary<TypeProblem2.Scope, Scope> scopeScopeCache = new Dictionary<TypeProblem2.Scope, Scope>();
             internal WeakScope GetWeakScope(TypeProblem2.Scope from)

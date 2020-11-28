@@ -147,6 +147,8 @@ namespace Tac.SemanticModel.Operations
 
             var nextLeft = left.TransformInner(x => x.Run(scope, context.CreateChildContext(this)));
 
+            Tpn.IValue val = null;
+
             var member = nextLeft.SwitchReturns(
                 good =>
                 name.SwitchReturns( 
@@ -154,6 +156,7 @@ namespace Tac.SemanticModel.Operations
                     {
                         if (good.SetUpSideNode.Is1(out var nodeLeft) && nodeLeft is Tpn.IValue value)
                         {
+                            val = value;
                             return OrType.Make<Tpn.TypeProblem2.Member, IError>(context.TypeProblem.CreateHopefulMember(
                                 value,
                                 new NameKey(actualName),
@@ -171,7 +174,9 @@ namespace Tac.SemanticModel.Operations
 
             return new SetUpResult<IBox<WeakPathOperation>, Tpn.TypeProblem2.Member>(new WeakPathOperationResolveReference(
                 nextLeft.TransformInner(x => x.Resolve),
-                member),
+                member,
+                val,
+                new NameKey(name.Is1OrThrow())),// Is1OrThrow is very sloppy 
                 member);
         }
     }
@@ -180,21 +185,31 @@ namespace Tac.SemanticModel.Operations
     {
         readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> left;
         readonly IOrType<Tpn.TypeProblem2.Member, IError> member;
+        readonly Tpn.IValue value;
+        readonly IKey key;
 
         public WeakPathOperationResolveReference(
             IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> resolveReference,
-            IOrType<Tpn.TypeProblem2.Member, IError> member)
+            IOrType<Tpn.TypeProblem2.Member, IError> member,
+            Tpn.IValue value,
+            IKey key)
         {
             left = resolveReference ?? throw new ArgumentNullException(nameof(resolveReference));
             this.member = member ?? throw new ArgumentNullException(nameof(member));
+            this.value = value ?? throw new ArgumentNullException(nameof(value));
+            this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
         public IBox<WeakPathOperation> Run(Tpn.TypeSolution context)
         {
+            var leftRes = left.TransformInner(x => x.Run(context));
             var res = new Box<WeakPathOperation>(new WeakPathOperation(
-                left.TransformInner(x => x.Run(context)),
+                leftRes,
                 member.SwitchReturns(
-                    x => OrType.Make<IBox<IFrontendCodeElement>, IError>(new Box<WeakMemberReference>(new WeakMemberReference(context.GetMember(x)))),
+                    x => OrType.Make<IBox<IFrontendCodeElement>, IError>(new FuncBox<IFrontendCodeElement>(()=> {
+                        return new WeakMemberReference(new Box<WeakMemberDefinition>(
+                            context.GetMember(context.GetFlowNode(value), key).Is1OrThrow()));
+                    })),
                     y => OrType.Make<IBox<IFrontendCodeElement>, IError>(Error.Cascaded("", y)))));
             return res;
         }

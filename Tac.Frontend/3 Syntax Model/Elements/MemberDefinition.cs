@@ -202,23 +202,27 @@ namespace Tac.SemanticModel
 
 
             return new SetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>(new MemberDefinitionResolveReferance(
-                member), OrType.Make<Tpn.TypeProblem2.Member, IError>(member));
+                scope, access, memberName), OrType.Make<Tpn.TypeProblem2.Member, IError>(member));
         }
 
     }
 
     internal class MemberDefinitionResolveReferance : IResolve<IBox<WeakMemberReference>>
     {
-        private readonly Tpn.TypeProblem2.Member member;
+        private readonly Tpn.IStaticScope scope;
+        private readonly Access access;
+        private readonly IKey memberName;
 
-        public MemberDefinitionResolveReferance(Tpn.TypeProblem2.Member member)
+        public MemberDefinitionResolveReferance(Tpn.IStaticScope scope, Access access, IKey memberName)
         {
-            this.member = member ?? throw new ArgumentNullException(nameof(member));
+            this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            this.access = access;
+            this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
         }
 
         public IBox<WeakMemberReference> Run(Tpn.TypeSolution context)
         {
-            return new Box<WeakMemberReference>(new WeakMemberReference(context.GetMember(member)));
+            return new Box<WeakMemberReference>(new WeakMemberReference(new Box<WeakMemberDefinition>(context.GetMember(context.GetFlowNode(scope), memberName).Is1OrThrow()))); // don't love the Is1OrThrow here
         }
     }
 

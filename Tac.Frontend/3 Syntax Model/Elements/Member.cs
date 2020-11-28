@@ -101,7 +101,7 @@ namespace Tac.SemanticModel
 
             var nameKey = new NameKey(memberName);
             var member = GetMember(scope, context, possibleScope, nameKey);
-            return new SetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>(new MemberResolveReferance(member, scopeList), OrType.Make<Tpn.TypeProblem2.Member, IError>(member));
+            return new SetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>(new MemberResolveReferance(nameKey, scopeList), OrType.Make<Tpn.TypeProblem2.Member, IError>(member));
         }
 
         private static Tpn.TypeProblem2.Member GetMember(Tpn.IStaticScope scope, ISetUpContext context, Tpn.IHavePossibleMembers possibleScope, NameKey nameKey)
@@ -143,18 +143,24 @@ namespace Tac.SemanticModel
 
     internal class MemberResolveReferance : IResolve<IBox<WeakMemberReference>>
     {
-        private readonly Tpn.TypeProblem2.Member member;
+        private readonly IKey key;
         private readonly List<Tpn.IStaticScope> staticScopes;
 
-        public MemberResolveReferance(Tpn.TypeProblem2.Member member, List<Tpn.IStaticScope> staticScopes)
+        public MemberResolveReferance(IKey key, List<Tpn.IStaticScope> staticScopes)
         {
-            this.member = member ?? throw new ArgumentNullException(nameof(member));
+            this.key = key ?? throw new ArgumentNullException(nameof(key));
             this.staticScopes = staticScopes ?? throw new ArgumentNullException(nameof(staticScopes));
         }
 
         public IBox<WeakMemberReference> Run(Tpn.TypeSolution context)
         {
-            return new Box<WeakMemberReference>(new WeakMemberReference(context.GetMember(member)));
+            foreach (var scope in staticScopes)
+            {
+                if (context.TryGetMember(context.GetFlowNode(scope), key, out var res)) {
+                    return new Box<WeakMemberReference>(new WeakMemberReference(new Box<WeakMemberDefinition>(res.Is1OrThrow())));
+                }
+            }
+            throw new Exception("should have found that!");
         }
     }
 }

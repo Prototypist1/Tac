@@ -344,7 +344,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 var flows = new List<(IOrType<ITypeProblemNode, IError> From, IOrType<ITypeProblemNode, IError> To)> { };
 
-                var deferingTypes = new Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ITypeProblemNode, IError>> { };
+                //var deferingTypes = new Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ITypeProblemNode, IError>> { };
 
                 foreach (var (from, to) in assignments)
                 {
@@ -407,10 +407,26 @@ namespace Tac.Frontend.New.CrzayNamespace
                                         x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x));
 
                                 flows.Add((From: flowFrom, To: flowTo));
-                                deferingTypes.Add(flowFrom, flowTo);
+
+                                // if anything looks up to the possible node, it should indstead look up to the node we defer to
+                                // do we have to do this in a "deep" manor?
+                                // there could be a whole tree of hopeful nodes off the possible node
+                                // I think I am ok
+                                // say we have z.b.c
+                                // where b and c are hopeful
+                                // b would look up to the right thing
+                                // and then c would look up off b
+                                // so as long is c is right b should be right 
+                                foreach (var item in typeProblemNodes.OfType<ILookUpType>())
+                                {
+                                    if (item.LooksUp == pair.Value.LooksUp)
+                                    {
+                                        item.LooksUp = member.LooksUp;
+                                    }
+                                }
+                                //deferingTypes.Add(flowFrom, flowTo);
                             },
                             () => {
-
                                 if (node is IHavePublicMembers havePublicMembers)
                                 {
                                     Builder.HasPublicMember(havePublicMembers, pair.Key, pair.Value);
@@ -446,7 +462,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x));
 
                         flows.Add((From: flowFrom, To: flowTo));
-                        deferingTypes.Add(flowFrom, flowTo);
+
+                        // if anything looks up to the hopeful node, it should indstead look up to the node we defer to
+                        foreach (var item in typeProblemNodes.OfType<ILookUpType>())
+                        {
+                            if (item.LooksUp == hopeful) {
+                                item.LooksUp = node.LooksUp;
+                            }
+                        }
                     }
                 }
 
@@ -811,17 +834,17 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             #region Helpers
 
-            private IVirtualFlowNode Defer(
-                IOrType<ITypeProblemNode, IError> key, 
-                Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ITypeProblemNode, IError>> deferingTypes, 
-                Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> orsToFlowNodesLookup)
-            {
-                while (deferingTypes.TryGetValue(key, out var nextKey)) {
-                    key = nextKey;
-                }
+            //private IVirtualFlowNode Defer(
+            //    IOrType<ITypeProblemNode, IError> key, 
+            //    Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ITypeProblemNode, IError>> deferingTypes, 
+            //    Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> orsToFlowNodesLookup)
+            //{
+            //    while (deferingTypes.TryGetValue(key, out var nextKey)) {
+            //        key = nextKey;
+            //    }
 
-                return orsToFlowNodesLookup[key].GetValueAs(out IVirtualFlowNode _);
-            }
+            //    return orsToFlowNodesLookup[key].GetValueAs(out IVirtualFlowNode _);
+            //}
 
             private static int Height(IStaticScope staticScope) {
                 var res = 0;

@@ -227,7 +227,7 @@ namespace Tac.SemanticModel
 
         public IBox<IFrontendType> Run(Tpn.TypeSolution context)
         {
-            return context.GetTypeReference(type);
+            return new FuncBox<IFrontendType>(()=> context.GetType(type).GetValue().Is1OrThrow());
         }
     }
 

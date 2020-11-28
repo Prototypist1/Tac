@@ -181,23 +181,23 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var m1t = MemberToType(solution.GetMember(m1).GetValue());
+            var m1t = MemberToType(solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("m1")).Is1OrThrow());
             HasMember(m1t, new NameKey("x"));
             DoesNotHaveMember(m1t, new NameKey("y"));
 
-            var m2t = MemberToType(solution.GetMember(m2).GetValue());
+            var m2t = MemberToType(solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("m2")).Is1OrThrow());
             DoesNotHaveMember(m2t, new NameKey("x"));
             HasMember(m2t, new NameKey("y"));
 
-            var m3t = MemberToType(solution.GetMember(m3).GetValue());
+            var m3t = MemberToType(solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("m3")).Is1OrThrow());
             DoesNotHaveMember(m3t, new NameKey("x"));
             DoesNotHaveMember(m3t, new NameKey("y"));
 
-            var m4t = MemberToType(solution.GetMember(m4).GetValue());
+            var m4t = MemberToType(solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("m4")).Is1OrThrow());
             DoesNotHaveMember(m4t, new NameKey("x"));
             DoesNotHaveMember(m4t, new NameKey("y"));
 
-            var m5t = MemberToType(solution.GetMember(m5).GetValue());
+            var m5t = MemberToType(solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("m5")).Is1OrThrow());
             DoesNotHaveMember(m5t, new NameKey("x"));
             DoesNotHaveMember(m5t, new NameKey("y"));
 
@@ -232,23 +232,23 @@ namespace Tac.Frontend.TypeProblem.Test
             //HasCount(1, MemberToType(solution.GetMember(m4).GetValue()));
             //HasCount(1, MemberToType(solution.GetMember(m5).GetValue()));
 
-            var m1t = MemberToType(solution.GetMember(m1).GetValue());
+            var m1t = MemberToType(solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("m1")).Is1OrThrow());
             HasMember(m1t, new NameKey("x"));
             HasMember(m1t, new NameKey("y"));
 
-            var m2t = MemberToType(solution.GetMember(m2).GetValue());
+            var m2t = MemberToType(solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("m2")).Is1OrThrow());
             HasMember(m2t, new NameKey("x"));
             HasMember(m2t, new NameKey("y"));
 
-            var m3t = MemberToType(solution.GetMember(m3).GetValue());
+            var m3t = MemberToType(solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("m3")).Is1OrThrow());
             HasMember(m3t, new NameKey("x"));
             HasMember(m3t, new NameKey("y"));
 
-            var m4t = MemberToType(solution.GetMember(m4).GetValue());
+            var m4t = MemberToType(solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("m4")).Is1OrThrow());
             HasMember(m4t, new NameKey("x"));
             DoesNotHaveMember(m4t, new NameKey("y"));
 
-            var m5t = MemberToType(solution.GetMember(m5).GetValue());
+            var m5t = MemberToType(solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("m5")).Is1OrThrow());
             DoesNotHaveMember(m5t, new NameKey("x"));
             HasMember(m5t, new NameKey("y"));
 
@@ -270,11 +270,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var m1t = MemberToType(solution.GetMember(m1).GetValue());
+            var m1t = MemberToType(solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("m1")).Is1OrThrow());
             HasMember(m1t, new NameKey("x"));
             HasMember(m1t, new NameKey("y"));
 
-            var m2t = MemberToType(solution.GetMember(m2).GetValue());
+            var m2t = MemberToType(solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("m2")).Is1OrThrow());
             HasMember(m2t, new NameKey("x"));
             HasMember(m2t, new NameKey("y"));
 
@@ -310,7 +310,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var chickenPairResult = solution.GetMember(chickenPair).GetValue();
+            var chickenPairResult = solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("x")).Is1OrThrow();
 
             var chickePairResultType = MemberToType(chickenPairResult);
 
@@ -355,7 +355,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var thingResult = solution.GetMember(thing).GetValue();
+            var thingResult = solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("thing")).Is1OrThrow();
             var thingResultType = MemberToType(thingResult);
 
             //HasCount(1, thingResultType);
@@ -405,7 +405,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var thingResult = solution.GetMember(thing).GetValue();
+            var thingResult = solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("thing")).Is1OrThrow();
             var thingResultType = MemberToType(thingResult);
 
             var nextResult = HasMember(thingResultType, new NameKey("next"));
@@ -413,7 +413,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             Equal(thingResultType, nextResult);
 
-            var xMemberResult = MemberToType(solution.GetMember(xMember).GetValue());
+            var xMemberResult = MemberToType(solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("x")).Is1OrThrow());
             for (int i = 0; i < 100; i++)
             {
                 xMemberResult = HasMember(xMemberResult, new NameKey("next"));
@@ -469,8 +469,8 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var leftResult = solution.GetMember(leftMember).GetValue();
-            var rightResult = solution.GetMember(rightMember).GetValue();
+            var leftResult = solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("left-member")).Is1OrThrow();
+            var rightResult = solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("right-member")).Is1OrThrow();
 
             var leftResultType = MemberToType(leftResult);
             var rightResultType = MemberToType(rightResult);
@@ -517,7 +517,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var xMemberResult = solution.GetMember(xMember).GetValue();
+            var xMemberResult = solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("x")).Is1OrThrow();
             var xMemberResultType = MemberToType(xMemberResult);
             //HasCount(1, xMemberResultType);
             var xMemberResultX = HasMember(xMemberResultType, new NameKey("x"));
@@ -626,7 +626,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var member = solution.GetMember(c).GetValue();
+            var member = solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("c")).Is1OrThrow();
 
             HasMember(member.Type.GetValue().Is1OrThrow(), new NameKey("x"));
         }
@@ -664,7 +664,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var cType = solution.GetMember(c).GetValue().Type.GetValue().Is1OrThrow();
+            var cType = solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("c")).Is1OrThrow().Type.GetValue().Is1OrThrow();
 
             var cOrType = Assert.IsType<FrontEndOrType>(cType);
 
@@ -707,7 +707,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var cType = solution.GetMember(c).GetValue().Type.GetValue().Is1OrThrow();
+            var cType = solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("c")).Is1OrThrow().Type.GetValue().Is1OrThrow();
 
             Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(cType);
 
@@ -779,7 +779,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var cTypeResult = solution.GetMember(c).GetValue().Type.GetValue().Is1OrThrow();
+            var cTypeResult = solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("c")).Is1OrThrow().Type.GetValue().Is1OrThrow();
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
                 new List<IBox<WeakMemberDefinition>> {
@@ -874,7 +874,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var cTypeResult = solution.GetMember(c).GetValue().Type.GetValue().Is1OrThrow();
+            var cTypeResult = solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("c")).Is1OrThrow().Type.GetValue().Is1OrThrow();
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
                 new List<IBox<WeakMemberDefinition>> {
@@ -1030,8 +1030,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = problem.Solve();
 
-            var flowNode = solution.GetFlowNode2(a);
-            var res = solution.GetType(flowNode);
+            var res = solution.GetType(a);
             var method = Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.MethodType>(res.GetValue().Is1OrThrow());
             Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(method.OutputType.Is1OrThrow());
         }
@@ -1087,8 +1086,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var cFlowNode = solution.GetFlowNode2(c);
-            var cType = solution.GetType(cFlowNode);
+            var cType = solution.GetType(c);
 
             var hasMembers = Assert.IsType<HasMembersType>(cType.GetValue().Is1OrThrow());
             hasMembers.TryGetMember(new NameKey("x"), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow().Is2OrThrow();
