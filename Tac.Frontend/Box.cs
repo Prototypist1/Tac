@@ -9,6 +9,17 @@ namespace Tac.SemanticModel
         T GetValue();
     }
 
+    public static class BoxEntensions {
+
+        // I think this is the only correct way to get a funcBox
+        // TODO make FuncBox an innder class and have this be the only thing that knows about it
+        public static IBox<TT> Transfrom<T,TT>(this IBox<T> box, Func<T, TT> func)
+        {
+            return new FuncBox<TT>(() => func(box.GetValue()));
+        }
+
+    }
+
 
     public class Box<T> : IBox<T>
         where T:class
@@ -28,6 +39,10 @@ namespace Tac.SemanticModel
 
         public T GetValue()
         {
+            if (!HasThing) {
+                throw new Exception("a box was opened before it was filled!");
+            }
+
             return InnerType!;
         }
 
@@ -42,12 +57,12 @@ namespace Tac.SemanticModel
             HasThing = true;
             return t;
         }
+
     }
 
 
 
     public class FuncBox<T> : IBox<T>
-        where T : class
     {
         public FuncBox(Func<T> innerType)
         {

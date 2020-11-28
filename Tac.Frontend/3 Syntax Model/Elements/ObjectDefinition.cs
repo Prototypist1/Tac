@@ -46,14 +46,10 @@ namespace Tac.SemanticModel
     // I think there should be a class for that
     internal class WeakObjectDefinition: IConvertableFrontendCodeElement<IObjectDefiniton>, IScoped, IReturn
     {
-        public WeakObjectDefinition(IOrType<IBox<WeakScope>, IError> scope, IReadOnlyList<IOrType<IBox<WeakAssignOperation>,IError>> assigns) {
-            if (assigns == null)
-            {
-                throw new ArgumentNullException(nameof(assigns));
-            }
-
+        public WeakObjectDefinition(IOrType<IBox<WeakScope>, IError> scope, IBox<IReadOnlyList<IOrType<IBox<WeakAssignOperation>, IError>>> assigns) {
+           
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
-            Assignments = assigns.ToArray();
+            Assignments = assigns ?? throw new ArgumentNullException(nameof(assigns));
 
             returns = new Lazy<IOrType<IFrontendType, IError>>(() =>
             {
@@ -64,7 +60,7 @@ namespace Tac.SemanticModel
         }
 
         public IOrType<IBox<WeakScope>, IError> Scope { get; }
-        public IReadOnlyList<IOrType<IBox<WeakAssignOperation>, IError>> Assignments { get; }
+        public IBox<IReadOnlyList<IOrType<IBox<WeakAssignOperation>, IError>>> Assignments { get; }
 
         public IBuildIntention<IObjectDefiniton> GetBuildIntention(IConversionContext context)
         {
@@ -73,7 +69,7 @@ namespace Tac.SemanticModel
             {
                 maker.Build(
                     Scope.Is1OrThrow().GetValue().Convert(context), 
-                    Assignments.Select(x => x.Is1OrThrow().GetValue().Convert(context)).ToArray());
+                    Assignments.GetValue().Select(x => x.Is1OrThrow().GetValue().Convert(context)).ToArray());
             });
         }
 
@@ -90,7 +86,7 @@ namespace Tac.SemanticModel
                     yield return item;
                 }
             }
-            foreach (var assignment in Assignments)
+            foreach (var assignment in Assignments.GetValue())
             {
                 foreach (var error in assignment.SwitchReturns<IEnumerable<IError>>(x => x.GetValue().Validate(), x => new List<IError>() { x}))
                 {
@@ -144,7 +140,7 @@ namespace Tac.SemanticModel
 
             var key = new ImplicitKey(Guid.NewGuid());
 
-            var box = new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>();
+            var box = new Box<IReadOnlyList<IOrType<IBox<WeakAssignOperation>, IError>>>();
             var myScope = context.TypeProblem.CreateObjectOrModule(scope, key, new WeakObjectConverter(box), new WeakScopeConverter());
 
             // {6B83A7F1-0E28-4D07-91C8-57E6878E97D9}
@@ -169,30 +165,53 @@ namespace Tac.SemanticModel
             //        });
             //}
 
-            box.Fill(elements.Select(x =>
-            x.TransformInner(y => y.Run(myScope, context.CreateChildContext(this)).Resolve)).ToArray());
+
+            var nextElements = elements.Select(x =>
+            x.TransformInner(y => y.Run(myScope, context.CreateChildContext(this)).Resolve)).ToArray();
 
             var value = context.TypeProblem.CreateValue(runtimeScope, key, new PlaceholderValueConverter());
             // ugh! an object is a type
             //
 
-            return new SetUpResult<IBox<WeakObjectDefinition>, Tpn.IValue>(new ResolveReferanceObjectDefinition(myScope), OrType.Make<Tpn.IValue, IError>(value));
+            return new SetUpResult<IBox<WeakObjectDefinition>, Tpn.IValue>(new ResolveReferanceObjectDefinition(myScope, nextElements, box), OrType.Make<Tpn.IValue, IError>(value));
         }
     }
 
     internal class ResolveReferanceObjectDefinition : IResolve<IBox<WeakObjectDefinition>>
     {
         private readonly Tpn.TypeProblem2.Object myScope;
+        private IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextElements;
+        private readonly Box<IReadOnlyList<IOrType<IBox<WeakAssignOperation>, IError>>> box;
 
-        public ResolveReferanceObjectDefinition(Tpn.TypeProblem2.Object myScope)
+        public ResolveReferanceObjectDefinition(Tpn.TypeProblem2.Object myScope, IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextElements, 
+            Box<IReadOnlyList<IOrType<IBox<WeakAssignOperation>, IError>>> box)
         {
             this.myScope = myScope ?? throw new ArgumentNullException(nameof(myScope));
+            this.nextElements = nextElements ?? throw new ArgumentNullException(nameof(nextElements));
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
         // do these really need to be IBox? they seeme to generally be filled...
         // mayble IPossibly...
         public IBox<WeakObjectDefinition> Run(Tpn.TypeSolution context)
         {
+
+            var finalElements = nextElements.Select(x => x.SwitchReturns<IOrType<IBox<WeakAssignOperation>, IError>>(
+                    y => {
+                        var res = y.Run(context).GetValue();
+                        if (res is WeakAssignOperation weakAssign)
+                        {
+                            return OrType.Make<IBox<WeakAssignOperation>, IError>(new Box<WeakAssignOperation>(weakAssign));
+                        }
+                        else
+                        {
+                            return OrType.Make<IBox<WeakAssignOperation>, IError>(Error.Other("lines in an object must me assignments"));
+                        }
+                    },
+                    y => OrType.Make<IBox<WeakAssignOperation>, IError>(y))).ToArray();
+
+            box.Fill(finalElements);
+
             var objectOr = context.GetObject(myScope);
             if (objectOr.GetValue().Is1(out var v1))
             {

@@ -41,7 +41,7 @@ namespace Tac.SemanticModel
         public WeakMethodDefinition(
             IBox<IOrType<IFrontendType, IError>> outputType,
             IBox<WeakMemberDefinition> parameterDefinition,
-            IReadOnlyList<IOrType< IBox<IFrontendCodeElement>,IError>> body,
+            IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> body,
             IOrType<IBox<WeakScope>, IError> scope,
             IReadOnlyList<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
@@ -62,7 +62,7 @@ namespace Tac.SemanticModel
                     OutputType.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
                     ParameterDefinition.GetValue().Convert(context),
                     Scope.Is1OrThrow().GetValue().Convert(context),
-                    Body.Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
+                    Body.GetValue().Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray());
             });
         }
@@ -72,8 +72,8 @@ namespace Tac.SemanticModel
             // TODO
             // are there really frontend types that arn't convertable?
             return OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.MethodType(
-                InputType.GetValue().TransformInner(x=>x),
-                OutputType.GetValue().TransformInner(x=>x)
+                InputType,
+                OutputType
                 ));
         }
     }
@@ -160,32 +160,37 @@ namespace Tac.SemanticModel
             var realizedInput = parameterDefinition.Run(scope, context.CreateChildContext(this));
             var realizedOutput = output.Run(scope, context.CreateChildContext(this));
 
-            var box = new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>();
+            var box = new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>();
             var converter = new WeakMethodDefinitionConverter(box);
             var method = context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey(parameterName)));
 
-            box.Fill(elements.Select(x => x.TransformInner(y => y.Run(method, context.CreateChildContext(this)).Resolve)).ToArray());
+            var nextElements = elements.Select(x => x.TransformInner(y => y.Run(method, context.CreateChildContext(this)).Resolve)).ToArray();
 
             var value = context.TypeProblem.CreateValue(runtimeScope, new GenericNameKey(new NameKey("method"), new IOrType<IKey, IError>[] {
                     realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
                     realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
                 }), new PlaceholderValueConverter());
 
-            return new SetUpResult<IBox<WeakMethodDefinition>, Tpn.IValue>(new MethodDefinitionResolveReferance(method), OrType.Make<Tpn.IValue, IError>(value));
+            return new SetUpResult<IBox<WeakMethodDefinition>, Tpn.IValue>(new MethodDefinitionResolveReferance(method, nextElements,box), OrType.Make<Tpn.IValue, IError>(value));
         }
     }
 
     internal class MethodDefinitionResolveReferance : IResolve<IBox<WeakMethodDefinition>>
     {
         private readonly Tpn.TypeProblem2.Method method;
+        private readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextElements;
+        private readonly Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> box;
 
-        public MethodDefinitionResolveReferance(Tpn.TypeProblem2.Method method)
+        public MethodDefinitionResolveReferance(Tpn.TypeProblem2.Method method, IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextElements, Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> box)
         {
             this.method = method ?? throw new ArgumentNullException(nameof(method));
+            this.nextElements = nextElements ?? throw new ArgumentNullException(nameof(nextElements));
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
         public IBox<WeakMethodDefinition> Run(Tpn.TypeSolution context)
         {
+            box.Fill(nextElements.Select(x => x.TransformInner(y => y.Run(context))).ToArray());
             var res = context.GetMethod(method);
             if (res.GetValue().Is1(out var v1))
             {

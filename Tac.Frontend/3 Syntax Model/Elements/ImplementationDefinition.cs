@@ -44,7 +44,7 @@ namespace Tac.SemanticModel
             IBox<WeakMemberDefinition> contextDefinition,
             IBox<WeakMemberDefinition> parameterDefinition,
             IBox<IOrType<IFrontendType, IError>> outputType,
-            IReadOnlyList<IBox<IFrontendCodeElement>> metohdBody,
+            IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> metohdBody,
             IBox<WeakScope> scope, 
             IEnumerable<IFrontendCodeElement> staticInitializers)
         {
@@ -60,7 +60,7 @@ namespace Tac.SemanticModel
         public IBox<WeakMemberDefinition> ContextDefinition { get; }
         public IBox<WeakMemberDefinition> ParameterDefinition { get; }
         public IBox<WeakScope> Scope { get; }
-        public IReadOnlyList<IBox<IFrontendCodeElement>> MethodBody { get; }
+        public IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> MethodBody { get; }
         public IEnumerable<IFrontendCodeElement> StaticInitialzers { get; }
 
         public IBuildIntention<IImplementationDefinition> GetBuildIntention(IConversionContext context)
@@ -78,7 +78,7 @@ namespace Tac.SemanticModel
                     contextMember,
                     ParameterDefinition.GetValue().Convert(context),
                     Scope.GetValue().Convert(context),
-                    MethodBody.Select(x => x.GetValue().ConvertElementOrThrow(context)).ToArray(),
+                    MethodBody.GetValue().Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitialzers.Select(x => x.ConvertElementOrThrow(context)).ToArray(),
                     Model.Instantiated.Scope.CreateAndBuild(new IsStatic[] {
                         new IsStatic(contextMember,false)
@@ -91,10 +91,9 @@ namespace Tac.SemanticModel
             // TODO
             // are there really frontend types that arnt convertable?!
             return OrType.Make<IFrontendType, IError>(SyntaxModel.Elements.AtomicTypes.MethodType.ImplementationType(
-                ParameterDefinition.GetValue().Type.GetValue().TransformInner(x=>x),
-                OutputType.GetValue().TransformInner(x=>x),
-                ContextDefinition.GetValue().Type.GetValue().TransformInner(x=>x)
-                ));
+                ParameterDefinition.Transfrom(x=>x.Type.GetValue()),
+                OutputType,
+                ContextDefinition.Transfrom(x=>x.Type.GetValue())));
         }
 
         public IEnumerable<IError> Validate()
@@ -115,12 +114,16 @@ namespace Tac.SemanticModel
             {
                 yield return error;
             }
-            foreach (var line in MethodBody)
+            foreach (var line in MethodBody.GetValue().OfType<IIsDefinately<IBox<IFrontendCodeElement>>>().Select(x=>x.Value))
             {
                 foreach (var error in line.GetValue().Validate())
                 {
                     yield return error;
                 }
+            }
+            foreach (var error in MethodBody.GetValue().OfType<IIsDefinately<IError>>().Select(x => x.Value))
+            {
+                yield return error;
             }
             foreach (var line in StaticInitialzers)
             {
@@ -235,14 +238,14 @@ namespace Tac.SemanticModel
                 }), new WeakTypeReferenceConverter());
 
             var innerBox = new Box<Tpn.TypeProblem2.Method>();
-            var linesBox = new Box<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]>();
+            var linesBox = new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>();
             var outer = context.TypeProblem.CreateMethod(
                 scope, 
                 realizeContext.SetUpSideNode, 
                 OrType.Make<TypeProblem2.TypeReference, IError>(outputTypeRef), 
                 contextName, 
                 new WeakImplementationDefinitionConverter(
-                    new Box<IResolve<IBox<IFrontendCodeElement>>[]>(Array.Empty<IResolve<IBox<IFrontendCodeElement>>>()), 
+                    new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>(Array.Empty<IOrType<IBox<IFrontendCodeElement>,IError>>()), 
                     innerBox), 
                 new WeakMemberDefinitionConverter(
                     Access.ReadWrite, 
@@ -260,7 +263,7 @@ namespace Tac.SemanticModel
                     new NameKey(parameterName)));
 
             innerBox.Fill(inner);
-            linesBox.Fill(elements.Select(y => y.TransformInner(x => x.Run(inner, context.CreateChildContext(this)).Resolve)).ToArray());
+            var nextElements = elements.Select(y => y.TransformInner(x => x.Run(inner, context.CreateChildContext(this)).Resolve)).ToArray();
 
             var innerValue = context.TypeProblem.CreateValue(outer,
                  new GenericNameKey(new NameKey("method"), new[] {
@@ -279,21 +282,26 @@ namespace Tac.SemanticModel
                 }), new PlaceholderValueConverter());
 
             return new SetUpResult<IBox<WeakImplementationDefinition>, Tpn.IValue>(new ImplementationDefinitionResolveReferance(
-                outer), OrType.Make<Tpn.IValue, IError>(value));
+                outer, nextElements, linesBox), OrType.Make<Tpn.IValue, IError>(value));
         }
     }
 
     internal class ImplementationDefinitionResolveReferance : IResolve<IBox<WeakImplementationDefinition>>
     {
         private readonly Tpn.TypeProblem2.Method outer;
+        private readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextElements;
+        private readonly Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> linesBox;
 
-        public ImplementationDefinitionResolveReferance(Tpn.TypeProblem2.Method outer)
+        public ImplementationDefinitionResolveReferance(Tpn.TypeProblem2.Method outer, IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextElements, Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> linesBox)
         {
-            this.outer = outer;
+            this.outer = outer ?? throw new ArgumentNullException(nameof(outer));
+            this.nextElements = nextElements ?? throw new ArgumentNullException(nameof(nextElements));
+            this.linesBox = linesBox ?? throw new ArgumentNullException(nameof(linesBox));
         }
 
         public IBox<WeakImplementationDefinition> Run(Tpn.TypeSolution context)
         {
+            linesBox.Fill(nextElements.Select(x => x.TransformInner(y => y.Run(context))).ToArray());
             var res = context.GetMethod(outer);
             if (res.GetValue().Is2(out var v2))
             {

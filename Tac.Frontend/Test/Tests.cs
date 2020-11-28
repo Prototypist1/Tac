@@ -116,7 +116,7 @@ namespace Tac.Frontend.TypeProblem.Test
             x.builder.CreatePublicMember(hello, hello, new NameKey("y"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("y")));
 
             var input = x.builder.CreateValue(x.ModuleRoot.InitizationScope, new NameKey("hello"), new PlaceholderValueConverter());
-            var method = x.builder.CreateMethod(x.ModuleRoot, "input", new WeakMethodDefinitionConverter(new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>(new List<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>())), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("input")));
+            var method = x.builder.CreateMethod(x.ModuleRoot, "input", new WeakMethodDefinitionConverter(new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>(new List<IOrType<IBox<IFrontendCodeElement>, IError>>())), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("input")));
 
             var input_x = x.builder.CreateHopefulMember(method.Input(), new NameKey("x"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("x")));
             var input_y = x.builder.CreateHopefulMember(method.Input(), new NameKey("y"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("y")));
@@ -1032,7 +1032,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var res = solution.GetType(a);
             var method = Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.MethodType>(res.GetValue().Is1OrThrow());
-            Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(method.OutputType.Is1OrThrow());
+            Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(method.OutputType.GetValue().Is1OrThrow());
         }
 
 

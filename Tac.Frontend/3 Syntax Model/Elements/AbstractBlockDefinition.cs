@@ -15,7 +15,7 @@ namespace Tac.SemanticModel
     {
         protected WeakAbstractBlockDefinition(
             IOrType<IBox<WeakScope>, IError> scope,
-            IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>> body, 
+            IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> body, 
             IReadOnlyList<IIsPossibly<IFrontendCodeElement>> staticInitailizers){
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             Body = body ?? throw new ArgumentNullException(nameof(body));
@@ -24,7 +24,7 @@ namespace Tac.SemanticModel
 
 
         public IOrType<IBox<WeakScope>, IError> Scope { get; }
-        public IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>> Body { get; }
+        public IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> Body { get; }
         // I think I am gettting well ahead of myself with these...
         // I think I should build this I plan on using soonish
         // why are these IIsPossibly?? 
@@ -46,7 +46,7 @@ namespace Tac.SemanticModel
                     yield return item;
                 }
             }
-            foreach (var line in Body)
+            foreach (var line in Body.GetValue())
             {
                 foreach (var error in line.SwitchReturns(x=>x.GetValue().Validate(),x=>new IError[] { x}))
                 {

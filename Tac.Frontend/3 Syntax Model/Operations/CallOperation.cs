@@ -86,7 +86,7 @@ namespace Tac.SemanticModel.Operations
             return method.ReturnsTypeOrErrors().TransformAndFlatten(thing => {
                 if (thing is SyntaxModel.Elements.AtomicTypes.MethodType method)
                 {
-                    return method.OutputType;
+                    return method.OutputType.GetValue();
                 }
 
                 return OrType.Make<IFrontendType, IError>(Error.Other($"{thing} should return"));

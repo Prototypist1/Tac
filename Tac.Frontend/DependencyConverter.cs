@@ -153,8 +153,8 @@ namespace Tac.Frontend
             if (verifiableType is IMethodType method)
             {
                 return new MethodType(
-                    OrType.Make<IFrontendType, IError>(MapType(method.InputType)),
-                    OrType.Make<IFrontendType, IError>(MapType(method.OutputType))
+                    new Box<IOrType<IFrontendType,IError>>( OrType.Make<IFrontendType, IError>(MapType(method.InputType))),
+                    new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(MapType(method.OutputType)))
                     );
             }
             //if (verifiableType is IImplementationType implementation)

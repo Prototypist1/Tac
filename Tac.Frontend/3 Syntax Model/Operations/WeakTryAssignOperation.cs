@@ -154,7 +154,7 @@ namespace Tac.SemanticModel.Operations
 
         public ISetUpResult<IBox<WeakTryAssignOperation>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-            var box = new Box<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]>();
+            var box = new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>();
 
             // we create a new scope because the member we are assigning in to only exists in that scope
             // 5 is Cat c { ... }
@@ -192,9 +192,10 @@ namespace Tac.SemanticModel.Operations
                 nextLeft.TransformInner(x => x.Resolve),
                 nextRight.TransformInner(x => x.Resolve),
                 nextblock.TransformInner(x => x.Resolve),
-                myScope);
+                myScope,
+                box);
 
-            box.Fill(new[] { OrType.Make<IResolve<IBox<IFrontendCodeElement>>, IError>(res) });
+            
 
             return new SetUpResult<IBox<WeakTryAssignOperation>, Tpn.IValue>(res,
                 nextLeft.TransformAndFlatten(x => x.SetUpSideNode).OrCastToOr<Tpn.ITypeProblemNode, Tpn.IValue>(Error.Other("")));
@@ -207,26 +208,30 @@ namespace Tac.SemanticModel.Operations
         public readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> right;
         private readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> block;
         private readonly Tpn.TypeProblem2.Scope haveMembers;
+        private readonly Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> box;
 
         public TryAssignOperationResolveReferance(
             IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> value,
             IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> member,
            IOrType<IResolve<IBox<IFrontendCodeElement>>, IError> block,
-           Tpn.TypeProblem2.Scope haveMembers)
+           Tpn.TypeProblem2.Scope haveMembers,
+           Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> box)
         {
             left = value ?? throw new ArgumentNullException(nameof(value));
             right = member ?? throw new ArgumentNullException(nameof(member));
             this.block = block ?? throw new ArgumentNullException(nameof(block));
             this.haveMembers = haveMembers ?? throw new ArgumentNullException(nameof(haveMembers));
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
-
 
         public IBox<WeakTryAssignOperation> Run(Tpn.TypeSolution context)
         {
+            var transformedBlock = block.TransformInner(x => x.Run(context));
+            box.Fill(new[] { transformedBlock });
             var res = new Box<WeakTryAssignOperation>(new WeakTryAssignOperation(
                 left.TransformInner(x => x.Run(context)),
                 right.TransformInner(x => x.Run(context)),
-                block.TransformInner(x=>x.Run(context)),
+                transformedBlock,
                 OrType.Make<IBox<WeakScope>,IError>( new Box<WeakScope>(context.GetWeakScope(haveMembers)))));
             return res;
         }

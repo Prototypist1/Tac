@@ -299,8 +299,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return
                          OrType.Make<IFrontendType, IError>(
                         new MethodType(
-                            generalLookUp[input.ToRep()].GetValue(),
-                            generalLookUp[output.ToRep()].GetValue()));
+                            generalLookUp[input.ToRep()],
+                            generalLookUp[output.ToRep()]));
                 }
 
 
@@ -311,8 +311,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return
                          OrType.Make<IFrontendType, IError>(
                         new MethodType(
-                            generalLookUp[input.ToRep()].GetValue(),
-                            OrType.Make<IFrontendType, IError>(new EmptyType())));
+                            generalLookUp[input.ToRep()],
+                            new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(new EmptyType()))));
                 }
 
                 if (output != default)
@@ -322,8 +322,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return
                          OrType.Make<IFrontendType, IError>(
                         new MethodType(
-                            OrType.Make<IFrontendType, IError>(new EmptyType()),
-                            generalLookUp[output.ToRep()].GetValue()));
+                            new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(new EmptyType())),
+                            generalLookUp[output.ToRep()]));
                 }
 
                 // if it has members it must be a scope
@@ -378,17 +378,17 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return false;
             }
 
-            public IBox<IOrType<IFrontendType, IError>> GetReturns(Tpn.IVirtualFlowNode node)
-            {
-                return new FuncBox<IOrType<IFrontendType, IError>>(()=>
-                    node.VirtualOutput().GetOrThrow().TransformInner(x => generalLookUp[x.ToRep()].GetValue()));
-            }
+            //public IBox<IOrType<IFrontendType, IError>> GetReturns(Tpn.IVirtualFlowNode node)
+            //{
+            //    return new FuncBox<IOrType<IFrontendType, IError>>(()=>
+            //        node.VirtualOutput().GetOrThrow().TransformInner(x => generalLookUp[x.ToRep()].GetValue()));
+            //}
 
-            public IBox<IOrType<IFrontendType, IError>> GetInput(Tpn.IVirtualFlowNode node)
-            {
-                return new FuncBox<IOrType<IFrontendType, IError>>(() =>
-                    node.VirtualInput().GetOrThrow().TransformInner(x => generalLookUp[x.ToRep()].GetValue()));
-            }
+            //public IBox<IOrType<IFrontendType, IError>> GetInput(Tpn.IVirtualFlowNode node)
+            //{
+            //    return new FuncBox<IOrType<IFrontendType, IError>>(() =>
+            //        node.VirtualInput().GetOrThrow().TransformInner(x => generalLookUp[x.ToRep()].GetValue()));
+            //}
 
             public IOrType<IFrontendType, IError> ToType(IOrType<
                     MethodType,
@@ -403,10 +403,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return typeOr.SwitchReturns(
                     methodType => OrType.Make<IFrontendType, IError>(methodType),
                     weakTypeDefinition => weakTypeDefinition.FrontendType(),
-                    weakGenericTypeDefinition => throw new Exception("I don't think this should happen. shouldn't generics be erased at this point?"), // weakGenericTypeDefinition.FrontendType()
+                    weakGenericTypeDefinition => weakGenericTypeDefinition.FrontendType(), //throw new Exception("I don't think this should happen. shouldn't generics be erased at this point?")
                     primitiveType => OrType.Make<IFrontendType, IError>(primitiveType),
                     weakObjectDefinition => weakObjectDefinition.Returns(),
-                    weakRootScopeDefinition => throw new Exception("that is not a type"), // is this really a type?? weakRootScopeDefinition.Returns()
+                    weakRootScopeDefinition => weakRootScopeDefinition.Returns(), // is this really a type?? throw new Exception("that is not a type")
                     weakOrTypeOperation => OrType.Make<IFrontendType, IError>(weakOrTypeOperation.FrontendType()),
                     error => OrType.Make<IFrontendType, IError>(error));
             }
@@ -420,10 +420,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
             }
-            internal IVirtualFlowNode GetFlowNode(TypeProblem2.Method from)
-            {
-                return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
-            }
+            //internal IVirtualFlowNode GetFlowNode(TypeProblem2.Method from)
+            //{
+            //    return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
+            //}
             internal IVirtualFlowNode GetFlowNode(TypeProblem2.MethodType from)
             {
                 return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
@@ -549,6 +549,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res.weakScope;
             }
 
+
+
+            internal WeakMemberDefinition GetMethodMember(TypeProblem2.Method from, IKey key)
+            {
+                if (methodScopeCache.TryGetValue(from, out var res))
+                {
+                    return res.members[key];
+                }
+                res = new Scope(from.PrivateMembers.ToDictionary(x => x.Key, x => GetType(x.Value)), this);
+                methodScopeCache[from] = res;
+                return res.members[key];
+            }
 
             // I am thinking maybe the conversion layer is where we should protect against something being converted twice
             // everything can set a box on the first pass

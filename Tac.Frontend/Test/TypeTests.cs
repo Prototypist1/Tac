@@ -333,9 +333,9 @@ namespace Tac.Frontend.Test
             var b1 = B1();
             var b2 = B2();
 
-            var m1 = new MethodType(OrType.Make<IFrontendType, IError>(a2),OrType.Make<IFrontendType, IError>(b1));
+            var m1 = new MethodType(new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(a2)), new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(b1)));
 
-            var m2 = new MethodType(OrType.Make<IFrontendType, IError>(a1), OrType.Make<IFrontendType, IError>(b2));
+            var m2 = new MethodType(new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(a1)), new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(b2)));
 
             Assert.True(m2.TheyAreUs(m1, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
             Assert.False(m1.TheyAreUs(m2, new List<(IFrontendType, IFrontendType)>()).Is1OrThrow());
@@ -348,8 +348,8 @@ namespace Tac.Frontend.Test
             var a2 = A2();
             var b1 = B1();
             var b2 = B2();
-            var m1 = new MethodType(OrType.Make<IFrontendType, IError>(a2), OrType.Make<IFrontendType, IError>(b1));
-            var m2 = new MethodType(OrType.Make<IFrontendType, IError>(a1), OrType.Make<IFrontendType, IError>(b2));
+            var m1 = new MethodType(new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(a2)), new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(b1)));
+            var m2 = new MethodType(new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(a1)), new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(b2)));
             var t1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> {
                 new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite, new NameKey("a"), new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(a1)))),
                 new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite, new NameKey("b"), new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(b1))))}));

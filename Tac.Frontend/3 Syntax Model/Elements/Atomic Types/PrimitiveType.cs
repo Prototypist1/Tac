@@ -354,24 +354,24 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
         // is the meta-data here worth capturing
         public static MethodType ImplementationType(
-            IOrType<IFrontendType, IError> inputType, 
-            IOrType<IFrontendType, IError> outputType, 
-            IOrType<IFrontendType, IError> contextType) {
+            IBox<IOrType<IFrontendType, IError>> inputType,
+            IBox<IOrType<IFrontendType, IError>> outputType,
+            IBox<IOrType<IFrontendType, IError>> contextType) {
             return new MethodType(
                 contextType,
-                OrType.Make<IFrontendType, IError> (new MethodType(inputType, outputType)));
+                new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError> (new MethodType(inputType, outputType))));
         }
 
         public MethodType(
-            IOrType<IFrontendType, IError> inputType, 
-            IOrType<IFrontendType, IError> outputType)
+            IBox< IOrType<IFrontendType, IError>> inputType,
+            IBox<IOrType<IFrontendType, IError>> outputType)
         {
             InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
         }
 
-        public IOrType<IFrontendType, IError> InputType { get; }
-        public IOrType<IFrontendType, IError> OutputType { get; }
+        public IBox<IOrType<IFrontendType, IError>> InputType { get; }
+        public IBox<IOrType<IFrontendType, IError>> OutputType { get; }
 
         public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
@@ -385,18 +385,18 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 , () =>
                 {
                     builder.Build(
-                        inputType.Is1OrThrow().SafeCastTo<IFrontendType,IFrontendType>().Convert(context),
-                        outputType.Is1OrThrow().SafeCastTo<IFrontendType, IFrontendType>().Convert(context));
+                        inputType.GetValue().Is1OrThrow().SafeCastTo<IFrontendType,IFrontendType>().Convert(context),
+                        outputType.GetValue().Is1OrThrow().SafeCastTo<IFrontendType, IFrontendType>().Convert(context));
                 });
         }
 
         public IEnumerable<IError> Validate()
         {
-            foreach (var error in InputType.SwitchReturns(x => x.Validate(), x => new[] { x }))
+            foreach (var error in InputType.GetValue().SwitchReturns(x => x.Validate(), x => new[] { x }))
             {
                 yield return error;
             }
-            foreach (var error in OutputType.SwitchReturns(x => x.Validate(), x => new[] { x }))
+            foreach (var error in OutputType.GetValue().SwitchReturns(x => x.Validate(), x => new[] { x }))
             {
                 yield return error;
             }
@@ -407,8 +407,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             return MethodLibrary.CanAssign(
                 they,
                 this,
-                InputType,
-                OutputType,
+                InputType.GetValue(),
+                OutputType.GetValue(),
                 x => x.TryGetInput(),
                 x => x.TryGetReturn(),
                 (target, other, list) => target.TheyAreUs(other, list),
@@ -417,8 +417,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         public IOrType<IOrType<(IFrontendType, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<IOrType<(IFrontendType, Access), IError>, No, IError>(new No());
 
 
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(OutputType);
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(InputType);
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(OutputType.GetValue());
+        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(InputType.GetValue());
     }
 
     internal interface IGenericMethodType : IFrontendType, IFrontendGenericType { }

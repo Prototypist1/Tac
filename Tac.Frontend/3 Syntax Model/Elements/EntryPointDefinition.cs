@@ -39,11 +39,11 @@ namespace Tac.SemanticModel
         public WeakEntryPointDefinition(
             IBox<IOrType<IFrontendType, IError>> outputType,
             IBox<WeakMemberDefinition> parameterDefinition,
-            IOrType<IBox<IFrontendCodeElement>,IError>[] body,
+            IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>,IError>>> body,
             IOrType<IBox<WeakScope>, IError> scope,
             IReadOnlyList<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
-                        OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
+            OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
         }
 
@@ -60,7 +60,7 @@ namespace Tac.SemanticModel
                     OutputType.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
                     ParameterDefinition.GetValue().Convert(context),
                     Scope.Is1OrThrow().GetValue().Convert(context),
-                    Body.Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
+                    Body.GetValue().Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray());
             });
         }
@@ -155,27 +155,33 @@ namespace Tac.SemanticModel
             var realizedInput = parameterDefinition.Run(scope, context.CreateChildContext(this));
             var realizedOutput = output.Run(scope, context.CreateChildContext(this));
 
-            var box = new Box<IReadOnlyList<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>>>();
+            var box = new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>();
             var converter = new WeakEntryPointConverter(box);
             var method = context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey(parameterName)));
 
-            box.Fill(elements.Select(x => x.TransformInner(y => y.Run(method, context.CreateChildContext(this)).Resolve)).ToArray());
+            var converted = elements.Select(x => x.TransformInner(y => y.Run(method, context.CreateChildContext(this)).Resolve)).ToArray();
 
-            return new SetUpResult<IBox<WeakEntryPointDefinition>, Tpn.TypeProblem2.Method > (new EntryPointDefinitionResolveReferance(method), OrType.Make<Tpn.TypeProblem2.Method, IError>(method));
+            return new SetUpResult<IBox<WeakEntryPointDefinition>, Tpn.TypeProblem2.Method > (new EntryPointDefinitionResolveReferance(method, box, converted), OrType.Make<Tpn.TypeProblem2.Method, IError>(method));
         }
     }
 
     internal class EntryPointDefinitionResolveReferance : IResolve<IBox<WeakEntryPointDefinition>>
     {
         private readonly Tpn.TypeProblem2.Method scope;
+        private readonly Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> box;
+        private readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] converted;
 
-        public EntryPointDefinitionResolveReferance(Tpn.TypeProblem2.Method scope)
+        public EntryPointDefinitionResolveReferance(Tpn.TypeProblem2.Method scope, Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> box, IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] converted)
         {
             this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
+            this.converted = converted ?? throw new ArgumentNullException(nameof(converted));
         }
 
         public IBox<WeakEntryPointDefinition> Run(Tpn.TypeSolution context)
         {
+            var finalForm=  converted.Select(x => x.TransformInner(y => y.Run(context))).ToArray();
+            box.Fill(finalForm);
             var res = context.GetMethod(scope);
             if (res.GetValue().Is3(out var v3))
             {

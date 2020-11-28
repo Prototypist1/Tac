@@ -37,7 +37,7 @@ namespace Tac.SemanticModel
     internal class WeakBlockDefinition : WeakAbstractBlockDefinition<IBlockDefinition>
     {
         public WeakBlockDefinition(
-            IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>> body,
+            IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> body,
             IOrType< IBox<WeakScope>,IError> scope,
             IReadOnlyList<IIsPossibly<IFrontendCodeElement>> staticInitailizers) :
             base(scope, body, staticInitailizers)
@@ -50,7 +50,7 @@ namespace Tac.SemanticModel
             {
                 maker.Build(
                     Scope.Is1OrThrow().GetValue().Convert(context),
-                    Body.Select(or => or.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
+                    Body.GetValue().Select(or => or.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray());
             });
         }
@@ -97,24 +97,29 @@ namespace Tac.SemanticModel
 
         public ISetUpResult<IBox<WeakBlockDefinition>, Tpn.IScope> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
-            var box = new Box<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]>();
+            var box = new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>();
             var myScope = context.TypeProblem.CreateScope(scope, new WeakBlockDefinitionConverter(box));
-            box.Fill(Elements.Select(or => or.TransformInner(y => y.Run(scope, context.CreateChildContext(this)).Resolve)).ToArray());
-            return new SetUpResult<IBox<WeakBlockDefinition>, Tpn.IScope>(new ResolveReferanceBlockDefinition(myScope), OrType.Make<Tpn.IScope, IError>(myScope));
+            var nextElements = Elements.Select(or => or.TransformInner(y => y.Run(scope, context.CreateChildContext(this)).Resolve)).ToArray();
+            return new SetUpResult<IBox<WeakBlockDefinition>, Tpn.IScope>(new ResolveReferanceBlockDefinition(myScope, nextElements,box), OrType.Make<Tpn.IScope, IError>(myScope));
         }
     }
 
     internal class ResolveReferanceBlockDefinition : IResolve<IBox<WeakBlockDefinition>>
     {
         private readonly Tpn.TypeProblem2.Scope myScope;
+        private readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextElements;
+        private readonly Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> box;
 
-        public ResolveReferanceBlockDefinition(Tpn.TypeProblem2.Scope myScope)
+        public ResolveReferanceBlockDefinition(Tpn.TypeProblem2.Scope myScope, IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextElements, Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> box)
         {
             this.myScope = myScope ?? throw new ArgumentNullException(nameof(myScope));
+            this.nextElements = nextElements ?? throw new ArgumentNullException(nameof(nextElements));
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
         public IBox<WeakBlockDefinition> Run(Tpn.TypeSolution context)
         {
+            box.Fill(nextElements.Select(x => x.TransformInner(y => y.Run(context))).ToArray());
             return new Box<WeakBlockDefinition>(context.GetScope(myScope).GetValue().Is1OrThrow());
         }
     }
