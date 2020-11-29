@@ -156,7 +156,7 @@ namespace Tac.SemanticModel
         {
             foreach (var scope in staticScopes)
             {
-                if (context.TryGetMember(context.GetFlowNode(scope), key, out var res)) {
+                if (context.TryGetMember(scope, key, out var res)) {
                     return new Box<WeakMemberReference>(new WeakMemberReference(new Box<WeakMemberDefinition>(res.Is1OrThrow())));
                 }
             }

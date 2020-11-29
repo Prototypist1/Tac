@@ -122,8 +122,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 key.Switch(equalibleHashSet =>
                                 {
 
-
-
                                     if (equalibleHashSet.backing.Count == 0)
                                     {
                                         var box = new Box<IOrType<IFrontendType, IError>>();
@@ -151,42 +149,44 @@ namespace Tac.Frontend.New.CrzayNamespace
                                         if (!generalLookUp.TryGetValue(backer.ToRep(), out var _))
                                         {
                                             var innerBox = new Box<IOrType<IFrontendType, IError>>();
-                                            generalLookUp[key] = innerBox;
-                                            todo.Add(() => {
+                                            generalLookUp[backer.ToRep()] = innerBox;
+                                            todo.Add(() =>
+                                            {
                                                 innerBox.Fill(Convert(backer));
                                             });
                                         }
+                                    }
 
-                                        // build the ors by looking up the componets
-                                        var array = equalibleHashSet.backing.ToArray();
-                                        var first = array[0];
-                                        var second = array[1];                                        
-                                        var orKey = OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd> { first, second }));
-                                        if (!generalLookUp.TryGetValue(orKey, out var _))
+                                    // build the ors by looking up the componets
+                                    var array = equalibleHashSet.backing.ToArray();
+                                    var first = array[0];
+                                    var second = array[1];                                        
+                                    var orKey = OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd> { first, second }));
+                                    if (!generalLookUp.TryGetValue(orKey, out var _))
+                                    {
+                                        var firstOrBox = new Box<IOrType<IFrontendType, IError>>();
+                                        generalLookUp[orKey] = firstOrBox;
+                                        todo.Add(() => {
+                                            firstOrBox.Fill(OrType.Make<IFrontendType, IError>(new FrontEndOrType(generalLookUp[first.ToRep()].GetValue(), generalLookUp[second.ToRep()].GetValue())));
+                                        });
+                                    }
+
+                                    foreach (var entry in array.Skip(2))
+                                    {
+                                        var nextOrKeyBacking = orKey.Is1OrThrow().backing.ToHashSet();
+                                        nextOrKeyBacking.Add(entry); ;
+                                        var nextOrKey = OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(nextOrKeyBacking));
+                                        if (!generalLookUp.TryGetValue(nextOrKey, out var _))
                                         {
-                                            var firstOrBox = new Box<IOrType<IFrontendType, IError>>();
-                                            generalLookUp[orKey] = firstOrBox;
+                                            var orBox = new Box<IOrType<IFrontendType, IError>>();
+                                            generalLookUp[nextOrKey] = orBox;
                                             todo.Add(() => {
-                                                firstOrBox.Fill(OrType.Make<IFrontendType, IError>(new FrontEndOrType(generalLookUp[first.ToRep()].GetValue(), generalLookUp[second.ToRep()].GetValue())));
+                                                orBox.Fill(OrType.Make<IFrontendType, IError>(new FrontEndOrType(generalLookUp[orKey].GetValue(), generalLookUp[entry.ToRep()].GetValue())));
                                             });
                                         }
-
-                                        foreach (var entry in array.Skip(2))
-                                        {
-                                            var nextOrKeyBacking = orKey.Is1OrThrow().backing.ToHashSet();
-                                            nextOrKeyBacking.Add(entry); ;
-                                            var nextOrKey = OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(nextOrKeyBacking));
-                                            if (!generalLookUp.TryGetValue(nextOrKey, out var _))
-                                            {
-                                                var orBox = new Box<IOrType<IFrontendType, IError>>();
-                                                generalLookUp[nextOrKey] = orBox;
-                                                todo.Add(() => {
-                                                    orBox.Fill(OrType.Make<IFrontendType, IError>(new FrontEndOrType(generalLookUp[orKey].GetValue(), generalLookUp[entry.ToRep()].GetValue())));
-                                                });
-                                            }
-                                            orKey = nextOrKey;
-                                        }
+                                        orKey = nextOrKey;
                                     }
+                                    
                                 },
                                 error =>
                                 {
@@ -361,22 +361,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return GetMyScope(node).TransformInner(x => x.members[key]);
             }
 
-            public bool TryGetMember(Tpn.IVirtualFlowNode node, IKey key, out IOrType<WeakMemberDefinition, IError> res)
-            {
-                var foundIt = false;
-
-                var outer = GetMyScope(node).TransformInner(x => {
-                    foundIt = x.members.TryGetValue(key, out var member);
-                    return member;
-                    });
-                if (foundIt) {
-                    res = outer;
-                    return true;
-                }
-
-                res = default;
-                return false;
-            }
 
             //public IBox<IOrType<IFrontendType, IError>> GetReturns(Tpn.IVirtualFlowNode node)
             //{
@@ -428,9 +412,48 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
             }
-            internal IVirtualFlowNode GetFlowNode(Tpn.IStaticScope from)
+
+            internal bool TryGetMember(Tpn.IStaticScope from, IKey key, out IOrType<WeakMemberDefinition, IError> res)
             {
-                return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
+                if (from.SafeIs(out TypeProblem2.Method method)) {
+                    var scope= GetWeakScopeInner(method);
+
+                    if (scope.members.TryGetValue(key, out var memberDef)){
+                        res = OrType.Make<WeakMemberDefinition, IError>(memberDef);
+                        return true;
+                    }
+                }
+
+                if (from.SafeIs(out TypeProblem2.Scope typeProblemScope))
+                {
+                    var scope = GetWeakScopeInner(typeProblemScope);
+
+                    if (scope.members.TryGetValue(key, out var memberDef))
+                    {
+                        res = OrType.Make<WeakMemberDefinition, IError>(memberDef);
+                        return true;
+                    }
+                }
+
+                if (!flowNodeLookUp.TryGetValue(OrType.Make<ITypeProblemNode, IError>(from), out var node)) {
+                    res = default;
+                    return false;
+                }
+
+                var foundIt = false;
+
+                var outer = GetMyScope(node.GetValueAs(out IVirtualFlowNode _)).TransformInner(x => {
+                    foundIt = x.members.TryGetValue(key, out var member);
+                    return member;
+                });
+                if (foundIt)
+                {
+                    res = outer;
+                    return true;
+                }
+
+                res = default;
+                return false;
             }
 
             internal IBox<IOrType<WeakObjectDefinition, WeakRootScope>> GetObject(TypeProblem2.Object from)
@@ -527,39 +550,42 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
             readonly Dictionary<TypeProblem2.Scope, Scope> scopeScopeCache = new Dictionary<TypeProblem2.Scope, Scope>();
+
+            private Scope GetWeakScopeInner(TypeProblem2.Scope from)
+            {
+                if (scopeScopeCache.TryGetValue(from, out var res))
+                {
+                    return res;
+                }
+                res = new Scope(from.PrivateMembers.ToDictionary(x => x.Key, x => GetType(x.Value)), this);
+                scopeScopeCache[from] = res;
+                return res;
+            }
             internal WeakScope GetWeakScope(TypeProblem2.Scope from)
             {
-                if (scopeScopeCache.TryGetValue(from, out var res)) {
-                    return res.weakScope;
-                }
-                res = new Scope(from.PrivateMembers.ToDictionary(x => x.Key, x => GetType(x.Value)),this);
-                scopeScopeCache[from] = res;
-                return res.weakScope;
+                return GetWeakScopeInner(from).weakScope;
             }
             readonly Dictionary<TypeProblem2.Method, Scope> methodScopeCache = new Dictionary<TypeProblem2.Method, Scope>();
 
-            internal WeakScope GetWeakScope(TypeProblem2.Method from)
+            private Scope GetWeakScopeInner(TypeProblem2.Method from)
             {
                 if (methodScopeCache.TryGetValue(from, out var res))
                 {
-                    return res.weakScope;
+                    return res;
                 }
                 res = new Scope(from.PrivateMembers.ToDictionary(x => x.Key, x => GetType(x.Value)), this);
                 methodScopeCache[from] = res;
-                return res.weakScope;
+                return res;
             }
 
-
+            internal WeakScope GetWeakScope(TypeProblem2.Method from)
+            {
+                return GetWeakScopeInner(from).weakScope;
+            }
 
             internal WeakMemberDefinition GetMethodMember(TypeProblem2.Method from, IKey key)
             {
-                if (methodScopeCache.TryGetValue(from, out var res))
-                {
-                    return res.members[key];
-                }
-                res = new Scope(from.PrivateMembers.ToDictionary(x => x.Key, x => GetType(x.Value)), this);
-                methodScopeCache[from] = res;
-                return res.members[key];
+                return GetWeakScopeInner(from).members[key];
             }
 
             // I am thinking maybe the conversion layer is where we should protect against something being converted twice

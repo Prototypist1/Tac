@@ -222,7 +222,10 @@ namespace Tac.SemanticModel
 
         public IBox<WeakMemberReference> Run(Tpn.TypeSolution context)
         {
-            return new Box<WeakMemberReference>(new WeakMemberReference(new Box<WeakMemberDefinition>(context.GetMember(context.GetFlowNode(scope), memberName).Is1OrThrow()))); // don't love the Is1OrThrow here
+            if (context.TryGetMember(scope, memberName, out var member)) {
+                return new Box<WeakMemberReference>(new WeakMemberReference(new Box<WeakMemberDefinition>(member.Is1OrThrow()))); // don't love the Is1OrThrow here
+            }
+            throw new Exception("I don't think this should happen, if it does I guess we need to put an IError somewhere");
         }
     }
 
