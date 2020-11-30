@@ -254,6 +254,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
         }
 
+        //
+        // m1.x
+        // m2.y
+        // m1 =: m2
+        // m2 =: m1
         [Fact]
         public void AssignmentMutual()
         {

@@ -98,6 +98,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     if (!parent.Hopeful.Is(out var inferredType))
                     {
                         inferredType = new InferredType(this, $"generated infered hopeful member type. for key {key}");
+                        parent.Hopeful = Possibly.Is(inferredType);
                     }
 
                     if (inferredType.PublicMembers.TryGetValue(key, out var res)) {
