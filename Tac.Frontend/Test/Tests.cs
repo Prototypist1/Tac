@@ -287,6 +287,29 @@ namespace Tac.Frontend.TypeProblem.Test
             //HasCount(2, MemberToType(solution.GetMember(m2).GetValue()));
         }
 
+        [Fact]
+        public void HopefulOnHopeful()
+        {
+
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope());
+
+            var m1 = x.builder.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("m1"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("m1")));
+            var x1 = x.builder.CreateHopefulMember(m1, new NameKey("x1"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("x1")));
+            var x2 = x.builder.CreateHopefulMember(x1, new NameKey("x2"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("x2")));
+            x.builder.CreateHopefulMember(x2, new NameKey("x3"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("x3")));
+
+            var m2 = x.builder.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("m2"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("m2")));
+
+            m2.AssignTo(m1);
+
+            var solution = x.Solve();
+
+
+            var m2t = MemberToType(solution.GetMember(solution.GetFlowNode(x.ModuleRoot), new NameKey("m2")).Is1OrThrow());
+            var x1t = HasMember(m2t, new NameKey("x1"));
+            var x2t = HasMember(x1t, new NameKey("x2"));
+            HasMember(x2t, new NameKey("x3"));
+        }
 
         [Fact]
         public void Generic()
