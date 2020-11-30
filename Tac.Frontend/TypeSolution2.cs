@@ -14,7 +14,7 @@ namespace Tac.Frontend.New.CrzayNamespace
     internal partial class Tpn {
         internal class TypeSolution {
 
-            readonly Dictionary<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, IBox<IOrType<IFrontendType, IError>>> generalLookUp = new Dictionary<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, IBox<IOrType<IFrontendType, IError>>>();
+            readonly Dictionary<EqualibleHashSet<CombinedTypesAnd>, IBox<IOrType<IFrontendType, IError>>> generalLookUp = new Dictionary<EqualibleHashSet<CombinedTypesAnd>, IBox<IOrType<IFrontendType, IError>>>();
             readonly Dictionary<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, IOrType<Scope, IError>> scopeCache = new Dictionary<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, IOrType<Scope, IError>>();
             readonly Dictionary<TypeProblem2.Object, IBox<IOrType<WeakObjectDefinition, WeakRootScope>>> objectCache = new Dictionary<TypeProblem2.Object, IBox<IOrType<WeakObjectDefinition, WeakRootScope>>>();
             readonly Dictionary<TypeProblem2.Scope, IBox<IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>> scopeOrBlockCache = new Dictionary<TypeProblem2.Scope, IBox<IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>>();
@@ -39,70 +39,112 @@ namespace Tac.Frontend.New.CrzayNamespace
                     thing.Switch(
                         methodType => {
 
-                            generalLookUp[flowNodes[OrType.Make<ITypeProblemNode, IError>(methodType)].GetValueAs(out IVirtualFlowNode _).ToRep()] = box;
-                            todo.Add(() => { 
-                                box.Fill(OrType.Make<IFrontendType, IError>(
-                                    methodType.Converter.Convert(this, methodType))); 
+                            flowNodes[OrType.Make<ITypeProblemNode, IError>(methodType)].GetValueAs(out IVirtualFlowNode _).ToRep().IfNotError(value =>
+                            {
+                                generalLookUp[value] = box;
+                                todo.Add(() =>
+                                {
+                                    box.Fill(OrType.Make<IFrontendType, IError>(
+                                        methodType.Converter.Convert(this, methodType)));
+                                });
                             });
-                        }, 
+                        },
                         type => {
-                            generalLookUp[flowNodes[OrType.Make<ITypeProblemNode, IError>(type)].GetValueAs(out IVirtualFlowNode _).ToRep()] = box;
-                            var typeBox = new Box<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>();
-                            typeCache[type] = typeBox;
-                            todo.Add(() => {
-                                type.Converter.Convert(this, type).Switch(
-                                    weakType =>
-                                    {
-                                        box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakType)));
-                                        typeBox.Fill(OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(weakType));
-                                    },
-                                    weakGenericType =>
-                                    {
-                                        box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakGenericType)));
-                                        typeBox.Fill(OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(weakGenericType));
-                                    },
-                                    primitiveType =>
-                                    {
-                                        box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(primitiveType)));
-                                        typeBox.Fill(OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(primitiveType));
-                                    })
-                                ; 
+                            flowNodes[OrType.Make<ITypeProblemNode, IError>(type)].GetValueAs(out IVirtualFlowNode _).ToRep().IfNotError(value =>
+                            {
+                                generalLookUp[value] = box;
+                                var typeBox = new Box<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>();
+                                typeCache[type] = typeBox;
+                                todo.Add(() =>
+                                {
+                                    type.Converter.Convert(this, type).Switch(
+                                        weakType =>
+                                        {
+                                            box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakType)));
+                                            typeBox.Fill(OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(weakType));
+                                        },
+                                        weakGenericType =>
+                                        {
+                                            box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakGenericType)));
+                                            typeBox.Fill(OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(weakGenericType));
+                                        },
+                                        primitiveType =>
+                                        {
+                                            box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(primitiveType)));
+                                            typeBox.Fill(OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(primitiveType));
+                                        })
+                                    ;
+                                });
                             });
-                        }, 
+                        },
                         obj => {
-                            generalLookUp[flowNodes[OrType.Make<ITypeProblemNode, IError>(obj)].GetValueAs(out IVirtualFlowNode _).ToRep()] = box;
-                            var objBox= new Box<IOrType<WeakObjectDefinition, WeakRootScope>>();
-                            objectCache[obj] = objBox;
-                            todo.Add(() => {
+                            flowNodes[OrType.Make<ITypeProblemNode, IError>(obj)].GetValueAs(out IVirtualFlowNode _).ToRep().IfNotError(value => {
+                                generalLookUp[value] = box;
+                                var objBox = new Box<IOrType<WeakObjectDefinition, WeakRootScope>>();
+                                objectCache[obj] = objBox;
+                                todo.Add(() => {
 
-                            obj.Converter.Convert(this, obj).Switch(
-                                weakObj => {
-                                    box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakObj)));
-                                    objBox.Fill(OrType.Make<WeakObjectDefinition, WeakRootScope>(weakObj));
-                                },
-                                weakRoot => { 
-                                    box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakRoot)));
-                                    objBox.Fill(OrType.Make<WeakObjectDefinition, WeakRootScope>(weakRoot));
-                                }); 
+                                    obj.Converter.Convert(this, obj).Switch(
+                                        weakObj => {
+                                            box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakObj)));
+                                            objBox.Fill(OrType.Make<WeakObjectDefinition, WeakRootScope>(weakObj));
+                                        },
+                                        weakRoot => {
+                                            box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakRoot)));
+                                            objBox.Fill(OrType.Make<WeakObjectDefinition, WeakRootScope>(weakRoot));
+                                        });
+                                });
                             });
-                        }, 
+                        },
                         orType => {
-                            generalLookUp[flowNodes[OrType.Make<ITypeProblemNode, IError>(orType)].GetValueAs(out IVirtualFlowNode _).ToRep()] = box;
-                            todo.Add(() => {
-                                box.Fill(ToType(OrType.Make < MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError > (
-                                    orType.Converter.Convert(this, orType)))); 
-                            });
-                        }, 
+                            // or types go letter
+                            // they need to go after anything that they could be looking up
+                        },
                         inferred => {
                             // inferred go letter
                             // they might end up with the same key as something else
                             // in that case they defer
-                        }, 
+                        },
                         error => {
-                            generalLookUp[flowNodes[OrType.Make<ITypeProblemNode, IError>(error)].GetValueAs(out IVirtualFlowNode _).ToRep()] = box;
-                            box.Fill(OrType.Make<IFrontendType, IError>(
-                                error));
+                            flowNodes[OrType.Make<ITypeProblemNode, IError>(error)].GetValueAs(out IVirtualFlowNode _).ToRep().IfNotError(value => {
+                                generalLookUp[value] = box;
+                                box.Fill(OrType.Make<IFrontendType, IError>(
+                                    error));
+                            });
                         });
+                }
+
+                // for now ors go before inferred
+                // this might have to changed if I allow "Cat | inferred x"
+                // then I think they just need to go after their component parts
+                // that might get a little complex lacing them into the whole process
+                foreach (var thing in things)
+                {
+                    var box = new Box<IOrType<IFrontendType, IError>>();
+                    thing.Switch(
+                        methodType => { },
+                        type => { },
+                        obj => { },
+                        orType => {
+
+                            // in some cases this has already been added
+                            // bool | bool say
+                            var key = flowNodes[OrType.Make<ITypeProblemNode, IError>(orType)].GetValueAs(out IVirtualFlowNode _).ToRep();
+                            key.IfNotError(value =>
+                            {
+                                if (!generalLookUp.ContainsKey(value))
+                                {
+                                    generalLookUp[value] = box;
+                                    todo.Add(() =>
+                                    {
+                                        box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(
+                                            orType.Converter.Convert(this, orType))));
+                                    });
+                                }
+                            });
+                        },
+                        inferred => { },
+                        error => { });
                 }
 
                 foreach (var thing in things)
@@ -115,87 +157,91 @@ namespace Tac.Frontend.New.CrzayNamespace
                         orType => {},
                         inferred => {
                             var key = flowNodes[OrType.Make<ITypeProblemNode, IError>(inferred)].GetValueAs(out IVirtualFlowNode _).ToRep();
-
-                            // we defer if this rep is already claimed
-                            if (!generalLookUp.TryGetValue(key, out var _))
-                            {
-                                key.Switch(equalibleHashSet =>
-                                {
-
-                                    if (equalibleHashSet.backing.Count == 0)
+                                    key.Switch(equalibleHashSet =>
                                     {
-                                        var box = new Box<IOrType<IFrontendType, IError>>();
-                                        generalLookUp[key] = box;
-                                        todo.Add(() => {
-                                            box.Fill(OrType.Make<IFrontendType, IError>(new AnyType()));
-                                        });
-                                        return;
-                                    }
 
-
-                                    if (equalibleHashSet.backing.Count == 1)
-                                    {
-                                        var box = new Box<IOrType<IFrontendType, IError>>();
-                                        generalLookUp[key] = box;
-                                        todo.Add(() => {
-                                            box.Fill(Convert(equalibleHashSet.backing.First()));
-                                        });
-                                        return;
-                                    }
-
-                                    foreach (var backer in equalibleHashSet.backing)
-                                    {
-                                        // we convert each component
-                                        if (!generalLookUp.TryGetValue(backer.ToRep(), out var _))
+                                        if (equalibleHashSet.backing.Count == 0)
                                         {
-                                            var innerBox = new Box<IOrType<IFrontendType, IError>>();
-                                            generalLookUp[backer.ToRep()] = innerBox;
+                                            var box = new Box<IOrType<IFrontendType, IError>>();
+                                            generalLookUp[equalibleHashSet] = box;
                                             todo.Add(() =>
                                             {
-                                                innerBox.Fill(Convert(backer));
+                                                box.Fill(OrType.Make<IFrontendType, IError>(new AnyType()));
                                             });
+                                            return;
                                         }
-                                    }
 
-                                    // build the ors by looking up the componets
-                                    var array = equalibleHashSet.backing.ToArray();
-                                    var first = array[0];
-                                    var second = array[1];                                        
-                                    var orKey = OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd> { first, second }));
-                                    if (!generalLookUp.TryGetValue(orKey, out var _))
-                                    {
-                                        var firstOrBox = new Box<IOrType<IFrontendType, IError>>();
-                                        generalLookUp[orKey] = firstOrBox;
-                                        todo.Add(() => {
-                                            firstOrBox.Fill(OrType.Make<IFrontendType, IError>(new FrontEndOrType(generalLookUp[first.ToRep()].GetValue(), generalLookUp[second.ToRep()].GetValue())));
-                                        });
-                                    }
 
-                                    foreach (var entry in array.Skip(2))
-                                    {
-                                        var nextOrKeyBacking = orKey.Is1OrThrow().backing.ToHashSet();
-                                        nextOrKeyBacking.Add(entry); ;
-                                        var nextOrKey = OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(nextOrKeyBacking));
-                                        if (!generalLookUp.TryGetValue(nextOrKey, out var _))
+                                        if (equalibleHashSet.backing.Count == 1)
                                         {
-                                            var orBox = new Box<IOrType<IFrontendType, IError>>();
-                                            generalLookUp[nextOrKey] = orBox;
-                                            todo.Add(() => {
-                                                orBox.Fill(OrType.Make<IFrontendType, IError>(new FrontEndOrType(generalLookUp[orKey].GetValue(), generalLookUp[entry.ToRep()].GetValue())));
+                                            var box = new Box<IOrType<IFrontendType, IError>>();
+                                            if (!generalLookUp.TryGetValue(equalibleHashSet, out var _))
+                                            {
+                                                generalLookUp[equalibleHashSet] = box;
+
+                                                todo.Add(() =>
+                                                {
+                                                    box.Fill(Convert(equalibleHashSet.backing.First()));
+                                                });
+                                            }
+                                            return;
+                                        }
+
+                                        foreach (var backer in equalibleHashSet.backing)
+                                        {
+                                            var backerRep = backer.ToRep().Is1OrThrow();
+                                            // we convert each component
+                                            if (!generalLookUp.TryGetValue(backerRep, out var _))
+                                            {
+                                                var innerBox = new Box<IOrType<IFrontendType, IError>>();
+                                                generalLookUp[backerRep] = innerBox;
+                                                todo.Add(() =>
+                                                {
+                                                    innerBox.Fill(Convert(backer));
+                                                });
+                                            }
+                                        }
+
+                                        // build the ors by looking up the componets
+                                        var array = equalibleHashSet.backing.ToArray();
+                                        var first = array[0];
+                                        var second = array[1];
+                                        var orKey = new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd> { first, second });
+                                        if (!generalLookUp.TryGetValue(orKey, out var _))
+                                        {
+                                            var firstOrBox = new Box<IOrType<IFrontendType, IError>>();
+                                            generalLookUp[orKey] = firstOrBox;
+                                            todo.Add(() =>
+                                            {
+                                                firstOrBox.Fill(OrType.Make<IFrontendType, IError>(new FrontEndOrType(generalLookUp[first.ToRep().Is1OrThrow()].GetValue(), generalLookUp[second.ToRep().Is1OrThrow()].GetValue())));
                                             });
                                         }
-                                        orKey = nextOrKey;
-                                    }
-                                    
-                                },
-                                error =>
-                                {
-                                    var box = new Box<IOrType<IFrontendType, IError>>();
-                                    generalLookUp[key] = box;
-                                    generalLookUp[key] = box;
-                                    box.Fill(OrType.Make<IFrontendType, IError>(error));
-                                });
-                            }
+
+                                        foreach (var entry in array.Skip(2))
+                                        {
+                                            var nextOrKeyBacking = orKey.backing.ToHashSet();
+                                            nextOrKeyBacking.Add(entry); ;
+                                            var nextOrKey = new EqualibleHashSet<CombinedTypesAnd>(nextOrKeyBacking);
+                                            if (!generalLookUp.TryGetValue(nextOrKey, out var _))
+                                            {
+                                                var orBox = new Box<IOrType<IFrontendType, IError>>();
+                                                generalLookUp[nextOrKey] = orBox;
+                                                var myOrKey = orKey;
+                                                var myEntry = entry;
+                                                todo.Add(() =>
+                                                {
+                                                    orBox.Fill(OrType.Make<IFrontendType, IError>(new FrontEndOrType(generalLookUp[myOrKey].GetValue(), generalLookUp[myEntry.ToRep().Is1OrThrow()].GetValue())));
+                                                });
+                                            }
+                                            orKey = nextOrKey;
+                                        }
+
+                                    },
+                                    error =>
+                                    {
+                                    });
+                                
+                            
                         },
                         error => {});
                 }
@@ -299,8 +345,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return
                          OrType.Make<IFrontendType, IError>(
                         new MethodType(
-                            generalLookUp[input.ToRep()],
-                            generalLookUp[output.ToRep()]));
+                            SafeLookUp(input.ToRep()),
+                            SafeLookUp(output.ToRep())));
                 }
 
 
@@ -311,7 +357,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return
                          OrType.Make<IFrontendType, IError>(
                         new MethodType(
-                            generalLookUp[input.ToRep()],
+                            SafeLookUp(input.ToRep()),
                             new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(new EmptyType()))));
                 }
 
@@ -323,7 +369,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                          OrType.Make<IFrontendType, IError>(
                         new MethodType(
                             new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(new EmptyType())),
-                            generalLookUp[output.ToRep()]));
+                            SafeLookUp(output.ToRep())));
                 }
 
                 // if it has members it must be a scope
@@ -333,6 +379,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 return OrType.Make<IFrontendType, IError>(new AnyType());
+            }
+
+            private IBox<IOrType<IFrontendType, IError>> SafeLookUp(IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> key) {
+                return key.SwitchReturns(x => generalLookUp[x], error => new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(error)));
             }
 
             private IOrType<Scope, IError> GetMyScope(Tpn.IVirtualFlowNode node)
@@ -345,7 +395,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var scope = node.VirtualMembers().TransformInner(x => 
                     new Scope(x.ToDictionary(
                             pair => pair.Key,
-                            pair => generalLookUp[pair.Value.TransformInner(virtualNode => virtualNode.ToRep())]),
+                            pair => SafeLookUp(pair.Value.TransformInner(virtualNode => virtualNode.ToRep()))),
                         this));
                 scopeCache[rep] = scope;
                 return scope;
@@ -491,7 +541,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             internal IBox<IOrType<IFrontendType, IError>> GetType(IOrType<IVirtualFlowNode, IError> from)
             {
-                return from.SwitchReturns(x => generalLookUp[x.ToRep()],x=> new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(x)));
+                return from.SwitchReturns(x => SafeLookUp(x.ToRep()),x=> new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(x)));
             }
 
 
@@ -524,7 +574,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             internal IBox<IOrType<IFrontendType, IError>> GetType(ILookUpType from)
             {
-                return generalLookUp[
+                return SafeLookUp(
                 flowNodeLookUp[from.LooksUp.GetOrThrow().SwitchReturns(
                     methodType => OrType.Make<ITypeProblemNode,IError>(methodType),
                     type => OrType.Make<ITypeProblemNode, IError>(type),
@@ -532,7 +582,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     orType=> OrType.Make<ITypeProblemNode, IError>(orType),
                     inferred => OrType.Make<ITypeProblemNode, IError>(inferred),
                     error=> OrType.Make<ITypeProblemNode, IError>(error))]
-                   .GetValueAs(out IVirtualFlowNode _).ToRep()];
+                   .GetValueAs(out IVirtualFlowNode _).ToRep());
             }
 
             internal IVirtualFlowNode GetFlowNode(ILookUpType from)

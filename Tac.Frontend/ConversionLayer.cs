@@ -131,7 +131,7 @@ namespace Tac.Frontend
             //
 
             var inputKey = from.PrivateMembers.Single(x => x.Value == from.Input.GetOrThrow());
-            var innerInputKey = inner.GetValue().PrivateMembers.Single(x => x.Value == from.Input.GetOrThrow());
+            var innerInputKey = inner.GetValue().PrivateMembers.Single(x => x.Value == inner.GetValue().Input.GetOrThrow());
 
             return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition>(new WeakImplementationDefinition(
                 new Box<WeakMemberDefinition>(typeSolution.GetMethodMember(from, inputKey.Key)), 
