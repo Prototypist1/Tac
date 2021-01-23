@@ -596,3 +596,36 @@ object {
 this will give you the outer most object's x
 
 right now I don't have a keyword for 'this' or 'that' and things will walk up the scope looking for a match I should write some tests around this
+
+===================================== linq syntax
+
+// current syntax
+(5,5) > add
+
+//linq is a pain
+(list, method[number, bool] input { input < 10 return; } ) > where
+(( list, method[number, bool] input { input < 10 return; }) > where, method[number, number] input { input * input return; }) > select > to-array
+
+// where is a method that takes a method and returns a method
+list > (method[number, bool] input { input < 10 return; } > where) > (method[number, number] input { input * input return; } > select) > to-array
+method[number, bool] input { input < 10 return; } > where < list
+ 
+// with extensions methods
+list
+. where <  method[number, bool] input { input < 10 return; }
+. select < method[number, number] input { input * input return; } 
+. to-list < {}
+
+// maybe you can make objects with out the () juts commas:
+list, method[number, bool] input { input < 10 return; } > where, method[number, number] input { input * input return; } > select > to-array
+
+// maybe where is primitive??
+list where method[number, bool] input { input < 10 return; } select method[number, number] input { input * input return; } to-array
+
+// I need to let people makes these!
+// and not special syntax. you can just call a method this way. 
+list > where of method[number, bool] input { input < 10 return; } > select of method[number, number] input { input * input return; } to-array
+
+
+// to make it easier to pares I could add a special character
+list | where method[number, bool] input { input < 10 return; } | select method[number, number] input { input * input return; } to-array
