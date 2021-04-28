@@ -1,57 +1,57 @@
-using System;
-using Tac.Backent.Emit._2;
-using Xunit;
-using Tac.Backend.Emit._2.Test;
+//using System;
+//using Tac.Backent.Emit._2;
+//using Xunit;
+//using Tac.Backend.Emit._2.Test;
 
 
-namespace Tac.Backend.Emit._2.Test
-{
-    public interface ITest
-    {
+//namespace Tac.Backend.Emit._2.Test
+//{
+//    public interface ITest
+//    {
 
-    }
+//    }
 
-    public class UnitTest1
-    {
+//    public class UnitTest1
+//    {
 
-        public partial class Test
-        {
+//        public partial class Test
+//        {
 
-        }
-
-
+//        }
 
 
 
-        [Fact]
-        public void Test1()
-        {
-            var x = new Test();
+
+
+//        [Fact]
+//        public void Test1()
+//        {
+//            var x = new Test();
             
-            var y = InteraceEmmiter.EmitOrCast<Test, ITest>(x);
+//            var y = InteraceEmmiter.EmitOrCast<Test, ITest>(x);
 
-            Assert.NotNull(y);
-        }
+//            Assert.NotNull(y);
+//        }
 
 
-        [Fact]
-        public void Test2()
-        {
-            var x = new CanI();
+//        [Fact]
+//        public void Test2()
+//        {
+//            var x = new CanI();
 
-            var y = x as ITest;
+//            var y = x as ITest;
 
-            Assert.NotNull(y);
-        }
-    }
-}
+//            Assert.NotNull(y);
+//        }
+//    }
+//}
 
-namespace Tac.Backent.Emit._2
-{
+//namespace Tac.Backent.Emit._2
+//{
 
-    public partial class CanI: ITest
-    {
+//    public partial class CanI: ITest
+//    {
 
-    }
-}
+//    }
+//}
 
