@@ -58,8 +58,8 @@ namespace Tac.Backend.Emit._2
             var memberKindVisitor = MemberKindVisitor.Make(memberKindLookup, extensionLookup);
             rootScope.Convert(memberKindVisitor);
 
-            var typeCache = new ConcurrentIndexed<IVerifiableType, System.Type>();
-            var objectCache = new ConcurrentIndexed<IObjectDefiniton, System.Type>();
+            var typeCache = new ConcurrentIndexed<IVerifiableType, TypeBuilder>();
+            var objectCache = new ConcurrentIndexed<IObjectDefiniton, TypeBuilder>();
             var typeVisitor = new TypeVisitor(typeCache, objectCache, module.Value);
             rootScope.Convert(typeVisitor);
 
@@ -85,6 +85,7 @@ namespace Tac.Backend.Emit._2
             after();
 
             // we have to actually create the types
+            typeVisitor.CreateTypes();
             realizedMethodLookup.CreateTypes();
             assemblerVisitor.rootType.CreateType();
 

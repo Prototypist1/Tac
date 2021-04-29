@@ -22,13 +22,13 @@ namespace Tac.Backend.Emit._2.Walkers
     class TypeVisitor : IOpenBoxesContext<Nothing>
     {
 
-        public readonly ConcurrentIndexed<IVerifiableType, System.Type> typeCache;
-        public readonly ConcurrentIndexed<IObjectDefiniton, System.Type> objectCache;
+        public readonly ConcurrentIndexed<IVerifiableType, TypeBuilder> typeCache;
+        public readonly ConcurrentIndexed<IObjectDefiniton, TypeBuilder> objectCache;
         private readonly ModuleBuilder moduleBuilder;
 
         private readonly ConcurrentLinkedList<Action> actions = new ConcurrentLinkedList<Action>();
 
-        public TypeVisitor(ConcurrentIndexed<IVerifiableType, System.Type> typeCache, ConcurrentIndexed<IObjectDefiniton, System.Type> objectCache, ModuleBuilder moduleBuilder)
+        public TypeVisitor(ConcurrentIndexed<IVerifiableType, TypeBuilder> typeCache, ConcurrentIndexed<IObjectDefiniton, TypeBuilder> objectCache, ModuleBuilder moduleBuilder)
         {
             this.typeCache = typeCache ?? throw new ArgumentNullException(nameof(typeCache));
             this.objectCache = objectCache ?? throw new ArgumentNullException(nameof(objectCache));
@@ -131,6 +131,18 @@ namespace Tac.Backend.Emit._2.Walkers
             }
         }
 
+        internal void CreateTypes()
+        {
+            foreach (var type in typeCache.Values)
+            {
+                type.CreateType();
+            }
+            foreach (var type in objectCache.Values)
+            {
+                type.CreateType();
+            }
+        }
+
         private System.Type JitInterface(IReadOnlyList<IMemberDefinition> members) {
             var res =  moduleBuilder.DefineType(GetTypeName(), TypeAttributes.Public | TypeAttributes.Interface);
 
@@ -138,7 +150,7 @@ namespace Tac.Backend.Emit._2.Walkers
             {
                 foreach (var member in members)
                 {
-                    res.DefineProperty(member.Key.CastTo<NameKey>().Name, PropertyAttributes.None, typeCache.GetOrThrow( member.Type), null);
+                    res.DefineProperty(ConvertName( member.Key.CastTo<NameKey>().Name), PropertyAttributes.None, typeCache.GetOrThrow( member.Type), null);
                 }
             });
 
@@ -328,6 +340,10 @@ namespace Tac.Backend.Emit._2.Walkers
                 return myConcreteType;
             });
             return new Nothing();
+        }
+
+        public static string ConvertName(string name) {
+            return name.Replace("-", "_");
         }
 
         public Nothing TypeDefinition(IInterfaceType codeElement)

@@ -21,9 +21,9 @@ namespace Tac.Backend.Emit._2.Visitors
         private readonly ModuleBuilder moduleBuilder;
         private readonly ExtensionLookup extensionLookup;
         private readonly RealizedMethodLookup realizedMethodLookup;
-        public readonly ConcurrentIndexed<IVerifiableType, System.Type> typeCache;
+        public readonly ConcurrentIndexed<IVerifiableType, TypeBuilder> typeCache;
         
-        public MethodMakerVisitor(ModuleBuilder moduleBuilder, ExtensionLookup extensionLookup, RealizedMethodLookup realizedMethodLookup, ConcurrentIndexed<IVerifiableType, System.Type> typeCache)
+        public MethodMakerVisitor(ModuleBuilder moduleBuilder, ExtensionLookup extensionLookup, RealizedMethodLookup realizedMethodLookup, ConcurrentIndexed<IVerifiableType, TypeBuilder> typeCache)
         {
             this.moduleBuilder = moduleBuilder ?? throw new ArgumentNullException(nameof(moduleBuilder));
             this.extensionLookup = extensionLookup ?? throw new ArgumentNullException(nameof(extensionLookup));
