@@ -53,25 +53,25 @@ namespace Tac.Backend.Emit._2.Walkers
         public List<Indexer> indexers = new List<Indexer>();
     }
 
-    public class VerifyableTypesList
-    {
+    //public class VerifyableTypesList
+    //{
 
-        public IIsPossibly<int> GetOrAdd(IVerifiableType type)
-        {
+    //    public IIsPossibly<int> GetOrAdd(IVerifiableType type)
+    //    {
 
-            var index = types.IndexOf(type);
-            if (index != -1)
-            {
-                return Possibly.Is(index);
-            }
+    //        var index = types.IndexOf(type);
+    //        if (index != -1)
+    //        {
+    //            return Possibly.Is(index);
+    //        }
 
-            types.Add(type);
+    //        types.Add(type);
 
-            return Possibly.Is(types.Count - 1);
-        }
+    //        return Possibly.Is(types.Count - 1);
+    //    }
 
-        public List<IVerifiableType> types = new List<IVerifiableType>();
-    }
+    //    public List<IVerifiableType> types = new List<IVerifiableType>();
+    //}
 
 
     public class DebuggableILGenerator
@@ -268,6 +268,7 @@ namespace Tac.Backend.Emit._2.Walkers
         //public Indexer[] indexerArray;
         //public IVerifiableType[] verifyableTypesArray;
         public ConcurrentIndexed<System.Type, IVerifiableType> typeCache;
+        public ConcurrentIndexed<(System.Type, System.Type), System.Type> wrapsAndImplementsCache;
         public abstract void Init();
     }
     public abstract class TacCompilation<Tin, Tout> : TacCompilation
@@ -284,7 +285,7 @@ namespace Tac.Backend.Emit._2.Walkers
         public readonly List<DebuggableILGenerator> gens;
         private readonly ModuleBuilder moduleBuilder;
         public readonly IndexerList indexerList;
-        public readonly VerifyableTypesList verifyableTypesList;
+        //public readonly VerifyableTypesList verifyableTypesList;
 
 
 
@@ -293,6 +294,7 @@ namespace Tac.Backend.Emit._2.Walkers
         private readonly RealizedMethodLookup realizedMethodLookup;
         private readonly ConcurrentIndexed<IVerifiableType, TypeBuilder> typeCache;
         private readonly ConcurrentIndexed<IObjectDefiniton, TypeBuilder> objectCache;
+        private readonly ConcurrentIndexed<(System.Type, System.Type), TypeBuilder> conversionTypes;
         public readonly TypeBuilder rootType;
         public readonly FieldBuilder rootSelfField;
 
@@ -317,10 +319,11 @@ namespace Tac.Backend.Emit._2.Walkers
             ExtensionLookup extensionLookup,
             ConcurrentIndexed<IVerifiableType, TypeBuilder> typeCache,
             ConcurrentIndexed<IObjectDefiniton, TypeBuilder> objectCache,
+            ConcurrentIndexed<(System.Type, System.Type), TypeBuilder> conversionTypes,
             TypeBuilder rootType,
              FieldBuilder rootSelfField,
              IndexerList indexerList,
-             VerifyableTypesList verifyableTypesList,
+             //VerifyableTypesList verifyableTypesList,
              RealizedMethodLookup realizedMethodLookup,
              List<DebuggableILGenerator> gens
             )
@@ -331,10 +334,11 @@ namespace Tac.Backend.Emit._2.Walkers
             this.extensionLookup = extensionLookup ?? throw new ArgumentNullException(nameof(extensionLookup));
             this.typeCache = typeCache ?? throw new ArgumentNullException(nameof(typeCache));
             this.objectCache = objectCache ?? throw new ArgumentNullException(nameof(objectCache));
+            this.conversionTypes = conversionTypes ?? throw new ArgumentNullException(nameof(conversionTypes));
             this.rootType = rootType ?? throw new ArgumentNullException(nameof(rootType));
             this.rootSelfField = rootSelfField ?? throw new ArgumentNullException(nameof(rootSelfField));
             this.indexerList = indexerList ?? throw new ArgumentNullException(nameof(indexerList));
-            this.verifyableTypesList = verifyableTypesList ?? throw new ArgumentNullException(nameof(verifyableTypesList));
+            //this.verifyableTypesList = verifyableTypesList ?? throw new ArgumentNullException(nameof(verifyableTypesList));
             this.realizedMethodLookup = realizedMethodLookup ?? throw new ArgumentNullException(nameof(realizedMethodLookup));
             this.gens = gens ?? throw new ArgumentNullException(nameof(gens));
         }
@@ -344,6 +348,7 @@ namespace Tac.Backend.Emit._2.Walkers
             ExtensionLookup extensionLookup,
             ConcurrentIndexed<IVerifiableType, TypeBuilder> typeCache,
             ConcurrentIndexed<IObjectDefiniton, TypeBuilder> objectCache,
+            ConcurrentIndexed<(System.Type, System.Type), TypeBuilder> conversionTypes,
             ModuleBuilder moduleBuilder,
             RealizedMethodLookup realizedMethodLookup,
             System.Type tin,
@@ -371,7 +376,7 @@ namespace Tac.Backend.Emit._2.Walkers
 
 
             return
-                (new AssemblerVisitor(new List<ICodeElement>(), generatorHolder, memberKindLookup, extensionLookup, typeCache, objectCache, typebuilder, selfField, new IndexerList(), new VerifyableTypesList(), realizedMethodLookup, gens), () =>
+                (new AssemblerVisitor(new List<ICodeElement>(), generatorHolder, memberKindLookup, extensionLookup, typeCache, objectCache, conversionTypes, typebuilder, selfField, new IndexerList(), /*new VerifyableTypesList(),*/ realizedMethodLookup, gens), () =>
                 {
                     while (generatorHolder.EvaluationStackDepth > 0)
                     {
@@ -386,7 +391,7 @@ namespace Tac.Backend.Emit._2.Walkers
         {
             var list = stack.ToList();
             list.Add(another);
-            return new AssemblerVisitor(list, generatorHolder, memberKindLookup, extensionLookup, typeCache, objectCache, rootType, rootSelfField, indexerList, verifyableTypesList, realizedMethodLookup, gens);
+            return new AssemblerVisitor(list, generatorHolder, memberKindLookup, extensionLookup, typeCache, objectCache, conversionTypes, rootType, rootSelfField, indexerList, /*verifyableTypesList,*/ realizedMethodLookup, gens);
         }
 
 
@@ -395,7 +400,7 @@ namespace Tac.Backend.Emit._2.Walkers
             var list = stack.ToList();
             list.Add(another);
             gens.Add(gen);
-            return new AssemblerVisitor(list, new GeneratorHolder(Possibly.Is(gen)), memberKindLookup, extensionLookup, typeCache, objectCache, rootType, rootSelfField, indexerList, verifyableTypesList, realizedMethodLookup, gens);
+            return new AssemblerVisitor(list, new GeneratorHolder(Possibly.Is(gen)), memberKindLookup, extensionLookup, typeCache, objectCache, conversionTypes, rootType, rootSelfField, indexerList, /*verifyableTypesList,*/ realizedMethodLookup, gens);
         }
 
         public Nothing AddOperation(IAddOperation co)
@@ -458,7 +463,7 @@ namespace Tac.Backend.Emit._2.Walkers
                     // this is a bit weird, it is called both at runtime and at complie time
                     // but they share a type lookup table
                     // this means we can't really ship assemblies
-                    var type = AssemblyWalkerHelp.EmitTypeThatWrapsAndImplements(fromCSharpeType, toCSharpeType, moduleBuilder);
+                    var type = AssemblyWalkerHelp.EmitTypeThatWrapsAndImplementsCompileTime(fromCSharpeType, toCSharpeType, moduleBuilder, conversionTypes);
 
                     generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Newobj, type.GetConstructor(new System.Type[] { }));
                     generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
@@ -483,19 +488,27 @@ namespace Tac.Backend.Emit._2.Walkers
             //}
         }
 
-        private void GetVerifyableType(IVerifiableType toType)
+        private void GetVerifyableType(System.Type toType)
         {
-            if (verifyableTypesList.GetOrAdd(toType).SafeIs(out IIsDefinately<int> definateType))
-            {
-                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldsfld, rootSelfField);
-                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, typesField.Value);
-                LoadInt(definateType.Value);
-                generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Ldelem_Ref);
-            }
-            else
-            {
-                throw new Exception("you shit");
-            }
+            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldsfld, rootSelfField);
+            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, typeof(TacCompilation).GetField(nameof(TacCompilation.typeCache)));
+
+            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldtoken, toType);
+            generatorHolder.GetGeneratorAndUpdateStack(0).EmitCall(OpCodes.Call, typeof(System.Type).GetMethod(nameof(System.Type.GetTypeFromHandle)));
+
+            generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Callvirt, typeof(ConcurrentIndexed<System.Type, IVerifiableType>).GetMethod("get_Item"));
+
+            //if (verifyableTypesList.GetOrAdd(toType).SafeIs(out IIsDefinately<int> definateType))
+            //{
+            //    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldsfld, rootSelfField);
+            //    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, typeof(TacCompilation));
+            //    LoadInt(definateType.Value);
+            //    generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Ldelem_Ref);
+            //}
+            //else
+            //{
+            //    throw new Exception("you shit");
+            //}
         }
 
         private readonly Lazy<FieldInfo> typeCacheField = new Lazy<FieldInfo>(() =>
@@ -1888,7 +1901,10 @@ namespace Tac.Backend.Emit._2.Walkers
 
             var memberDef = tryAssignOperation.Right.SafeCastTo(out IMemberReference _).MemberDefinition;
 
-            GetVerifyableType(memberDef.Type);
+            GetVerifyableType(typeCache[memberDef.Type]);
+
+            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldsfld, rootSelfField);
+            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, typeof(TacCompilation).GetField(nameof(TacCompilation.typeCache)));
 
             // I am just going to write this staticly in C#
             generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Call, typeof(AssemblyWalkerHelp).GetMethod(nameof(AssemblyWalkerHelp.TryAssignOperationHelper_Is)));
@@ -1905,7 +1921,17 @@ namespace Tac.Backend.Emit._2.Walkers
             }
             else
             {
-                GetVerifyableType(memberDef.Type);
+                // we need to put this type of the stack typeCache[memberDef.Type];
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldtoken, typeCache[memberDef.Type]);
+
+                // type typeCache
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldsfld, rootSelfField);
+                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, typeof(TacCompilation).GetField(nameof(TacCompilation.typeCache)));
+
+                // wrapsAndImplementsCache
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldsfld, rootSelfField);
+                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, typeof(TacCompilation).GetField(nameof(TacCompilation.wrapsAndImplementsCache)));
+                
                 generatorHolder.GetGeneratorAndUpdateStack(-1).EmitCall(OpCodes.Call, typeof(AssemblyWalkerHelp).GetMethod(nameof(AssemblyWalkerHelp.TryAssignOperationHelper_Cast)));
             }
 
@@ -1977,24 +2003,11 @@ namespace Tac.Backend.Emit._2.Walkers
     {
 
 
-        public static object TryAssignOperationHelper_Cast(object o, IVerifiableType targetType)
+        public static object TryAssignOperationHelper_Cast(object o, System.Type targetType, ConcurrentIndexed<System.Type, IVerifiableType> typeCache, ConcurrentIndexed<(System.Type, System.Type), System.Type> wrapsAndImplementsCache)
         {
             if (o == null)
             {
                 return o;
-            }
-            if (o.SafeIs(out ITacObject tacObject))
-            {
-                if (tacObject.TacType() == targetType)
-                {
-                    return o;
-                }
-                // we need to unroll all the casts and work with the root object
-                while (tacObject is TacCastObject cast)
-                {
-                    tacObject = cast.@object;
-                }
-                return new TacCastObject(tacObject, Indexer.Create(tacObject.TacType(), targetType));
             }
             if (o.SafeIs(out double _))
             {
@@ -2008,10 +2021,67 @@ namespace Tac.Backend.Emit._2.Walkers
             {
                 return o;
             }
-            throw new NotImplementedException();
+
+            // if it is a method...
+            // we might need to wrap it to get the types right and wrapping might require emitting of conversion types 
+            var oType = o.GetType();
+            if (oType.IsGenericType && targetType.IsGenericType)
+            {
+                var genericOType = oType.GetGenericTypeDefinition();
+                var genericTargetType = targetType.GetGenericTypeDefinition();
+                if (genericOType == typeof(Func<,>) && genericTargetType == typeof(Func<,>))
+                {
+                    var oArgs = oType.GetGenericArguments();
+                    var targetTypeArgs = targetType.GetGenericArguments();
+                    if (targetTypeArgs[0].IsAssignableTo(oArgs[0])  && oArgs[1].IsAssignableTo(targetTypeArgs[1])) {
+                        return o;
+                    }
+                    if (targetTypeArgs[0].IsAssignableTo(oArgs[0])) {
+                        MethodInfo method = typeof(AssemblyWalkerHelp).GetMethod(nameof(AssemblyWalkerHelp.ConvertingFuncO));
+                        MethodInfo generic = method.MakeGenericMethod(targetTypeArgs[0], targetTypeArgs[1], oArgs[1]);
+                        return generic.Invoke(null, new object[] {o, typeCache, wrapsAndImplementsCache});
+                    }
+                    else 
+                    if (oArgs[1].IsAssignableTo(targetTypeArgs[1])) {
+                        MethodInfo method = typeof(AssemblyWalkerHelp).GetMethod(nameof(AssemblyWalkerHelp.ConvertingFuncI));
+                        MethodInfo generic = method.MakeGenericMethod(targetTypeArgs[0], targetTypeArgs[1], oArgs[0]);
+                        return generic.Invoke(null, new object[] { o, typeCache, wrapsAndImplementsCache });
+                    }
+                    else
+                    {
+                        MethodInfo method = typeof(AssemblyWalkerHelp).GetMethod(nameof(AssemblyWalkerHelp.ConvertingFuncIO));
+                        MethodInfo generic = method.MakeGenericMethod(targetTypeArgs[0], targetTypeArgs[1], oArgs[0], oArgs[1]);
+                        return generic.Invoke(null, new object[] { o, typeCache, wrapsAndImplementsCache });
+                    }
+                }
+                else
+                {
+                    // tac generic type are erased
+                    // a C# generic type would be wrapped when it entered Tac land
+                    // I don't think this should ever be hit
+                    throw new System.Exception("umm does it mean??");
+                }
+            }
+
+            return EmitAndInstantiateConvertingType(o, targetType, typeCache, wrapsAndImplementsCache);
         }
 
-        public static bool TryAssignOperationHelper_Is(object o, IVerifiableType targetType)
+        // I need to create a function of the right type
+        // I can't do that from runtime times (the result of GetType() in perticular)
+        // 
+        public static Func<TIn, TOut> ConvertingFuncIO<TIn, TOut, TInInner, TOutInner>(Func<TInInner, TOutInner> inner, ConcurrentIndexed<System.Type, IVerifiableType> typeCache, ConcurrentIndexed<(System.Type, System.Type), System.Type> wrapsAndImplementsCache) {
+            return (TIn x) => { return (TOut)EmitAndInstantiateConvertingType(inner((TInInner)EmitAndInstantiateConvertingType(x, typeof(TInInner), typeCache, wrapsAndImplementsCache)), typeof(TOut), typeCache, wrapsAndImplementsCache); };
+        }
+        public static Func<TIn, TOut> ConvertingFuncO<TIn, TOut, TOutInner>(Func<TIn, TOutInner> inner, ConcurrentIndexed<System.Type, IVerifiableType> typeCache, ConcurrentIndexed<(System.Type, System.Type), System.Type> wrapsAndImplementsCache)
+        {
+            return (TIn x) => { return (TOut)EmitAndInstantiateConvertingType(inner(x), typeof(TOut), typeCache, wrapsAndImplementsCache); };
+        }
+        public static Func<TIn, TOut> ConvertingFuncI<TIn, TOut, TInInner>(Func<TInInner, TOut> inner, ConcurrentIndexed<System.Type, IVerifiableType> typeCache, ConcurrentIndexed<(System.Type, System.Type), System.Type> wrapsAndImplementsCache)
+        {
+            return (TIn x) => { return inner((TInInner)EmitAndInstantiateConvertingType(x, typeof(TInInner), typeCache, wrapsAndImplementsCache)); };
+        }
+
+        public static bool TryAssignOperationHelper_Is(object o, IVerifiableType targetType, ConcurrentIndexed<System.Type, IVerifiableType> typeCache)
         {
             if (o == null && targetType.SafeIs(out IEmptyType _))
             {
@@ -2029,7 +2099,22 @@ namespace Tac.Backend.Emit._2.Walkers
             {
                 return targetType.SafeIs(out IBooleanType _);
             }
-            // TODO check for method
+
+            var oType = o.GetType();
+            if (oType.IsGenericType)
+            {
+                var genericOType = oType.GetGenericTypeDefinition();
+                if (genericOType == typeof(Func<,>))
+                {
+                    var args = oType.GetGenericArguments();
+                    return targetType.TryGetIO().Is(out var IO) &&
+                        IO.input.TheyAreUs(typeCache[args[0]], new List<(IVerifiableType, IVerifiableType)>()) &&
+                        typeCache[args[1]].TheyAreUs(IO.output, new List<(IVerifiableType, IVerifiableType)>());
+                }
+                else {
+                    throw new System.Exception("umm does it mean??");
+                }
+            }
 
             // unwrap
             while (true)
@@ -2042,11 +2127,11 @@ namespace Tac.Backend.Emit._2.Walkers
                 o = field.GetValue(o);
             }
 
-            return targetType.TheyAreUs(verifiableType.TacType(), new List<(IVerifiableType, IVerifiableType)>());
+            return targetType.TheyAreUs(typeCache[o.GetType()], new List<(IVerifiableType, IVerifiableType)>());
         }
 
         public const string backingName = "__backing";
-        private static ConcurrentIndexed<(System.Type, System.Type), System.Type> wrapsAndImplementsCache = new ConcurrentIndexed<(System.Type, System.Type), System.Type>();
+        //private static ConcurrentIndexed<(System.Type, System.Type), (TypeBuilder,IVerifiableType)> wrapsAndImplementsCache = new ConcurrentIndexed<(System.Type, System.Type), TypeBuilder>();
 
         // the thing that is being wrapped could be a wrapped it self
         // so we need peel off until we hit the base
@@ -2066,7 +2151,11 @@ namespace Tac.Backend.Emit._2.Walkers
         //
         // I mean we would try to flatten the top level "wrapped"
         // but trying to flatten every member seems like a bit much
-        public static System.Type EmitTypeThatWrapsAndImplements(System.Type wrapped, System.Type implements, ModuleBuilder moduleBuilder)
+        public static System.Type EmitTypeThatWrapsAndImplementsCompileTime(
+            System.Type wrapped,
+            System.Type implements,
+            ModuleBuilder moduleBuilder,
+            ConcurrentIndexed<(System.Type, System.Type), TypeBuilder> wrapsAndImplementsCache)
         {
 
             // sometime you're good
@@ -2075,78 +2164,141 @@ namespace Tac.Backend.Emit._2.Walkers
                 return wrapped;
             }
 
-            return wrapsAndImplementsCache.GetOrAdd((wrapped, implements), () =>
+            var fillOut = false;
+
+            var res = wrapsAndImplementsCache.GetOrAdd((wrapped, implements), () =>
+           {
+               var type = moduleBuilder.DefineType(wrapped.Name + "_" + implements.Name, TypeAttributes.Public, implements);
+
+               fillOut = true;
+
+               return type;
+
+           });
+
+            // we pull this out because of the danger of GetOrAdd(x inside a call to GetOrAdd(x
+            // I suspect that would block indefinately
+            if (fillOut)
             {
 
+                res.AddInterfaceImplementation(implements);
 
-                var type = moduleBuilder.DefineType(wrapped.Name + "_" + implements.Name, TypeAttributes.Public, implements);
-
-                type.AddInterfaceImplementation(implements);
-
-
-                var backing = type.DefineField(AssemblyWalkerHelp.backingName, wrapped, FieldAttributes.Public);
+                var backing = res.DefineField(AssemblyWalkerHelp.backingName, wrapped, FieldAttributes.Public);
 
                 foreach (var propertyInfo in implements.GetProperties())
                 {
-
-                    var property = type.DefineProperty(propertyInfo.Name, PropertyAttributes.None, propertyInfo.PropertyType, new System.Type[0]);
-                    var backingFeild = wrapped.GetField("_" + propertyInfo.Name.ToLower());
-
-                    if (propertyInfo.CanRead)
-                    {
-                        var getter = type.DefineMethod("get_" + propertyInfo.Name, MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.Virtual, propertyInfo.PropertyType, new System.Type[0]);
-                        var getGenerator = getter.GetILGenerator();
-
-                        var weAreConverting = !backingFeild.FieldType.IsAssignableTo(propertyInfo.PropertyType);
-                        IIsPossibly<System.Type> conversitionType = Possibly.IsNot<System.Type>();
-                        if (weAreConverting)
-                        {
-                            conversitionType = Possibly.Is(EmitTypeThatWrapsAndImplements(backingFeild.FieldType, propertyInfo.PropertyType, moduleBuilder));
-                            getGenerator.Emit(OpCodes.Newobj, conversitionType.GetOrThrow().GetConstructor(new System.Type[] { }));
-                            getGenerator.Emit(OpCodes.Dup);
-                        }
-                        getGenerator.Emit(OpCodes.Ldarg_0);
-                        getGenerator.Emit(OpCodes.Ldfld, backing);
-                        getGenerator.Emit(OpCodes.Ldfld, backingFeild);
-                        if (weAreConverting)
-                        {
-                            getGenerator.Emit(OpCodes.Stfld, conversitionType.GetOrThrow().GetField(AssemblyWalkerHelp.backingName));
-                        }
-                        getGenerator.Emit(OpCodes.Ret);
-                        property.SetGetMethod(getter);
-                        type.DefineMethodOverride(getter, propertyInfo.GetGetMethod());
-                    }
-                    if (propertyInfo.CanWrite)
-                    {
-                        var setter = type.DefineMethod("set_" + propertyInfo.Name, MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.Virtual, null, new System.Type[] { propertyInfo.PropertyType });
-                        var setGenerator = setter.GetILGenerator();
-                        setGenerator.Emit(OpCodes.Ldarg_0);
-
-                        var weAreConverting = !backingFeild.FieldType.IsAssignableFrom(propertyInfo.PropertyType);
-                        IIsPossibly<System.Type> conversitionType = Possibly.IsNot<System.Type>();
-                        if (weAreConverting)
-                        {
-                            conversitionType = Possibly.Is(EmitTypeThatWrapsAndImplements(backingFeild.FieldType, propertyInfo.PropertyType, moduleBuilder));
-                            setGenerator.Emit(OpCodes.Newobj, conversitionType.GetOrThrow().GetConstructor(new System.Type[] { }));
-                            setGenerator.Emit(OpCodes.Dup);
-                        }
-                        setGenerator.Emit(OpCodes.Ldarg_1);
-                        if (weAreConverting)
-                        {
-                            setGenerator.Emit(OpCodes.Stfld, conversitionType.GetOrThrow().GetField("backing"));
-                        }
-                        setGenerator.Emit(OpCodes.Stfld, backing);
-                        setGenerator.Emit(OpCodes.Ret);
-                        property.SetSetMethod(setter);
-                        type.DefineMethodOverride(setter, propertyInfo.GetSetMethod());
-                    }
+                    CreateProperty(wrapped, (x, y) => EmitTypeThatWrapsAndImplementsCompileTime(x, y, moduleBuilder, wrapsAndImplementsCache), res, backing, propertyInfo);
                 }
-                return type;
-            });
+            }
+
+            return res;
         }
 
+        public static System.Type EmitTypeThatWrapsAndImplementsRunTime(
+            System.Type wrapped,
+            System.Type implements,
+            ModuleBuilder moduleBuilder,
+            ConcurrentIndexed<System.Type, IVerifiableType> typeCache,
+            ConcurrentIndexed<(System.Type, System.Type), System.Type> wrapsAndImplementsCache)
+        {
 
-        public static object EmitAndInstantiateConvertingType(object from, System.Type implements, ModuleBuilder moduleBuilder)
+            // sometime you're good
+            if (wrapped.IsAssignableTo(implements))
+            {
+                return wrapped;
+            }
+
+            TypeBuilder? fillOut = null;
+
+            var res = wrapsAndImplementsCache.GetOrAdd((wrapped, implements), () =>
+            {
+                var type = moduleBuilder.DefineType(wrapped.Name + "_" + implements.Name, TypeAttributes.Public, implements);
+
+                fillOut = type;
+
+                typeCache[type] = typeCache[implements];
+
+                return type;
+
+            });
+
+            // we pull this out because of the danger of GetOrAdd(x inside a call to GetOrAdd(x
+            // I suspect that would block indefinately
+            if (fillOut != null)
+            {
+
+                fillOut.AddInterfaceImplementation(implements);
+
+
+                var backing = fillOut.DefineField(AssemblyWalkerHelp.backingName, wrapped, FieldAttributes.Public);
+
+                foreach (var propertyInfo in implements.GetProperties())
+                {
+                    CreateProperty(wrapped, (x,y)=> EmitTypeThatWrapsAndImplementsRunTime(x,y,moduleBuilder,typeCache,wrapsAndImplementsCache), fillOut, backing, propertyInfo);
+                }
+                fillOut.CreateType();
+            }
+
+            return res;
+        }
+
+        private static void CreateProperty(System.Type wrapped, Func<System.Type, System.Type, System.Type> EmitTypeThatWrapsAndImplements, TypeBuilder? fillOut, FieldBuilder backing, PropertyInfo propertyInfo)
+        {
+            var property = fillOut.DefineProperty(propertyInfo.Name, PropertyAttributes.None, propertyInfo.PropertyType, new System.Type[0]);
+            var backingFeild = wrapped.GetField("_" + propertyInfo.Name.ToLower());
+
+            if (propertyInfo.CanRead)
+            {
+                var getter = fillOut.DefineMethod("get_" + propertyInfo.Name, MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.Virtual, propertyInfo.PropertyType, new System.Type[0]);
+                var getGenerator = getter.GetILGenerator();
+
+                var weAreConverting = !backingFeild.FieldType.IsAssignableTo(propertyInfo.PropertyType);
+                IIsPossibly<System.Type> conversitionType = Possibly.IsNot<System.Type>();
+                if (weAreConverting)
+                {
+                    conversitionType = Possibly.Is(EmitTypeThatWrapsAndImplements(backingFeild.FieldType, propertyInfo.PropertyType));
+                    getGenerator.Emit(OpCodes.Newobj, conversitionType.GetOrThrow().GetConstructor(new System.Type[] { }));
+                    getGenerator.Emit(OpCodes.Dup);
+                }
+                getGenerator.Emit(OpCodes.Ldarg_0);
+                getGenerator.Emit(OpCodes.Ldfld, backing);
+                getGenerator.Emit(OpCodes.Ldfld, backingFeild);
+                if (weAreConverting)
+                {
+                    getGenerator.Emit(OpCodes.Stfld, conversitionType.GetOrThrow().GetField(AssemblyWalkerHelp.backingName));
+                }
+                getGenerator.Emit(OpCodes.Ret);
+                property.SetGetMethod(getter);
+                fillOut.DefineMethodOverride(getter, propertyInfo.GetGetMethod());
+            }
+            if (propertyInfo.CanWrite)
+            {
+                var setter = fillOut.DefineMethod("set_" + propertyInfo.Name, MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.Virtual, null, new System.Type[] { propertyInfo.PropertyType });
+                var setGenerator = setter.GetILGenerator();
+                setGenerator.Emit(OpCodes.Ldarg_0);
+
+                var weAreConverting = !backingFeild.FieldType.IsAssignableFrom(propertyInfo.PropertyType);
+                IIsPossibly<System.Type> conversitionType = Possibly.IsNot<System.Type>();
+                if (weAreConverting)
+                {
+                    conversitionType = Possibly.Is(EmitTypeThatWrapsAndImplements(backingFeild.FieldType, propertyInfo.PropertyType));
+                    setGenerator.Emit(OpCodes.Newobj, conversitionType.GetOrThrow().GetConstructor(new System.Type[] { }));
+                    setGenerator.Emit(OpCodes.Dup);
+                }
+                setGenerator.Emit(OpCodes.Ldarg_1);
+                if (weAreConverting)
+                {
+                    setGenerator.Emit(OpCodes.Stfld, conversitionType.GetOrThrow().GetField("backing"));
+                }
+                setGenerator.Emit(OpCodes.Stfld, backing);
+                setGenerator.Emit(OpCodes.Ret);
+                property.SetSetMethod(setter);
+                fillOut.DefineMethodOverride(setter, propertyInfo.GetSetMethod());
+            }
+        }
+
+        // this might need to creat it's module builder...
+        public static object EmitAndInstantiateConvertingType(object from, System.Type implements, ConcurrentIndexed<System.Type, IVerifiableType> typeCache, ConcurrentIndexed<(System.Type, System.Type), System.Type> wrapsAndImplementsCache)
         {
 
             // TODO I really don't have to do this reflectively
@@ -2160,8 +2312,12 @@ namespace Tac.Backend.Emit._2.Walkers
                 }
                 from = field.GetValue(from);
             }
+            var assemblyName = new AssemblyName();
+            assemblyName.Name = Compiler.GenerateName();
+            var assembly = System.Reflection.Emit.AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndCollect);
+            var moduleBuilder = assembly.DefineDynamicModule(Compiler.GenerateName());
 
-            var resType = EmitTypeThatWrapsAndImplements(from.GetType(), implements, moduleBuilder);
+            var resType = EmitTypeThatWrapsAndImplementsRunTime(from.GetType(), implements, moduleBuilder, typeCache, wrapsAndImplementsCache);
 
             var res = Activator.CreateInstance(resType);
 

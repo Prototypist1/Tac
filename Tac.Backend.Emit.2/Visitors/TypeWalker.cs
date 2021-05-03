@@ -69,9 +69,8 @@ namespace Tac.Backend.Emit._2.Walkers
 
         private System.Type HandleType(IVerifiableType verifiableType)
         {
-            return typeCache.GetOrAdd(verifiableType, () => InnerMapType(verifiableType));
+            return InnerMapType(verifiableType);
         }
-
         private string GetTypeName() => "_" + Guid.NewGuid().ToString().ToLowerInvariant().Replace("-", "");
 
         private System.Type InnerMapType(IVerifiableType verifiableType)
@@ -104,12 +103,12 @@ namespace Tac.Backend.Emit._2.Walkers
             }
             else if (verifiableType.SafeIs(out IInterfaceModuleType moduleType))
             {
-                return JitInterface(moduleType.Members);
+                return JitInterface(OrType.Make< ITypeOr, IInterfaceModuleType > (moduleType));
             }
             else if (verifiableType is IMethodType method)
             {
-                var inputType =  typeCache.GetOrAdd(method.InputType, () => InnerMapType(method.InputType));
-                var outputType = typeCache.GetOrAdd(method.OutputType, () => InnerMapType(method.OutputType));
+                var inputType =  InnerMapType(method.InputType);
+                var outputType = InnerMapType(method.OutputType);
                 return typeof(Func<,>).MakeGenericType(inputType, outputType);
             }
             else if (verifiableType.SafeIs(out IReferanceType memberReferance))
@@ -143,24 +142,27 @@ namespace Tac.Backend.Emit._2.Walkers
             }
         }
 
-        private System.Type JitInterface(IReadOnlyList<IMemberDefinition> members) {
-            var res =  moduleBuilder.DefineType(GetTypeName(), TypeAttributes.Public | TypeAttributes.Interface);
-
-            actions.Add(() =>
+        private System.Type JitInterface(IOrType<ITypeOr, IInterfaceModuleType> key) {
+            return typeCache.GetOrAdd(key.SwitchReturns<IVerifiableType>(x=>x,x=>x), () =>
             {
-                foreach (var member in members)
-                {
-                    res.DefineProperty(ConvertName( member.Key.CastTo<NameKey>().Name), PropertyAttributes.None, typeCache.GetOrThrow( member.Type), null);
-                }
-            });
+                var res = moduleBuilder.DefineType(GetTypeName(), TypeAttributes.Public | TypeAttributes.Interface);
 
-            return res;
+                actions.Add(() =>
+                {
+                    foreach (var member in key.SwitchReturns(x => x.Members, x => x.Members))
+                    {
+                        res.DefineProperty(ConvertName(member.Key.CastTo<NameKey>().Name), PropertyAttributes.None, typeCache.GetOrThrow(member.Type), null);
+                    }
+                });
+
+                return res;
+            });
         }
 
         private System.Type MergeTypes(IVerifiableType left, IVerifiableType right,ITypeOr typeOr)
         {
-            typeCache.GetOrAdd(left, () => InnerMapType(left)); ;
-            typeCache.GetOrAdd(right, () => InnerMapType(right));
+            InnerMapType(left);
+            InnerMapType(right);
 
             //var leftType = InnerMapType(left); ;
             //var rightType = InnerMapType(right);
@@ -193,7 +195,7 @@ namespace Tac.Backend.Emit._2.Walkers
 
             if (left.SafeIs(out IInterfaceModuleType _) && right.SafeIs(out IInterfaceModuleType _)) {
                 // JIT a interface
-                return JitInterface(typeOr.Members);
+                return JitInterface(OrType.Make<ITypeOr, IInterfaceModuleType>(typeOr));
             }
 
             // can it have members if both are neither an interface or a module

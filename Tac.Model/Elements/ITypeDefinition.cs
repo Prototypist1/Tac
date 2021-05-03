@@ -21,8 +21,31 @@ namespace Tac.Model.Elements
 
         bool TheyAreUs(IVerifiableType they, List<(IVerifiableType, IVerifiableType)> assumeTrue);
         IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue);
+
+
         IIsPossibly<IVerifiableType> TryGetReturn();
         IIsPossibly<IVerifiableType> TryGetInput();
+    }
+
+    public static class IVerifiableTypeExtensions {
+
+        // TODO
+        // might be worth pushing this into IVerifiableType and replacing TryGetReturn and TryGetInput
+        // so IVerifiableType can't do different things with TryGetReturn and TryGetInput
+        public static IIsPossibly<(IVerifiableType input, IVerifiableType output)> TryGetIO(this IVerifiableType self) {
+            var hasReturns = self.TryGetReturn().Is(out var returnedType);
+            var hasInputs = self.TryGetInput().Is(out var inputType);
+
+            if (hasReturns != hasInputs) {
+                throw new System.Exception("these should be the same...");
+            }
+
+            if (!hasReturns) {
+                return Possibly.IsNot<(IVerifiableType input, IVerifiableType output)>();
+            }
+
+            return Possibly.Is((input: inputType, output: returnedType));
+        }
     }
 
     public interface ILogicalOperationType {

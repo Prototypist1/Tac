@@ -18,7 +18,7 @@ namespace Tac.Backend.Emit._2
 
         // {4E963BB1-1C86-4F75-BD4C-3F9BE16386A9}
         private static readonly Random random = new Random();
-        private static string GenerateName()
+        internal static string GenerateName()
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
             return new string(Enumerable.Repeat(chars, 20)
@@ -60,6 +60,18 @@ namespace Tac.Backend.Emit._2
 
             var typeCache = new ConcurrentIndexed<IVerifiableType, TypeBuilder>();
             var objectCache = new ConcurrentIndexed<IObjectDefiniton, TypeBuilder>();
+
+            // TODO 
+            // TODO 
+            // TODO
+            // YOU ARE HERE 
+            // primitive types arn't in the type cache
+            // method types arn't in the type cahe
+            // the type cache needs to be an object
+            // it owns type look up
+            // keeps track of the list of type we need to finalize
+            // handles look up for methods greatfully 
+
             var typeVisitor = new TypeVisitor(typeCache, objectCache, module.Value);
             rootScope.Convert(typeVisitor);
 
@@ -67,13 +79,15 @@ namespace Tac.Backend.Emit._2
             var methodMakerVisitor = new MethodMakerVisitor(module.Value, extensionLookup, realizedMethodLookup, typeCache);
 
                 rootScope.Convert(methodMakerVisitor);
-            
 
+
+            var conversionTypes = new ConcurrentIndexed<(System.Type, System.Type), TypeBuilder>();
             var (assemblerVisitor, after) = AssemblerVisitor.Create(
                 memberKindLookup,
                 extensionLookup,
                 typeCache,
                 objectCache,
+                conversionTypes,
                 module.Value,
                 realizedMethodLookup,
                 typeCache[rootScope.EntryPoint.InputType],
@@ -94,8 +108,23 @@ namespace Tac.Backend.Emit._2
             // now I need to reflexively find my type and call main
             var complitation = (TacCompilation)Assembly.Value.CreateInstance(assemblerVisitor.rootType.Name);
 
-            complitation.indexerArray = assemblerVisitor.indexerList.indexers.ToArray();
-            complitation.verifyableTypesArray = assemblerVisitor.verifyableTypesList.types.ToArray();
+            var runtimeTypeCache = new ConcurrentIndexed<System.Type,IVerifiableType>();
+
+            foreach (var type in typeCache)
+            {
+                runtimeTypeCache.AddOrThrow(type.Value, type.Key);
+            }
+
+            foreach (var pair in conversionTypes)
+            {
+                // the runtimeTypeCache shouldn't cause any trouble
+                // pair.Key.Item2 should all be root 
+                runtimeTypeCache.AddOrThrow(pair.Value, runtimeTypeCache[pair.Key.Item2]);
+            }
+
+            complitation.typeCache = runtimeTypeCache;
+            //complitation.indexerArray = assemblerVisitor.indexerList.indexers.ToArray();
+            //complitation.verifyableTypesArray = assemblerVisitor.verifyableTypesList.types.ToArray();
             complitation.Init();
             return (TacCompilation<Tin, TOut>)complitation;
         }
