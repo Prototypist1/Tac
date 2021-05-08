@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
+using Tac.Backend.Emit._2.Visitors;
 using Tac.Model;
 using Tac.Model.Elements;
 
@@ -46,18 +47,11 @@ namespace Tac.Backend.Emit._2.Lookup
 
     internal class RealizedMethod {
 
-
-        // 
-
-
-        public readonly IReadOnlyDictionary<IMemberDefinition, IOrType< FieldInfo,(FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>> fieldOrFieldPair;
-
-
-
+        public readonly IReadOnlyDictionary<IMemberDefinition, IOrType< FieldInfo,(FieldInfo funcField, FieldInfo path), EnclosedObjectMember>> fieldOrFieldPair;
         public readonly TypeBuilder type;
         public readonly ConstructorBuilder defaultConstructor;
 
-        public RealizedMethod(IReadOnlyDictionary<IMemberDefinition, IOrType<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>> fieldOrFieldPair, TypeBuilder type, ConstructorBuilder defaultConstructor)
+        public RealizedMethod(IReadOnlyDictionary<IMemberDefinition, IOrType<FieldInfo, (FieldInfo funcField, FieldInfo path), EnclosedObjectMember>> fieldOrFieldPair, TypeBuilder type, ConstructorBuilder defaultConstructor)
         {
             this.fieldOrFieldPair = fieldOrFieldPair ?? throw new ArgumentNullException(nameof(fieldOrFieldPair));
             this.type = type ?? throw new ArgumentNullException(nameof(type));

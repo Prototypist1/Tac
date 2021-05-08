@@ -1,16 +1,12 @@
-﻿using Prototypist.Toolbox;
-using Prototypist.Toolbox.Object;
+﻿using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Reflection.Metadata;
-using System.Text;
-using Tac.Backend.Emit.Support;
-using Tac.Backend.Emit.Visitors;
-using Tac.Backend.Emit.Walkers;
+using Tac.Backend.Emit._2;
+using Tac.Backend.Emit._2.Walkers;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -1573,131 +1569,131 @@ namespace Tac.Backend.Emit.Test
 
         // this will be useful to keep around 
         //[Fact]
-        public void WTF() {
+        //public void WTF() {
 
-            var assemblyName = new AssemblyName();
-            assemblyName.Name = "WTF_Assembly";
-            var dynamicAssembly = System.Reflection.Emit.AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndCollect);
+        //    var assemblyName = new AssemblyName();
+        //    assemblyName.Name = "WTF_Assembly";
+        //    var dynamicAssembly = System.Reflection.Emit.AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndCollect);
 
-            var moduleBuilder = dynamicAssembly.DefineDynamicModule("WTF_Module");
+        //    var moduleBuilder = dynamicAssembly.DefineDynamicModule("WTF_Module");
 
-            var typebuilder = moduleBuilder.DefineType("WTF_Compilation", TypeAttributes.Public & TypeAttributes.Class, typeof(TacCompilation));
-            var selfField = typebuilder.DefineField("WTF_Compilation_self", typebuilder, FieldAttributes.Static | FieldAttributes.Public);
+        //    var typebuilder = moduleBuilder.DefineType("WTF_Compilation", TypeAttributes.Public & TypeAttributes.Class, typeof(TacCompilation));
+        //    var selfField = typebuilder.DefineField("WTF_Compilation_self", typebuilder, FieldAttributes.Static | FieldAttributes.Public);
 
-            var initMethod = typebuilder.DefineMethod(nameof(TacCompilation.Init), MethodAttributes.Public | MethodAttributes.Virtual);
-            typebuilder.DefineMethodOverride(initMethod, typeof(TacCompilation).GetMethod(nameof(TacCompilation.Init)));
+        //    var initMethod = typebuilder.DefineMethod(nameof(TacCompilation.Init), MethodAttributes.Public | MethodAttributes.Virtual);
+        //    typebuilder.DefineMethodOverride(initMethod, typeof(TacCompilation).GetMethod(nameof(TacCompilation.Init)));
 
-            var intiGen = initMethod.GetILGenerator();
+        //    var intiGen = initMethod.GetILGenerator();
 
-            // set the self field
-            intiGen.Emit(OpCodes.Ldarg_0);
-            intiGen.Emit(OpCodes.Stsfld, selfField);
+        //    // set the self field
+        //    intiGen.Emit(OpCodes.Ldarg_0);
+        //    intiGen.Emit(OpCodes.Stsfld, selfField);
 
-            var outerTypeBuilder = moduleBuilder.DefineType("Outer");
-            var outerTypeConstructor = outerTypeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new System.Type[] { });
-            {
-                var myConstructorIL = outerTypeConstructor.GetILGenerator();
-                myConstructorIL.Emit(OpCodes.Ldarg_0);
-                myConstructorIL.Emit(OpCodes.Call, typeof(object).GetConstructors().First());
-                myConstructorIL.Emit(OpCodes.Ret);
-            }
+        //    var outerTypeBuilder = moduleBuilder.DefineType("Outer");
+        //    var outerTypeConstructor = outerTypeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new System.Type[] { });
+        //    {
+        //        var myConstructorIL = outerTypeConstructor.GetILGenerator();
+        //        myConstructorIL.Emit(OpCodes.Ldarg_0);
+        //        myConstructorIL.Emit(OpCodes.Call, typeof(object).GetConstructors().First());
+        //        myConstructorIL.Emit(OpCodes.Ret);
+        //    }
 
-            var methodTypeBuilder = moduleBuilder.DefineType("myfunc");
-            var methodTypeConstructor = methodTypeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new System.Type[] { });
-            {
-                var myConstructorIL = methodTypeConstructor.GetILGenerator();
-                myConstructorIL.Emit(OpCodes.Ldarg_0);
-                myConstructorIL.Emit(OpCodes.Call, typeof(object).GetConstructors().First());
-                myConstructorIL.Emit(OpCodes.Ret);
-            }
+        //    var methodTypeBuilder = moduleBuilder.DefineType("myfunc");
+        //    var methodTypeConstructor = methodTypeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new System.Type[] { });
+        //    {
+        //        var myConstructorIL = methodTypeConstructor.GetILGenerator();
+        //        myConstructorIL.Emit(OpCodes.Ldarg_0);
+        //        myConstructorIL.Emit(OpCodes.Call, typeof(object).GetConstructors().First());
+        //        myConstructorIL.Emit(OpCodes.Ret);
+        //    }
 
-            var mainMethod = outerTypeBuilder.DefineMethod(
-                "mainMethod",
-                MethodAttributes.Public,
-                CallingConventions.HasThis,
-                typeof(object), new[] { typeof(object) });
-            var mainGen = mainMethod.GetILGenerator();
+        //    var mainMethod = outerTypeBuilder.DefineMethod(
+        //        "mainMethod",
+        //        MethodAttributes.Public,
+        //        CallingConventions.HasThis,
+        //        typeof(object), new[] { typeof(object) });
+        //    var mainGen = mainMethod.GetILGenerator();
 
-            mainGen.Emit(OpCodes.Ldc_R8, 3.0);
-            mainGen.DeclareLocal(typeof(double));
-            mainGen.Emit(OpCodes.Stloc_0);
-
-
-            var innerMethod = methodTypeBuilder.DefineMethod(
-                "methodMethod",
-                MethodAttributes.Public,
-                CallingConventions.HasThis,
-                typeof(double), new[] { typeof(double) });
-
-            var innerMethodIlGenerator = innerMethod.GetILGenerator();
-            innerMethodIlGenerator.Emit(OpCodes.Ldarg_1);
-            innerMethodIlGenerator.Emit(OpCodes.Ldc_R8, 2.0);
-            innerMethodIlGenerator.Emit(OpCodes.Add_Ovf);
-            innerMethodIlGenerator.Emit(OpCodes.Ret);
+        //    mainGen.Emit(OpCodes.Ldc_R8, 3.0);
+        //    mainGen.DeclareLocal(typeof(double));
+        //    mainGen.Emit(OpCodes.Stloc_0);
 
 
+        //    var innerMethod = methodTypeBuilder.DefineMethod(
+        //        "methodMethod",
+        //        MethodAttributes.Public,
+        //        CallingConventions.HasThis,
+        //        typeof(double), new[] { typeof(double) });
 
-            mainGen.Emit(OpCodes.Newobj, methodTypeConstructor);
-
-            mainGen.Emit(OpCodes.Ldftn, innerMethod);
-            mainGen.Emit(OpCodes.Newobj, typeof(Func<double, double>).GetConstructors().First());
-
-            mainGen.Emit(OpCodes.Ldsfld, selfField);
-            mainGen.Emit(OpCodes.Ldfld, typesField.Value);
-            mainGen.Emit(OpCodes.Ldc_I4_0);
-            mainGen.Emit(OpCodes.Ldelem_Ref);
-
-
-            mainGen.Emit(OpCodes.Newobj, tacMethod_Simple_SimpleConstructor(typeof(double), typeof(double)));
+        //    var innerMethodIlGenerator = innerMethod.GetILGenerator();
+        //    innerMethodIlGenerator.Emit(OpCodes.Ldarg_1);
+        //    innerMethodIlGenerator.Emit(OpCodes.Ldc_R8, 2.0);
+        //    innerMethodIlGenerator.Emit(OpCodes.Add_Ovf);
+        //    innerMethodIlGenerator.Emit(OpCodes.Ret);
 
 
 
-            mainGen.Emit(OpCodes.Ldloc_0);
+        //    mainGen.Emit(OpCodes.Newobj, methodTypeConstructor);
+
+        //    mainGen.Emit(OpCodes.Ldftn, innerMethod);
+        //    mainGen.Emit(OpCodes.Newobj, typeof(Func<double, double>).GetConstructors().First());
+
+        //    mainGen.Emit(OpCodes.Ldsfld, selfField);
+        //    mainGen.Emit(OpCodes.Ldfld, typesField.Value);
+        //    mainGen.Emit(OpCodes.Ldc_I4_0);
+        //    mainGen.Emit(OpCodes.Ldelem_Ref);
 
 
-            var callSimpleSimple = typeof(ITacObject).GetMethod(nameof(ITacObject.Call_Simple_Simple)) ?? throw new NullReferenceException("should not be null!");
-            var generic = callSimpleSimple.MakeGenericMethod(typeof(double), typeof(double));
-
-            mainGen.Emit(OpCodes.Callvirt, generic);
-
-            mainGen.Emit(OpCodes.Box, typeof(double));
-
-            mainGen.Emit(OpCodes.Ret);
-
-            intiGen.Emit(OpCodes.Ldarg_0);
-            intiGen.Emit(OpCodes.Newobj, outerTypeConstructor);
-            intiGen.Emit(OpCodes.Ldftn, mainMethod);
-            intiGen.Emit(OpCodes.Newobj, typeof(Func<object, object>).GetConstructors().First());
-            intiGen.Emit(OpCodes.Stfld, typeof(TacCompilation).GetField(nameof(TacCompilation<int,int>.main)));
-
-            intiGen.Emit(OpCodes.Ret);
+        //    mainGen.Emit(OpCodes.Newobj, tacMethod_Simple_SimpleConstructor(typeof(double), typeof(double)));
 
 
-            methodTypeBuilder.CreateType();
-            typebuilder.CreateType();
-            outerTypeBuilder.CreateType();
+
+        //    mainGen.Emit(OpCodes.Ldloc_0);
 
 
-            var complitation = (TacCompilation)dynamicAssembly.CreateInstance("WTF_Compilation");
+        //    var callSimpleSimple = typeof(ITacObject).GetMethod(nameof(ITacObject.Call_Simple_Simple)) ?? throw new NullReferenceException("should not be null!");
+        //    var generic = callSimpleSimple.MakeGenericMethod(typeof(double), typeof(double));
 
-            complitation.indexerArray = new Indexer[] { };
-            complitation.verifyableTypesArray = new IVerifiableType[] { MethodType.CreateAndBuild(new NumberType(), new NumberType()) };
-            complitation.Init();
+        //    mainGen.Emit(OpCodes.Callvirt, generic);
+
+        //    mainGen.Emit(OpCodes.Box, typeof(double));
+
+        //    mainGen.Emit(OpCodes.Ret);
+
+        //    intiGen.Emit(OpCodes.Ldarg_0);
+        //    intiGen.Emit(OpCodes.Newobj, outerTypeConstructor);
+        //    intiGen.Emit(OpCodes.Ldftn, mainMethod);
+        //    intiGen.Emit(OpCodes.Newobj, typeof(Func<object, object>).GetConstructors().First());
+        //    intiGen.Emit(OpCodes.Stfld, typeof(TacCompilation).GetField(nameof(TacCompilation<int,int>.main)));
+
+        //    intiGen.Emit(OpCodes.Ret);
+
+
+        //    methodTypeBuilder.CreateType();
+        //    typebuilder.CreateType();
+        //    outerTypeBuilder.CreateType();
+
+
+        //    var complitation = (TacCompilation)dynamicAssembly.CreateInstance("WTF_Compilation");
+
+        //    complitation.indexerArray = new Indexer[] { };
+        //    complitation.verifyableTypesArray = new IVerifiableType[] { MethodType.CreateAndBuild(new NumberType(), new NumberType()) };
+        //    complitation.Init();
             
-            var res = ((TacCompilation<object, object>)complitation).main(null);
+        //    var res = ((TacCompilation<object, object>)complitation).main(null);
 
-            Assert.Equal(5.0, res);
+        //    Assert.Equal(5.0, res);
 
-        }
+        //}
 
-        private ConstructorInfo tacMethod_Simple_SimpleConstructor(System.Type input, System.Type output)
-        {
-            return typeof(TacMethod_Simple_Simple<,>).MakeGenericType(input, output).GetConstructor(new[] { typeof(Func<,>).MakeGenericType(input, output), typeof(IVerifiableType) }) ?? throw new NullReferenceException("should not be null!");
-        }
+        //private ConstructorInfo tacMethod_Simple_SimpleConstructor(System.Type input, System.Type output)
+        //{
+        //    return typeof(TacMethod_Simple_Simple<,>).MakeGenericType(input, output).GetConstructor(new[] { typeof(Func<,>).MakeGenericType(input, output), typeof(IVerifiableType) }) ?? throw new NullReferenceException("should not be null!");
+        //}
 
-        private readonly Lazy<FieldInfo> typesField = new Lazy<FieldInfo>(() =>
-        {
-            return typeof(TacCompilation).GetField(nameof(TacCompilation.verifyableTypesArray)) ?? throw new NullReferenceException("should not be null!");
-        });
+        //private readonly Lazy<FieldInfo> typesField = new Lazy<FieldInfo>(() =>
+        //{
+        //    return typeof(TacCompilation).GetField(nameof(TacCompilation.verifyableTypesArray)) ?? throw new NullReferenceException("should not be null!");
+        //});
     }
 }

@@ -1,5 +1,5 @@
 ﻿@page "/"
-@using Tac.Emit.Runner;
+@*@using Tac.Emit.Runner;*@
 
 <h1>Tac!</h1>
 
@@ -15,30 +15,30 @@
 
     public void Click() {
 
-        Run.CompileAndRun("test", new[] {
-                new AssemblyBuilder(new NameKey("in"))
-                       .AddMethod(
-                           new NameKey("read-number"),
-                           (IInterpetedAnyType x) => TypeManager.Double(numberSource()),
-                           MethodType.CreateAndBuild(
-                                   new EmptyType(),
-                                   new NumberType()))
-                       .AddMethod(
-                           new NameKey("read-string"),
-                           (IInterpetedAnyType x) => TypeManager.String(stringSource()),
-                           MethodType.CreateAndBuild(
-                                   new EmptyType(),
-                                   new StringType()))
-                       .AddMethod(
-                           new NameKey("read-bool"),
-                           (IInterpetedAnyType x) => TypeManager.Bool(boolSource()),
-                           MethodType.CreateAndBuild(
-                                   new EmptyType(),
-                                   new BooleanType()))
-                       .Build(),
-@"
-entry-point [empty; empty;] input {
-    new-empty > (in.read-string);
-};");
+        //        Run.CompileAndRun("test", new[] {
+        //                new AssemblyBuilder(new NameKey("in"))
+        //                       .AddMethod(
+        //                           new NameKey("read-number"),
+        //                           (IInterpetedAnyType x) => TypeManager.Double(numberSource()),
+        //                           MethodType.CreateAndBuild(
+        //                                   new EmptyType(),
+        //                                   new NumberType()))
+        //                       .AddMethod(
+        //                           new NameKey("read-string"),
+        //                           (IInterpetedAnyType x) => TypeManager.String(stringSource()),
+        //                           MethodType.CreateAndBuild(
+        //                                   new EmptyType(),
+        //                                   new StringType()))
+        //                       .AddMethod(
+        //                           new NameKey("read-bool"),
+        //                           (IInterpetedAnyType x) => TypeManager.Bool(boolSource()),
+        //                           MethodType.CreateAndBuild(
+        //                                   new EmptyType(),
+        //                                   new BooleanType()))
+        //                       .Build(),
+        //@"
+        //entry-point [empty; empty;] input {
+        //    new-empty > (in.read-string);
+        //};");
     }
 }

@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using Tac.Backend.Emit._2.Lookup;
-using Tac.Backend.Emit.Support;
+//using Tac.Backend.Emit.Support;
 using Tac.Backend.Emit._2.Walkers;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -16,19 +16,29 @@ using Prototypist.TaskChain;
 
 namespace Tac.Backend.Emit._2.Visitors
 {
+    internal class EnclosedObjectMember
+    {
+        public readonly FieldInfo funcField;
+
+        public EnclosedObjectMember(FieldInfo funcField)
+        {
+            this.funcField = funcField ?? throw new ArgumentNullException(nameof(funcField));
+        }
+    }
+
     internal class MethodMakerVisitor : IOpenBoxesContext<Nothing>
     {
         private readonly ModuleBuilder moduleBuilder;
         private readonly ExtensionLookup extensionLookup;
         private readonly RealizedMethodLookup realizedMethodLookup;
-        public readonly ConcurrentIndexed<IVerifiableType, TypeBuilder> typeCache;
+        public readonly TypeTracker typeTracker;
         
-        public MethodMakerVisitor(ModuleBuilder moduleBuilder, ExtensionLookup extensionLookup, RealizedMethodLookup realizedMethodLookup, ConcurrentIndexed<IVerifiableType, TypeBuilder> typeCache)
+        public MethodMakerVisitor(ModuleBuilder moduleBuilder, ExtensionLookup extensionLookup, RealizedMethodLookup realizedMethodLookup, TypeTracker typeCache)
         {
             this.moduleBuilder = moduleBuilder ?? throw new ArgumentNullException(nameof(moduleBuilder));
             this.extensionLookup = extensionLookup ?? throw new ArgumentNullException(nameof(extensionLookup));
             this.realizedMethodLookup = realizedMethodLookup ?? throw new ArgumentNullException(nameof(realizedMethodLookup));
-            this.typeCache = typeCache ?? throw new ArgumentNullException(nameof(typeCache));
+            this.typeTracker = typeCache ?? throw new ArgumentNullException(nameof(typeCache));
         }
 
         private void Walk(IEnumerable<ICodeElement> codeElements, ICodeElement current)
@@ -102,7 +112,7 @@ namespace Tac.Backend.Emit._2.Visitors
             myConstructorIL.Emit(OpCodes.Call, typeof(object).GetConstructors().First());
             myConstructorIL.Emit(OpCodes.Ret);
 
-            var map = new Dictionary<IMemberDefinition, IOrType<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>>();
+            var map = new Dictionary<IMemberDefinition, IOrType<FieldInfo, (FieldInfo funcField, FieldInfo path), EnclosedObjectMember>>();
 
             if (extensionLookup.implementationLookup.TryGetValue(codeElement, out var closure))
             {
@@ -115,7 +125,7 @@ namespace Tac.Backend.Emit._2.Visitors
 
             {
                 var field = typeBuilder.DefineField(TranslateName(codeElement.ContextDefinition.Key.SafeCastTo(out NameKey _).Name), TranslateType(codeElement.ContextDefinition.Type), FieldAttributes.Public);
-                map[codeElement.ContextDefinition] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>(field);
+                map[codeElement.ContextDefinition] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), EnclosedObjectMember>(field);
             }
 
             realizedMethodLookup.Add(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(codeElement), new RealizedMethod(map, typeBuilder, constructor));
@@ -134,7 +144,7 @@ namespace Tac.Backend.Emit._2.Visitors
             myConstructorIL.Emit(OpCodes.Call, typeof(object).GetConstructors().First());
             myConstructorIL.Emit(OpCodes.Ret);
 
-            var map = new Dictionary<IMemberDefinition, IOrType<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>>();
+            var map = new Dictionary<IMemberDefinition, IOrType<FieldInfo, (FieldInfo funcField, FieldInfo path), EnclosedObjectMember>>();
 
             if (extensionLookup.methodLookup.TryGetValue(co, out var closure))
             {
@@ -150,7 +160,7 @@ namespace Tac.Backend.Emit._2.Visitors
             return new Nothing();
         }
 
-        private void PopulateMap(TypeBuilder typeBuilder, Dictionary<IMemberDefinition, IOrType<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>> map, KeyValuePair<IMemberDefinition, IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition,IBlockDefinition,IRootScope, IObjectDefiniton>> member)
+        private void PopulateMap(TypeBuilder typeBuilder, Dictionary<IMemberDefinition, IOrType<FieldInfo, (FieldInfo funcField, FieldInfo path), EnclosedObjectMember>> map, KeyValuePair<IMemberDefinition, IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition,IBlockDefinition,IRootScope, IObjectDefiniton>> member)
         {
             member.Value.Switch(
                 method =>
@@ -158,41 +168,41 @@ namespace Tac.Backend.Emit._2.Visitors
                     // everything is enclosed
                     var myType = typeof(Enclosed<>).MakeGenericType(TranslateType(member.Key.Type));
                     var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
-                    map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>((field, myType.GetField(nameof(Enclosed<int>.value))));
+                    map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), EnclosedObjectMember>((field, myType.GetField(nameof(Enclosed<int>.value))));
                 },
                 imp =>
                 {
                     // everything is enclosed
                     var myType = typeof(Enclosed<>).MakeGenericType(TranslateType(member.Key.Type));
                     var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
-                    map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>((field, myType.GetField(nameof(Enclosed<int>.value))));
+                    map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), EnclosedObjectMember>((field, myType.GetField(nameof(Enclosed<int>.value))));
                 },
                 entryPoint =>
                 {
                     // everything is enclosed
                     var myType = typeof(Enclosed<>).MakeGenericType(TranslateType(member.Key.Type));
                     var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
-                    map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>((field, myType.GetField(nameof(Enclosed<int>.value))));
+                    map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), EnclosedObjectMember>((field, myType.GetField(nameof(Enclosed<int>.value))));
                 },
                 block =>
                 {
                     // everything is enclosed
                     var myType = typeof(Enclosed<>).MakeGenericType(TranslateType(member.Key.Type));
                     var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
-                    map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>((field, myType.GetField(nameof(Enclosed<int>.value))));
+                    map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), EnclosedObjectMember>((field, myType.GetField(nameof(Enclosed<int>.value))));
                 },
                 rootScope =>
                 {
                     // everything is enclosed
                     var myType = typeof(Enclosed<>).MakeGenericType(TranslateType(member.Key.Type));
                     var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
-                    map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>((field, myType.GetField(nameof(Enclosed<int>.value))));
+                    map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), EnclosedObjectMember>((field, myType.GetField(nameof(Enclosed<int>.value))));
                 },
                 obj =>
                 {
-                    var myType = typeof(ITacObject);
+                    var myType = typeTracker.IdempotentAddType(obj.Returns());
                     var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
-                    map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>((field, obj.Scope));
+                    map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), EnclosedObjectMember>( new EnclosedObjectMember(field));
                 });
         }
 
@@ -206,7 +216,7 @@ namespace Tac.Backend.Emit._2.Visitors
             myConstructorIL.Emit(OpCodes.Call, typeof(object).GetConstructors().First());
             myConstructorIL.Emit(OpCodes.Ret);
 
-            var map = new Dictionary<IMemberDefinition, IOrType<FieldInfo, (FieldInfo funcField, FieldInfo path), (FieldInfo funcField, IFinalizedScope scope)>>();
+            var map = new Dictionary<IMemberDefinition, IOrType<FieldInfo, (FieldInfo funcField, FieldInfo path), EnclosedObjectMember>>();
 
 
             if (extensionLookup.entryPointLookup.TryGetValue(entryPointDefinition, out var closure))
@@ -225,7 +235,7 @@ namespace Tac.Backend.Emit._2.Visitors
 
         private System.Type TranslateType(IVerifiableType type)
         {
-            return typeCache[type];
+            return typeTracker.IdempotentAddType(type);
         }
 
         private string TranslateName(string name)

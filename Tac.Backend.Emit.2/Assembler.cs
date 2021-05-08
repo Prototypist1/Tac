@@ -58,48 +58,34 @@ namespace Tac.Backend.Emit._2
             var memberKindVisitor = MemberKindVisitor.Make(memberKindLookup, extensionLookup);
             rootScope.Convert(memberKindVisitor);
 
-            var typeCache = new ConcurrentIndexed<IVerifiableType, TypeBuilder>();
-            var objectCache = new ConcurrentIndexed<IObjectDefiniton, TypeBuilder>();
-
-            // TODO 
-            // TODO 
-            // TODO
-            // YOU ARE HERE 
-            // primitive types arn't in the type cache
-            // method types arn't in the type cahe
-            // the type cache needs to be an object
-            // it owns type look up
-            // keeps track of the list of type we need to finalize
-            // handles look up for methods greatfully 
-
-            var typeVisitor = new TypeVisitor(typeCache, objectCache, module.Value);
+            var typeTracker = new TypeTracker(module.Value);
+            var typeVisitor = new TypeVisitor(typeTracker);
             rootScope.Convert(typeVisitor);
 
             var realizedMethodLookup = new RealizedMethodLookup();
-            var methodMakerVisitor = new MethodMakerVisitor(module.Value, extensionLookup, realizedMethodLookup, typeCache);
+            var methodMakerVisitor = new MethodMakerVisitor(module.Value, extensionLookup, realizedMethodLookup, typeTracker);
 
-                rootScope.Convert(methodMakerVisitor);
+            rootScope.Convert(methodMakerVisitor);
 
 
             var conversionTypes = new ConcurrentIndexed<(System.Type, System.Type), TypeBuilder>();
             var (assemblerVisitor, after) = AssemblerVisitor.Create(
                 memberKindLookup,
                 extensionLookup,
-                typeCache,
-                objectCache,
+                typeTracker,
                 conversionTypes,
                 module.Value,
                 realizedMethodLookup,
-                typeCache[rootScope.EntryPoint.InputType],
-                typeCache[rootScope.EntryPoint.OutputType]);
-                rootScope.Convert(assemblerVisitor);
+                typeTracker.IdempotentAddType(rootScope.EntryPoint.InputType),
+                typeTracker.IdempotentAddType(rootScope.EntryPoint.OutputType));
+            rootScope.Convert(assemblerVisitor);
 
             //finish up
             // this is a bit sloppy, maybe disposable?
             after();
 
             // we have to actually create the types
-            typeVisitor.CreateTypes();
+            typeTracker.CreateTypes();
             realizedMethodLookup.CreateTypes();
             assemblerVisitor.rootType.CreateType();
 
@@ -110,7 +96,7 @@ namespace Tac.Backend.Emit._2
 
             var runtimeTypeCache = new ConcurrentIndexed<System.Type,IVerifiableType>();
 
-            foreach (var type in typeCache)
+            foreach (var type in typeTracker.GetTypes())
             {
                 runtimeTypeCache.AddOrThrow(type.Value, type.Key);
             }

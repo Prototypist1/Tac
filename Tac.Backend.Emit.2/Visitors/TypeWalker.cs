@@ -9,7 +9,7 @@ using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
-using Tac.Backend.Emit.Support;
+//using Tac.Backend.Emit.Support;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Operations;
@@ -19,61 +19,38 @@ namespace Tac.Backend.Emit._2.Walkers
 {
     public class Empty { }
     class Nothing { }
-    class TypeVisitor : IOpenBoxesContext<Nothing>
-    {
 
-        public readonly ConcurrentIndexed<IVerifiableType, TypeBuilder> typeCache;
-        public readonly ConcurrentIndexed<IObjectDefiniton, TypeBuilder> objectCache;
+
+    class TypeTracker {
+
         private readonly ModuleBuilder moduleBuilder;
-
+        public readonly ConcurrentIndexed<IVerifiableType, TypeBuilder> typeCache = new ConcurrentIndexed<IVerifiableType, TypeBuilder>();
+        public readonly ConcurrentIndexed<IObjectDefiniton, TypeBuilder> objectCache = new ConcurrentIndexed<IObjectDefiniton, TypeBuilder>();
         private readonly ConcurrentLinkedList<Action> actions = new ConcurrentLinkedList<Action>();
 
-        public TypeVisitor(ConcurrentIndexed<IVerifiableType, TypeBuilder> typeCache, ConcurrentIndexed<IObjectDefiniton, TypeBuilder> objectCache, ModuleBuilder moduleBuilder)
+        public TypeTracker(ModuleBuilder moduleBuilder)
         {
-            this.typeCache = typeCache ?? throw new ArgumentNullException(nameof(typeCache));
-            this.objectCache = objectCache ?? throw new ArgumentNullException(nameof(objectCache));
             this.moduleBuilder = moduleBuilder ?? throw new ArgumentNullException(nameof(moduleBuilder));
         }
 
-        public void CreateTypeProperties() {
-            foreach (var action in actions)
-            {
-                action();
-            }
-        }
+        public IEnumerable<KeyValuePair<IVerifiableType, TypeBuilder>> GetTypes() => typeCache;
 
-        private void HandleLines(IEnumerable<ICodeElement> lines)
-        {
-            foreach (var line in lines)
-            {
-                line.Convert(this);
-            } 
-        }
-
-        private Nothing HandleOp(IOperation operation) {
-            foreach (var line in operation.Operands)
-            {
-                line.Convert(this);
-            }
-
-            HandleType(operation.Returns());
-            return new Nothing();
-        }
-
-        private void HandleScope(IFinalizedScope scope)
-        {
-            foreach (var member in scope.Members) {
-                member.Value.Value.Convert(this);
-            }
-        }
-
-        private System.Type HandleType(IVerifiableType verifiableType)
-        {
-            return InnerMapType(verifiableType);
-        }
         private string GetTypeName() => "_" + Guid.NewGuid().ToString().ToLowerInvariant().Replace("-", "");
 
-        private System.Type InnerMapType(IVerifiableType verifiableType)
+        private static bool HasMember(IVerifiableType type)
+        {
+            if (type.SafeIs(out IInterfaceModuleType interfaceModuleType) && interfaceModuleType.Members.Any())
+            {
+                return true;
+            }
+            if (type.SafeIs(out ITypeOr typeOr) && typeOr.Members.Any())
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public System.Type IdempotentAddType(IVerifiableType verifiableType)
         {
             if (verifiableType is INumberType)
             {
@@ -103,12 +80,12 @@ namespace Tac.Backend.Emit._2.Walkers
             }
             else if (verifiableType.SafeIs(out IInterfaceModuleType moduleType))
             {
-                return JitInterface(OrType.Make< ITypeOr, IInterfaceModuleType > (moduleType));
+                return JitInterface(OrType.Make<ITypeOr, IInterfaceModuleType>(moduleType));
             }
             else if (verifiableType is IMethodType method)
             {
-                var inputType =  InnerMapType(method.InputType);
-                var outputType = InnerMapType(method.OutputType);
+                var inputType = IdempotentAddType(method.InputType);
+                var outputType = IdempotentAddType(method.OutputType);
                 return typeof(Func<,>).MakeGenericType(inputType, outputType);
             }
             else if (verifiableType.SafeIs(out IReferanceType memberReferance))
@@ -130,20 +107,10 @@ namespace Tac.Backend.Emit._2.Walkers
             }
         }
 
-        internal void CreateTypes()
-        {
-            foreach (var type in typeCache.Values)
-            {
-                type.CreateType();
-            }
-            foreach (var type in objectCache.Values)
-            {
-                type.CreateType();
-            }
-        }
 
-        private System.Type JitInterface(IOrType<ITypeOr, IInterfaceModuleType> key) {
-            return typeCache.GetOrAdd(key.SwitchReturns<IVerifiableType>(x=>x,x=>x), () =>
+        private System.Type JitInterface(IOrType<ITypeOr, IInterfaceModuleType> key)
+        {
+            return typeCache.GetOrAdd(key.SwitchReturns<IVerifiableType>(x => x, x => x), () =>
             {
                 var res = moduleBuilder.DefineType(GetTypeName(), TypeAttributes.Public | TypeAttributes.Interface);
 
@@ -151,7 +118,11 @@ namespace Tac.Backend.Emit._2.Walkers
                 {
                     foreach (var member in key.SwitchReturns(x => x.Members, x => x.Members))
                     {
-                        res.DefineProperty(ConvertName(member.Key.CastTo<NameKey>().Name), PropertyAttributes.None, typeCache.GetOrThrow(member.Type), null);
+                        res.DefineProperty(
+                            ConvertName(member.Key.CastTo<NameKey>().Name), 
+                            PropertyAttributes.None,
+                            IdempotentAddType(member.Type), 
+                            null);
                     }
                 });
 
@@ -159,10 +130,17 @@ namespace Tac.Backend.Emit._2.Walkers
             });
         }
 
-        private System.Type MergeTypes(IVerifiableType left, IVerifiableType right,ITypeOr typeOr)
+        // TODO 
+        // this makes test-name and test_name the same... 
+        public static string ConvertName(string name)
         {
-            InnerMapType(left);
-            InnerMapType(right);
+            return name.Replace("-", "_");
+        }
+
+        private System.Type MergeTypes(IVerifiableType left, IVerifiableType right, ITypeOr typeOr)
+        {
+            IdempotentAddType(left);
+            IdempotentAddType(right);
 
             //var leftType = InnerMapType(left); ;
             //var rightType = InnerMapType(right);
@@ -190,10 +168,11 @@ namespace Tac.Backend.Emit._2.Walkers
             if (typeOr.TryGetInput().Is(out var input) &&
                 typeOr.TryGetReturn().Is(out var output))
             {
-                return typeof(Func<,>).MakeGenericType(InnerMapType(input), InnerMapType(output));
+                return typeof(Func<,>).MakeGenericType(IdempotentAddType(input), IdempotentAddType(output));
             }
 
-            if (left.SafeIs(out IInterfaceModuleType _) && right.SafeIs(out IInterfaceModuleType _)) {
+            if (left.SafeIs(out IInterfaceModuleType _) && right.SafeIs(out IInterfaceModuleType _))
+            {
                 // JIT a interface
                 return JitInterface(OrType.Make<ITypeOr, IInterfaceModuleType>(typeOr));
             }
@@ -217,15 +196,112 @@ namespace Tac.Backend.Emit._2.Walkers
             throw new Exception("what case did I miis");
         }
 
-        private static bool HasMember(IVerifiableType type) {
-            if (type.SafeIs(out IInterfaceModuleType interfaceModuleType) && interfaceModuleType.Members.Any()) {
-                return true;
+        internal void CreateTypes()
+        {
+            foreach (var type in typeCache.Values)
+            {
+                type.CreateType();
             }
-            if (type.SafeIs(out ITypeOr typeOr) && typeOr.Members.Any()) {
-                return true;
+            foreach (var type in objectCache.Values)
+            {
+                type.CreateType();
             }
-            return false;
         }
+
+        internal TypeBuilder IdempotentAddObject(IObjectDefiniton codeElement)
+        {
+            var interfactType = IdempotentAddType(codeElement.Returns());
+
+            return objectCache.GetOrAdd(codeElement, () =>
+            {
+                var myConcreteType = moduleBuilder.DefineType(GetTypeName(), TypeAttributes.Public | TypeAttributes.Interface);
+
+                actions.Add(() =>
+                {
+
+                    myConcreteType.AddInterfaceImplementation(interfactType);
+
+                    foreach (var propertyInfo in interfactType.GetProperties())
+                    {
+                        var field = myConcreteType.DefineField("_" + propertyInfo.Name.ToLower(), propertyInfo.PropertyType, FieldAttributes.Public);
+                        var property = myConcreteType.DefineProperty(propertyInfo.Name, PropertyAttributes.None, propertyInfo.PropertyType, new System.Type[0]);
+
+                        var getter = myConcreteType.DefineMethod("get_" + propertyInfo.Name, MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.Virtual, propertyInfo.PropertyType, new System.Type[0]);
+                        var getGenerator = getter.GetILGenerator();
+                        getGenerator.Emit(OpCodes.Ldarg_0);
+                        getGenerator.Emit(OpCodes.Ldfld, field);
+                        getGenerator.Emit(OpCodes.Ret);
+                        property.SetGetMethod(getter);
+                        myConcreteType.DefineMethodOverride(getter, propertyInfo.GetGetMethod());
+
+                        var setter = myConcreteType.DefineMethod("set_" + propertyInfo.Name, MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.Virtual, null, new System.Type[] { propertyInfo.PropertyType });
+                        var setGenerator = setter.GetILGenerator();
+                        setGenerator.Emit(OpCodes.Ldarg_0);
+                        setGenerator.Emit(OpCodes.Ldarg_1);
+                        setGenerator.Emit(OpCodes.Stfld, field);
+                        setGenerator.Emit(OpCodes.Ret);
+                        property.SetSetMethod(setter);
+                        myConcreteType.DefineMethodOverride(setter, propertyInfo.GetSetMethod());
+                    }
+                });
+
+                return myConcreteType;
+            });
+        }
+
+        public void CreateTypeProperties()
+        {
+            foreach (var action in actions)
+            {
+                action();
+            }
+        }
+    }
+
+    class TypeVisitor : IOpenBoxesContext<Nothing>
+    {
+
+
+        private readonly TypeTracker typeTracker;
+
+
+        public TypeVisitor(TypeTracker typeTracker)
+        {
+            this.typeTracker = typeTracker ?? throw new ArgumentNullException(nameof(typeTracker));
+        }
+
+
+        private void HandleLines(IEnumerable<ICodeElement> lines)
+        {
+            foreach (var line in lines)
+            {
+                line.Convert(this);
+            } 
+        }
+
+        private Nothing HandleOp(IOperation operation) {
+            foreach (var line in operation.Operands)
+            {
+                line.Convert(this);
+            }
+
+            HandleType(operation.Returns());
+            return new Nothing();
+        }
+
+        private void HandleScope(IFinalizedScope scope)
+        {
+            foreach (var member in scope.Members) {
+                member.Value.Value.Convert(this);
+            }
+        }
+
+        private System.Type HandleType(IVerifiableType verifiableType)
+        {
+            return typeTracker.IdempotentAddType(verifiableType);
+        }
+
+
 
         public Nothing AddOperation(IAddOperation co) =>HandleOp(co);
         public Nothing AssignOperation(IAssignOperation co) => HandleOp(co);
@@ -305,47 +381,10 @@ namespace Tac.Backend.Emit._2.Walkers
         {
             HandleLines(codeElement.Assignments);
             HandleScope(codeElement.Scope);
-            var interfactType = HandleType(codeElement.Returns());
-            objectCache.GetOrAdd(codeElement, () =>
-            {
-                var myConcreteType = moduleBuilder.DefineType(GetTypeName(), TypeAttributes.Public | TypeAttributes.Interface);
 
-                actions.Add(() =>
-                {
+            typeTracker.IdempotentAddObject(codeElement);
 
-                    myConcreteType.AddInterfaceImplementation(interfactType);
-
-                    foreach (var propertyInfo in interfactType.GetProperties())
-                    {
-                        var field = myConcreteType.DefineField("_" + propertyInfo.Name.ToLower(), propertyInfo.PropertyType, FieldAttributes.Public);
-                        var property = myConcreteType.DefineProperty(propertyInfo.Name, PropertyAttributes.None, propertyInfo.PropertyType, new System.Type[0]);
-
-                        var getter = myConcreteType.DefineMethod("get_" + propertyInfo.Name, MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.Virtual, propertyInfo.PropertyType, new System.Type[0]);
-                        var getGenerator = getter.GetILGenerator();
-                        getGenerator.Emit(OpCodes.Ldarg_0);
-                        getGenerator.Emit(OpCodes.Ldfld, field);
-                        getGenerator.Emit(OpCodes.Ret);
-                        property.SetGetMethod(getter);
-                        myConcreteType.DefineMethodOverride(getter, propertyInfo.GetGetMethod());
-
-                        var setter = myConcreteType.DefineMethod("set_" + propertyInfo.Name, MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.Virtual, null, new System.Type[] { propertyInfo.PropertyType });
-                        var setGenerator = setter.GetILGenerator();
-                        setGenerator.Emit(OpCodes.Ldarg_0);
-                        setGenerator.Emit(OpCodes.Ldarg_1);
-                        setGenerator.Emit(OpCodes.Stfld, field);
-                        setGenerator.Emit(OpCodes.Ret);
-                        property.SetSetMethod(setter);
-                        myConcreteType.DefineMethodOverride(setter, propertyInfo.GetSetMethod());
-                    }
-                });
-
-                return myConcreteType;
-            });
             return new Nothing();
-        }
-
-        public static string ConvertName(string name) {
-            return name.Replace("-", "_");
         }
 
         public Nothing TypeDefinition(IInterfaceType codeElement)

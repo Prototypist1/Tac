@@ -8,7 +8,6 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Tac.Backend.Emit._2.Lookup;
-using Tac.Backend.Emit.Support;
 using Tac.Backend.Emit._2.Visitors;
 using Tac.Model;
 using Tac.Model.Elements;
@@ -17,41 +16,43 @@ using Prototypist.TaskChain;
 
 namespace Tac.Backend.Emit._2.Walkers
 {
-
+    /// <summary>
+    /// encosed is used for locals or fields that are picked up in a closure
+    /// </summary>
     public class Enclosed<T>
     {
         public T value;
     }
 
-    public class IndexerList
-    {
+    //public class IndexerList
+    //{
 
-        public IIsPossibly<int> GetOrAdd(IVerifiableType fromType, IVerifiableType toType)
-        {
-            if (fromType.Equals(toType))
-            {
-                return Possibly.IsNot<int>();
-            }
+    //    public IIsPossibly<int> GetOrAdd(IVerifiableType fromType, IVerifiableType toType)
+    //    {
+    //        if (fromType.Equals(toType))
+    //        {
+    //            return Possibly.IsNot<int>();
+    //        }
 
-            var myIndexer = Indexer.Create(fromType, toType);
-            if (myIndexer == null)
-            {
-                return Possibly.IsNot<int>();
-            }
+    //        var myIndexer = Indexer.Create(fromType, toType);
+    //        if (myIndexer == null)
+    //        {
+    //            return Possibly.IsNot<int>();
+    //        }
 
-            var index = indexers.IndexOf(myIndexer);
-            if (index != -1)
-            {
-                return Possibly.Is(index);
-            }
+    //        var index = indexers.IndexOf(myIndexer);
+    //        if (index != -1)
+    //        {
+    //            return Possibly.Is(index);
+    //        }
 
-            indexers.Add(myIndexer);
+    //        indexers.Add(myIndexer);
 
-            return Possibly.Is(indexers.Count - 1);
-        }
+    //        return Possibly.Is(indexers.Count - 1);
+    //    }
 
-        public List<Indexer> indexers = new List<Indexer>();
-    }
+    //    public List<Indexer> indexers = new List<Indexer>();
+    //}
 
     //public class VerifyableTypesList
     //{
@@ -284,7 +285,7 @@ namespace Tac.Backend.Emit._2.Walkers
 
         public readonly List<DebuggableILGenerator> gens;
         private readonly ModuleBuilder moduleBuilder;
-        public readonly IndexerList indexerList;
+        //public readonly IndexerList indexerList;
         //public readonly VerifyableTypesList verifyableTypesList;
 
 
@@ -292,8 +293,7 @@ namespace Tac.Backend.Emit._2.Walkers
         private readonly MemberKindLookup memberKindLookup;
         private readonly ExtensionLookup extensionLookup;
         private readonly RealizedMethodLookup realizedMethodLookup;
-        private readonly ConcurrentIndexed<IVerifiableType, TypeBuilder> typeCache;
-        private readonly ConcurrentIndexed<IObjectDefiniton, TypeBuilder> objectCache;
+        private readonly TypeTracker typeTracker;
         private readonly ConcurrentIndexed<(System.Type, System.Type), TypeBuilder> conversionTypes;
         public readonly TypeBuilder rootType;
         public readonly FieldBuilder rootSelfField;
@@ -317,12 +317,11 @@ namespace Tac.Backend.Emit._2.Walkers
             GeneratorHolder generatorHolder,
             MemberKindLookup memberKindLookup,
             ExtensionLookup extensionLookup,
-            ConcurrentIndexed<IVerifiableType, TypeBuilder> typeCache,
-            ConcurrentIndexed<IObjectDefiniton, TypeBuilder> objectCache,
+            TypeTracker typeTracker,
             ConcurrentIndexed<(System.Type, System.Type), TypeBuilder> conversionTypes,
             TypeBuilder rootType,
              FieldBuilder rootSelfField,
-             IndexerList indexerList,
+             //IndexerList indexerList,
              //VerifyableTypesList verifyableTypesList,
              RealizedMethodLookup realizedMethodLookup,
              List<DebuggableILGenerator> gens
@@ -332,12 +331,11 @@ namespace Tac.Backend.Emit._2.Walkers
             this.generatorHolder = generatorHolder ?? throw new ArgumentNullException(nameof(generatorHolder));
             this.memberKindLookup = memberKindLookup ?? throw new ArgumentNullException(nameof(memberKindLookup));
             this.extensionLookup = extensionLookup ?? throw new ArgumentNullException(nameof(extensionLookup));
-            this.typeCache = typeCache ?? throw new ArgumentNullException(nameof(typeCache));
-            this.objectCache = objectCache ?? throw new ArgumentNullException(nameof(objectCache));
+            this.typeTracker = typeTracker ?? throw new ArgumentNullException(nameof(typeTracker));
             this.conversionTypes = conversionTypes ?? throw new ArgumentNullException(nameof(conversionTypes));
             this.rootType = rootType ?? throw new ArgumentNullException(nameof(rootType));
             this.rootSelfField = rootSelfField ?? throw new ArgumentNullException(nameof(rootSelfField));
-            this.indexerList = indexerList ?? throw new ArgumentNullException(nameof(indexerList));
+            //this.indexerList = indexerList ?? throw new ArgumentNullException(nameof(indexerList));
             //this.verifyableTypesList = verifyableTypesList ?? throw new ArgumentNullException(nameof(verifyableTypesList));
             this.realizedMethodLookup = realizedMethodLookup ?? throw new ArgumentNullException(nameof(realizedMethodLookup));
             this.gens = gens ?? throw new ArgumentNullException(nameof(gens));
@@ -346,8 +344,7 @@ namespace Tac.Backend.Emit._2.Walkers
         public static (AssemblerVisitor, Action) Create(
             MemberKindLookup memberKindLookup,
             ExtensionLookup extensionLookup,
-            ConcurrentIndexed<IVerifiableType, TypeBuilder> typeCache,
-            ConcurrentIndexed<IObjectDefiniton, TypeBuilder> objectCache,
+            TypeTracker typeTracker,
             ConcurrentIndexed<(System.Type, System.Type), TypeBuilder> conversionTypes,
             ModuleBuilder moduleBuilder,
             RealizedMethodLookup realizedMethodLookup,
@@ -376,7 +373,7 @@ namespace Tac.Backend.Emit._2.Walkers
 
 
             return
-                (new AssemblerVisitor(new List<ICodeElement>(), generatorHolder, memberKindLookup, extensionLookup, typeCache, objectCache, conversionTypes, typebuilder, selfField, new IndexerList(), /*new VerifyableTypesList(),*/ realizedMethodLookup, gens), () =>
+                (new AssemblerVisitor(new List<ICodeElement>(), generatorHolder, memberKindLookup, extensionLookup, typeTracker, conversionTypes, typebuilder, selfField, /*new IndexerList(),*/ /*new VerifyableTypesList(),*/ realizedMethodLookup, gens), () =>
                 {
                     while (generatorHolder.EvaluationStackDepth > 0)
                     {
@@ -391,7 +388,7 @@ namespace Tac.Backend.Emit._2.Walkers
         {
             var list = stack.ToList();
             list.Add(another);
-            return new AssemblerVisitor(list, generatorHolder, memberKindLookup, extensionLookup, typeCache, objectCache, conversionTypes, rootType, rootSelfField, indexerList, /*verifyableTypesList,*/ realizedMethodLookup, gens);
+            return new AssemblerVisitor(list, generatorHolder, memberKindLookup, extensionLookup, typeTracker, conversionTypes, rootType, rootSelfField, /*indexerList,*/ /*verifyableTypesList,*/ realizedMethodLookup, gens);
         }
 
 
@@ -400,7 +397,7 @@ namespace Tac.Backend.Emit._2.Walkers
             var list = stack.ToList();
             list.Add(another);
             gens.Add(gen);
-            return new AssemblerVisitor(list, new GeneratorHolder(Possibly.Is(gen)), memberKindLookup, extensionLookup, typeCache, objectCache, conversionTypes, rootType, rootSelfField, indexerList, /*verifyableTypesList,*/ realizedMethodLookup, gens);
+            return new AssemblerVisitor(list, new GeneratorHolder(Possibly.Is(gen)), memberKindLookup, extensionLookup, typeTracker, conversionTypes, rootType, rootSelfField, /*indexerList,*/ /*verifyableTypesList,*/ realizedMethodLookup, gens);
         }
 
         public Nothing AddOperation(IAddOperation co)
@@ -425,13 +422,13 @@ namespace Tac.Backend.Emit._2.Walkers
                 }
                 else
                 {
-                    if (typeCache.TryGetValue(fromType, out var toCSharpeType))
+                    var fromCSharpeType= typeTracker.IdempotentAddType(fromType);
+
+                    if (new[] { typeof(bool), typeof(double) }.Contains(fromCSharpeType))
                     {
-                        if (new[] { typeof(bool), typeof(double) }.Contains(toCSharpeType))
-                        {
-                            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Box, toCSharpeType);
-                        }
+                        generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Box, fromCSharpeType);
                     }
+                    
                     return;
                 }
             }
@@ -439,37 +436,36 @@ namespace Tac.Backend.Emit._2.Walkers
             // we don't cast for an or unless we need to
             if (toType.SafeIs(out ITypeOr _))
             {
+                var fromCSharpeType = typeTracker.IdempotentAddType(fromType);
 
-                if (typeCache.TryGetValue(fromType, out var toCSharpeType))
+                if (new[] { typeof(bool), typeof(double) }.Contains(fromCSharpeType))
                 {
-                    if (new[] { typeof(bool), typeof(double) }.Contains(toCSharpeType))
-                    {
-                        generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Box, toCSharpeType);
-                        return;
-                    }
+                    generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Box, fromCSharpeType);
+                    return;
                 }
-                if (typeCache[toType] == typeof(object))
+                if (fromCSharpeType == typeof(object))
                 {
                     return;
                 }
             }
 
             {
-                if (typeCache.TryGetValue(fromType, out var fromCSharpeType) && typeCache.TryGetValue(toType, out var toCSharpeType))
-                {
-                    var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(fromCSharpeType, Guid.NewGuid());
-                    StoreLocal(loc.LocalIndex);
-                    // TODO
-                    // this is a bit weird, it is called both at runtime and at complie time
-                    // but they share a type lookup table
-                    // this means we can't really ship assemblies
-                    var type = AssemblyWalkerHelp.EmitTypeThatWrapsAndImplementsCompileTime(fromCSharpeType, toCSharpeType, moduleBuilder, conversionTypes);
+                var fromCSharpeType = typeTracker.IdempotentAddType(fromType);
+                var toCSharpeType = typeTracker.IdempotentAddType(toType);
 
-                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Newobj, type.GetConstructor(new System.Type[] { }));
-                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
-                    LoadLocal(loc.LocalIndex);
-                    generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Stfld, type.GetField(AssemblyWalkerHelp.backingName));
+                if (fromCSharpeType.IsAssignableTo(toCSharpeType)) {
+                    return;
                 }
+
+                var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(fromCSharpeType, Guid.NewGuid());
+                StoreLocal(loc.LocalIndex);
+
+                var type = AssemblyWalkerHelp.EmitTypeThatWrapsAndImplementsCompileTime(fromCSharpeType, toCSharpeType, moduleBuilder, conversionTypes);
+
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Newobj, type.GetConstructor(new System.Type[] { }));
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
+                LoadLocal(loc.LocalIndex);
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Stfld, type.GetField(AssemblyWalkerHelp.backingName));
             }
 
             // we create the indexer now
@@ -709,7 +705,7 @@ namespace Tac.Backend.Emit._2.Walkers
                         generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
                     }
 
-                    var field = typeof(Enclosed<>).MakeGenericType(typeCache[memberReference.MemberDefinition.Type]).GetField(nameof(Enclosed<int>.value));
+                    var field = typeof(Enclosed<>).MakeGenericType(typeTracker.IdempotentAddType(memberReference.MemberDefinition.Type)).GetField(nameof(Enclosed<int>.value));
 
                     generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
                     return new Nothing();
@@ -740,19 +736,16 @@ namespace Tac.Backend.Emit._2.Walkers
                     PossiblyConvert(co.Left.Returns(), co.Right.Returns());
 
                     var cSharpType = orTypeTacField.SwitchReturns(
-                        x => typeCache[x.Returns()],
-                        x => typeCache[x],
-                        x => typeCache[x]);
+                        x => typeTracker.IdempotentAddType(x.Returns()),
+                        x => typeTracker.IdempotentAddType(x),
+                        x => typeTracker.IdempotentAddType(x));
 
                     return CallSet(leaveOnStack, memberReference, cSharpType);
 
                     throw new Exception("this is part of a path and we are explictily not part of a path, we are a member ref directly inside an assignment");
 
                 }
-                else
-
-                // field includes stuff on the closure
-                if (IsField(context, memberReference.MemberDefinition, out var _))
+                else if (IsField(context, memberReference.MemberDefinition, out var _)) // field includes stuff on the closure
                 {
                     var realizedMethod = context.SwitchReturns(
                         entryPoint => realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(entryPoint)),
@@ -764,6 +757,8 @@ namespace Tac.Backend.Emit._2.Walkers
                     generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_0);
 
                     return realizedMethod.fieldOrFieldPair[memberReference.MemberDefinition].SwitchReturns(
+                        // it's on "this"
+                        // it could be an implementations context
                         field =>
                         {
                             co.Left.Convert(this.Push(co));
@@ -772,17 +767,25 @@ namespace Tac.Backend.Emit._2.Walkers
 
                             return new Nothing();
                         },
+                        // it's on a field that is on "this"
+                        // probably it is on the clouse
+                        // clouse fields are of type Enclosed<T>
+                        // so that they can be accessed by the place they were defined and the method that picked them up
                         pair =>
                         {
                             generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, pair.funcField);
 
                             co.Left.Convert(this.Push(co));
                             PossiblyConvert(co.Left.Returns(), co.Right.Returns());
-
                             StoreField(pair.path, leaveOnStack, memberReference);
 
                             return new Nothing();
                         },
+                        // it's a property of "this"
+                        // take
+                        // y := object { x := 5; f = method [int;int] { return x; }
+                        // our object "y" is captured by the closure of the method
+                        // and x is a propertry
                         pair =>
                         {
                             generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, pair.funcField);
@@ -792,7 +795,7 @@ namespace Tac.Backend.Emit._2.Walkers
                             co.Left.Convert(this.Push(co));
                             PossiblyConvert(co.Left.Returns(), co.Right.Returns());
 
-                            return CallSet(leaveOnStack, memberReference, typeCache[co.Right.Returns()]);
+                            return CallSet(leaveOnStack, memberReference, typeTracker.IdempotentAddType(co.Right.Returns()));
 
                             throw new Exception("this is part of a path and we are explictily not part of a path, we are a member ref directly inside an assignment");
 
@@ -817,7 +820,7 @@ namespace Tac.Backend.Emit._2.Walkers
 
                         generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
 
-                        var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[memberReference.MemberDefinition.Type], Guid.NewGuid());
+                        var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeTracker.IdempotentAddType(memberReference.MemberDefinition.Type), Guid.NewGuid());
                         StoreLocal(loc.LocalIndex);
 
                         generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, fieldInfo);
@@ -844,7 +847,7 @@ namespace Tac.Backend.Emit._2.Walkers
                 // even tho it is the second parameter of setComplexMember/setSimpleMember
                 co.Left.Convert(this.Push(co));
 
-                var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[co.Left.Returns()], Guid.NewGuid());
+                var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeTracker.IdempotentAddType(co.Left.Returns()), Guid.NewGuid());
                 StoreLocal(loc.LocalIndex);
 
                 // who we are calling it on
@@ -865,7 +868,7 @@ namespace Tac.Backend.Emit._2.Walkers
 
                     if (returned.SafeIs(out IInterfaceType _) || returned.SafeIs(out ITypeOr _))
                     {
-                        return CallSet(leaveOnStack, pathMemberReference, typeCache[returned]);
+                        return CallSet(leaveOnStack, pathMemberReference, typeTracker.IdempotentAddType(returned));
                     }
                     else
                     {
@@ -891,7 +894,7 @@ namespace Tac.Backend.Emit._2.Walkers
 
                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
 
-                var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[memberReference.MemberDefinition.Type], Guid.NewGuid());
+                var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeTracker.IdempotentAddType(memberReference.MemberDefinition.Type), Guid.NewGuid());
                 StoreLocal(loc.LocalIndex);
 
                 generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
@@ -906,7 +909,7 @@ namespace Tac.Backend.Emit._2.Walkers
 
         private void InnerCallSet(IMemberReference memberReference, System.Type CSharpType)
         {
-            generatorHolder.GetGeneratorAndUpdateStack(-2).EmitCall(OpCodes.Call, CSharpType.GetMethod($"set_{TypeVisitor.ConvertName(memberReference.MemberDefinition.Key.CastTo<NameKey>().Name)}"));
+            generatorHolder.GetGeneratorAndUpdateStack(-2).EmitCall(OpCodes.Call, CSharpType.GetMethod($"set_{TypeTracker.ConvertName(memberReference.MemberDefinition.Key.CastTo<NameKey>().Name)}"));
         }
 
         private Nothing CallSet(bool leaveOnStack, IMemberReference memberReference, System.Type CSharpType)
@@ -920,7 +923,7 @@ namespace Tac.Backend.Emit._2.Walkers
             if (leaveOnStack)
             {
                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
-                var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[memberReference.MemberDefinition.Type], Guid.NewGuid());
+                var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeTracker.IdempotentAddType(memberReference.MemberDefinition.Type), Guid.NewGuid());
                 StoreLocal(loc.LocalIndex);
 
                 InnerCallSet(memberReference, CSharpType);
@@ -960,7 +963,7 @@ namespace Tac.Backend.Emit._2.Walkers
         {
             foreach (var local in codeElement.Scope.Members)
             {
-                generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[local.Value.Value.Type], local.Value.Value);
+                generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeTracker.IdempotentAddType(local.Value.Value.Type), local.Value.Value);
             }
 
             // this is nothing to MSIL
@@ -1105,7 +1108,8 @@ namespace Tac.Backend.Emit._2.Walkers
                 GenerateName(),
                 MethodAttributes.Public,
                 CallingConventions.HasThis,
-                typeCache[entryPointDefinition.OutputType], new System.Type[] { typeCache[entryPointDefinition.InputType] });
+                typeTracker.IdempotentAddType(entryPointDefinition.OutputType), 
+                new System.Type[] { typeTracker.IdempotentAddType(entryPointDefinition.InputType) });
 
 
             var gen = new DebuggableILGenerator(myMethod.GetILGenerator(), "main");
@@ -1134,9 +1138,9 @@ namespace Tac.Backend.Emit._2.Walkers
             // now I need to make a TacMethod or whatever
 
             generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldftn, myMethod);
-            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Newobj, typeof(Func<,>).MakeGenericType(typeCache[entryPointDefinition.InputType], typeCache[entryPointDefinition.OutputType]).GetConstructors().First());           // TODO lazy this reflection
+            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Newobj, typeof(Func<,>).MakeGenericType(typeTracker.IdempotentAddType(entryPointDefinition.InputType), typeTracker.IdempotentAddType(entryPointDefinition.OutputType)).GetConstructors().First());           // TODO lazy this reflection
 
-            var mainField = typeof(TacCompilation<,>).MakeGenericType(typeCache[entryPointDefinition.InputType], typeCache[entryPointDefinition.OutputType]).GetField(nameof(TacCompilation<int, int>.main)) ?? throw new NullReferenceException("that field better exist");
+            var mainField = typeof(TacCompilation<,>).MakeGenericType(typeTracker.IdempotentAddType(entryPointDefinition.InputType), typeTracker.IdempotentAddType(entryPointDefinition.OutputType)).GetField(nameof(TacCompilation<int, int>.main)) ?? throw new NullReferenceException("that field better exist");
 
             generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, mainField);
 
@@ -1151,11 +1155,11 @@ namespace Tac.Backend.Emit._2.Walkers
             {
                 if (IsLocal(context, local.Value.Value, out var _))
                 {
-                    generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[local.Value.Value.Type], local.Value.Value);
+                    generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeTracker.IdempotentAddType(local.Value.Value.Type), local.Value.Value);
                 }
                 else if (IsEnclosedLocal(context, local.Value.Value, out var _))
                 {
-                    var enclosedType = typeof(Enclosed<>).MakeGenericType(typeCache[local.Value.Value.Type]);
+                    var enclosedType = typeof(Enclosed<>).MakeGenericType(typeTracker.IdempotentAddType(local.Value.Value.Type));
 
                     var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(enclosedType, local.Value.Value);
 
@@ -1294,7 +1298,7 @@ namespace Tac.Backend.Emit._2.Walkers
                 LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDefinition));
                 if (!forClosure)
                 {
-                    var field = typeof(Enclosed<>).MakeGenericType(typeCache[memberDefinition.Type]).GetField(nameof(Enclosed<int>.value));
+                    var field = typeof(Enclosed<>).MakeGenericType(typeTracker.IdempotentAddType(memberDefinition.Type)).GetField(nameof(Enclosed<int>.value));
                     generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, field);
                 }
                 return new Nothing();
@@ -1321,9 +1325,9 @@ namespace Tac.Backend.Emit._2.Walkers
                 }
 
                 var cSharpType = orTypeTacField.SwitchReturns(
-                    x => typeCache[x.Returns()],
-                    x => typeCache[x],
-                    x => typeCache[x]);
+                    x => typeTracker.IdempotentAddType(x.Returns()),
+                    x => typeTracker.IdempotentAddType(x),
+                    x => typeTracker.IdempotentAddType(x));
 
                 // this "b" inside a path like: a.b
                 // we count on "a" to have already been load
@@ -1388,7 +1392,7 @@ namespace Tac.Backend.Emit._2.Walkers
             {
                 throw new Exception("this should nenver have been accessed");
             }
-            generatorHolder.GetGeneratorAndUpdateStack(0).EmitCall(OpCodes.Call, CSharpType.GetMethod($"get_{TypeVisitor.ConvertName(memberDefinition.Key.CastTo<NameKey>().Name)}"));
+            generatorHolder.GetGeneratorAndUpdateStack(0).EmitCall(OpCodes.Call, CSharpType.GetMethod($"get_{TypeTracker.ConvertName(memberDefinition.Key.CastTo<NameKey>().Name)}"));
 
             return new Nothing();
 
@@ -1579,7 +1583,7 @@ namespace Tac.Backend.Emit._2.Walkers
 
             var realizedMethod = realizedMethodLookup.GetValueOrThrow(OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(method));
             var name = GenerateName();
-            var myMethod = realizedMethod.type.DefineMethod(name, MethodAttributes.Public, CallingConventions.HasThis, typeCache[method.OutputType], new[] { typeCache[method.InputType] });
+            var myMethod = realizedMethod.type.DefineMethod(name, MethodAttributes.Public, CallingConventions.HasThis, typeTracker.IdempotentAddType(method.OutputType), new[] { typeTracker.IdempotentAddType(method.InputType) });
 
             var gen = new DebuggableILGenerator(myMethod.GetILGenerator(), name);
 
@@ -1605,7 +1609,7 @@ namespace Tac.Backend.Emit._2.Walkers
 
             generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldftn, myMethod);
 
-            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Newobj, typeof(Func<,>).MakeGenericType(new System.Type[] { typeCache[method.InputType], typeCache[method.OutputType] }).GetConstructors().First());
+            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Newobj, typeof(Func<,>).MakeGenericType(new System.Type[] { typeTracker.IdempotentAddType(method.InputType), typeTracker.IdempotentAddType(method.OutputType) }).GetConstructors().First());
 
             //GetVerifyableType(method.Returns());
 
@@ -1646,7 +1650,7 @@ namespace Tac.Backend.Emit._2.Walkers
 
                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_1);
 
-                var field = typeof(Enclosed<>).MakeGenericType(typeCache[method.ParameterDefinition.Type]).GetField(nameof(Enclosed<int>.value));
+                var field = typeof(Enclosed<>).MakeGenericType(typeTracker.IdempotentAddType(method.ParameterDefinition.Type)).GetField(nameof(Enclosed<int>.value));
 
                 generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
             }
@@ -1725,8 +1729,8 @@ namespace Tac.Backend.Emit._2.Walkers
                 throw new Exception("it has got to be a method");
             }
 
-            var inType = typeCache[method.InputType];
-            var outType = typeCache[method.OutputType];
+            var inType = typeTracker.IdempotentAddType(method.InputType);
+            var outType = typeTracker.IdempotentAddType(method.OutputType);
 
 
             // the method and then the input on to the stack
@@ -1737,7 +1741,7 @@ namespace Tac.Backend.Emit._2.Walkers
             // {6820D180-0335-40E4-A9AA-22130FB3BC6D} I do this in other places
 
             co.Left.Convert(this.Push(co));
-            var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[co.Left.Returns()], Guid.NewGuid());
+            var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeTracker.IdempotentAddType(co.Left.Returns()), Guid.NewGuid());
             StoreLocal(loc.LocalIndex);
 
             co.Right.Convert(this.Push(co));
@@ -1799,7 +1803,7 @@ namespace Tac.Backend.Emit._2.Walkers
 
         public Nothing ObjectDefinition(IObjectDefiniton @object)
         {
-            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Newobj, objectCache.GetOrThrow(@object).GetConstructor(new System.Type[] { }));
+            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Newobj, typeTracker.IdempotentAddObject(@object).GetConstructor(new System.Type[] { }));
 
             // init members
             var next = this.Push(@object);
@@ -1889,7 +1893,7 @@ namespace Tac.Backend.Emit._2.Walkers
         {
             foreach (var local in tryAssignOperation.Scope.Members)
             {
-                generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeCache[local.Value.Value.Type], local.Value.Value);
+                generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(typeTracker.IdempotentAddType(local.Value.Value.Type), local.Value.Value);
             }
 
             var topOfElseLabel = generatorHolder.GetGeneratorAndUpdateStack(0).DefineLabel();
@@ -1901,7 +1905,7 @@ namespace Tac.Backend.Emit._2.Walkers
 
             var memberDef = tryAssignOperation.Right.SafeCastTo(out IMemberReference _).MemberDefinition;
 
-            GetVerifyableType(typeCache[memberDef.Type]);
+            GetVerifyableType(typeTracker.IdempotentAddType(memberDef.Type));
 
             generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldsfld, rootSelfField);
             generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, typeof(TacCompilation).GetField(nameof(TacCompilation.typeCache)));
@@ -1911,18 +1915,18 @@ namespace Tac.Backend.Emit._2.Walkers
 
             generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Brfalse, topOfElseLabel);
 
-            if (typeCache[memberDef.Type] == typeof(bool))
+            if (typeTracker.IdempotentAddType(memberDef.Type) == typeof(bool))
             {
                 generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Unbox_Any, typeof(bool));
             }
-            else if (typeCache[memberDef.Type] == typeof(double))
+            else if (typeTracker.IdempotentAddType(memberDef.Type) == typeof(double))
             {
                 generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Unbox_Any, typeof(double));
             }
             else
             {
                 // we need to put this type of the stack typeCache[memberDef.Type];
-                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldtoken, typeCache[memberDef.Type]);
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldtoken, typeTracker.IdempotentAddType(memberDef.Type));
 
                 // type typeCache
                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldsfld, rootSelfField);
@@ -1945,7 +1949,7 @@ namespace Tac.Backend.Emit._2.Walkers
             {
                 LoadLocal(generatorHolder.GetGeneratorAndUpdateStack(0).GetLocalIndex(memberDef));
 
-                var field = typeof(Enclosed<>).MakeGenericType(typeCache[memberDef.Type]).GetField(nameof(Enclosed<int>.value));
+                var field = typeof(Enclosed<>).MakeGenericType(typeTracker.IdempotentAddType(memberDef.Type)).GetField(nameof(Enclosed<int>.value));
 
                 generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
 
@@ -2305,6 +2309,11 @@ namespace Tac.Backend.Emit._2.Walkers
             // backingName should be an interface
             while (true)
             {
+                // early exit let's not make a dynamic assembly if we don't have to..
+                if (from.GetType().IsAssignableTo(implements)) {
+                    return from;
+                }
+
                 var field = from.GetType().GetField(backingName);
                 if (field == null)
                 {
@@ -2317,7 +2326,8 @@ namespace Tac.Backend.Emit._2.Walkers
             var assembly = System.Reflection.Emit.AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndCollect);
             var moduleBuilder = assembly.DefineDynamicModule(Compiler.GenerateName());
 
-            var resType = EmitTypeThatWrapsAndImplementsRunTime(from.GetType(), implements, moduleBuilder, typeCache, wrapsAndImplementsCache);
+            var wrapped = from.GetType();
+            var resType = EmitTypeThatWrapsAndImplementsRunTime(wrapped, implements, moduleBuilder, typeCache, wrapsAndImplementsCache); ;
 
             var res = Activator.CreateInstance(resType);
 
