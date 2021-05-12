@@ -61,6 +61,7 @@ namespace Tac.Backend.Emit._2
             var typeTracker = new TypeTracker(module.Value);
             var typeVisitor = new TypeVisitor(typeTracker);
             rootScope.Convert(typeVisitor);
+            typeTracker.CreateTypesAndProperties();
 
             var realizedMethodLookup = new RealizedMethodLookup();
             var methodMakerVisitor = new MethodMakerVisitor(module.Value, extensionLookup, realizedMethodLookup, typeTracker);
@@ -76,8 +77,8 @@ namespace Tac.Backend.Emit._2
                 conversionTypes,
                 module.Value,
                 realizedMethodLookup,
-                typeTracker.IdempotentAddType(rootScope.EntryPoint.InputType),
-                typeTracker.IdempotentAddType(rootScope.EntryPoint.OutputType));
+                typeTracker.GetType(rootScope.EntryPoint.InputType),
+                typeTracker.GetType(rootScope.EntryPoint.OutputType));
             rootScope.Convert(assemblerVisitor);
 
             //finish up
@@ -85,7 +86,6 @@ namespace Tac.Backend.Emit._2
             after();
 
             // we have to actually create the types
-            typeTracker.CreateTypes();
             realizedMethodLookup.CreateTypes();
             assemblerVisitor.rootType.CreateType();
 

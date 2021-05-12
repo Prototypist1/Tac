@@ -31,7 +31,7 @@ namespace Tac.Backend.Emit._2.Visitors
         private readonly ModuleBuilder moduleBuilder;
         private readonly ExtensionLookup extensionLookup;
         private readonly RealizedMethodLookup realizedMethodLookup;
-        public readonly TypeTracker typeTracker;
+        public readonly ITypeLookup typeTracker;
         
         public MethodMakerVisitor(ModuleBuilder moduleBuilder, ExtensionLookup extensionLookup, RealizedMethodLookup realizedMethodLookup, TypeTracker typeCache)
         {
@@ -179,7 +179,6 @@ namespace Tac.Backend.Emit._2.Visitors
                 },
                 entryPoint =>
                 {
-                    // everything is enclosed
                     var myType = typeof(Enclosed<>).MakeGenericType(TranslateType(member.Key.Type));
                     var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
                     map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), EnclosedObjectMember>((field, myType.GetField(nameof(Enclosed<int>.value))));
@@ -200,7 +199,7 @@ namespace Tac.Backend.Emit._2.Visitors
                 },
                 obj =>
                 {
-                    var myType = typeTracker.IdempotentAddType(obj.Returns());
+                    var myType = typeTracker.GetType(obj.Returns());
                     var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
                     map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), EnclosedObjectMember>( new EnclosedObjectMember(field));
                 });
@@ -235,7 +234,7 @@ namespace Tac.Backend.Emit._2.Visitors
 
         private System.Type TranslateType(IVerifiableType type)
         {
-            return typeTracker.IdempotentAddType(type);
+            return typeTracker.GetType(type);
         }
 
         private string TranslateName(string name)

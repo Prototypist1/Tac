@@ -20,13 +20,19 @@ namespace Tac.Backend.Emit._2.Walkers
     public class Empty { }
     class Nothing { }
 
+    interface ITypeLookup {
+        System.Type GetObject(IObjectDefiniton codeElement); 
+        System.Type GetType(IVerifiableType verifiableType);
+    }
 
-    class TypeTracker {
+    class TypeTracker : ITypeLookup
+    {
 
         private readonly ModuleBuilder moduleBuilder;
         public readonly ConcurrentIndexed<IVerifiableType, TypeBuilder> typeCache = new ConcurrentIndexed<IVerifiableType, TypeBuilder>();
         public readonly ConcurrentIndexed<IObjectDefiniton, TypeBuilder> objectCache = new ConcurrentIndexed<IObjectDefiniton, TypeBuilder>();
-        private readonly ConcurrentLinkedList<Action> actions = new ConcurrentLinkedList<Action>();
+        private readonly ConcurrentLinkedList<Action> typeActions = new ConcurrentLinkedList<Action>();
+        private readonly ConcurrentLinkedList<Action> objectActions = new ConcurrentLinkedList<Action>();
 
         public TypeTracker(ModuleBuilder moduleBuilder)
         {
@@ -51,6 +57,11 @@ namespace Tac.Backend.Emit._2.Walkers
         }
 
         public System.Type IdempotentAddType(IVerifiableType verifiableType)
+        {
+            return Inner(verifiableType, JitInterface);
+        }
+
+        private System.Type Inner(IVerifiableType verifiableType, Func<IOrType<ITypeOr, IInterfaceModuleType>,System.Type> MyJitInterface)
         {
             if (verifiableType is INumberType)
             {
@@ -80,7 +91,7 @@ namespace Tac.Backend.Emit._2.Walkers
             }
             else if (verifiableType.SafeIs(out IInterfaceModuleType moduleType))
             {
-                return JitInterface(OrType.Make<ITypeOr, IInterfaceModuleType>(moduleType));
+                return MyJitInterface(OrType.Make<ITypeOr, IInterfaceModuleType>(moduleType));
             }
             else if (verifiableType is IMethodType method)
             {
@@ -99,7 +110,7 @@ namespace Tac.Backend.Emit._2.Walkers
             else if (verifiableType is ITypeOr typeOr)
             {
                 // we try to find the intersection of the types
-                return MergeTypes(typeOr.Left, typeOr.Right, typeOr);
+                return MergeTypes(typeOr.Left, typeOr.Right, typeOr, MyJitInterface);
             }
             else
             {
@@ -107,22 +118,42 @@ namespace Tac.Backend.Emit._2.Walkers
             }
         }
 
+        private System.Type GetInterface(IOrType<ITypeOr, IInterfaceModuleType> key)
+        {
+            return typeCache.GetOrThrow(key.SwitchReturns<IVerifiableType>(x => x, x => x)).CreateType();
+        }
 
         private System.Type JitInterface(IOrType<ITypeOr, IInterfaceModuleType> key)
         {
             return typeCache.GetOrAdd(key.SwitchReturns<IVerifiableType>(x => x, x => x), () =>
             {
-                var res = moduleBuilder.DefineType(GetTypeName(), TypeAttributes.Public | TypeAttributes.Interface);
+                var res = moduleBuilder.DefineType(GetTypeName(), TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
 
-                actions.Add(() =>
+                typeActions.Add(() =>
                 {
                     foreach (var member in key.SwitchReturns(x => x.Members, x => x.Members))
                     {
-                        res.DefineProperty(
-                            ConvertName(member.Key.CastTo<NameKey>().Name), 
+                        var name = ConvertName(member.Key.CastTo<NameKey>().Name);
+                        var type = IdempotentAddType(member.Type);
+                        var property = res.DefineProperty(
+                            name, 
                             PropertyAttributes.None,
-                            IdempotentAddType(member.Type), 
+                            type, 
                             null);
+
+                        var getter = res.DefineMethod(
+                                "get_" + name,
+                                MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract,
+                                type,
+                                new System.Type[0]);
+                        property.SetGetMethod(getter);
+
+                        var setter = res.DefineMethod(
+                           "set_" + name,
+                           MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Abstract,
+                           null,
+                           new System.Type[] { type });
+                        property.SetSetMethod(setter);
                     }
                 });
 
@@ -137,7 +168,7 @@ namespace Tac.Backend.Emit._2.Walkers
             return name.Replace("-", "_");
         }
 
-        private System.Type MergeTypes(IVerifiableType left, IVerifiableType right, ITypeOr typeOr)
+        private System.Type MergeTypes(IVerifiableType left, IVerifiableType right, ITypeOr typeOr, Func<IOrType<ITypeOr, IInterfaceModuleType>, System.Type> MyJitInterface)
         {
             IdempotentAddType(left);
             IdempotentAddType(right);
@@ -174,7 +205,7 @@ namespace Tac.Backend.Emit._2.Walkers
             if (left.SafeIs(out IInterfaceModuleType _) && right.SafeIs(out IInterfaceModuleType _))
             {
                 // JIT a interface
-                return JitInterface(OrType.Make<ITypeOr, IInterfaceModuleType>(typeOr));
+                return MyJitInterface(OrType.Make<ITypeOr, IInterfaceModuleType>(typeOr));
             }
 
             // can it have members if both are neither an interface or a module
@@ -196,11 +227,25 @@ namespace Tac.Backend.Emit._2.Walkers
             throw new Exception("what case did I miis");
         }
 
-        internal void CreateTypes()
+        internal void CreateTypesAndProperties()
         {
+            // order is important here:
+            // interfaces must be complete before objects can implementment, thus "type" before "objects"
+
+            // we create all types in the main run
+            // but we don't create properties until after so we know all the TypeBuilder objects exists
+            // altho I am not sure I need to do that doing things lazy like might be enough...
+            foreach (var action in typeActions)
+            {
+                action();
+            }
             foreach (var type in typeCache.Values)
             {
                 type.CreateType();
+            }
+            foreach (var action in objectActions)
+            {
+                action();
             }
             foreach (var type in objectCache.Values)
             {
@@ -208,15 +253,18 @@ namespace Tac.Backend.Emit._2.Walkers
             }
         }
 
+
+
         internal TypeBuilder IdempotentAddObject(IObjectDefiniton codeElement)
         {
-            var interfactType = IdempotentAddType(codeElement.Returns());
+            var verifiedType = codeElement.Returns();
 
             return objectCache.GetOrAdd(codeElement, () =>
             {
-                var myConcreteType = moduleBuilder.DefineType(GetTypeName(), TypeAttributes.Public | TypeAttributes.Interface);
+                var interfactType = IdempotentAddType(verifiedType);
+                var myConcreteType = moduleBuilder.DefineType(GetTypeName(), TypeAttributes.Public);
 
-                actions.Add(() =>
+                objectActions.Add(() =>
                 {
 
                     myConcreteType.AddInterfaceImplementation(interfactType);
@@ -226,7 +274,11 @@ namespace Tac.Backend.Emit._2.Walkers
                         var field = myConcreteType.DefineField("_" + propertyInfo.Name.ToLower(), propertyInfo.PropertyType, FieldAttributes.Public);
                         var property = myConcreteType.DefineProperty(propertyInfo.Name, PropertyAttributes.None, propertyInfo.PropertyType, new System.Type[0]);
 
-                        var getter = myConcreteType.DefineMethod("get_" + propertyInfo.Name, MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.Virtual, propertyInfo.PropertyType, new System.Type[0]);
+                        var getter = myConcreteType.DefineMethod(
+                            "get_" + propertyInfo.Name,
+                            MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual,
+                            propertyInfo.PropertyType,
+                            new System.Type[0]);
                         var getGenerator = getter.GetILGenerator();
                         getGenerator.Emit(OpCodes.Ldarg_0);
                         getGenerator.Emit(OpCodes.Ldfld, field);
@@ -234,7 +286,11 @@ namespace Tac.Backend.Emit._2.Walkers
                         property.SetGetMethod(getter);
                         myConcreteType.DefineMethodOverride(getter, propertyInfo.GetGetMethod());
 
-                        var setter = myConcreteType.DefineMethod("set_" + propertyInfo.Name, MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.Virtual, null, new System.Type[] { propertyInfo.PropertyType });
+                        var setter = myConcreteType.DefineMethod(
+                            "set_" + propertyInfo.Name,
+                            MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual,
+                            null,
+                            new System.Type[] { propertyInfo.PropertyType });
                         var setGenerator = setter.GetILGenerator();
                         setGenerator.Emit(OpCodes.Ldarg_0);
                         setGenerator.Emit(OpCodes.Ldarg_1);
@@ -249,12 +305,15 @@ namespace Tac.Backend.Emit._2.Walkers
             });
         }
 
-        public void CreateTypeProperties()
+        public System.Type GetObject(IObjectDefiniton codeElement)
         {
-            foreach (var action in actions)
-            {
-                action();
-            }
+            return objectCache.GetOrThrow(codeElement).CreateType();
+        }
+
+        public System.Type GetType(IVerifiableType verifiableType)
+        {
+            return Inner(verifiableType, GetInterface);
+
         }
     }
 
