@@ -276,7 +276,7 @@ namespace Tac.Backend.Emit._2.Walkers
 
                         var getter = myConcreteType.DefineMethod(
                             "get_" + propertyInfo.Name,
-                            MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual,
+                            MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
                             propertyInfo.PropertyType,
                             new System.Type[0]);
                         var getGenerator = getter.GetILGenerator();
@@ -288,7 +288,7 @@ namespace Tac.Backend.Emit._2.Walkers
 
                         var setter = myConcreteType.DefineMethod(
                             "set_" + propertyInfo.Name,
-                            MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual,
+                            MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
                             null,
                             new System.Type[] { propertyInfo.PropertyType });
                         var setGenerator = setter.GetILGenerator();

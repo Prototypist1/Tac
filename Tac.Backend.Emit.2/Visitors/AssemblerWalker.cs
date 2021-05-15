@@ -466,7 +466,7 @@ namespace Tac.Backend.Emit._2.Walkers
                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Newobj, type.GetConstructor(new System.Type[] { }));
                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
                 LoadLocal(loc.LocalIndex);
-                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Stfld, type.GetField(AssemblyWalkerHelp.backingName));
+                generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, type.GetField(AssemblyWalkerHelp.backingName));
             }
 
             // we create the indexer now
@@ -2194,7 +2194,7 @@ namespace Tac.Backend.Emit._2.Walkers
                 {
                     CreateProperty(wrapped, (x, y) => EmitTypeThatWrapsAndImplementsCompileTime(x, y, moduleBuilder, wrapsAndImplementsCache), res, backing, propertyInfo);
                 }
-                res.CreateType();
+                var db = res.CreateType();
             }
 
             return res;
@@ -2270,7 +2270,7 @@ namespace Tac.Backend.Emit._2.Walkers
                 }
                 getGenerator.Emit(OpCodes.Ldarg_0);
                 getGenerator.Emit(OpCodes.Ldfld, backing);
-                getGenerator.Emit(OpCodes.Callvirt, propertyInfo.GetGetMethod());
+                getGenerator.Emit(OpCodes.Callvirt, wrapped.GetProperty(propertyInfo.Name).GetGetMethod());
                 if (weAreConverting)
                 {
                     getGenerator.Emit(OpCodes.Stfld, conversitionType.GetOrThrow().GetField(AssemblyWalkerHelp.backingName));
@@ -2298,7 +2298,7 @@ namespace Tac.Backend.Emit._2.Walkers
                 {
                     setGenerator.Emit(OpCodes.Stfld, conversitionType.GetOrThrow().GetField(AssemblyWalkerHelp.backingName));
                 }
-                setGenerator.Emit(OpCodes.Callvirt, propertyInfo.GetGetMethod());
+                setGenerator.Emit(OpCodes.Callvirt, wrapped.GetProperty(propertyInfo.Name).GetSetMethod());
                 setGenerator.Emit(OpCodes.Ret);
                 property.SetSetMethod(setter);
                 fillOut.DefineMethodOverride(setter, propertyInfo.GetSetMethod());

@@ -662,6 +662,68 @@ namespace Tac.Backend.Emit.Test
             , 0.0);
         }
 
+        // an even smaller verson of the LinkedList test, for easy debugging
+        // type T { T | empty next }
+        // T t := object { T | empty next := empty }
+        // t.next is empty t-empty { t-empty return }
+        // empty return 
+        [Fact]
+        public void LinkedListReallySimple()
+        {
+            var (node, nodeBuilder) = InterfaceType.Create();
+
+            var nodeOrNull = TypeOr.CreateAndBuild(node, new EmptyType());
+
+            var next = MemberDefinition.CreateAndBuild(new NameKey("next"), nodeOrNull, Model.Elements.Access.ReadWrite);
+
+            nodeBuilder.Build(new List<IMemberDefinition>
+            {
+                next
+            });
+
+            var t = MemberDefinition.CreateAndBuild(new NameKey("t"), node, Access.ReadWrite);
+            var tempty = MemberDefinition.CreateAndBuild(new NameKey("t-empty"), new EmptyType(), Access.ReadWrite);
+
+            var object1next = MemberDefinition.CreateAndBuild(new NameKey("next"), nodeOrNull, Access.ReadWrite);
+
+            Compiler.BuildAndRun<double, object>(
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
+                    EntryPointDefinition.CreateAndBuild(new AnyType(), MemberDefinition.CreateAndBuild(new NameKey("entry-input"), new NumberType(), Access.ReadWrite),
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                            new IsStatic(t, false)
+                        }),
+                        new List<ICodeElement> {
+                            AssignOperation.CreateAndBuild(
+                                ObjectDefiniton.CreateAndBuild(
+                                Scope.CreateAndBuild(new List<IsStatic>{
+                                    new IsStatic(object1next, false)
+                                }),
+                                new List<IAssignOperation>{
+                                    AssignOperation.CreateAndBuild(
+                                        EmptyInstance.CreateAndBuild(),
+                                        Model.Instantiated.MemberReference.CreateAndBuild(object1next))
+                                }),
+                                Model.Instantiated.MemberReference.CreateAndBuild(t)),
+                            TryAssignOperation.CreateAndBuild(
+                                PathOperation.CreateAndBuild( Model.Instantiated.MemberReference.CreateAndBuild(t), Model.Instantiated.MemberReference.CreateAndBuild(next)),
+                                Model.Instantiated.MemberReference.CreateAndBuild(tempty),
+                                BlockDefinition.CreateAndBuild(
+                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                    }),
+                                    new List<ICodeElement>{
+                                        ReturnOperation.CreateAndBuild(Model.Instantiated.MemberReference.CreateAndBuild(tempty))
+                                    },
+                                    Array.Empty<ICodeElement>()),
+                                Scope.CreateAndBuild(new List<IsStatic>{
+                                    new IsStatic(tempty, false)})),
+                                ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                        },
+                        Array.Empty<ICodeElement>()))
+            , 0.0);
+        }
+
         // a smaller verson of the LinkedList test, for easy debugging
         // type T { T | empty next }
         // T t := object { T | empty next := object { T | empty next := empty }}
@@ -716,30 +778,30 @@ namespace Tac.Backend.Emit.Test
                                         Model.Instantiated.MemberReference.CreateAndBuild(object1next))
                                 }),
                                 Model.Instantiated.MemberReference.CreateAndBuild(t)),
-                                TryAssignOperation.CreateAndBuild(
-                                    PathOperation.CreateAndBuild( Model.Instantiated.MemberReference.CreateAndBuild(t), Model.Instantiated.MemberReference.CreateAndBuild(next)),
-                                    Model.Instantiated.MemberReference.CreateAndBuild(tnext),
-                                    BlockDefinition.CreateAndBuild(
-                                        Scope.CreateAndBuild(new List<IsStatic>{
-                                        }),
-                                        new List<ICodeElement>{
-                                            TryAssignOperation.CreateAndBuild(
-                                                PathOperation.CreateAndBuild( Model.Instantiated.MemberReference.CreateAndBuild(tnext), Model.Instantiated.MemberReference.CreateAndBuild(next)),
-                                                Model.Instantiated.MemberReference.CreateAndBuild(tnextempty),
-                                                    BlockDefinition.CreateAndBuild(
-                                                        Scope.CreateAndBuild(new List<IsStatic>{
-                                                        }),
-                                                        new List<ICodeElement>{
-                                                            ReturnOperation.CreateAndBuild(Model.Instantiated.MemberReference.CreateAndBuild(tnextempty))
-                                                        },
-                                                        Array.Empty<ICodeElement>()),
-                                                    Scope.CreateAndBuild(new List<IsStatic>{
-                                                        new IsStatic(tnextempty, false)})),          
-                                                    },
-                                        Array.Empty<ICodeElement>()),
+                            TryAssignOperation.CreateAndBuild(
+                                PathOperation.CreateAndBuild( Model.Instantiated.MemberReference.CreateAndBuild(t), Model.Instantiated.MemberReference.CreateAndBuild(next)),
+                                Model.Instantiated.MemberReference.CreateAndBuild(tnext),
+                                BlockDefinition.CreateAndBuild(
                                     Scope.CreateAndBuild(new List<IsStatic>{
-                                        new IsStatic(tnext, false)})),
-                                ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                                    }),
+                                    new List<ICodeElement>{
+                                        TryAssignOperation.CreateAndBuild(
+                                            PathOperation.CreateAndBuild( Model.Instantiated.MemberReference.CreateAndBuild(tnext), Model.Instantiated.MemberReference.CreateAndBuild(next)),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(tnextempty),
+                                                BlockDefinition.CreateAndBuild(
+                                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                                    }),
+                                                    new List<ICodeElement>{
+                                                        ReturnOperation.CreateAndBuild(Model.Instantiated.MemberReference.CreateAndBuild(tnextempty))
+                                                    },
+                                                    Array.Empty<ICodeElement>()),
+                                                Scope.CreateAndBuild(new List<IsStatic>{
+                                                    new IsStatic(tnextempty, false)})),
+                                                },
+                                    Array.Empty<ICodeElement>()),
+                                Scope.CreateAndBuild(new List<IsStatic>{
+                                    new IsStatic(tnext, false)})),
+                            ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
                         Array.Empty<ICodeElement>()))
             , 0.0);
