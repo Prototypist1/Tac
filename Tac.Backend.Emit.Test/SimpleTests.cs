@@ -1282,6 +1282,224 @@ namespace Tac.Backend.Emit.Test
              , 0.0);
         }
 
+        // 5 =: object {number a := 1; number b := 2; number c := 3}.a
+        // return 
+        [Fact]
+        public void AssignOnAnonymousObject()
+        {
+            var abType = InterfaceType.CreateAndBuild(new List<IMemberDefinition>
+            {
+                MemberDefinition.CreateAndBuild(new NameKey("a"),new NumberType(),Access.ReadWrite),
+                MemberDefinition.CreateAndBuild(new NameKey("b"),new NumberType(),Access.ReadWrite)
+            });
+
+            var aType = InterfaceType.CreateAndBuild(new List<IMemberDefinition>
+            {
+                MemberDefinition.CreateAndBuild(new NameKey("a"),new NumberType(),Access.ReadWrite)
+            });
+
+            var orType = TypeOr.CreateAndBuild(aType, abType);
+
+            var orType_a = orType.Members.Where(x => x.Key.SafeIs(out NameKey nameKey) && nameKey.Name == "a").Single();
+
+            var a_or_ab = MemberDefinition.CreateAndBuild(new NameKey("a-or-ab"), orType, Access.ReadWrite);
+
+            var memA = MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite);
+            var memB = MemberDefinition.CreateAndBuild(new NameKey("b"), new NumberType(), Access.ReadWrite);
+            var memC = MemberDefinition.CreateAndBuild(new NameKey("c"), new NumberType(), Access.ReadWrite);
+
+            var object1 = ObjectDefiniton.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(memA, false),
+                                        new IsStatic(memB, false),
+                                        new IsStatic(memC, false)
+                        }),
+                        new List<IAssignOperation>{
+                                        AssignOperation.CreateAndBuild(
+                                            ConstantNumber.CreateAndBuild(1),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(memA)),
+                                        AssignOperation.CreateAndBuild(
+                                            ConstantNumber.CreateAndBuild(2),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(memB)),
+                                        AssignOperation.CreateAndBuild(
+                                            ConstantNumber.CreateAndBuild(3),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(memC))
+                        });
+
+            Compiler.BuildAndRun<double, object>(
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
+                        EntryPointDefinition.CreateAndBuild(new AnyType(), MemberDefinition.CreateAndBuild(new NameKey("entry-input"), new NumberType(), Access.ReadWrite),
+                            Scope.CreateAndBuild(new List<IsStatic>
+                            {
+                            }),
+                            new List<ICodeElement> {
+                                AssignOperation.CreateAndBuild(
+                                    ConstantNumber.CreateAndBuild(5),
+                                    PathOperation.CreateAndBuild(
+                                        object1,
+                                        Model.Instantiated.MemberReference.CreateAndBuild(orType_a)
+                                        )),
+                                ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                            },
+                            Array.Empty<ICodeElement>()))
+             , 0.0);
+        }
+
+        // maybe a member on an or type
+        // object {number a := 1; number b := 2; number c := 3} =: type { number a } | type {number a; number b} a_or_ab
+        // 4 =: a_or_ab.a
+        [Fact]
+        public void MemberOnOrTypeCompileTimeConvert()
+        {
+            var abType = InterfaceType.CreateAndBuild(new List<IMemberDefinition>
+            {
+                MemberDefinition.CreateAndBuild(new NameKey("a"),new NumberType(),Access.ReadWrite),
+                MemberDefinition.CreateAndBuild(new NameKey("b"),new NumberType(),Access.ReadWrite)
+            });
+
+            var aType = InterfaceType.CreateAndBuild(new List<IMemberDefinition>
+            {
+                MemberDefinition.CreateAndBuild(new NameKey("a"),new NumberType(),Access.ReadWrite)
+            });
+
+            var orType = TypeOr.CreateAndBuild(aType, abType);
+
+            var orType_a = orType.Members.Where(x => x.Key.SafeIs(out NameKey nameKey) && nameKey.Name == "a").Single();
+
+            var a_or_ab = MemberDefinition.CreateAndBuild(new NameKey("a-or-ab"), orType, Access.ReadWrite);
+
+            var memA = MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite);
+            var memB = MemberDefinition.CreateAndBuild(new NameKey("b"), new NumberType(), Access.ReadWrite);
+            var memC = MemberDefinition.CreateAndBuild(new NameKey("c"), new NumberType(), Access.ReadWrite);
+
+            var object1 = ObjectDefiniton.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(memA, false),
+                                        new IsStatic(memB, false),
+                                        new IsStatic(memC, false)
+                        }),
+                        new List<IAssignOperation>{
+                                        AssignOperation.CreateAndBuild(
+                                            ConstantNumber.CreateAndBuild(1),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(memA)),
+                                        AssignOperation.CreateAndBuild(
+                                            ConstantNumber.CreateAndBuild(2),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(memB)),
+                                        AssignOperation.CreateAndBuild(
+                                            ConstantNumber.CreateAndBuild(3),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(memC))
+                        });
+
+            Compiler.BuildAndRun<double, object>(
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
+                        EntryPointDefinition.CreateAndBuild(new AnyType(), MemberDefinition.CreateAndBuild(new NameKey("entry-input"), new NumberType(), Access.ReadWrite),
+                            Scope.CreateAndBuild(new List<IsStatic>
+                            {
+                                new IsStatic(a_or_ab, false)
+                            }),
+                            new List<ICodeElement> {
+                                AssignOperation.CreateAndBuild(
+                                    object1,
+                                    Model.Instantiated.MemberReference.CreateAndBuild(a_or_ab)),
+                                // TODO 
+                                // TODO
+                                // TODO
+                                // YOU ARE HERE
+                                // if I comment this out, then it works
+                                // I think it is trying to call the wrong set_a
+                                // like the one on the object instead of the one on the interface 
+                                AssignOperation.CreateAndBuild(
+                                    ConstantNumber.CreateAndBuild(4),
+                                    PathOperation.CreateAndBuild(
+                                        MemberReference.CreateAndBuild(a_or_ab),
+                                        MemberReference.CreateAndBuild(orType_a))),
+                                //PathOperation.CreateAndBuild(
+                                //        MemberReference.CreateAndBuild(a_or_ab),
+                                //        MemberReference.CreateAndBuild(orType_a)),
+                                ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                            },
+                            Array.Empty<ICodeElement>()))
+             , 0.0);
+        }
+
+        // object {number a := 1; number b := 2; number c := 3} =: type { number a } a
+        // 4 =: a.a
+        [Fact]
+        public void Set()
+        {
+
+            var aType = InterfaceType.CreateAndBuild(new List<IMemberDefinition>
+            {
+                MemberDefinition.CreateAndBuild(new NameKey("a"),new NumberType(),Access.ReadWrite)
+            });
+
+
+
+            var aType_a = aType.Members.Where(x => x.Key.SafeIs(out NameKey nameKey) && nameKey.Name == "a").Single();
+
+            var aMember = MemberDefinition.CreateAndBuild(new NameKey("a"), aType, Access.ReadWrite);
+
+            var memA = MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite);
+            var memB = MemberDefinition.CreateAndBuild(new NameKey("b"), new NumberType(), Access.ReadWrite);
+            var memC = MemberDefinition.CreateAndBuild(new NameKey("c"), new NumberType(), Access.ReadWrite);
+
+            var object1 = ObjectDefiniton.CreateAndBuild(
+                        Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(memA, false),
+                                        new IsStatic(memB, false),
+                                        new IsStatic(memC, false)
+                        }),
+                        new List<IAssignOperation>{
+                                        AssignOperation.CreateAndBuild(
+                                            ConstantNumber.CreateAndBuild(1),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(memA)),
+                                        AssignOperation.CreateAndBuild(
+                                            ConstantNumber.CreateAndBuild(2),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(memB)),
+                                        AssignOperation.CreateAndBuild(
+                                            ConstantNumber.CreateAndBuild(3),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(memC))
+                        });
+
+            Compiler.BuildAndRun<double, object>(
+                       Model.Instantiated.RootScope.CreateAndBuild(
+                        Scope.CreateAndBuild(Array.Empty<IsStatic>()),
+                        Array.Empty<IAssignOperation>(),
+                        EntryPointDefinition.CreateAndBuild(new AnyType(), MemberDefinition.CreateAndBuild(new NameKey("entry-input"), new NumberType(), Access.ReadWrite),
+                            Scope.CreateAndBuild(new List<IsStatic>
+                            {
+                                new IsStatic(aMember, false)
+                            }),
+                            new List<ICodeElement> {
+                                AssignOperation.CreateAndBuild(
+                                    object1,
+                                    Model.Instantiated.MemberReference.CreateAndBuild(aMember)),
+                                // TODO 
+                                // TODO
+                                // TODO
+                                // YOU ARE HERE
+                                // if I comment this out, then it works
+                                // I think it is trying to call the wrong set_a
+                                // like the one on the object instead of the one on the interface 
+                                AssignOperation.CreateAndBuild(
+                                    ConstantNumber.CreateAndBuild(4),
+                                    PathOperation.CreateAndBuild(
+                                        MemberReference.CreateAndBuild(aMember),
+                                        MemberReference.CreateAndBuild(aType_a))),
+                                //PathOperation.CreateAndBuild(
+                                //        MemberReference.CreateAndBuild(a_or_ab),
+                                //        MemberReference.CreateAndBuild(orType_a)),
+                                ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
+                            },
+                            Array.Empty<ICodeElement>()))
+             , 0.0);
+        }
+
+
         // an or with methods 
         // method[num,num|bool] x = method[bool|num,bool] { true return; }
         // 5 > x
@@ -1710,6 +1928,9 @@ namespace Tac.Backend.Emit.Test
 
             Assert.Equal(2.0, res);
         }
+
+        // TODO 
+        // maybe a method in side an or
 
 
         // this will be useful to keep around 

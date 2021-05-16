@@ -58,13 +58,15 @@ namespace Tac.Backend.Emit._2
             var memberKindVisitor = MemberKindVisitor.Make(memberKindLookup, extensionLookup);
             rootScope.Convert(memberKindVisitor);
 
-            var typeTracker = new TypeTracker(module.Value);
+            var gens = new List<DebuggableILGenerator>();
+
+            var typeTracker = new TypePassTypeTracker(module.Value, gens);
             var typeVisitor = new TypeVisitor(typeTracker);
             rootScope.Convert(typeVisitor);
-            typeTracker.CreateTypesAndProperties();
+            var typeTracker2 = typeTracker.CreateTypesAndProperties();
 
             var realizedMethodLookup = new RealizedMethodLookup();
-            var methodMakerVisitor = new MethodMakerVisitor(module.Value, extensionLookup, realizedMethodLookup, typeTracker);
+            var methodMakerVisitor = new MethodMakerVisitor(module.Value, extensionLookup, realizedMethodLookup, typeTracker2);
 
             rootScope.Convert(methodMakerVisitor);
 
@@ -73,12 +75,13 @@ namespace Tac.Backend.Emit._2
             var (assemblerVisitor, after) = AssemblerVisitor.Create(
                 memberKindLookup,
                 extensionLookup,
-                typeTracker,
+                typeTracker2,
                 conversionTypes,
                 module.Value,
                 realizedMethodLookup,
-                typeTracker.GetType(rootScope.EntryPoint.InputType),
-                typeTracker.GetType(rootScope.EntryPoint.OutputType));
+                typeTracker2.ResolvePossiblyPrimitive(rootScope.EntryPoint.InputType),
+                typeTracker2.ResolvePossiblyPrimitive(rootScope.EntryPoint.OutputType),
+                gens);
             rootScope.Convert(assemblerVisitor);
 
             //finish up
@@ -89,26 +92,36 @@ namespace Tac.Backend.Emit._2
             realizedMethodLookup.CreateTypes();
             assemblerVisitor.rootType.CreateType();
 
-            var yo = String.Join(Environment.NewLine, assemblerVisitor.gens.Select(x => x.GetDeubbingSting()));
+            var yo = String.Join(Environment.NewLine, gens.Select(x => x.GetDeubbingSting()));
 
             // now I need to reflexively find my type and call main
             var complitation = (TacCompilation)Assembly.Value.CreateInstance(assemblerVisitor.rootType.Name);
 
-            var runtimeTypeCache = new ConcurrentIndexed<System.Type,IVerifiableType>();
+            //var runtimeTypeCache = new ConcurrentIndexed<System.Type,IVerifiableType>();
 
-            foreach (var type in typeTracker.GetTypes())
-            {
-                runtimeTypeCache.AddOrThrow(type.Value, type.Key);
-            }
+            //foreach (var type in typeTracker.GetTypes())
+            //{
+            //    runtimeTypeCache.AddOrThrow(type.Value, type.Key);
+            //}
 
-            foreach (var pair in conversionTypes)
-            {
-                // the runtimeTypeCache shouldn't cause any trouble
-                // pair.Key.Item2 should all be root 
-                runtimeTypeCache.AddOrThrow(pair.Value, runtimeTypeCache[pair.Key.Item2]);
-            }
+            //foreach (var pair in conversionTypes)
+            //{
+            //    // the runtimeTypeCache shouldn't cause any trouble
+            //    // pair.Key.Item2 should all be root 
+            //    runtimeTypeCache.AddOrThrow(pair.Value, runtimeTypeCache[pair.Key.Item2]);
+            //}
 
-            complitation.typeCache = runtimeTypeCache;
+            //complitation.addType = (type, tacType) => { typeTracker.typeCache.AddOrThrow(type, tacType); };
+            //complitation.
+
+            //var wrapsAndImplementsCache = new ConcurrentIndexed<(System.Type, System.Type), System.Type>();
+
+            //foreach (var conversion in conversionTypes)
+            //{
+            //    wrapsAndImplementsCache[conversion.Key] = conversion.Value;
+            //}
+
+            complitation.runTimeTypeTracker = typeTracker2.RunTimeTypeTracker();
             //complitation.indexerArray = assemblerVisitor.indexerList.indexers.ToArray();
             //complitation.verifyableTypesArray = assemblerVisitor.verifyableTypesList.types.ToArray();
             complitation.Init();

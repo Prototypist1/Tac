@@ -31,9 +31,9 @@ namespace Tac.Backend.Emit._2.Visitors
         private readonly ModuleBuilder moduleBuilder;
         private readonly ExtensionLookup extensionLookup;
         private readonly RealizedMethodLookup realizedMethodLookup;
-        public readonly ITypeLookup typeTracker;
+        public readonly AssemblerTypeTracker typeTracker;
         
-        public MethodMakerVisitor(ModuleBuilder moduleBuilder, ExtensionLookup extensionLookup, RealizedMethodLookup realizedMethodLookup, TypeTracker typeCache)
+        public MethodMakerVisitor(ModuleBuilder moduleBuilder, ExtensionLookup extensionLookup, RealizedMethodLookup realizedMethodLookup, AssemblerTypeTracker typeCache)
         {
             this.moduleBuilder = moduleBuilder ?? throw new ArgumentNullException(nameof(moduleBuilder));
             this.extensionLookup = extensionLookup ?? throw new ArgumentNullException(nameof(extensionLookup));
@@ -199,7 +199,7 @@ namespace Tac.Backend.Emit._2.Visitors
                 },
                 obj =>
                 {
-                    var myType = typeTracker.GetType(obj.Returns());
+                    var myType = typeTracker.ResolvePossiblyPrimitive(obj.Returns());
                     var field = typeBuilder.DefineField(TranslateName(member.Key.Key.SafeCastTo(out NameKey _).Name), myType, FieldAttributes.Public);
                     map[member.Key] = OrType.Make<FieldInfo, (FieldInfo funcField, FieldInfo path), EnclosedObjectMember>( new EnclosedObjectMember(field));
                 });
@@ -234,7 +234,7 @@ namespace Tac.Backend.Emit._2.Visitors
 
         private System.Type TranslateType(IVerifiableType type)
         {
-            return typeTracker.GetType(type);
+            return typeTracker.ResolvePossiblyPrimitive(type);
         }
 
         private string TranslateName(string name)
