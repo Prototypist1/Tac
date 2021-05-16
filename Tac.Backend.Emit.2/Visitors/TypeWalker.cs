@@ -12,6 +12,7 @@ using System.Text;
 //using Tac.Backend.Emit.Support;
 using Tac.Model;
 using Tac.Model.Elements;
+using Tac.Model.Instantiated;
 using Tac.Model.Operations;
 using Tac.Type;
 
@@ -26,7 +27,7 @@ namespace Tac.Backend.Emit._2.Walkers
     //}
 
 
-    public abstract class TypeTracker2 {
+    public abstract class TypeTracker {
         protected string GetTypeName() => "_" + Guid.NewGuid().ToString().ToLowerInvariant().Replace("-", "");
         protected static bool HasMember(IVerifiableType type)
         {
@@ -49,7 +50,7 @@ namespace Tac.Backend.Emit._2.Walkers
         }
     }
 
-    public abstract class TypeTracke2<T>: TypeTracker2 where T : System.Type {
+    public abstract class TypeTracker<T>: TypeTracker where T : System.Type {
        
 
         public System.Type ResolvePossiblyPrimitive(IVerifiableType verifiableType)
@@ -172,7 +173,7 @@ namespace Tac.Backend.Emit._2.Walkers
 
     }
 
-    public class TypePassTypeTracker : TypeTracke2<TypeBuilder>
+    public class TypePassTypeTracker : TypeTracker<TypeBuilder>
     {
         private readonly ConcurrentIndexed<IVerifiableType, TypeBuilder> typeCache = new ConcurrentIndexed<IVerifiableType, TypeBuilder>();
         private readonly ConcurrentIndexed<IObjectDefiniton, TypeBuilder> objectCache = new ConcurrentIndexed<IObjectDefiniton, TypeBuilder>();
@@ -321,7 +322,7 @@ namespace Tac.Backend.Emit._2.Walkers
         }
     }
 
-    public class AssemblerTypeTracker: TypeTracke2<System.Type>
+    public class AssemblerTypeTracker: TypeTracker<System.Type>
     {
         private readonly ConcurrentIndexed<IVerifiableType, System.Type> typeCache = new ConcurrentIndexed<IVerifiableType, System.Type>();
         private readonly ConcurrentIndexed<IObjectDefiniton, System.Type> objectCache = new ConcurrentIndexed<IObjectDefiniton, System.Type>();
@@ -384,6 +385,29 @@ namespace Tac.Backend.Emit._2.Walkers
         }
 
         public IVerifiableType LookUp(System.Type type) {
+
+            // is it really ok for this to reference the instantiated version? 
+            if (type == typeof(double))
+            {
+                return new NumberType();  ;
+            }
+            else if (type == typeof(bool))
+            {
+                return new BooleanType(); ;
+            }
+            else if (type == typeof(string) )
+            {
+                return new StringType();
+            }
+            else if (type == typeof(Empty))
+            {
+                return new EmptyType();
+            }
+            else if (type == typeof(object))
+            {
+                return new AnyType();
+            }
+
             return cache[type];
         }
 

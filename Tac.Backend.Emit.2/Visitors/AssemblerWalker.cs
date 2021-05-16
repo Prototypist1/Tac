@@ -912,7 +912,7 @@ namespace Tac.Backend.Emit._2.Walkers
 
         private void InnerCallSet(IMemberReference memberReference, System.Type CSharpType)
         {
-            generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Callvirt, CSharpType.GetMethod($"set_{TypeTracker2.ConvertName(memberReference.MemberDefinition.Key.CastTo<NameKey>().Name)}"));
+            generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Callvirt, CSharpType.GetMethod($"set_{TypeTracker.ConvertName(memberReference.MemberDefinition.Key.CastTo<NameKey>().Name)}"));
         }
 
         private Nothing CallSet(bool leaveOnStack, IMemberReference memberReference, System.Type CSharpType)
@@ -1395,7 +1395,7 @@ namespace Tac.Backend.Emit._2.Walkers
             {
                 throw new Exception("this should nenver have been accessed");
             }
-            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Callvirt, CSharpType.GetMethod($"get_{TypeTracker2.ConvertName(memberDefinition.Key.CastTo<NameKey>().Name)}"));
+            generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Callvirt, CSharpType.GetMethod($"get_{TypeTracker.ConvertName(memberDefinition.Key.CastTo<NameKey>().Name)}"));
 
             return new Nothing();
 
