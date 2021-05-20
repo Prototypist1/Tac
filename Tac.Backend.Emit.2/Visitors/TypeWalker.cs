@@ -112,6 +112,7 @@ namespace Tac.Backend.Emit._2.Walkers
 
         private System.Type MergeTypes(IVerifiableType left, IVerifiableType right, ITypeOr typeOr)
         {
+            // this sure looks like it could be about 5 lines
             ResolvePossiblyPrimitive(left);
             ResolvePossiblyPrimitive(right);
 
@@ -127,13 +128,17 @@ namespace Tac.Backend.Emit._2.Walkers
             // if either is an any... then the or can't be anything interesting
             if (left.SafeIs(out IAnyType _) || right.SafeIs(out IAnyType _))
             {
-                return typeof(object);
+                // we still git an interface
+                // there will be no properties or anything so I used to jsut use object
+                // but we need to be able to look up the IVerifiableType at runtime from a type
+                // so we need tac types and CIL type 1-1
+                return ResolveNotPrimitive(OrType.Make<ITypeOr, IInterfaceModuleType>(typeOr));
             }
 
             // if either is a primitive type... return empty?
             if (left.SafeIs(out IPrimitiveType _) || right.SafeIs(out IPrimitiveType _))
             {
-                return typeof(object);
+                return ResolveNotPrimitive(OrType.Make<ITypeOr, IInterfaceModuleType>(typeOr));
             }
 
             // if they are both methods 
@@ -159,11 +164,11 @@ namespace Tac.Backend.Emit._2.Walkers
             // if it is a method and something with members...
             if (HasMember(left) && right.TryGetInput().Is(out var _) && right.TryGetReturn().Is(out var _))
             {
-                return typeof(object);
+                return ResolveNotPrimitive(OrType.Make<ITypeOr, IInterfaceModuleType>(typeOr));
             }
             if (HasMember(right) && left.TryGetInput().Is(out var _) && left.TryGetReturn().Is(out var _))
             {
-                return typeof(object);
+                return ResolveNotPrimitive(OrType.Make<ITypeOr, IInterfaceModuleType>(typeOr));
             }
 
             throw new Exception("what case did I miis");

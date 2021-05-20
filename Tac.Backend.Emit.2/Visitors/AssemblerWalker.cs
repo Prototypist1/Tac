@@ -2113,17 +2113,31 @@ namespace Tac.Backend.Emit._2.Walkers
                 {
                     var args = oType.GetGenericArguments();
                     return targetType.TryGetIO().Is(out var IO) &&
-                        IO.input.TheyAreUs(typeCache.LookUp( args[0]), new List<(IVerifiableType, IVerifiableType)>()) &&
+                        IO.input.TheyAreUs(typeCache.LookUp(args[0]), new List<(IVerifiableType, IVerifiableType)>()) &&
                         typeCache.LookUp(args[1]).TheyAreUs(IO.output, new List<(IVerifiableType, IVerifiableType)>());
                 }
-                else {
+                else
+                {
                     throw new System.Exception("umm does it mean??");
                 }
             }
 
             // unwrap
+
+            return targetType.TheyAreUs(typeCache.LookUp(GetFromTYpe(o)), new List<(IVerifiableType, IVerifiableType)>());
+        }
+
+        // sorta duplicate
+        // {82834BE1-06E2-4EFC-8F37-B9ADCB4381BD}
+        private static System.Type GetFromTYpe(object o)
+        {
             while (true)
             {
+                if (o == null)
+                {
+                    return typeof(Empty);
+                }
+
                 var field = o.GetType().GetField(backingName);
                 if (field == null)
                 {
@@ -2132,7 +2146,7 @@ namespace Tac.Backend.Emit._2.Walkers
                 o = field.GetValue(o);
             }
 
-            return targetType.TheyAreUs(typeCache.LookUp(o.GetType()), new List<(IVerifiableType, IVerifiableType)>());
+            return o.GetType();
         }
 
         public const string backingName = "__backing";
@@ -2201,6 +2215,10 @@ namespace Tac.Backend.Emit._2.Walkers
             return res;
         }
 
+        // note this doesn't early exit
+        // if wrapped is implements
+        // it goes ahead and wraps it anyway
+        // it is
         public static System.Type EmitTypeThatWrapsAndImplementsRunTime(
             System.Type wrapped,
             System.Type implements,
@@ -2208,12 +2226,6 @@ namespace Tac.Backend.Emit._2.Walkers
             RunTimeTypeTracker typeTracker
             )
         {
-
-            // sometime you're good
-            if (wrapped.IsAssignableTo(implements))
-            {
-                return wrapped;
-            }
 
             TypeBuilder? fillOut = null;
 
@@ -2319,11 +2331,18 @@ namespace Tac.Backend.Emit._2.Walkers
 
             // TODO I really don't have to do this reflectively
             // backingName should be an interface
+            // sorta duplicate
+            // {82834BE1-06E2-4EFC-8F37-B9ADCB4381BD}
             while (true)
             {
                 // early exit let's not make a dynamic assembly if we don't have to..
-                if (from.GetType().IsAssignableTo(implements)) {
+                if ((from?.GetType() ?? typeof(Empty)).IsAssignableTo(implements))
+                {
                     return from;
+                }
+
+                if (from == null) {
+                    break;
                 }
 
                 var field = from.GetType().GetField(backingName);
@@ -2333,12 +2352,13 @@ namespace Tac.Backend.Emit._2.Walkers
                 }
                 from = field.GetValue(from);
             }
+
             var assemblyName = new AssemblyName();
             assemblyName.Name = Compiler.GenerateName();
             var assembly = System.Reflection.Emit.AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndCollect);
             var moduleBuilder = assembly.DefineDynamicModule(Compiler.GenerateName());
 
-            var wrapped = from.GetType();
+            var wrapped = from?.GetType() ?? typeof(Empty);
             var resType = EmitTypeThatWrapsAndImplementsRunTime(wrapped, implements, moduleBuilder, typeTracker); ;
 
             var res = Activator.CreateInstance(resType);
