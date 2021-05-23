@@ -20,7 +20,7 @@ namespace Tac.Model.Elements
         //bool WeAreThem(IVerifiableType them, bool noTagBacks);
 
         bool TheyAreUs(IVerifiableType they, List<(IVerifiableType, IVerifiableType)> assumeTrue);
-        IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue);
+        IIsPossibly<(IVerifiableType type , Access access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue);
 
 
         IIsPossibly<IVerifiableType> TryGetReturn();
@@ -45,6 +45,27 @@ namespace Tac.Model.Elements
             }
 
             return Possibly.Is((input: inputType, output: returnedType));
+        }
+
+        public static bool TryGetIO(this IVerifiableType self, out IVerifiableType input, out IVerifiableType output)
+        {
+            var hasReturns = self.TryGetReturn().Is(out var returnedType);
+            var hasInputs = self.TryGetInput().Is(out var inputType);
+
+            if (hasReturns != hasInputs)
+            {
+                throw new System.Exception("these should be the same...");
+            }
+
+            if (!hasReturns)
+            {
+                input = default;
+                output = default;
+                return false;
+            }
+            input = inputType;
+            output = returnedType;
+            return true;
         }
     }
 
