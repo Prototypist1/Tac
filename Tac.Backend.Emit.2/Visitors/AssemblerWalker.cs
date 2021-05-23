@@ -1822,25 +1822,27 @@ namespace Tac.Backend.Emit._2.Walkers
                     var constructor = typeBuilder.DefineConstructor(MethodAttributes.Public | MethodAttributes.RTSpecialName | MethodAttributes.SpecialName | MethodAttributes.HideBySig, CallingConventions.Standard, new[] { fromCSharpeType });
                     var ctorConstructorIL = new DebuggableILGenerator(constructor.GetILGenerator(), ".ctor of " + typeBuilder.Name);
                     addGen(ctorConstructorIL);
-                    ctorConstructorIL.Emit(OpCodes.Ldarg_0);
-                    ctorConstructorIL.Emit(OpCodes.Call, typeof(object).GetConstructors().First());
-                    ctorConstructorIL.Emit(OpCodes.Ldarg_0);
-                    ctorConstructorIL.Emit(OpCodes.Ldarg_1);
-                    ctorConstructorIL.Emit(OpCodes.Stfld, field);
-                    ctorConstructorIL.Emit(OpCodes.Ret);
+                    var ctorGenHolder = new GeneratorHolder(Possibly.Is( ctorConstructorIL));
+                    ctorGenHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_0);
+                    ctorGenHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Call, typeof(object).GetConstructors().First());
+                    ctorGenHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_0);
+                    ctorGenHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_1);
+                    ctorGenHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, field);
+                    ctorGenHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ret);
 
                     var methodName = Compiler.GenerateName();
                     var wrapped = typeBuilder.DefineMethod(Compiler.GenerateName(), MethodAttributes.Public | MethodAttributes.HideBySig, toOutput, new[] { toInput });
                     var methodConstructorIL = new DebuggableILGenerator(wrapped.GetILGenerator(), methodName + " of " + typeBuilder.Name);
                     addGen(methodConstructorIL);
-                    methodConstructorIL.Emit(OpCodes.Ldarg_0);
-                    methodConstructorIL.Emit(OpCodes.Stfld, field);
-                    methodConstructorIL.Emit(OpCodes.Ldarg_1);
-                    EmitConvertIfNeededCompileTime(toInput, fromInput, typeTracker, generatorHolder, moduleBuilder, addGen);
+                    var methodGenHolder = new GeneratorHolder(Possibly.Is(methodConstructorIL));
+                    methodGenHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_0);
+                    methodGenHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, field);
+                    methodGenHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_1);
+                    EmitConvertIfNeededCompileTime(toInput, fromInput, typeTracker, methodGenHolder, moduleBuilder, addGen);
                     var invoke = fromCSharpeType.GetMethod("Invoke");
-                    methodConstructorIL.Emit(OpCodes.Callvirt, invoke);
-                    EmitConvertIfNeededCompileTime(fromOutput, toOutput, typeTracker, generatorHolder, moduleBuilder, addGen);
-                    ctorConstructorIL.Emit(OpCodes.Ret);
+                    methodGenHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Callvirt, invoke);
+                    EmitConvertIfNeededCompileTime(fromOutput, toOutput, typeTracker, methodGenHolder, moduleBuilder, addGen);
+                    methodGenHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Ret);
 
                     typeBuilder.CreateType();
 
@@ -2057,13 +2059,13 @@ namespace Tac.Backend.Emit._2.Walkers
                     var methodConstructorIL = new DebuggableILGenerator(wrapped.GetILGenerator(), methodName + " of " + typeBuilder.Name);
 
                     methodConstructorIL.Emit(OpCodes.Ldarg_0);
-                    methodConstructorIL.Emit(OpCodes.Stfld, field);
+                    methodConstructorIL.Emit(OpCodes.Ldfld, field);
                     methodConstructorIL.Emit(OpCodes.Ldarg_1);
                     EmitConvertWhenNeededRunTime(toInput, fromInput, typeTracker, generatorHolder, moduleBuilder);
                     var invoke = fromCSharpeType.GetMethod("Invoke");
                     methodConstructorIL.Emit(OpCodes.Callvirt, invoke);
                     EmitConvertWhenNeededRunTime(fromOutput, toOutput, typeTracker, generatorHolder, moduleBuilder);
-                    ctorConstructorIL.Emit(OpCodes.Ret);
+                    methodConstructorIL.Emit(OpCodes.Ret);
 
                     // this needs to hit reguardless 
                     generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Newobj, constructor);
