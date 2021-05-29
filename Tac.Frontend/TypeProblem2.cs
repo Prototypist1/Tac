@@ -363,12 +363,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                 x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x));
 
-                    // this looks backwords but it's not
-                    // things flow upstream
-                    // y =: number x
-                    // y is a number
-                    // we flow from the target of assignment to the source of assignment 
-                    flows.Add((From: toType, To: fromType));
+
+                    flows.Add((From: fromType, To: toType));
                 }
 
                 // members that might be on parents 
@@ -390,7 +386,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         TryGetMember(staticScope, pair.Key).IfElse(
                             member => {
-                                var flowFrom = pair.Value.LooksUp.GetOrThrow().SwitchReturns(
+                                var assignedTo = pair.Value.LooksUp.GetOrThrow().SwitchReturns(
                                         x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                         x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                         x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -398,7 +394,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                         x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                         x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x));
 
-                                var flowTo = member.LooksUp.GetOrThrow().SwitchReturns(
+                                var assignedFrom = member.LooksUp.GetOrThrow().SwitchReturns(
                                         x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                         x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                         x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -406,7 +402,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                         x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                         x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x));
 
-                                flows.Add((From: flowFrom, To: flowTo));
+                                flows.Add((From: assignedFrom, To: assignedTo));
 
                                 // if anything looks up to the possible node, it should indstead look up to the node we defer to
                                 // do we have to do this in a "deep" manor?
@@ -452,8 +448,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 foreach (var node in typeProblemNodes.OfType<IValue>())
                 {
                     if (node.Hopeful.Is(out var hopeful)) {
-                        var flowFrom = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hopeful);
-                        var flowTo = node.LooksUp.GetOrThrow().SwitchReturns(
+                        var flowTo = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hopeful);
+                        var flowFrom = node.LooksUp.GetOrThrow().SwitchReturns(
                                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -607,7 +603,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var concrete = new ConcreteFlowNode<Tpn.TypeProblem2.InferredType>(inferred);
                     orsToFlowNodesBuild.Add(key, ToOr(concrete));
                     var inferredFlowNode = new InferredFlowNode(Possibly.Is(inferred));
-                    inferredFlowNode.Sources.Add(new SourcePath(Prototypist.Toolbox.OrType.Make<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>(concrete), new List<IOrType<Tpn.Member, Tpn.Input, Tpn.Output>>()));
+                    inferredFlowNode.AcceptedSources.Add(new SourcePath(Prototypist.Toolbox.OrType.Make<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>(concrete), new List<IOrType<Tpn.Member, Tpn.Input, Tpn.Output>>()));
                     orsToFlowNodesLookup.Add(key, ToOr(inferredFlowNode));
                 }
                 foreach (var error in ors.Select(x => (x.Is6(out var v), v)).Where(x => x.Item1).Select(x => x.v))
@@ -729,12 +725,17 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var (from, to) in flows)
                     {
-                        //if (fromType.GetValueAs(out IFlowNode _).CanFlow(toType.GetValueAs(out IVirtualFlowNode _), new List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>()))
-                        //{
-                            go |= orsToFlowNodesLookup[to].GetValueAs(out IFlowNode _).Flow(
-                                orsToFlowNodesLookup[from].GetValueAs(out IVirtualFlowNode _), 
-                                new List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
-                        //}
+                        go |= orsToFlowNodesLookup[to].GetValueAs(out IFlowNode _).MustAccept(
+                            orsToFlowNodesLookup[from].GetValueAs(out IVirtualFlowNode _), 
+                            new List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
+
+                    }
+
+                    foreach (var (from, to) in flows)
+                    {
+                        go |= orsToFlowNodesLookup[from].GetValueAs(out IFlowNode _).MustReturn(
+                            orsToFlowNodesLookup[to].GetValueAs(out IVirtualFlowNode _),
+                            new List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
                     }
 
                     excapeValve++;

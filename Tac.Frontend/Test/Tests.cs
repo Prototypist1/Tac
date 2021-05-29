@@ -1119,5 +1119,86 @@ namespace Tac.Frontend.TypeProblem.Test
             var hasMembers = Assert.IsType<HasMembersType>(cType.GetValue().Is1OrThrow());
             hasMembers.TryGetMember(new NameKey("x"), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow().Is2OrThrow();
         }
+
+        // flow in to member
+        // type D { y; } 
+        // a.x =: D d
+        // a = D d
+        [Fact]
+        public void FlowToMember() {
+            var x = new Tpn.TypeProblem2(
+                new WeakScopeConverter(),
+                DefaultRootScopePopulateScope());
+
+            var dType = x.builder.CreateType(x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("D")), new WeakTypeDefinitionConverter());
+            x.builder.CreatePublicMember(dType, dType, new NameKey("y"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("y")));
+
+            var a = x.builder.CreatePublicMember(
+                x.ModuleRoot,
+                x.ModuleRoot,
+                new NameKey("a"),
+                new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("a")));
+
+            var a_x = x.builder.CreateHopefulMember(a, new NameKey("x"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("x")));
+
+            var d = x.builder.CreatePublicMember(
+                x.ModuleRoot,
+                new NameKey("d"),
+                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(dType),
+                new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("d")));
+
+
+            x.builder.IsAssignedTo(a_x, d);
+            x.builder.IsAssignedTo(a, d);
+
+            var solution = x.Solve();
+
+            var aType = solution.GetType(a).GetValue().Is1OrThrow();
+            var a_xType = aType.TryGetMember(new NameKey("x"), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow().Is1OrThrow().Item1;
+            a_xType.TryGetMember(new NameKey("y"), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow().Is1OrThrow();
+        }
+
+        // flow in to member 2
+        // type D { number|string y; } 
+        // a.x =: D d
+        // a =: D d
+        // a.x.y =: number n
+
+
+        // this is such a mea pair:
+        // method [number,number ] input { input return; } =: res
+        // 2 > res
+
+        // with just this
+        // method [number,number ] input { input return; } =: res
+        // res is an any
+
+        // with just this
+        // 2 > res
+        // res is a method[any,any]
+
+        // together, it will only compile if res is method[number,any]
+        // method [number,number ] input { input return; } =: res
+        // 2 > res
+
+        // somehow they are both placing a requirement
+        // 2 > res      makes it a method, 
+        // method [number,number ] input { input return; } =: res   when this is a method it's input has to be a number
+
+        // in other words
+        // 2 > res      res is: method [any, any], 
+        // method [number,number ] input { input return; } =: res   res is: method[number, any]|any
+
+        // when both applied we get:  method [any, any] && (method[number, any]|any), which is method [number, any]
+
+        // that's a reasonable way to think about it
+        // but it's still a unpressident the assigned (int this case  method [number,number ] input { input return; }) to put a constraint on the assignee (res)
+        // I think it is unique to method  (and possible other "in" Contavariant ??) 
+        // by assigning
+
+        // another exmpale is ... 
+        // object { number x := 2 } =: a        // this puts a restring on a... it has to have an x and the x can only be set to a number
+        // "test" =: a.x                        // this puts a restraint on x... it has to be allowed to be a string   
+        // 
     }
 }
