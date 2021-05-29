@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Tac.Backend.Emit.2\Tac.Backend.Emit.2.csproj" />
+    <ProjectReference Include="..\Tac.Backend.Emit\Tac.Backend.Emit.csproj" />
     <ProjectReference Include="..\Tac.Model.instantiated\Tac.Model.Instantiated.csproj" />
   </ItemGroup>
 
