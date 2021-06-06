@@ -1120,6 +1120,14 @@ namespace Tac.Frontend.TypeProblem.Test
             hasMembers.TryGetMember(new NameKey("x"), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow().Is2OrThrow();
         }
 
+        // TODO!
+        // A1A44050-9185-4C49-9C82-B9E9293BE3DF
+        // type A {a;b; }
+        // type B {b;c;}
+        // x =: A|B ab
+        // x better be A|B and not just {b;}
+
+
         // flow in to member
         // type D { y; } 
         // a.x =: D d
