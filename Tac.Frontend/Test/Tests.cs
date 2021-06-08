@@ -1120,13 +1120,6 @@ namespace Tac.Frontend.TypeProblem.Test
             hasMembers.TryGetMember(new NameKey("x"), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow().Is2OrThrow();
         }
 
-        // TODO!
-        // A1A44050-9185-4C49-9C82-B9E9293BE3DF
-        // type A {a;b; }
-        // type B {b;c;}
-        // x =: A|B ab
-        // x better be A|B and not just {b;}
-
 
         // flow in to member
         // type D { y; } 
@@ -1166,11 +1159,6 @@ namespace Tac.Frontend.TypeProblem.Test
             a_xType.TryGetMember(new NameKey("y"), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow().Is1OrThrow();
         }
 
-        // flow in to member 2
-        // type D { number|string y; } 
-        // a.x =: D d
-        // a =: D d
-        // a.x.y =: number n
 
 
         // this is such a mea pair:
@@ -1208,5 +1196,31 @@ namespace Tac.Frontend.TypeProblem.Test
         // object { number x := 2 } =: a        // this puts a restring on a... it has to have an x and the x can only be set to a number
         // "test" =: a.x                        // this puts a restraint on x... it has to be allowed to be a string   
         // 
+
+
+
+        // TODO! 
+        // more tests:
+        // A1A44050-9185-4C49-9C82-B9E9293BE3DF
+
+        // -------------------------
+        // flow in to member 2
+        // type D { number|string y; } 
+        // a.x =: D d
+        // a =: D d
+        // a.x.y =: number n
+
+        // -------------------------
+        // type A {a;b; }
+        // type B {b;c;}
+        // x =: A|B ab
+        // x better be A|B and not just {b;}
+
+        // -------------------------
+        // x.a =: x
+
+        // -------------------------
+        // x.a := x
+
     }
 }
