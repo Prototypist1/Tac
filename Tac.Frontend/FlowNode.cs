@@ -376,7 +376,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 if (!path.Any())
                 {
-                    OrType.Make<IVirtualFlowNode, IError, DoesNotExist>(this);
+                    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd>
+                    {
+                        new CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(this) })
+                    }));
                 }
 
                 return path.First().SwitchReturns(
@@ -512,7 +515,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 if (!path.Any())
                 {
-                    OrType.Make<IVirtualFlowNode, IError, DoesNotExist>(this);
+                    return ToRep().SwitchReturns(x=> OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(x), x => OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(x));
                 }
 
                 var couldBeErrors = this.Or.Select(x => x.GetValueAs(out IVirtualFlowNode _).Walk(path));
@@ -799,52 +802,94 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public HashSet<IOrType<IVirtualFlowNode, IError, DoesNotExist>> FlattenReturn(List<InferredFlowNode> except, IEnumerable<IOrType<Member, Input, Output>> pathParts)
             {
-                return Flatten(except, pathParts, false);
+                return Flatten(new HashSet<SourcePath>(), pathParts, false);
             }
 
             public HashSet<IOrType<IVirtualFlowNode, IError, DoesNotExist>> FlattenAccepts(List<InferredFlowNode> except, IEnumerable<IOrType<Member, Input, Output>> pathParts)
             {
-                return Flatten(except, pathParts, true);
+                return Flatten(new HashSet<SourcePath>(), pathParts, true);
             }
+
+            // I think "or nothing" might be a good idea
+            // I think maybe Flatten should just flatten and we can walk after 
 
             // this "except" song and dance is to avoid stack overflows
             // when you flow in to something and it flows in to you bad things can happen
-            public HashSet<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>> Flatten(List<InferredFlowNode> except, IEnumerable<IOrType<Member, Input, Output>> pathParts, bool accepted)
+            public HashSet<IOrType<IVirtualFlowNode, IError, DoesNotExist>> Flatten(HashSet<SourcePath> except, IEnumerable<IOrType<Member, Input, Output>> pathParts, bool accepted)
             {
-                return (accepted ? AcceptedSources : ReturnedSources).SelectMany(x =>
+                var res = new HashSet<IOrType<IVirtualFlowNode, IError, DoesNotExist>>();
+
+                foreach (var item in (accepted ? AcceptedSources : ReturnedSources))
                 {
                     var fullPath = new List<IOrType<Member, Input, Output>>();
-                    fullPath.AddRange(x.path);
+                    fullPath.AddRange(item.path);
                     fullPath.AddRange(pathParts);
+                    var effectiveSourceNode = new SourcePath(item.source, fullPath);
 
-                    return x.source.GetValueAs(out IVirtualFlowNode _).Walk(fullPath);
+                    if (except.Contains(effectiveSourceNode)) {
+                        continue;
+                    }
 
-                    //var walked = 
+                    except.Add(effectiveSourceNode);
 
-                    ////var walked = x.Walk();
+                    var walked = item.source.SwitchReturns(
+                                        primitive => new[] { primitive.Walk(fullPath).SwitchReturns(
+                                            x => OrType.Make<IVirtualFlowNode, IError, DoesNotExist>( new VirtualNode(x, Possibly.Is( effectiveSourceNode))),
+                                            x => OrType.Make <IVirtualFlowNode, IError, DoesNotExist > (x) ,
+                                            x => OrType.Make < IVirtualFlowNode, IError, DoesNotExist > (x)) }, 
+                                        concrete => new[] { concrete.Walk(fullPath).SwitchReturns(
+                                            x=> OrType.Make<IVirtualFlowNode, IError, DoesNotExist>( new VirtualNode(x, Possibly.Is( effectiveSourceNode))),
+                                            x => OrType.Make <IVirtualFlowNode, IError, DoesNotExist > (x) ,
+                                            x => OrType.Make < IVirtualFlowNode, IError, DoesNotExist > (x)) }, 
+                                        or => new[] { or.Walk(fullPath).SwitchReturns(
+                                            x=> OrType.Make<IVirtualFlowNode, IError, DoesNotExist>( new VirtualNode(x, Possibly.Is( effectiveSourceNode))),
+                                            x => OrType.Make <IVirtualFlowNode, IError, DoesNotExist > (x) ,
+                                            x => OrType.Make < IVirtualFlowNode, IError, DoesNotExist > (x)) },
+                                        inferred => inferred.Flatten(except.ToHashSet(), fullPath, accepted).ToArray()); 
 
-                    ////if (walked.Is1(out var virtualFlowNode)) { 
-                        
-                    ////}
+                    foreach (var walkedItem in walked)
+                    {
+                        res.Add(walkedItem);
+                    }
+                }
 
-                    ////walked = WalkPath(pathParts, walked);
+                return res; 
 
-                    //if (walked.Is1(out var virtualFlowNode) && virtualFlowNode.SafeIs(out InferredFlowNode node))
-                    //{
-                    //    if (except.Contains(node))
-                    //    {
-                    //        return new HashSet<IOrType<IVirtualFlowNode, IError, DoesNotExist>> { };
-                    //    }
-                    //    except.Add(node);
-                    //    return node.Flatten(except, new IOrType<Member, Input, Output>[] { }, accepted);
-                    //}
 
-                    //return new HashSet<IOrType<IVirtualFlowNode, IError, DoesNotExist>> {
-                    //    walked.SwitchReturns(
-                    //        x => OrType.Make<IVirtualFlowNode, IError, DoesNotExist>(x),
-                    //        x => OrType.Make<IVirtualFlowNode, IError, DoesNotExist>(x),
-                    //        x => OrType.Make<IVirtualFlowNode, IError, DoesNotExist>(x)) };
-                }).ToHashSet();
+                //return (accepted ? AcceptedSources : ReturnedSources).SelectMany(x =>
+                //{
+                //    //var fullPath = new List<IOrType<Member, Input, Output>>();
+                //    //fullPath.AddRange(x.path);
+                //    //fullPath.AddRange(pathParts);
+
+                //    //return x.source.GetValueAs(out IVirtualFlowNode _).Walk(fullPath);
+
+                //    //var walked = 
+
+                //    var walked = x.Walk();
+
+                //    //if (walked.Is1(out var virtualFlowNode)) { 
+
+                //    //}
+
+                //    //walked = WalkPath(pathParts, walked);
+
+                //    if (walked.Is1(out var virtualFlowNode) && virtualFlowNode.SafeIs(out InferredFlowNode node))
+                //    {
+                //        if (except.Contains(node))
+                //        {
+                //            return new HashSet<IOrType<IVirtualFlowNode, IError, DoesNotExist>> { };
+                //        }
+                //        except.Add(node);
+                //        return node.Flatten(except, new IOrType<Member, Input, Output>[] { }, accepted);
+                //    }
+
+                //    return new HashSet<IOrType<IVirtualFlowNode, IError, DoesNotExist>> {
+                //        walked.SwitchReturns(
+                //            x => OrType.Make<IVirtualFlowNode, IError, DoesNotExist>(x),
+                //            x => OrType.Make<IVirtualFlowNode, IError, DoesNotExist>(x),
+                //            x => OrType.Make<IVirtualFlowNode, IError, DoesNotExist>(x)) };
+                //}).ToHashSet();
             }
 
 
@@ -1334,7 +1379,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 if (!path.Any())
                 {
-                    OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd> { this }));
+                    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd> { this }));
                 }
 
                 var errorCheck =  And.Select(element => element.GetValueAs(out IVirtualFlowNode _).Walk(path)).ToArray();
@@ -1466,7 +1511,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             public override bool Equals(object? obj)
             {
                 return obj is VirtualNode node &&
-                       Or.Equals(Or);
+                       Or.Equals(node.Or);
             }
 
             public override int GetHashCode()
@@ -1630,7 +1675,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 if (!path.Any())
                 {
-                    OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(Or);
+                    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(Or);
                 }
 
                 var errorCheck = Or.backing.Select(x => x.Walk(path)).ToArray();
