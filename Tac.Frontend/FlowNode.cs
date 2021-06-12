@@ -714,7 +714,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(new DoesNotExist());
                 }
 
-                var setOrError = nodeOrError.Select(x => x.Is1OrThrow().ToRep()).ToArray();
+                var setOrError = nodeOrError.Where(x=> x.Is1(out var _)).Select(x => x.Is1OrThrow().ToRep()).ToArray();
 
                 errors = setOrError.SelectMany(x =>
                 {
