@@ -382,7 +382,29 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             private IBox<IOrType<IFrontendType, IError>> SafeLookUp(IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> key) {
-                return key.SwitchReturns(x => generalLookUp[x], error => new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(error)));
+                return key.SwitchReturns(x => {
+                    if (generalLookUp.TryGetValue(x,out var res)) {
+                        return res;
+                    }
+
+
+                    // TODO you are here,
+                    // I... need to understand this better
+                    // I hit a case where generalLookUp didn't have what I was looking for
+                    // what I was looking for was a member of an inferred type
+                    // and we don't build those in to the lookup
+                    // I just throw this lazy convert in here to see what happened
+                    // and it fixed it
+                    // but...
+                    // I do all that work to populate generalLookUp in order
+                    // and I don't know why I would do that if I could just do it lazy like
+                    // once I know I should leave a comment explaining why I have to do all that 
+
+                    generalLookUp[x] = new Box<IOrType<IFrontendType, IError>>(Convert(x));
+
+                    return generalLookUp[x];
+
+                    }, error => new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(error)));
             }
 
             private IOrType<Scope, IError> GetMyScope(Tpn.IVirtualFlowNode node)

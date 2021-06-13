@@ -97,7 +97,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     if (!parent.Hopeful.Is(out var inferredType))
                     {
-                        inferredType = new InferredType(this, $"generated infered hopeful member type. for key {key}");
+                        inferredType = new InferredType(this, $"hopeful of {parent}");
                         parent.Hopeful = Possibly.Is(inferredType);
                     }
 
@@ -492,19 +492,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                     else
                     {
-                        var inferredMethodType = new InferredType(this, "generated infered method type for input");
+                        var inferredMethodType = new InferredType(this, "generated infered method type");
                         value.Hopeful = Possibly.Is(inferredMethodType);
 
                         // shared code {A9E37392-760B-427D-852E-8829EEFCAE99}
                         // we don't use has member input/output doesn't go in the member list
                         // it is not a public member
                         // and infered to do not have private members
-                        var methodInputKey = new NameKey("implicit input - " + Guid.NewGuid());
+                        var methodInputKey = new NameKey("generated infered method input - " + Guid.NewGuid());
                         var inputMember = new Member(this, methodInputKey.ToString()!, new WeakMemberDefinitionConverter(Model.Elements.Access.ReadWrite, methodInputKey));
                         inputMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")));
                         inferredMethodType.Input = Possibly.Is(inputMember);
 
-                        var returnMember = new TransientMember(this, "implicit return -" + Guid.NewGuid());
+                        var returnMember = new TransientMember(this, "generated infered method return -" + Guid.NewGuid());
                         returnMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")));
                         inferredMethodType.Returns = Possibly.Is(returnMember);
 
@@ -554,19 +554,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                     else
                     {
-                        var inferredMethodType = new InferredType(this, "generated infered method type for output");
+                        var inferredMethodType = new InferredType(this, "generated infered method type");
                         value.Hopeful = Possibly.Is(inferredMethodType);
 
                         // shared code {A9E37392-760B-427D-852E-8829EEFCAE99}
                         // we don't use has member input/output doesn't go in the member list
                         // it is not a public member
                         // and infered to do not have private members
-                        var methodInputKey = new NameKey("implicit input - " + Guid.NewGuid());
+                        var methodInputKey = new NameKey("generated infered method input - " + Guid.NewGuid());
                         var inputMember = new Member(this, methodInputKey.ToString()!, new WeakMemberDefinitionConverter(Model.Elements.Access.ReadWrite, methodInputKey));
                         inputMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")));
                         inferredMethodType.Input = Possibly.Is(inputMember);
 
-                        var returnMember = new TransientMember(this, "implicit return -" + Guid.NewGuid());
+                        var returnMember = new TransientMember(this, "generated infered method return -" + Guid.NewGuid());
                         returnMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")));
                         inferredMethodType.Returns = Possibly.Is(returnMember);
 
