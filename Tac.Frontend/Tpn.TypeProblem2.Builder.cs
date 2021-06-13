@@ -505,7 +505,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         inferredMethodType.Input = Possibly.Is(inputMember);
 
                         var returnMember = new TransientMember(this, "generated infered method return -" + Guid.NewGuid());
-                        returnMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")));
+                        returnMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit return")));
                         inferredMethodType.Returns = Possibly.Is(returnMember);
 
                         return inputMember;
@@ -567,7 +567,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         inferredMethodType.Input = Possibly.Is(inputMember);
 
                         var returnMember = new TransientMember(this, "generated infered method return -" + Guid.NewGuid());
-                        returnMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")));
+                        returnMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit return")));
                         inferredMethodType.Returns = Possibly.Is(returnMember);
 
                         return returnMember;
