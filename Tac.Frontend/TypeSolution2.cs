@@ -31,7 +31,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 flowNodeLookUp = flowNodes ?? throw new ArgumentNullException(nameof(flowNodes));
 
-                var todo = new List<Action>();
+                var todo = new Queue<Action>();
 
                 foreach (var thing in things)
                 {
@@ -42,7 +42,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             flowNodes[OrType.Make<ITypeProblemNode, IError>(methodType)].GetValueAs(out IVirtualFlowNode _).ToRep().IfNotError(value =>
                             {
                                 generalLookUp[value] = box;
-                                todo.Add(() =>
+                                todo.Enqueue(() =>
                                 {
                                     box.Fill(OrType.Make<IFrontendType, IError>(
                                         methodType.Converter.Convert(this, methodType)));
@@ -55,7 +55,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 generalLookUp[value] = box;
                                 var typeBox = new Box<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>();
                                 typeCache[type] = typeBox;
-                                todo.Add(() =>
+                                todo.Enqueue(() =>
                                 {
                                     type.Converter.Convert(this, type).Switch(
                                         weakType =>
@@ -82,7 +82,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 generalLookUp[value] = box;
                                 var objBox = new Box<IOrType<WeakObjectDefinition, WeakRootScope>>();
                                 objectCache[obj] = objBox;
-                                todo.Add(() => {
+                                todo.Enqueue(() => {
 
                                     obj.Converter.Convert(this, obj).Switch(
                                         weakObj => {
@@ -135,7 +135,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 if (!generalLookUp.ContainsKey(value))
                                 {
                                     generalLookUp[value] = box;
-                                    todo.Add(() =>
+                                    todo.Enqueue(() =>
                                     {
                                         box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(
                                             orType.Converter.Convert(this, orType))));
@@ -156,257 +156,272 @@ namespace Tac.Frontend.New.CrzayNamespace
                         obj => {},
                         orType => {},
                         inferred => {
-                            var key = flowNodes[OrType.Make<ITypeProblemNode, IError>(inferred)].GetValueAs(out IVirtualFlowNode _).ToRep();
-                                    key.Switch(equalibleHashSet =>
-                                    {
-
-                                        if (equalibleHashSet.backing.Count == 0)
-                                        {
-                                            var box = new Box<IOrType<IFrontendType, IError>>();
-                                            generalLookUp[equalibleHashSet] = box;
-                                            todo.Add(() =>
-                                            {
-                                                box.Fill(OrType.Make<IFrontendType, IError>(new AnyType()));
-                                            });
-                                            return;
-                                        }
-
-
-                                        if (equalibleHashSet.backing.Count == 1)
-                                        {
-                                            var box = new Box<IOrType<IFrontendType, IError>>();
-                                            if (!generalLookUp.TryGetValue(equalibleHashSet, out var _))
-                                            {
-                                                generalLookUp[equalibleHashSet] = box;
-
-                                                todo.Add(() =>
-                                                {
-                                                    box.Fill(Convert(equalibleHashSet.backing.First()));
-                                                });
-                                            }
-                                            return;
-                                        }
-
-                                        foreach (var backer in equalibleHashSet.backing)
-                                        {
-                                            var backerRep = backer.ToRep().Is1OrThrow();
-                                            // we convert each component
-                                            if (!generalLookUp.TryGetValue(backerRep, out var _))
-                                            {
-                                                var innerBox = new Box<IOrType<IFrontendType, IError>>();
-                                                generalLookUp[backerRep] = innerBox;
-                                                todo.Add(() =>
-                                                {
-                                                    innerBox.Fill(Convert(backer));
-                                                });
-                                            }
-                                        }
-
-                                        // build the ors by looking up the componets
-                                        var array = equalibleHashSet.backing.ToArray();
-                                        var first = array[0];
-                                        var second = array[1];
-                                        var orKey = new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd> { first, second });
-                                        if (!generalLookUp.TryGetValue(orKey, out var _))
-                                        {
-                                            var firstOrBox = new Box<IOrType<IFrontendType, IError>>();
-                                            generalLookUp[orKey] = firstOrBox;
-                                            todo.Add(() =>
-                                            {
-                                                firstOrBox.Fill(OrType.Make<IFrontendType, IError>(new FrontEndOrType(generalLookUp[first.ToRep().Is1OrThrow()].GetValue(), generalLookUp[second.ToRep().Is1OrThrow()].GetValue())));
-                                            });
-                                        }
-
-                                        foreach (var entry in array.Skip(2))
-                                        {
-                                            var nextOrKeyBacking = orKey.backing.ToHashSet();
-                                            nextOrKeyBacking.Add(entry); ;
-                                            var nextOrKey = new EqualibleHashSet<CombinedTypesAnd>(nextOrKeyBacking);
-                                            if (!generalLookUp.TryGetValue(nextOrKey, out var _))
-                                            {
-                                                var orBox = new Box<IOrType<IFrontendType, IError>>();
-                                                generalLookUp[nextOrKey] = orBox;
-                                                var myOrKey = orKey;
-                                                var myEntry = entry;
-                                                todo.Add(() =>
-                                                {
-                                                    orBox.Fill(OrType.Make<IFrontendType, IError>(new FrontEndOrType(generalLookUp[myOrKey].GetValue(), generalLookUp[myEntry.ToRep().Is1OrThrow()].GetValue())));
-                                                });
-                                            }
-                                            orKey = nextOrKey;
-                                        }
-
-                                    },
-                                    error =>
-                                    {
-                                    });
-                                
-                            
+                            var key = flowNodes[OrType.Make<ITypeProblemNode, IError>(inferred)].GetValueAs<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode, IVirtualFlowNode>(out var _).ToRep();
+                            key.Switch(equalibleHashSet =>
+                            {
+                                EnqueConversionForSet(equalibleHashSet);
+                            },
+                            error =>
+                            {
+                            });
                         },
                         error => {});
                 }
 
-                foreach (var action in todo)
-                {
+                while (todo.TryDequeue(out var action)) {
                     action();
                 }
-                
-            }
 
-            private IOrType<IFrontendType, IError> Convert(EqualibleHashSet<CombinedTypesAnd> flowNode)
-            {
-
-                if (flowNode.backing.Count == 0)
+                IOrType<IFrontendType, IError> Convert(Tpn.CombinedTypesAnd flowNode)
                 {
+
+                    if (flowNode.And.Count == 0)
+                    {
+                        return OrType.Make<IFrontendType, IError>(new AnyType());
+                    }
+
+                    var prim = flowNode.Primitive();
+
+                    if (prim.Is2(out var error))
+                    {
+                        return OrType.Make<IFrontendType, IError>(error);
+                    }
+
+                    if (prim.Is1OrThrow().Is(out var _))
+                    {
+                        throw new Exception("this should have been converted already");
+                    }
+
+                    var scopeOr = GetScopeOrBuildScope(flowNode);
+
+                    if (scopeOr.Is2(out var e4))
+                    {
+                        return OrType.Make<IFrontendType, IError>(e4);
+                    }
+                    var scope = scopeOr.Is1OrThrow();
+
+
+
+                    if (flowNode.VirtualInput().Is(out var inputOr))
+                    {
+                        if (inputOr.Is2(out var e2))
+                        {
+                            return OrType.Make<IFrontendType, IError>(e2);
+                        }
+                    }
+                    var input = inputOr?.Is1OrThrow();
+
+
+                    if (flowNode.VirtualOutput().Is(out var outputOr))
+                    {
+                        if (outputOr.Is2(out var e3))
+                        {
+                            return OrType.Make<IFrontendType, IError>(e3);
+                        }
+
+                    }
+                    var output = outputOr?.Is1OrThrow();
+
+                    if ((input != default || output != default) && scope.members.Count > 1)
+                    {
+                        // this might be wrong
+                        // methods might end up with more than one member
+                        // input counts as a member but it is really something different
+                        // todo
+                        throw new Exception("so... this is a type and a method?!");
+                    }
+
+                    if (input != default && output != default)
+                    {
+                        // I don't think this is safe see:
+                        //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
+                        return
+                             OrType.Make<IFrontendType, IError>(
+                            new MethodType(
+                                SafeLookUp(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>( input)),
+                                SafeLookUp(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(output))));
+                    }
+
+
+                    if (input != default)
+                    {
+                        // I don't think this is safe see:
+                        //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
+                        return
+                             OrType.Make<IFrontendType, IError>(
+                            new MethodType(
+                                SafeLookUp(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(input)),
+                                new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(new EmptyType()))));
+                    }
+
+                    if (output != default)
+                    {
+                        // I don't think this is safe see:
+                        //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
+                        return
+                             OrType.Make<IFrontendType, IError>(
+                            new MethodType(
+                                new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(new EmptyType())),
+                                SafeLookUp(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(output))));
+                    }
+
+                    // if it has members it must be a scope
+                    if (scope.members.Any())
+                    {
+                        return new WeakTypeDefinition(OrType.Make<IBox<WeakScope>, IError>(new Box<WeakScope>(scope.weakScope))).FrontendType();
+                    }
+
                     return OrType.Make<IFrontendType, IError>(new AnyType());
                 }
 
-                if (flowNode.backing.Count == 1)
+                void EnqueConversionForSet(EqualibleHashSet<CombinedTypesAnd> equalibleHashSet)
                 {
-                    return Convert(flowNode.backing.First());
-                }
-
-                // make a big Or!
-                var array = flowNode.backing.ToArray();
-                var first = array[0];
-                var second = array[1];
-                var res = new FrontEndOrType(Convert(first), Convert(second));
-                foreach (var entry in array.Skip(2))
-                {
-                    res = new FrontEndOrType(OrType.Make<IFrontendType, IError>(res), Convert(entry));
-                }
-
-                return OrType.Make<IFrontendType, IError>(res);
-
-            }
-
-            private IOrType<IFrontendType, IError> Convert(Tpn.CombinedTypesAnd flowNode) {
-
-                if (flowNode.And.Count == 0)
-                {
-                    return OrType.Make<IFrontendType, IError>(new AnyType());
-                }
-
-                var prim = flowNode.Primitive();
-
-                if (prim.Is2(out var error))
-                {
-                    return OrType.Make<IFrontendType, IError>(error);
-                }
-
-                if (prim.Is1OrThrow().Is(out var _))
-                {
-                    throw new Exception("this should have been converted already");
-                }
-
-                var scopeOr = GetMyScope(flowNode);
-
-                if (scopeOr.Is2(out var e4))
-                {
-                    return OrType.Make<IFrontendType, IError>(e4);
-                }
-                var scope = scopeOr.Is1OrThrow();
-
-               
-
-                if (flowNode.VirtualInput().Is(out var inputOr))
-                {
-                    if (inputOr.Is2(out var e2))
+                    if (equalibleHashSet.backing.Count == 0)
                     {
-                        return OrType.Make<IFrontendType, IError>(e2);
+                        var box = new Box<IOrType<IFrontendType, IError>>();
+                        generalLookUp[equalibleHashSet] = box;
+                        todo.Enqueue(() =>
+                        {
+                            box.Fill(OrType.Make<IFrontendType, IError>(new AnyType()));
+                        });
+                        return;
                     }
-                }
-                var input = inputOr?.Is1OrThrow();
 
-
-                if (flowNode.VirtualOutput().Is(out var outputOr))
-                {
-                    if (outputOr.Is2(out var e3))
+                    if (equalibleHashSet.backing.Count == 1)
                     {
-                        return OrType.Make<IFrontendType, IError>(e3);
+                        var box = new Box<IOrType<IFrontendType, IError>>();
+                        if (!generalLookUp.TryGetValue(equalibleHashSet, out var _))
+                        {
+                            generalLookUp[equalibleHashSet] = box;
+
+                            todo.Enqueue(() =>
+                            {
+                                box.Fill(Convert(equalibleHashSet.backing.First()));
+                            });
+                        }
+                        return;
                     }
 
-                }
-                var output = outputOr?.Is1OrThrow();
-
-                if ((input != default || output != default) && scope.members.Count > 1)
-                {
-                    // this might be wrong
-                    // methods might end up with more than one member
-                    // input counts as a member but it is really something different
-                    // todo
-                    throw new Exception("so... this is a type and a method?!");
-                }
-
-                if (input != default && output != default)
-                {
-                    // I don't think this is safe see:
-                    //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
-                    return
-                         OrType.Make<IFrontendType, IError>(
-                        new MethodType(
-                            SafeLookUp(input.ToRep()),
-                            SafeLookUp(output.ToRep())));
-                }
-
-
-                if (input != default)
-                {
-                    // I don't think this is safe see:
-                    //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
-                    return
-                         OrType.Make<IFrontendType, IError>(
-                        new MethodType(
-                            SafeLookUp(input.ToRep()),
-                            new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(new EmptyType()))));
-                }
-
-                if (output != default)
-                {
-                    // I don't think this is safe see:
-                    //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
-                    return
-                         OrType.Make<IFrontendType, IError>(
-                        new MethodType(
-                            new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(new EmptyType())),
-                            SafeLookUp(output.ToRep())));
-                }
-
-                // if it has members it must be a scope
-                if (scope.members.Any())
-                {
-                    return new WeakTypeDefinition(OrType.Make<IBox<WeakScope>, IError>(new Box<WeakScope>(scope.weakScope))).FrontendType();
-                }
-
-                return OrType.Make<IFrontendType, IError>(new AnyType());
-            }
-
-            private IBox<IOrType<IFrontendType, IError>> SafeLookUp(IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> key) {
-                return key.SwitchReturns(x => {
-                    if (generalLookUp.TryGetValue(x,out var res)) {
-                        return res;
+                    foreach (var backer in equalibleHashSet.backing)
+                    {
+                        var backerRep = backer.ToRep().Is1OrThrow();
+                        // we convert each component
+                        if (!generalLookUp.TryGetValue(backerRep, out var _))
+                        {
+                            var innerBox = new Box<IOrType<IFrontendType, IError>>();
+                            generalLookUp[backerRep] = innerBox;
+                            todo.Enqueue(() =>
+                            {
+                                innerBox.Fill(Convert(backer));
+                            });
+                        }
                     }
 
+                    // build the ors by looking up the componets
+                    var array = equalibleHashSet.backing.ToArray();
+                    var first = array[0];
+                    var second = array[1];
+                    var orKey = new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd> { first, second });
+                    if (!generalLookUp.TryGetValue(orKey, out var _))
+                    {
+                        var firstOrBox = new Box<IOrType<IFrontendType, IError>>();
+                        generalLookUp[orKey] = firstOrBox;
+                        todo.Enqueue(() =>
+                        {
+                            firstOrBox.Fill(OrType.Make<IFrontendType, IError>(new FrontEndOrType(generalLookUp[first.ToRep().Is1OrThrow()].GetValue(), generalLookUp[second.ToRep().Is1OrThrow()].GetValue())));
+                        });
+                    }
 
-                    // TODO you are here,
-                    // I... need to understand this better
-                    // I hit a case where generalLookUp didn't have what I was looking for
-                    // what I was looking for was a member of an inferred type
-                    // and we don't build those in to the lookup
-                    // I just throw this lazy convert in here to see what happened
-                    // and it fixed it
-                    // but...
-                    // I do all that work to populate generalLookUp in order
-                    // and I don't know why I would do that if I could just do it lazy like
-                    // once I know I should leave a comment explaining why I have to do all that 
+                    foreach (var entry in array.Skip(2))
+                    {
+                        var nextOrKeyBacking = orKey.backing.ToHashSet();
+                        nextOrKeyBacking.Add(entry); ;
+                        var nextOrKey = new EqualibleHashSet<CombinedTypesAnd>(nextOrKeyBacking);
+                        if (!generalLookUp.TryGetValue(nextOrKey, out var _))
+                        {
+                            var orBox = new Box<IOrType<IFrontendType, IError>>();
+                            generalLookUp[nextOrKey] = orBox;
+                            var myOrKey = orKey;
+                            var myEntry = entry;
+                            todo.Enqueue(() =>
+                            {
+                                orBox.Fill(OrType.Make<IFrontendType, IError>(new FrontEndOrType(generalLookUp[myOrKey].GetValue(), generalLookUp[myEntry.ToRep().Is1OrThrow()].GetValue())));
+                            });
+                        }
+                        orKey = nextOrKey;
+                    }
+                }
 
-                    generalLookUp[x] = new Box<IOrType<IFrontendType, IError>>(Convert(x));
+                // has a related method
+                // {164031F9-9DFA-45FB-9C54-B23902DF29DC}
+                IBox<IOrType<IFrontendType, IError>> LookUpOrBuild(IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> key)
+                {
+                    return key.SwitchReturns(x => {
+                        if (generalLookUp.TryGetValue(x, out var res)) {
+                            return res;
+                        }
+                        EnqueConversionForSet(x);
 
-                    return generalLookUp[x];
+                        return generalLookUp[x];
 
                     }, error => new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(error)));
+                }
+
+                // has a related method
+                // {7737F6C2-0328-477B-900B-2E6C44AEF6D3}
+                IOrType<Scope, IError> GetScopeOrBuildScope(CombinedTypesAnd node)
+                {
+                    var rep = node.ToRep();
+
+                    if (scopeCache.TryGetValue(rep, out var current))
+                    {
+                        return current;
+                    }
+                    var scope = node.VirtualMembers().TransformInner(x =>
+                        new Scope(x.ToDictionary(
+                                pair => pair.Key,
+                                pair => LookUpOrBuild(pair.Value)),
+                            this));
+                    scopeCache[rep] = scope;
+                    return scope;
+                }
             }
 
+            //private IOrType<IFrontendType, IError> Convert(EqualibleHashSet<CombinedTypesAnd> flowNode)
+            //{
+
+            //    if (flowNode.backing.Count == 0)
+            //    {
+            //        return OrType.Make<IFrontendType, IError>(new AnyType());
+            //    }
+
+            //    if (flowNode.backing.Count == 1)
+            //    {
+            //        return Convert(flowNode.backing.First());
+            //    }
+
+            //    // make a big Or!
+            //    var array = flowNode.backing.ToArray();
+            //    var first = array[0];
+            //    var second = array[1];
+            //    var res = new FrontEndOrType(Convert(first), Convert(second));
+            //    foreach (var entry in array.Skip(2))
+            //    {
+            //        res = new FrontEndOrType(OrType.Make<IFrontendType, IError>(res), Convert(entry));
+            //    }
+
+            //    return OrType.Make<IFrontendType, IError>(res);
+
+            //}
+             
+            // has a related method
+            // {164031F9-9DFA-45FB-9C54-B23902DF29DC}
+            private IBox<IOrType<IFrontendType, IError>> SafeLookUp(IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> key) {
+                return key.SwitchReturns(x => generalLookUp[x], error => new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(error)));
+            }
+
+            // has a related method
+            // {7737F6C2-0328-477B-900B-2E6C44AEF6D3}
             private IOrType<Scope, IError> GetMyScope(Tpn.IVirtualFlowNode node)
             {
                 var rep = node.ToRep();
@@ -422,7 +437,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 scopeCache[rep] = scope;
                 return scope;
             }
-
 
             public IOrType<WeakScope, IError> GetWeakScope(Tpn.IVirtualFlowNode node) {
                 return GetMyScope(node).TransformInner(x => x.weakScope);
