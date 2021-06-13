@@ -58,6 +58,10 @@ namespace Tac.SemanticModel
             return t;
         }
 
+        public override string? ToString()
+        {
+            return $"{nameof(Box<T>)}({InnerType})";
+        }
     }
 
 

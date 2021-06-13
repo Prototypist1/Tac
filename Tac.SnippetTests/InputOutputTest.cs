@@ -175,6 +175,26 @@ entry-point [empty; empty;] input {
             verifyBoolIn();
         }
 
+        // good evidence that in/out are breaking it 
+        [Fact]
+        public void SimplistAdd()
+        {
+            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { });
+            var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
+            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
+
+            Tac.Interpreted.Runner.Runner.RunInterpeted("test", new[] {
+                BasicInputOutput.Output(intIn ,stringIn,boolIn)},
+ @"
+ entry-point [empty; empty;] input {
+     2 + 2;
+ };");
+
+            verifyIntIn();
+            verifyStringIn();
+            verifyBoolIn();
+        }
+
         [Fact]
         public void NestedParn()
         {

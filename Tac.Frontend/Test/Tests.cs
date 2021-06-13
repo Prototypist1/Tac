@@ -107,11 +107,9 @@ namespace Tac.Frontend.TypeProblem.Test
             //      input return;
             // }
 
-
-
             var x = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope());
 
-            var hello = x.builder.CreateType(x.ModuleRoot, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("hello")), new WeakTypeDefinitionConverter());
+            var hello = x.builder.CreateType(x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("hello")), new WeakTypeDefinitionConverter());
             x.builder.CreatePublicMember(hello, hello, new NameKey("x"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("x")));
             x.builder.CreatePublicMember(hello, hello, new NameKey("y"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("y")));
 
@@ -149,7 +147,7 @@ namespace Tac.Frontend.TypeProblem.Test
             HasMember(helloResult.Is1OrThrow(), new NameKey("x"));
             HasMember(helloResult.Is1OrThrow(), new NameKey("y"));
 
-            // things don't flow downstream 
+            // return should really be an any...
             var methodReturns = methodResult.OutputType.GetValue().Is1OrThrow();
             DoesNotHaveMember(methodReturns, new NameKey("x"));
             DoesNotHaveMember(methodReturns, new NameKey("y"));
@@ -1160,8 +1158,7 @@ namespace Tac.Frontend.TypeProblem.Test
         }
 
 
-
-        // this is such a mea pair:
+        // this is such a mean pair:
         // method [number,number ] input { input return; } =: res
         // 2 > res
 
@@ -1196,6 +1193,53 @@ namespace Tac.Frontend.TypeProblem.Test
         // object { number x := 2 } =: a        // this puts a restring on a... it has to have an x and the x can only be set to a number
         // "test" =: a.x                        // this puts a restraint on x... it has to be allowed to be a string   
         // 
+
+        [Fact]
+        public void MethodAndCall() {
+
+            var x = new Tpn.TypeProblem2(
+                new WeakScopeConverter(),
+                DefaultRootScopePopulateScope());
+
+            //var method = x.builder.CreateMethod(
+            //    x.ModuleRoot,
+            //    OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(x.builder.CreateTypeReference(x.ModuleRoot, new NameKey("number"), new WeakTypeReferenceConverter())), 
+            //    OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(x.builder.CreateTypeReference(x.ModuleRoot, new NameKey("number"), new WeakTypeReferenceConverter())),
+            //    "input", 
+            //    new WeakMethodDefinitionConverter(new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>(new List<IOrType<IBox<IFrontendCodeElement>, IError>>())), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("input")));
+
+            //var methodMember = x.builder.CreatePublicMember(
+            //                    x.ModuleRoot,
+            //                    new NameKey("method-member"),
+            //                    OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(method),
+            //                    new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("method-member")));
+
+             var methodValue = x.builder.CreateValue(x.ModuleRoot.InitizationScope, new GenericNameKey(new NameKey("method"), new IOrType<IKey, IError>[] {
+                    OrType.Make<IKey, IError>(new NameKey("number")),
+                    OrType.Make<IKey, IError>(new NameKey("number")),
+                }), new PlaceholderValueConverter());
+
+            var res = x.builder.CreatePublicMember(
+                x.ModuleRoot,
+                x.ModuleRoot,
+                new NameKey("res"),
+                new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("res")));
+
+
+            var two = x.builder.CreateValue(x.ModuleRoot.InitizationScope, new NameKey("number"), new PlaceholderValueConverter());
+
+            x.builder.IsAssignedTo(methodValue, res);
+            x.builder.IsAssignedTo(two, res.Input());
+
+            var solution = x.Solve();
+
+            // currently we have: 
+            // method<any|number, any> | method<number, number> 
+            var resType = solution.GetType(res).GetValue().Is1OrThrow();
+
+            Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(resType.TryGetInput().Is1OrThrow().Is1OrThrow());
+            Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(resType.TryGetReturn().Is1OrThrow().Is1OrThrow());
+        }
 
 
 

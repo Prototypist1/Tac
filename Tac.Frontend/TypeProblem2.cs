@@ -24,17 +24,25 @@ namespace Tac.Frontend.New.CrzayNamespace
         {
             public abstract class TypeProblemNode : ITypeProblemNode
             {
-                public readonly string debugName;
+                public string DebugName { get; }
 
                 public TypeProblemNode(Builder problem, string debugName)
                 {
+                    if (string.IsNullOrEmpty(debugName)) {
+                        var db = 0;
+                    }
+
                     Problem = problem ?? throw new ArgumentNullException(nameof(problem));
-                    this.debugName = debugName;
+                    this.DebugName = debugName;
                     problem.Register(this);
                 }
 
                 public Builder Problem { get; }
 
+                public override string? ToString()
+                {
+                    return this.GetType().Name + $"({DebugName})";
+                }
             }
 
             public abstract class TypeProblemNode<Tin, Tout> : TypeProblemNode//, IConvertable<T>
@@ -300,7 +308,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var toLookUp = typeProblemNodes.OfType<ILookUpType>().ToArray();
                 foreach (var node in toLookUp.Where(x => !(x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>) && x.TypeKey.Is3(out var _)))
                 {
-                    var type = new InferredType(this.builder, $"for {((TypeProblemNode)node).debugName}");
+                    var type = new InferredType(this.builder, $"for {((TypeProblemNode)node).DebugName}");
                     node.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(type));
                 }
 
@@ -1169,69 +1177,70 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     var outerLookedUp = LookUpOrOverlayOrThrow2(from, genericNameKey.Name, realizedGeneric);
 
-                    return outerLookedUp.SwitchReturns(method =>
-                    {
-                        var genericTypeKey = new GenericTypeKey(Prototypist.Toolbox.OrType.Make<MethodType, Type>(method), types);
-
-                        if (realizedGeneric.TryGetValue(genericTypeKey, out var res2))
+                    return outerLookedUp.SwitchReturns(
+                        method =>
                         {
-                            return res2;
-                        }
+                            var genericTypeKey = new GenericTypeKey(Prototypist.Toolbox.OrType.Make<MethodType, Type>(method), types);
 
-                        // this is duplicate code - 94875369485
-                        var map = new Dictionary<IOrType<MethodType, Type, Object, OrType, InferredType, IError>, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
-                        foreach (var (oldType, newType) in types.Zip(method.GenericOverlays, (x, y) => (y.Value, x)))
-                        {
-                            map[oldType] = newType;
-                        }
+                            if (realizedGeneric.TryGetValue(genericTypeKey, out var res2))
+                            {
+                                return res2;
+                            }
 
-                        var @explicit = CopyTree(Prototypist.Toolbox.OrType.Make<MethodType, Type>(method), Prototypist.Toolbox.OrType.Make<MethodType, Type>(new MethodType(this.builder, $"generated-generic-{method.debugName}", method.Converter)), map);
+                            // this is duplicate code - 94875369485
+                            var map = new Dictionary<IOrType<MethodType, Type, Object, OrType, InferredType, IError>, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
+                            foreach (var (oldType, newType) in types.Zip(method.GenericOverlays, (x, y) => (y.Value, x)))
+                            {
+                                map[oldType] = newType;
+                            }
 
-                        return @explicit.SwitchReturns(v1 =>
-                        {
-                            realizedGeneric.Add(genericTypeKey, Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v1));
-                            return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v1);
-                        }, v2 =>
-                        {
-                            realizedGeneric.Add(genericTypeKey, Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v2));
-                            return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v2);
-                        });
+                            var @explicit = CopyTree(Prototypist.Toolbox.OrType.Make<MethodType, Type>(method), Prototypist.Toolbox.OrType.Make<MethodType, Type>(new MethodType(this.builder, $"generated-generic-{method.DebugName}", method.Converter)), map);
 
-                    },
-                    type =>
-                    {
-                        var genericTypeKey = new GenericTypeKey(Prototypist.Toolbox.OrType.Make<MethodType, Type>(type), types);
+                            return @explicit.SwitchReturns(v1 =>
+                            {
+                                realizedGeneric.Add(genericTypeKey, Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v1));
+                                return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v1);
+                            }, v2 =>
+                            {
+                                realizedGeneric.Add(genericTypeKey, Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v2));
+                                return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v2);
+                            });
 
-                        if (realizedGeneric.TryGetValue(genericTypeKey, out var res2))
-                        {
-                            return res2;
-                        }
-
-                        // this is duplicate code - 94875369485
-                        var map = new Dictionary<IOrType<MethodType, Type, Object, OrType, InferredType, IError>, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
-                        foreach (var (oldType, newType) in types.Zip(type.GenericOverlays, (x, y) => (y.Value, x)))
-                        {
-                            map[oldType] = newType;
-                        }
-
-                        var @explicit = CopyTree(Prototypist.Toolbox.OrType.Make<MethodType, Type>(type), Prototypist.Toolbox.OrType.Make<MethodType, Type>(new Type(this.builder, $"generated-generic-{type.debugName}", type.Key, type.Converter, type.IsPlaceHolder, Possibly.IsNot<Guid>())), map);
-
-                        return @explicit.SwitchReturns(v1 =>
-                        {
-                            realizedGeneric.Add(genericTypeKey, Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v1));
-                            return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v1);
                         },
-                        v2 =>
+                        type =>
                         {
-                            realizedGeneric.Add(genericTypeKey, Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v2));
-                            return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v2);
-                        });
+                            var genericTypeKey = new GenericTypeKey(Prototypist.Toolbox.OrType.Make<MethodType, Type>(type), types);
 
-                    },
-                    @object => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(@object),
-                    orType => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(orType),
-                    inferredType => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(inferredType),
-                    error => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(error));
+                            if (realizedGeneric.TryGetValue(genericTypeKey, out var res2))
+                            {
+                                return res2;
+                            }
+
+                            // this is duplicate code - 94875369485
+                            var map = new Dictionary<IOrType<MethodType, Type, Object, OrType, InferredType, IError>, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
+                            foreach (var (oldType, newType) in types.Zip(type.GenericOverlays, (x, y) => (y.Value, x)))
+                            {
+                                map[oldType] = newType;
+                            }
+
+                            var @explicit = CopyTree(Prototypist.Toolbox.OrType.Make<MethodType, Type>(type), Prototypist.Toolbox.OrType.Make<MethodType, Type>(new Type(this.builder, $"generated-generic-{type.DebugName}", type.Key, type.Converter, type.IsPlaceHolder, Possibly.IsNot<Guid>())), map);
+
+                            return @explicit.SwitchReturns(v1 =>
+                            {
+                                realizedGeneric.Add(genericTypeKey, Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v1));
+                                return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v1);
+                            },
+                            v2 =>
+                            {
+                                realizedGeneric.Add(genericTypeKey, Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v2));
+                                return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v2);
+                            });
+
+                        },
+                        @object => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(@object),
+                        orType => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(orType),
+                        inferredType => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(inferredType),
+                        error => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(error));
                 }
                 else if (TryLookUp(from, key, out var res2))
                 {
@@ -1544,7 +1553,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var item in innerFromStaticScope.Refs)
                             {
-                                var newValue = Copy(item, new TypeReference(this.builder, $"copied from {((TypeProblemNode)item).debugName}", item.Converter));
+                                var newValue = Copy(item, new TypeReference(this.builder, $"copied from {((TypeProblemNode)item).DebugName}", item.Converter));
                                 Builder.HasReference(innerStaticScopeTo, newValue);
                             }
                         }
@@ -1552,7 +1561,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var @object in innerFromStaticScope.Objects)
                             {
-                                var newValue = Copy(@object.Value, new Object(this.builder, $"copied from {((TypeProblemNode)@object.Value).debugName}", @object.Value.Converter, @object.Value.InitizationScope.Converter));
+                                var newValue = Copy(@object.Value, new Object(this.builder, $"copied from {((TypeProblemNode)@object.Value).DebugName}", @object.Value.Converter, @object.Value.InitizationScope.Converter));
                                 Builder.HasObject(innerStaticScopeTo, @object.Key, newValue);
                             }
 
@@ -1561,7 +1570,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var type in innerFromStaticScope.Types)
                             {
-                                var newValue = Copy(type.Value, new Type(this.builder, $"copied from {((TypeProblemNode)type.Value).debugName}", type.Value.Key, type.Value.Converter, type.Value.IsPlaceHolder, type.Value.PrimitiveId));
+                                var newValue = Copy(type.Value, new Type(this.builder, $"copied from {((TypeProblemNode)type.Value).DebugName}", type.Value.Key, type.Value.Converter, type.Value.IsPlaceHolder, type.Value.PrimitiveId));
                                 Builder.HasType(innerStaticScopeTo, type.Key, newValue);
                             }
                         }
@@ -1569,7 +1578,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var method in innerFromStaticScope.Methods)
                             {
-                                var newValue = Copy(method.Value, new Method(this.builder, $"copied from {((TypeProblemNode)method.Value).debugName}", method.Value.Converter));
+                                var newValue = Copy(method.Value, new Method(this.builder, $"copied from {((TypeProblemNode)method.Value).DebugName}", method.Value.Converter));
                                 Builder.HasMethod(innerStaticScopeTo, method.Key, newValue);
                             }
                         }
@@ -1577,7 +1586,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var type in innerFromStaticScope.OrTypes)
                             {
-                                var newValue = Copy(type.Value, new OrType(this.builder, $"copied from {((TypeProblemNode)type.Value).debugName}", type.Value.Converter));
+                                var newValue = Copy(type.Value, new OrType(this.builder, $"copied from {((TypeProblemNode)type.Value).DebugName}", type.Value.Converter));
                                 Builder.HasOrType(innerStaticScopeTo, type.Key, newValue);
                             }
                         }
@@ -1592,7 +1601,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var member in innerFromPublicMembers.PublicMembers)
                             {
-                                var newValue = Copy(member.Value, new Member(this.builder, $"copied from {((TypeProblemNode)member.Value).debugName}", member.Value.Converter));
+                                var newValue = Copy(member.Value, new Member(this.builder, $"copied from {((TypeProblemNode)member.Value).DebugName}", member.Value.Converter));
                                 Builder.HasPublicMember(innerToPublicMembers, member.Key, newValue);
                             }
                         }
@@ -1604,7 +1613,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var item in innerFromScope.Values)
                             {
-                                var newValue = Copy(item, new Value(this.builder, $"copied from {((TypeProblemNode)item).debugName}", item.Converter));
+                                var newValue = Copy(item, new Value(this.builder, $"copied from {((TypeProblemNode)item).DebugName}", item.Converter));
                                 Builder.HasValue(innerScopeTo, newValue);
                             }
                         }
@@ -1612,7 +1621,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var member in innerFromScope.TransientMembers)
                             {
-                                var newValue = Copy(member, new TransientMember(this.builder, $"copied from {((TypeProblemNode)member).debugName}"));
+                                var newValue = Copy(member, new TransientMember(this.builder, $"copied from {((TypeProblemNode)member).DebugName}"));
                                 Builder.HasTransientMember(innerScopeTo, newValue);
                             }
                         }
@@ -1620,7 +1629,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var member in innerFromScope.PrivateMembers)
                             {
-                                var newValue = Copy(member.Value, new Member(this.builder, $"copied from {((TypeProblemNode)member.Value).debugName}", member.Value.Converter));
+                                var newValue = Copy(member.Value, new Member(this.builder, $"copied from {((TypeProblemNode)member.Value).DebugName}", member.Value.Converter));
                                 Builder.HasPrivateMember(innerScopeTo, member.Key, newValue);
                             }
                         }
@@ -1628,7 +1637,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var possible in innerFromScope.PossibleMembers)
                             {
-                                Builder.HasMembersPossiblyOnParent(innerScopeTo, possible.Key, ()=> Copy(possible.Value, new Member(this.builder, $"copied from {((TypeProblemNode)possible.Value).debugName}", possible.Value.Converter)));
+                                Builder.HasMembersPossiblyOnParent(innerScopeTo, possible.Key, ()=> Copy(possible.Value, new Member(this.builder, $"copied from {((TypeProblemNode)possible.Value).DebugName}", possible.Value.Converter)));
                             }
                         }
                     }
@@ -1669,7 +1678,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         if (innerFromHopeful.Hopeful.Is(out var infered))
                         {
-                            var newValue = Copy(infered, new InferredType(this.builder, $"copied from {((TypeProblemNode)infered).debugName}"));
+                            var newValue = Copy(infered, new InferredType(this.builder, $"copied from {((TypeProblemNode)infered).DebugName}"));
                             innerToHopeful.Hopeful = Possibly.Is(newValue);
                         }
                     }
@@ -1859,7 +1868,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var methodInputKey = new NameKey("method type input" + Guid.NewGuid());
                 // here it is ok for these to be members because we are using a method type
                 res.Input = Possibly.Is(builder.CreatePrivateMember(res, res, methodInputKey, Prototypist.Toolbox.OrType.Make<IKey, IError>(new NameKey("T1")), new WeakMemberDefinitionConverter(Model.Elements.Access.ReadWrite, methodInputKey)));
-                res.Returns = Possibly.Is(builder.CreateTransientMember(res, new NameKey("T2")));
+                res.Returns = Possibly.Is(builder.CreateTransientMember(res, new NameKey("T2"), $"return of {res.DebugName} "));
                 builder.IsChildOf(Primitive, res);
             }
 

@@ -56,6 +56,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         internal interface ITypeProblemNode
         {
+            string DebugName { get; }
             TypeProblem2.Builder Problem { get; }
         }
 

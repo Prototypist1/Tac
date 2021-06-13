@@ -261,7 +261,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public Scope CreateScope(IStaticScope parent, IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> converter)
                 {
-                    var res = new Scope(this, $"child-of-{((TypeProblemNode)parent).debugName}", converter);
+                    var res = new Scope(this, $"child-of-{((TypeProblemNode)parent).DebugName}", converter);
                     IsChildOf(parent, res);
                     return res;
                 }
@@ -331,7 +331,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     IsChildOf(parent, res);
                     HasMethod(parent, new ImplicitKey(Guid.NewGuid()), res);
                     // here it is ok for these to be members because we are using a method
-                    var returns = CreateTransientMember(res);
+                    var returns = CreateTransientMember(res, $"return of {res.DebugName}");
                     res.Returns = Possibly.Is(returns);
                     var input = CreatePrivateMember(res, res, new NameKey(inputName), inputConverter);
                     res.Input = Possibly.Is(input);
@@ -350,11 +350,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                         throw new NotImplementedException();
                     }
 
-                    var res = new Method(this, $"method{{inputName:{inputName},inputType:{inputTypeValue.debugName},outputType:{outputTypeValue.debugName}}}", converter);
+                    var res = new Method(this, $"method{{inputName:{inputName},inputType:{inputTypeValue.DebugName},outputType:{outputTypeValue.DebugName}}}", converter);
                     IsChildOf(parent, res);
                     HasMethod(parent, new ImplicitKey(Guid.NewGuid()), res);
                     {
-                        var returns = outputTypeValue.TypeKey is IIsDefinately<IKey> typeKey ? CreateTransientMember(res, typeKey.Value) : CreateTransientMember(res);
+                        var returns = outputTypeValue.TypeKey is IIsDefinately<IKey> typeKey ? CreateTransientMember(res, typeKey.Value, $"return of {res.DebugName}") : CreateTransientMember(res, $"return of {res.DebugName}");
                         res.Returns = Possibly.Is(returns);
                     }
                     {
@@ -393,7 +393,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         throw new NotImplementedException();
                     }
 
-                    var res = new OrType(this, $"{node1.debugName} || {node2.debugName}", converter);
+                    var res = new OrType(this, $"{node1.DebugName} || {node2.DebugName}", converter);
                     Ors(res, node1, node2);
                     HasOrType(s, key, res);
 
@@ -420,49 +420,49 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public void IsNumber(IScope parent, ILookUpType target)
                 {
                     // super weird that this has to be a transient member
-                    var thing = CreateTransientMember(parent, new NameKey("number"));
+                    var thing = CreateTransientMember(parent, new NameKey("number"), $"is number for {target.DebugName}");
                     AssertIs(target, thing);
                 }
 
                 public void IsBlock(IScope parent, ILookUpType target)
                 {
                     // super weird that this has to be a transient member
-                    var thing = CreateTransientMember(parent, new NameKey("block"));
+                    var thing = CreateTransientMember(parent, new NameKey("block"), $"is block for {target.DebugName}");
                     AssertIs(target, thing);
                 }
 
                 public void IsBool(IScope parent, ILookUpType target)
                 {
                     // super weird that this has to be a transient member
-                    var thing = CreateTransientMember(parent, new NameKey("bool"));
+                    var thing = CreateTransientMember(parent, new NameKey("bool"), $"is bool for {target.DebugName}");
                     AssertIs(target, thing);
                 }
 
                 public void IsEmpty(IScope parent, ILookUpType target)
                 {
                     // super weird that this has to be a transient member
-                    var thing = CreateTransientMember(parent, new NameKey("empty"));
+                    var thing = CreateTransientMember(parent, new NameKey("empty"), $"is empty for {target.DebugName}");
                     AssertIs(target, thing);
                 }
 
                 public void IsString(IScope parent, ILookUpType target)
                 {
                     // super weird that this has to be a transient member
-                    var thing = CreateTransientMember(parent, new NameKey("string"));
+                    var thing = CreateTransientMember(parent, new NameKey("string"), $"is string for {target.DebugName}");
                     AssertIs(target, thing);
                 }
 
-                public TransientMember CreateTransientMember(IScope parent)
+                public TransientMember CreateTransientMember(IScope parent, string debugName)
                 {
-                    var res = new TransientMember(this, "");
+                    var res = new TransientMember(this, debugName);
                     HasTransientMember(parent, res);
                     res.Context = Possibly.Is(parent);
                     return res;
                 }
 
-                public TransientMember CreateTransientMember(IScope parent, IKey typeKey)
+                public TransientMember CreateTransientMember(IScope parent, IKey typeKey, string debugName)
                 {
-                    var res = new TransientMember(this, "");
+                    var res = new TransientMember(this, debugName);
                     HasTransientMember(parent, res);
                     res.Context = Possibly.Is(parent);
                     res.TypeKey = Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(typeKey);
@@ -477,7 +477,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //
                 public Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>> converter, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> inputConverter)
                 {
-                    var thing = CreateTransientMember(parent);
+                    var thing = CreateTransientMember(parent, $"is method for {target.DebugName}");
                     var method = CreateMethod(parent, "input", converter, inputConverter);
                     IsAssignedTo(target, thing);
                     return method;
