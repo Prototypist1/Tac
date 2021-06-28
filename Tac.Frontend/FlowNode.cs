@@ -256,45 +256,12 @@ namespace Tac.Frontend.New.CrzayNamespace
         public interface IVirtualFlowNode
         {
 
-            //IIsPossibly<IOrType<VirtualNode, IError>> VirtualOutput();
-            //IIsPossibly<IOrType<VirtualNode, IError>> VirtualInput();
+            // this is lazy because we don't what to have to fully calculate all our members
+            // it is a lot of wasted work
+            // also if we flow in to one of our members we get a stack overflow
             IOrType<ICollection<KeyValuePair<IKey, Lazy<IOrType<VirtualNode, IError>>>>, IError> VirtualMembers();
 
-
-            // TODO you are here!
-            // TODO you are here!
-            // TODO you are here!
-            // TODO you are here!
-            // TODO you are here!
-            // TODO you are here!
-            //
-            // this was my thinking when I added HasMembers
-            //
-            // what is the rep of a
-            //  well, it's got whatevere members x has
-            //      what members does x have?
-            //          well, we have to full describle all the members
-            //              what is the rep of a....
-            //
-            // I also added the stupid thing that makes virtual nodes but I don't think that was a good idea
-            //
-            // HasMembers seems like to specific of a solution
-            // but maybe I don't need to fully calculate the VirtualNodes 
-            // maybe virtual members returns IOrType<ICollection<KeyValuePair<IKey, Func<IOrType<VirtualNode, IError>>>>, IError> instead
-            //
-            // what is the rep of a
-            //  well, it's got whatevere members x has
-            // 
-            // ^ how did I get from the first line to the second? the rep of a is an or of ands with x in it....
-            //IOrType<bool, IError> HasMembers();
-
-            //... I probably need to remove this...
-            //... you can use Walk with an empty ienum
-            //IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> ToRep();
             IOrType<IIsPossibly<Guid>, IError> Primitive();
-            // this is a bit of a stinker
-            // CombinedAndNode does not have one 
-            // but everyone else does
 
             /// <summary>
             /// Source Path is used as a way to express identity
@@ -328,14 +295,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return OrType.Make<IIsPossibly<Guid>, IError>(Possibly.Is(Guid));
             }
 
-            //public IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> ToRep()
-            //{
-            //    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd>
-            //    {
-            //        new CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(this) })
-            //    }));
-            //}
-
             public bool MustAccept(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing) {
                 return false;
             }
@@ -344,23 +303,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return false;
             }
 
-            //public IIsPossibly<IOrType<VirtualNode, IError>> VirtualInput() 
-            //{
-            //    return Possibly.IsNot<IOrType<VirtualNode, IError>>();
-            //}
-
-            //public IIsPossibly<IOrType<VirtualNode, IError>> VirtualOutput()
-            //{
-            //    return Possibly.IsNot<IOrType<VirtualNode, IError>>();
-            //}
-
             public IOrType<ICollection<KeyValuePair<IKey, Lazy<IOrType<VirtualNode, IError>>>>, IError> VirtualMembers() {
                 return OrType.Make<ICollection<KeyValuePair<IKey, Lazy<IOrType<VirtualNode, IError>>>>, IError>(new Dictionary<IKey, Lazy<IOrType<VirtualNode, IError>>>());
             }
-
-            //public IOrType<bool, IError> HasMembers() {
-            //    return OrType.Make<bool, IError>(false);
-            //}
 
             public SourcePath SourcePath()
             {
@@ -420,35 +365,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                         .ToArray());
             }
 
-
-            //public IOrType<bool, IError> HasMembers()
-            //{
-            //    return OrType.Make<bool, IError>(Members.Any());
-            //}
-
-
-            //public IIsPossibly<IOrType<VirtualNode, IError>> VirtualInput()
-            //{
-            //    return Input.TransformInner(x => x.GetValueAs(out IVirtualFlowNode _).ToRep().TransformInner(y => new VirtualNode(y, SourcePath().Input())));
-            //}
-            //public IIsPossibly<IOrType<VirtualNode, IError>> VirtualOutput()
-            //{
-            //    return Output.TransformInner(x => x.GetValueAs(out IVirtualFlowNode _).ToRep().TransformInner(y => new VirtualNode(y, SourcePath().Output())));
-            //}
-
             public IOrType<IIsPossibly<Guid>, IError> Primitive()
             {
                 return OrType.Make<IIsPossibly<Guid>, IError>(Possibly.IsNot<Guid>());
             }
-
-            //public IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> ToRep()
-            //{
-            //    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd>
-            //    {
-            //        new CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(this) })
-            //    }));
-            //}
-
 
             public bool MustAccept(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing) {
 
@@ -1100,64 +1020,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 return res;
 
-
-                //return (accepted ? AcceptedSources : ReturnedSources).SelectMany(x =>
-                //{
-                //    //var fullPath = new List<IOrType<Member, Input, Output>>();
-                //    //fullPath.AddRange(x.path);
-                //    //fullPath.AddRange(pathParts);
-
-                //    //return x.source.GetValueAs(out IVirtualFlowNode _).Walk(fullPath);
-
-                //    //var walked = 
-
-                //    var walked = x.Walk();
-
-                //    //if (walked.Is1(out var virtualFlowNode)) { 
-
-                //    //}
-
-                //    //walked = WalkPath(pathParts, walked);
-
-                //    if (walked.Is1(out var virtualFlowNode) && virtualFlowNode.SafeIs(out InferredFlowNode node))
-                //    {
-                //        if (except.Contains(node))
-                //        {
-                //            return new HashSet<IOrType<IVirtualFlowNode, IError, DoesNotExist>> { };
-                //        }
-                //        except.Add(node);
-                //        return node.Flatten(except, new IOrType<Member, Input, Output>[] { }, accepted);
-                //    }
-
-                //    return new HashSet<IOrType<IVirtualFlowNode, IError, DoesNotExist>> {
-                //        walked.SwitchReturns(
-                //            x => OrType.Make<IVirtualFlowNode, IError, DoesNotExist>(x),
-                //            x => OrType.Make<IVirtualFlowNode, IError, DoesNotExist>(x),
-                //            x => OrType.Make<IVirtualFlowNode, IError, DoesNotExist>(x)) };
-                //}).ToHashSet();
             }
-
-
-            // Maybe extend IOrType<Member,Input,Output> to give it a name
-            // and then extend it with this swtich? 
-            //                        pathPart.SwitchReturns(
-            //x => virtualFlowNode.VirtualMembers().SwitchReturns(inner => inner.Where(y => y.Key.Equals(x.key)).Single().Value, error => (IOrType<IVirtualFlowNode, IError>) OrType.Make<IVirtualFlowNode, IError>(error)),
-            //                x => virtualFlowNode.VirtualInput().GetOrThrow(),
-            //                x => virtualFlowNode.VirtualOutput().GetOrThrow());
-            // the switch is also used in Walk()
-            //private static IOrType<IVirtualFlowNode, IError> WalkPath(IEnumerable<IOrType<Member, Input, Output>> pathParts, IOrType<IVirtualFlowNode, IError> walked)
-            //{
-            //    var enumerator = pathParts.GetEnumerator();
-            //    while (walked.Is1(out var virtualFlowNode) && enumerator.MoveNext())
-            //    {
-            //        walked = enumerator.Current.SwitchReturns(
-            //            x => virtualFlowNode.VirtualMembers().SwitchReturns(inner => inner.Where(y => y.Key.Equals(x.key)).Single().Value, error => (IOrType<IVirtualFlowNode, IError>)OrType.Make<IVirtualFlowNode, IError>(error)),
-            //            x => virtualFlowNode.VirtualInput().GetOrThrow(),
-            //            x => virtualFlowNode.VirtualOutput().GetOrThrow());
-            //    }
-
-            //    return walked;
-            //}
 
             public bool MustAccept(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
             {
@@ -1237,21 +1100,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                     x => new VirtualNode(SourcePath(), x).VirtualMembers(), 
                     x => OrType.Make<ICollection<KeyValuePair<IKey, Lazy<IOrType<VirtualNode, IError>>>>, IError>(x));
             }
-
-            //public IOrType<bool, IError> HasMembers()
-            //{
-
-            //}
-
-            //public IIsPossibly<IOrType<VirtualNode, IError>> VirtualInput()
-            //{
-            //    return ToRep().SwitchReturns(x => new VirtualNode(x, SourcePath()).VirtualInput(), y => Possibly.Is<IOrType<VirtualNode, IError>>(OrType.Make<VirtualNode, IError>(y)));
-            //}
-
-            //public IIsPossibly<IOrType<VirtualNode, IError>> VirtualOutput()
-            //{
-            //    return ToRep().SwitchReturns(x => new VirtualNode(x, SourcePath()).VirtualOutput(), y => Possibly.Is<IOrType<VirtualNode, IError>>(OrType.Make<VirtualNode, IError>(y)));
-            //}
 
             public SourcePath SourcePath()
             {
@@ -1784,11 +1632,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 return Or.VirtualMembers().TransformInner(dict => (ICollection<KeyValuePair<IKey, Lazy<IOrType<VirtualNode, IError>>>>)(dict.Select(pair => KeyValuePair.Create(pair.Key, new Lazy<IOrType<VirtualNode, IError>>(()=> pair.Value.Value.TransformInner(ands => new VirtualNode( SourcePath().Member(pair.Key), ands))))).ToArray()));
             }
-
-            //public IOrType<bool, IError> HasMembers()
-            //{
-
-            //}
 
             public SourcePath SourcePath()
             {
