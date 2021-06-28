@@ -382,7 +382,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var scope = node.VirtualMembers(virtualNodeManager).TransformInner(x =>
                         new Scope(x.ToDictionary(
                                 pair => pair.Key,
-                                pair => LookUpOrBuild(pair.Value)),
+                                pair => LookUpOrBuild(pair.Value.Value)),
                             this));
                     scopeCache[rep] = scope;
                     return scope;
@@ -434,7 +434,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var scope = node.VirtualMembers(virtualNodeManager).TransformInner(x => 
                     new Scope(x.ToDictionary(
                             pair => pair.Key,
-                            pair => SafeLookUp(pair.Value.TransformInner(virtualNode => virtualNode.ToRep(virtualNodeManager)))),
+                            pair => SafeLookUp(pair.Value.Value.TransformInner(virtualNode => virtualNode.ToRep(virtualNodeManager)))),
                         this));
                 scopeCache[rep] = scope;
                 return scope;

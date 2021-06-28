@@ -1279,19 +1279,47 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = typeProblem.Solve();
 
+
+            var xType = solution.GetType(x).GetValue().Is1OrThrow();
+            var aType = xType.TryGetMember(new NameKey("a"), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow().Is1OrThrow().Item1;
+            var aaType = aType.TryGetMember(new NameKey("a"), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow().Is1OrThrow().Item1;
+            var aaaType = aaType.TryGetMember(new NameKey("a"), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow().Is1OrThrow().Item1;
         }
 
+        // x.a =: x
+        // x.a := x
+        //
+        // x.a.a.a.a exists
+        [Fact]
+        public void XisAofXandAofXisX()
+        {
+            var typeProblem = new Tpn.TypeProblem2(
+                new WeakScopeConverter(),
+                DefaultRootScopePopulateScope());
+
+            var x = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("x"),
+                new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("x")));
+
+            var a = typeProblem.builder.CreateHopefulMember(x, new NameKey("a"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("a")));
+
+            typeProblem.builder.IsAssignedTo(a, x);
+            typeProblem.builder.IsAssignedTo(x, a);
+
+            var solution = typeProblem.Solve();
 
 
-
+            var xType = solution.GetType(x).GetValue().Is1OrThrow();
+            var aType = xType.TryGetMember(new NameKey("a"), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow().Is1OrThrow().Item1;
+            var aaType = aType.TryGetMember(new NameKey("a"), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow().Is1OrThrow().Item1;
+            var aaaType = aaType.TryGetMember(new NameKey("a"), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow().Is1OrThrow().Item1;
+        }
 
         // TODO! 
         // more tests:
         // A1A44050-9185-4C49-9C82-B9E9293BE3DF
-
-        // -------------------------
-        // x.a =: x
-        // x.a := x
 
         // -------------------------
         // flow in to member 2
@@ -1305,8 +1333,6 @@ namespace Tac.Frontend.TypeProblem.Test
         // type B {b;c;}
         // x =: A|B ab
         // x better be A|B and not just {b;}
-
-
 
     }
 }
