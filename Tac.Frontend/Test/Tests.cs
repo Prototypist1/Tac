@@ -1201,20 +1201,7 @@ namespace Tac.Frontend.TypeProblem.Test
                 new WeakScopeConverter(),
                 DefaultRootScopePopulateScope());
 
-            //var method = x.builder.CreateMethod(
-            //    x.ModuleRoot,
-            //    OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(x.builder.CreateTypeReference(x.ModuleRoot, new NameKey("number"), new WeakTypeReferenceConverter())), 
-            //    OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(x.builder.CreateTypeReference(x.ModuleRoot, new NameKey("number"), new WeakTypeReferenceConverter())),
-            //    "input", 
-            //    new WeakMethodDefinitionConverter(new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>(new List<IOrType<IBox<IFrontendCodeElement>, IError>>())), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("input")));
-
-            //var methodMember = x.builder.CreatePublicMember(
-            //                    x.ModuleRoot,
-            //                    new NameKey("method-member"),
-            //                    OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(method),
-            //                    new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("method-member")));
-
-             var methodValue = x.builder.CreateValue(x.ModuleRoot.InitizationScope, new GenericNameKey(new NameKey("method"), new IOrType<IKey, IError>[] {
+            var methodValue = x.builder.CreateValue(x.ModuleRoot.InitizationScope, new GenericNameKey(new NameKey("method"), new IOrType<IKey, IError>[] {
                     OrType.Make<IKey, IError>(new NameKey("number")),
                     OrType.Make<IKey, IError>(new NameKey("number")),
                 }), new PlaceholderValueConverter());
@@ -1242,10 +1229,69 @@ namespace Tac.Frontend.TypeProblem.Test
         }
 
 
+        // x.a := x
+        //
+        // x.a is any
+        [Fact]
+        public void AofXisX()
+        {
+            var typeProblem = new Tpn.TypeProblem2(
+                new WeakScopeConverter(),
+                DefaultRootScopePopulateScope());
+
+            var x = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("x"),
+                new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("x")));
+
+            var a = typeProblem.builder.CreateHopefulMember(x, new NameKey("a"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("a")));
+
+            typeProblem.builder.IsAssignedTo(x, a);
+
+            var solution = typeProblem.Solve();
+
+            var xType = solution.GetType(x).GetValue().Is1OrThrow();
+            var aType = xType.TryGetMember(new NameKey("a"), new List<(IFrontendType, IFrontendType)>()).Is1OrThrow().Is1OrThrow().Item1;
+
+            Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.AnyType>(aType);
+        }
+
+        // x.a =: x
+        //
+        // x.a.a.a.a exists
+        [Fact]
+        public void XisAofX()
+        {
+            var typeProblem = new Tpn.TypeProblem2(
+                new WeakScopeConverter(),
+                DefaultRootScopePopulateScope());
+
+            var x = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("x"),
+                new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("x")));
+
+            var a = typeProblem.builder.CreateHopefulMember(x, new NameKey("a"), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("a")));
+
+            typeProblem.builder.IsAssignedTo(a, x);
+
+            var solution = typeProblem.Solve();
+
+        }
+
+
+
+
 
         // TODO! 
         // more tests:
         // A1A44050-9185-4C49-9C82-B9E9293BE3DF
+
+        // -------------------------
+        // x.a =: x
+        // x.a := x
 
         // -------------------------
         // flow in to member 2
@@ -1260,11 +1306,7 @@ namespace Tac.Frontend.TypeProblem.Test
         // x =: A|B ab
         // x better be A|B and not just {b;}
 
-        // -------------------------
-        // x.a =: x
 
-        // -------------------------
-        // x.a := x
 
     }
 }

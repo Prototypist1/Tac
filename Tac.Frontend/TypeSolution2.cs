@@ -24,12 +24,14 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
             readonly Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodeLookUp;
+            private readonly VirtualNode.OnlyICreateVirtualNodes virtualNodeManager;
 
             public TypeSolution(
                 IReadOnlyList<IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>> things,
-                Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodes) {
+                Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodes, Tpn.VirtualNode.OnlyICreateVirtualNodes virtualNodeManager) {
 
                 flowNodeLookUp = flowNodes ?? throw new ArgumentNullException(nameof(flowNodes));
+                this.virtualNodeManager = virtualNodeManager ?? throw new ArgumentNullException(nameof(virtualNodeManager));
 
                 var todo = new Queue<Action>();
 
@@ -39,7 +41,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     thing.Switch(
                         methodType => {
 
-                            flowNodes[OrType.Make<ITypeProblemNode, IError>(methodType)].GetValueAs(out IVirtualFlowNode _).ToRep().IfNotError(value =>
+                            flowNodes[OrType.Make<ITypeProblemNode, IError>(methodType)].GetValueAs(out IVirtualFlowNode _).ToRep(virtualNodeManager).IfNotError(value =>
                             {
                                 generalLookUp[value] = box;
                                 todo.Enqueue(() =>
@@ -50,7 +52,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             });
                         },
                         type => {
-                            flowNodes[OrType.Make<ITypeProblemNode, IError>(type)].GetValueAs(out IVirtualFlowNode _).ToRep().IfNotError(value =>
+                            flowNodes[OrType.Make<ITypeProblemNode, IError>(type)].GetValueAs(out IVirtualFlowNode _).ToRep(virtualNodeManager).IfNotError(value =>
                             {
                                 generalLookUp[value] = box;
                                 var typeBox = new Box<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>();
@@ -78,7 +80,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             });
                         },
                         obj => {
-                            flowNodes[OrType.Make<ITypeProblemNode, IError>(obj)].GetValueAs(out IVirtualFlowNode _).ToRep().IfNotError(value => {
+                            flowNodes[OrType.Make<ITypeProblemNode, IError>(obj)].GetValueAs(out IVirtualFlowNode _).ToRep(virtualNodeManager).IfNotError(value => {
                                 generalLookUp[value] = box;
                                 var objBox = new Box<IOrType<WeakObjectDefinition, WeakRootScope>>();
                                 objectCache[obj] = objBox;
@@ -106,7 +108,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             // in that case they defer
                         },
                         error => {
-                            flowNodes[OrType.Make<ITypeProblemNode, IError>(error)].GetValueAs(out IVirtualFlowNode _).ToRep().IfNotError(value => {
+                            flowNodes[OrType.Make<ITypeProblemNode, IError>(error)].GetValueAs(out IVirtualFlowNode _).ToRep(virtualNodeManager).IfNotError(value => {
                                 generalLookUp[value] = box;
                                 box.Fill(OrType.Make<IFrontendType, IError>(
                                     error));
@@ -129,7 +131,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                             // in some cases this has already been added
                             // bool | bool say
-                            var key = flowNodes[OrType.Make<ITypeProblemNode, IError>(orType)].GetValueAs(out IVirtualFlowNode _).ToRep();
+                            var key = flowNodes[OrType.Make<ITypeProblemNode, IError>(orType)].GetValueAs(out IVirtualFlowNode _).ToRep(virtualNodeManager);
                             key.IfNotError(value =>
                             {
                                 if (!generalLookUp.ContainsKey(value))
@@ -156,7 +158,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         obj => {},
                         orType => {},
                         inferred => {
-                            var key = flowNodes[OrType.Make<ITypeProblemNode, IError>(inferred)].GetValueAs<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode, IVirtualFlowNode>(out var _).ToRep();
+                            var key = flowNodes[OrType.Make<ITypeProblemNode, IError>(inferred)].GetValueAs<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode, IVirtualFlowNode>(out var _).ToRep(virtualNodeManager);
                             key.Switch(equalibleHashSet =>
                             {
                                 EnqueConversionForSet(equalibleHashSet);
@@ -180,7 +182,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         return OrType.Make<IFrontendType, IError>(new AnyType());
                     }
 
-                    var prim = flowNode.Primitive();
+                    var prim = flowNode.Primitive(virtualNodeManager);
 
                     if (prim.Is2(out var error))
                     {
@@ -202,7 +204,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
 
-                    if (flowNode.VirtualInput().Is(out var inputOr))
+                    if (flowNode.VirtualInput(virtualNodeManager).Is(out var inputOr))
                     {
                         if (inputOr.Is2(out var e2))
                         {
@@ -212,7 +214,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var input = inputOr?.Is1OrThrow();
 
 
-                    if (flowNode.VirtualOutput().Is(out var outputOr))
+                    if (flowNode.VirtualOutput(virtualNodeManager).Is(out var outputOr))
                     {
                         if (outputOr.Is2(out var e3))
                         {
@@ -377,7 +379,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         return current;
                     }
-                    var scope = node.VirtualMembers().TransformInner(x =>
+                    var scope = node.VirtualMembers(virtualNodeManager).TransformInner(x =>
                         new Scope(x.ToDictionary(
                                 pair => pair.Key,
                                 pair => LookUpOrBuild(pair.Value)),
@@ -424,15 +426,15 @@ namespace Tac.Frontend.New.CrzayNamespace
             // {7737F6C2-0328-477B-900B-2E6C44AEF6D3}
             private IOrType<Scope, IError> GetMyScope(Tpn.IVirtualFlowNode node)
             {
-                var rep = node.ToRep();
+                var rep = node.ToRep(virtualNodeManager);
 
                 if (scopeCache.TryGetValue(rep, out var current)) {
                     return current;
                 }
-                var scope = node.VirtualMembers().TransformInner(x => 
+                var scope = node.VirtualMembers(virtualNodeManager).TransformInner(x => 
                     new Scope(x.ToDictionary(
                             pair => pair.Key,
-                            pair => SafeLookUp(pair.Value.TransformInner(virtualNode => virtualNode.ToRep()))),
+                            pair => SafeLookUp(pair.Value.TransformInner(virtualNode => virtualNode.ToRep(virtualNodeManager)))),
                         this));
                 scopeCache[rep] = scope;
                 return scope;
@@ -577,7 +579,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             internal IBox<IOrType<IFrontendType, IError>> GetType(IOrType<IVirtualFlowNode, IError> from)
             {
-                return from.SwitchReturns(x => SafeLookUp(x.ToRep()),x=> new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(x)));
+                return from.SwitchReturns(x => SafeLookUp(x.ToRep(virtualNodeManager)),x=> new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(x)));
             }
 
 
@@ -618,7 +620,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     orType=> OrType.Make<ITypeProblemNode, IError>(orType),
                     inferred => OrType.Make<ITypeProblemNode, IError>(inferred),
                     error=> OrType.Make<ITypeProblemNode, IError>(error))]
-                   .GetValueAs(out IVirtualFlowNode _).ToRep());
+                   .GetValueAs(out IVirtualFlowNode _).ToRep(virtualNodeManager));
             }
 
             internal IVirtualFlowNode GetFlowNode(ILookUpType from)
