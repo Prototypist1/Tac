@@ -726,8 +726,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 excapeValve = 0;
 
-                var virtualNodeManager = new Tpn.VirtualNode.OnlyICreateVirtualNodes();
-
                 bool go;
                 do
                 {
@@ -737,7 +735,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         go |= orsToFlowNodesLookup[to].GetValueAs(out IFlowNode _).MustAccept(
                             orsToFlowNodesLookup[from].GetValueAs(out IVirtualFlowNode _), 
-                            new List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>(), virtualNodeManager);
+                            new List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
 
                     }
 
@@ -745,7 +743,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         go |= orsToFlowNodesLookup[from].GetValueAs(out IFlowNode _).MustReturn(
                             orsToFlowNodesLookup[to].GetValueAs(out IVirtualFlowNode _),
-                            new List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>(), virtualNodeManager);
+                            new List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
                     }
 
                     excapeValve++;
@@ -838,7 +836,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //    }
                 //}
 
-                return new TypeSolution(ors, orsToFlowNodesLookup, virtualNodeManager);
+                return new TypeSolution(ors, orsToFlowNodesLookup);
             }
 
 
