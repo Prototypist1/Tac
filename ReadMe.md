@@ -12,7 +12,7 @@ Tac has no inheritance or class hierarchies; instead, objects that share functio
 
 This approach pushes most of an app's logic from classes into method-blueprints, making it easier to access, reuse and test.
 
-# The Specifics
+# Language Structures
 
 Tac has four core structures.
 
