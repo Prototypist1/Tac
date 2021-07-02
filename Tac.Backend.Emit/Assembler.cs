@@ -10,6 +10,7 @@ using Tac.Backend.Emit.Visitors;
 using Prototypist.Toolbox;
 using System.Linq;
 using Prototypist.TaskChain;
+using Tac.Model.Instantiated;
 
 namespace Tac.Backend.Emit
 {
@@ -39,16 +40,32 @@ namespace Tac.Backend.Emit
             return Assembly.Value.DefineDynamicModule(GenerateName());
         });
 
-        public static TOut BuildAndRun<Tin,TOut>(IRootScope rootScope, Tin input)
+        public static TOut BuildAndRun<Tin, TOut>(IRootScope scope, Tin input)
         {
-            var complitation = Build<Tin,TOut>(rootScope);
+            var complitation = Build<Tin, TOut>(new Project<EmitAssumblyBacking>(scope, new IAssembly<EmitAssumblyBacking>[] { }));
             return complitation.main(input);
         }
 
-        private static TacCompilation<Tin, TOut> Build<Tin, TOut>(IRootScope rootScope)
+        public static TOut BuildAndRun<Tin,TOut>(IProject<EmitAssumblyBacking> project, Tin input)
         {
+            var complitation = Build<Tin,TOut>(project);
+            return complitation.main(input);
+        }
+
+        private static TacCompilation<Tin, TOut> Build<Tin, TOut>(IProject<EmitAssumblyBacking> project)
+        {
+            var rootScope = project.RootScope;
             // I think we are actually not making an assembly,
             // just a type 
+            
+            // TODO you are here
+            // ok, so I'm working on added dependencies
+            // say I have out
+            // that needs to be defined on the root scope
+            // and it has a member called "write" or whatever
+            // that is just a Func
+            // and it can probably just take and return C# types
+            // as long as they end up in all the right lookups
 
             var extensionLookup = new ExtensionLookup();
             var closureVisitor = new ClosureVisitor(extensionLookup);
