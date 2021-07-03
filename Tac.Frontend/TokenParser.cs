@@ -37,7 +37,6 @@ namespace Tac.Frontend
 
             foreach (var dependency in dependencies)
             {
-
                 var type = problem.builder.CreateType(problem.Dependency, new WeakTypeDefinitionConverter());
                 foreach (var memberPair in dependency.Scope.Members)
                 {

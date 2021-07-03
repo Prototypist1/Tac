@@ -14,10 +14,6 @@ using Prototypist.Toolbox.Object;
 
 namespace Tac.Interpreted.SnippetTests
 {
-
-
-    
-
     internal static class BasicInputOutput
     {
         internal static (Func<T>, Action) ToInput<T>(IReadOnlyList<T> list) {

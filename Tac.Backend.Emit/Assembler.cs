@@ -7,7 +7,6 @@ using Tac.Model;
 using Tac.Backend.Emit.Walkers;
 using Tac.Backend.Emit.Lookup;
 using Tac.Backend.Emit.Visitors;
-using Prototypist.Toolbox;
 using System.Linq;
 using Prototypist.TaskChain;
 using Tac.Model.Instantiated;
@@ -40,33 +39,24 @@ namespace Tac.Backend.Emit
             return Assembly.Value.DefineDynamicModule(GenerateName());
         });
 
-        public static TOut BuildAndRun<Tin, TOut>(IRootScope scope, Tin input)
+        public static TOut BuildAndRun<Tin, TOut>(IRootScope scope, Tin input) 
         {
-            var complitation = Build<Tin, TOut>(new Project<EmitAssumblyBacking>(scope, new IAssembly<EmitAssumblyBacking>[] { }));
+            var complitation = Build<Tin, TOut>(new Project<Assembly>(scope, Array.Empty<IAssembly<Assembly>>()));
             return complitation.main(input);
         }
 
-        public static TOut BuildAndRun<Tin,TOut>(IProject<EmitAssumblyBacking> project, Tin input)
+        public static TOut BuildAndRun<Tin,TOut>(IProject<Assembly> project, Tin input)
         {
             var complitation = Build<Tin,TOut>(project);
             return complitation.main(input);
         }
 
-        private static TacCompilation<Tin, TOut> Build<Tin, TOut>(IProject<EmitAssumblyBacking> project)
+        private static TacCompilation<Tin, TOut> Build<Tin, TOut>(IProject<Assembly> project)
         {
             var rootScope = project.RootScope;
             // I think we are actually not making an assembly,
             // just a type 
             
-            // TODO you are here
-            // ok, so I'm working on added dependencies
-            // say I have out
-            // that needs to be defined on the root scope
-            // and it has a member called "write" or whatever
-            // that is just a Func
-            // and it can probably just take and return C# types
-            // as long as they end up in all the right lookups
-
             var extensionLookup = new ExtensionLookup();
             var closureVisitor = new ClosureVisitor(extensionLookup);
             rootScope.Convert(closureVisitor);
@@ -139,6 +129,16 @@ namespace Tac.Backend.Emit
             //}
 
             complitation.runTimeTypeTracker = typeTracker2.RunTimeTypeTracker();
+
+
+            var compType =  complitation.GetType();
+
+            foreach (var reference in project.References)
+            {
+                var prop = compType.GetProperty(TypeTracker.ConvertName(reference.Key.Name));
+                prop.SetValue(complitation, reference.Backing.Backing);
+            }
+
             //complitation.indexerArray = assemblerVisitor.indexerList.indexers.ToArray();
             //complitation.verifyableTypesArray = assemblerVisitor.verifyableTypesList.types.ToArray();
             complitation.Init();

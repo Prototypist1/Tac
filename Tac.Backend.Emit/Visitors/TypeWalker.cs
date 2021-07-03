@@ -19,6 +19,7 @@ using Tac.Type;
 namespace Tac.Backend.Emit.Walkers
 {
 
+    // todo maybe a struct so it's not null-able
     public class Empty { }
     class Nothing { }
 
@@ -492,8 +493,6 @@ namespace Tac.Backend.Emit.Walkers
         {
             return typeTracker.IdempotentAddType(verifiableType);
         }
-
-
 
         public Nothing AddOperation(IAddOperation co) =>HandleOp(co);
         public Nothing AssignOperation(IAssignOperation co) => HandleOp(co);

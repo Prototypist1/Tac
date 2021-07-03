@@ -11,22 +11,16 @@ namespace Tac.Emit.Runner
 {
     public static  class Run
     {
-
-        private class NotSupported { }
-
-        // TODO some sort of dependency support
-        //IReadOnlyList<IAssembly<InterpetedAssemblyBacking>> dependencies,
-        public static Tout CompileAndRun<Tin,Tout>(string name, string toRun, Tin input)
+        public static Tout CompileAndRun<Tin,Tout>(string name, string toRun, Tin input, IReadOnlyList<IAssembly<object>> assemblies)
         {
-            var module = new TokenParser().Parse(toRun, Array.Empty<IAssembly<NotSupported>>(), name);
+            var module = new TokenParser().Parse(toRun, assemblies, name);
 
             return Compiler.BuildAndRun<Tin, Tout>(
-                                Model.Instantiated.RootScope.CreateAndBuild(
-                                    module.RootScope.Scope,
-                                    module.RootScope.Assignments,
-                                    module.RootScope.EntryPoint
-                                    )
-                            , input);
+                Model.Instantiated.RootScope.CreateAndBuild(
+                    module.RootScope.Scope,
+                    module.RootScope.Assignments,
+                    module.RootScope.EntryPoint),
+                input);
         }
     }
 }

@@ -15,16 +15,13 @@ using Prototypist.Toolbox.Object;
 
 namespace Tac.Backend.Interpreted.Public
 {
-
-
-
     public class AssemblyBuilder
     {
-        private readonly IKey key;
+        private readonly NameKey key;
         private readonly Dictionary<IKey, (IInterpetedOperation,IVerifiableType)> memberValues = new Dictionary<IKey, (IInterpetedOperation, IVerifiableType)>();
         private readonly List<IsStatic> members = new List<IsStatic>();
 
-        public AssemblyBuilder(IKey key)
+        public AssemblyBuilder(NameKey key)
         {
             this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
@@ -101,7 +98,7 @@ namespace Tac.Backend.Interpreted.Public
 
         private class Assembly : IAssembly<InterpetedAssemblyBacking>
         {
-            public Assembly(IKey key, IFinalizedScope scope, InterpetedAssemblyBacking backing)
+            public Assembly(NameKey key, IFinalizedScope scope, InterpetedAssemblyBacking backing)
             {
                 Key = key ?? throw new ArgumentNullException(nameof(key));
                 Scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -110,21 +107,9 @@ namespace Tac.Backend.Interpreted.Public
 
             public IReadOnlyList<IAssembly<InterpetedAssemblyBacking>> References => new List<IAssembly<InterpetedAssemblyBacking>>();
 
-            public IKey Key { get; }
+            public NameKey Key { get; }
             public IFinalizedScope Scope { get; }
             public InterpetedAssemblyBacking Backing {get;}
-
-            public T Convert<T>(IOpenBoxesContext<T> _)
-
-            {
-                throw new NotImplementedException();
-            }
-
-            public IVerifiableType Returns()
-            {
-                throw new NotImplementedException();
-            }
         }
-
     }
 }

@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Tac.Backend.Interpreted\Tac.Backend.Interpreted.csproj" />
     <ProjectReference Include="..\Tac.Emit.Runner\Tac.Emit.Runner.csproj" />
   </ItemGroup>
 
