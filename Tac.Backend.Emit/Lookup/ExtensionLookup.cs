@@ -10,16 +10,16 @@ using Tac.Model.Elements;
 
 namespace Tac.Backend.Emit
 {
-    class ExtensionLookup
+    class WhoDefinedMemberByMethodlike
     {
-        public readonly ConcurrentIndexed<IInternalMethodDefinition, ClosureLookup> methodLookup = new ConcurrentIndexed<IInternalMethodDefinition, ClosureLookup>();
+        public readonly ConcurrentIndexed<IInternalMethodDefinition, WhoDefinedMember> methodLookup = new ConcurrentIndexed<IInternalMethodDefinition, WhoDefinedMember>();
 
         //public ClosureExtension LookUpOrAdd(IInternalMethodDefinition methodDefinition)
         //{
         //    return methodLookup.GetOrAdd(methodDefinition, new ClosureExtension());
         //}
 
-        public readonly ConcurrentIndexed<IImplementationDefinition, ClosureLookup> implementationLookup = new ConcurrentIndexed<IImplementationDefinition, ClosureLookup>();
+        public readonly ConcurrentIndexed<IImplementationDefinition, WhoDefinedMember> implementationLookup = new ConcurrentIndexed<IImplementationDefinition, WhoDefinedMember>();
 
 
         //public ClosureExtension LookUpOrAdd(IImplementationDefinition implementationDefinition)
@@ -37,7 +37,7 @@ namespace Tac.Backend.Emit
         //}
 
             
-        public readonly ConcurrentIndexed<IEntryPointDefinition, ClosureLookup> entryPointLookup = new ConcurrentIndexed<IEntryPointDefinition, ClosureLookup>();
+        public readonly ConcurrentIndexed<IEntryPointDefinition, WhoDefinedMember> entryPointLookup = new ConcurrentIndexed<IEntryPointDefinition, WhoDefinedMember>();
 
         //public ClosureExtension LookUpOrAdd(IEntryPointDefinition methodDefinition)
         //{
@@ -45,7 +45,7 @@ namespace Tac.Backend.Emit
         //}
 
 
-        internal bool InAnyCLosure(IMemberDefinition memberDefinition) {
+        internal bool InAnyClosure(IMemberDefinition memberDefinition) {
             foreach (var item in methodLookup.Values)
             {
                 foreach (var member in item.closureMember)
@@ -81,7 +81,7 @@ namespace Tac.Backend.Emit
             return false;
         }
 
-        internal bool TryGetClosure(ICodeElement codeElement, out ClosureLookup closureLookup) {
+        internal bool TryGetClosure(ICodeElement codeElement, out WhoDefinedMember closureLookup) {
             if (codeElement.SafeIs(out IInternalMethodDefinition methodDefinition) && methodLookup.TryGetValue(methodDefinition, out closureLookup)) {
                 return true;
             }

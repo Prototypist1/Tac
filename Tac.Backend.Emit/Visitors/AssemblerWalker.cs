@@ -97,7 +97,7 @@ namespace Tac.Backend.Emit.Walkers
 
         internal void Emit(OpCode code, MethodInfo method)
         {
-            debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + ", " + method.Name + "<" + string.Join<string>(", ", method.GetGenericArguments().Select(x => x.FullName)) + ">" + " " + method.DeclaringType.Name + Environment.NewLine;
+            debugString += EvaluationStackDepth + ": " + Tabs() + code.ToString() + ", " + method.Name + (method.GetGenericArguments().Any() ?  "<" + string.Join<string>(", ", method.GetGenericArguments().Select(x => x.FullName)) + ">" : "") + " " + method.DeclaringType.Name + Environment.NewLine;
             backing.Emit(code, method);
         }
 
@@ -266,20 +266,20 @@ namespace Tac.Backend.Emit.Walkers
 
     public abstract class TacCompilation
     {
-        //public Indexer[] indexerArray;
-        //public IVerifiableType[] verifyableTypesArray;
-        //public Func<System.Type, IVerifiableType> lookUpType;
         public RunTimeTypeTracker runTimeTypeTracker;
-        //public ConcurrentIndexed<(System.Type, System.Type), System.Type> wrapsAndImplementsCache;
         public abstract void Init();
     }
+
     public abstract class TacCompilation<Tin, Tout> : TacCompilation
     {
 
         public Func<Tin, Tout> main;
     }
 
+    public abstract class TacCompilation<Tin, Tout, TDependencies> : TacCompilation<Tin, Tout> {
 
+        public TDependencies dependencies;
+    }
 
     class AssemblerVisitor : IOpenBoxesContext<Nothing>
     {
@@ -292,13 +292,14 @@ namespace Tac.Backend.Emit.Walkers
 
 
         private readonly MemberKindLookup memberKindLookup;
-        private readonly ExtensionLookup extensionLookup;
+        private readonly WhoDefinedMemberByMethodlike extensionLookup;
         private readonly RealizedMethodLookup realizedMethodLookup;
         private readonly AssemblerTypeTracker typeTracker;
         //private readonly ConcurrentIndexed<(System.Type, System.Type), TypeBuilder> conversionTypes;
         public readonly TypeBuilder rootType;
         public readonly FieldBuilder rootSelfField;
-
+        public readonly System.Type dependenciesType;
+        public readonly FieldInfo dependencyField;
 
         public readonly GeneratorHolder generatorHolder;
 
@@ -317,7 +318,7 @@ namespace Tac.Backend.Emit.Walkers
             IReadOnlyList<ICodeElement> stack,
             GeneratorHolder generatorHolder,
             MemberKindLookup memberKindLookup,
-            ExtensionLookup extensionLookup,
+            WhoDefinedMemberByMethodlike extensionLookup,
             AssemblerTypeTracker typeTracker,
             //ConcurrentIndexed<(System.Type, System.Type), TypeBuilder> conversionTypes,
             TypeBuilder rootType,
@@ -326,7 +327,9 @@ namespace Tac.Backend.Emit.Walkers
              //VerifyableTypesList verifyableTypesList,
              RealizedMethodLookup realizedMethodLookup,
              List<DebuggableILGenerator> gens,
-             ModuleBuilder moduleBuilder
+             ModuleBuilder moduleBuilder,
+             FieldInfo dependencyField,
+             System.Type dependenciesType
             )
         {
             this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
@@ -342,20 +345,24 @@ namespace Tac.Backend.Emit.Walkers
             this.realizedMethodLookup = realizedMethodLookup ?? throw new ArgumentNullException(nameof(realizedMethodLookup));
             this.gens = gens ?? throw new ArgumentNullException(nameof(gens));
             this.moduleBuilder = moduleBuilder ?? throw new ArgumentNullException(nameof(moduleBuilder));
+            this.dependencyField = dependencyField ?? throw new ArgumentNullException(nameof(dependencyField));
+            this.dependenciesType = dependenciesType ?? throw new ArgumentNullException(nameof(dependenciesType));
         }
 
         public static (AssemblerVisitor, Action) Create(
             MemberKindLookup memberKindLookup,
-            ExtensionLookup extensionLookup,
+            WhoDefinedMemberByMethodlike extensionLookup,
             AssemblerTypeTracker typeTracker,
             ConcurrentIndexed<(System.Type, System.Type), TypeBuilder> conversionTypes,
             ModuleBuilder moduleBuilder,
             RealizedMethodLookup realizedMethodLookup,
             System.Type tin,
             System.Type tout,
-            List<DebuggableILGenerator> gens)
+            List<DebuggableILGenerator> gens,
+            System.Type dependenciesType)
         {
-            var typebuilder = moduleBuilder.DefineType(GenerateName(), TypeAttributes.Public & TypeAttributes.Class, typeof(TacCompilation<,>).MakeGenericType(tin, tout));
+
+            var typebuilder = moduleBuilder.DefineType(GenerateName(), TypeAttributes.Public & TypeAttributes.Class, typeof(TacCompilation<,,>).MakeGenericType(tin, tout, dependenciesType));
             var selfField = typebuilder.DefineField(GenerateName() + "_self", typebuilder, FieldAttributes.Static | FieldAttributes.Public);
             //var typeCacheField = typebuilder.DefineField(GenerateName() + "_typeCache", typeof(ConcurrentIndexed<System.Type, IVerifiableType>), FieldAttributes.Static | FieldAttributes.Public);
 
@@ -375,8 +382,11 @@ namespace Tac.Backend.Emit.Walkers
             //generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldarg_1);
             //generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Stsfld, typeCacheField);
 
+            //.MakeGenericType(tin, tout, dependenciesType) ... werid that I don't need this... or maybe I do?
+            // is the problem that dependenciesType is an early form that has not yet been created?
+            var dependencyField = typeof(TacCompilation<,,>).MakeGenericType(tin, tout, dependenciesType).GetField(nameof(TacCompilation<int, int, object>.dependencies))!;
             return
-                (new AssemblerVisitor(new List<ICodeElement>(), generatorHolder, memberKindLookup, extensionLookup, typeTracker, /*conversionTypes,*/ typebuilder, selfField, /*new IndexerList(),*/ /*new VerifyableTypesList(),*/ realizedMethodLookup, gens, moduleBuilder), () =>
+                (new AssemblerVisitor(new List<ICodeElement>(), generatorHolder, memberKindLookup, extensionLookup, typeTracker, /*conversionTypes,*/ typebuilder, selfField, /*new IndexerList(),*/ /*new VerifyableTypesList(),*/ realizedMethodLookup, gens, moduleBuilder, dependencyField, dependenciesType), () =>
                 {
                     while (generatorHolder.EvaluationStackDepth > 0)
                     {
@@ -391,7 +401,7 @@ namespace Tac.Backend.Emit.Walkers
         {
             var list = stack.ToList();
             list.Add(another);
-            return new AssemblerVisitor(list, generatorHolder, memberKindLookup, extensionLookup, typeTracker, /*conversionTypes,*/ rootType, rootSelfField, /*indexerList,*/ /*verifyableTypesList,*/ realizedMethodLookup, gens, moduleBuilder);
+            return new AssemblerVisitor(list, generatorHolder, memberKindLookup, extensionLookup, typeTracker, /*conversionTypes,*/ rootType, rootSelfField, /*indexerList,*/ /*verifyableTypesList,*/ realizedMethodLookup, gens, moduleBuilder, dependencyField, dependenciesType);
         }
 
 
@@ -400,7 +410,7 @@ namespace Tac.Backend.Emit.Walkers
             var list = stack.ToList();
             list.Add(another);
             gens.Add(gen);
-            return new AssemblerVisitor(list, new GeneratorHolder(Possibly.Is(gen)), memberKindLookup, extensionLookup, typeTracker, /*conversionTypes,*/ rootType, rootSelfField, /*indexerList,*/ /*verifyableTypesList,*/ realizedMethodLookup, gens, moduleBuilder);
+            return new AssemblerVisitor(list, new GeneratorHolder(Possibly.Is(gen)), memberKindLookup, extensionLookup, typeTracker, /*conversionTypes,*/ rootType, rootSelfField, /*indexerList,*/ /*verifyableTypesList,*/ realizedMethodLookup, gens, moduleBuilder, dependencyField, dependenciesType);
         }
 
         public Nothing AddOperation(IAddOperation co)
@@ -454,7 +464,7 @@ namespace Tac.Backend.Emit.Walkers
         {
             // is a local but not in anyone's closure          
             orType = default;
-            return !extensionLookup.InAnyCLosure(member) && memberKindLookup.IsLocal(member, out orType);
+            return !extensionLookup.InAnyClosure(member) && memberKindLookup.IsLocal(member, out orType);
 
         }
 
@@ -465,7 +475,7 @@ namespace Tac.Backend.Emit.Walkers
             // or:
             // is our local but in someone's closure
             // is our argument but in someone's closure
-            if (extensionLookup.InAnyCLosure(member))
+            if (extensionLookup.InAnyClosure(member))
             {
 
                 context.Is(out ICodeElement lookingFor);
@@ -492,7 +502,7 @@ namespace Tac.Backend.Emit.Walkers
         {
             // is a argument but not in anyone's closure 
             orType = default;
-            return !extensionLookup.InAnyCLosure(member) && memberKindLookup.IsArgument(member, out orType);
+            return !extensionLookup.InAnyClosure(member) && memberKindLookup.IsArgument(member, out orType);
         }
 
         internal bool IsField(IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> context, IMemberDefinition member, out IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition> orType)
@@ -516,15 +526,15 @@ namespace Tac.Backend.Emit.Walkers
             return false;
         }
 
-        internal bool IsTacField(IMemberDefinition member, out IOrType<IObjectDefiniton, IInterfaceType, ITypeOr> orType)
-        {
-            return memberKindLookup.IsTacField(member, out orType);
-        }
+        //internal bool IsTacField(IMemberDefinition member, out IOrType<IObjectDefiniton, IInterfaceType, ITypeOr> orType)
+        //{
+        //    return memberKindLookup.IsTacField(member, out orType);
+        //}
 
-        internal bool IsStaticField(IMemberDefinition member, out FieldInfo module)
-        {
-            return memberKindLookup.IsStaticField(member, out module);
-        }
+        //internal bool IsStaticField(IMemberDefinition member, out FieldInfo module)
+        //{
+        //    return memberKindLookup.IsStaticField(member, out module);
+        //}
 
 
         public Nothing AssignOperation(IAssignOperation co)
@@ -595,7 +605,7 @@ namespace Tac.Backend.Emit.Walkers
                 else
 
 
-                if (IsTacField(memberReference.MemberDefinition, out var orTypeTacField))
+                if (memberKindLookup.IsTacField(memberReference.MemberDefinition, out var orTypeTacField))
                 {
 
                     // we count on having a reference to the object already on the stack
@@ -672,7 +682,7 @@ namespace Tac.Backend.Emit.Walkers
                 }
                 else
 
-                if (IsStaticField(memberReference.MemberDefinition, out var fieldInfo))
+                if (memberKindLookup.IsStaticField(memberReference.MemberDefinition, out var fieldInfo))
                 {
 
                     generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldsfld, rootSelfField);
@@ -1162,7 +1172,7 @@ namespace Tac.Backend.Emit.Walkers
                 return new Nothing();
             }
 
-            if (IsTacField(memberDefinition, out var orTypeTacField))
+            if (memberKindLookup.IsTacField(memberDefinition, out var orTypeTacField))
             {
 
                 if (forClosure)
@@ -1219,8 +1229,7 @@ namespace Tac.Backend.Emit.Walkers
                     });
 
             }
-
-            if (IsStaticField(memberDefinition, out var fieldInfo))
+            if (memberKindLookup.IsStaticField(memberDefinition, out var fieldInfo))
             {
                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldsfld, rootSelfField);
 
@@ -1229,7 +1238,14 @@ namespace Tac.Backend.Emit.Walkers
                 return new Nothing();
             }
 
-
+            if (memberKindLookup.IsDependency(memberDefinition))
+            {
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldsfld, rootSelfField);
+                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, dependencyField);
+                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, dependenciesType.GetField(TypeTracker.ConvertName(memberDefinition.Key.SafeCastTo(out NameKey _).Name)));
+                return new Nothing();
+            }
+            
             throw new Exception("how did we end up here?");
         }
 
@@ -1309,7 +1325,6 @@ namespace Tac.Backend.Emit.Walkers
             // create new instance
             // get the default constuctor 
             generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Newobj, realizedMethod.defaultConstructor);
-
 
             // pass stuff in to the closure
             PopulateTheClosure(method, realizedMethod);
@@ -1416,7 +1431,7 @@ namespace Tac.Backend.Emit.Walkers
 
         // {4E963BB1-1C86-4F75-BD4C-3F9BE16386A9}
         private static readonly Random random = new Random();
-        private static string GenerateName()
+        public static string GenerateName()
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
             return new string(Enumerable.Repeat(chars, 20)
@@ -1643,7 +1658,7 @@ namespace Tac.Backend.Emit.Walkers
                 //generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldsfld, rootSelfField);
                 //generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, typeof(TacCompilation).GetField(nameof(TacCompilation.wrapsAndImplementsCache)));
                 
-                generatorHolder.GetGeneratorAndUpdateStack(-3).Emit(OpCodes.Call, typeof(AssemblyWalkerHelp).GetMethod(nameof(AssemblyWalkerHelp.TryAssignOperationHelper_Cast)));
+                generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Call, typeof(AssemblyWalkerHelp).GetMethod(nameof(AssemblyWalkerHelp.TryAssignOperationHelper_Cast)));
             }
 
             var context = CurrentContext();
@@ -1713,7 +1728,6 @@ namespace Tac.Backend.Emit.Walkers
             AssemblyWalkerHelp.EmitConvertIfNeededCompileTime(typeTracker.ResolvePossiblyPrimitive(fromType), typeTracker.ResolvePossiblyPrimitive(toType), typeTracker, generatorHolder, moduleBuilder, x => gens.Add(x));
         }
     }
-
 
     public static class AssemblyWalkerHelp
     {

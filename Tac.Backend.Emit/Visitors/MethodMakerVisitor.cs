@@ -29,11 +29,11 @@ namespace Tac.Backend.Emit.Visitors
     internal class MethodMakerVisitor : IOpenBoxesContext<Nothing>
     {
         private readonly ModuleBuilder moduleBuilder;
-        private readonly ExtensionLookup extensionLookup;
+        private readonly WhoDefinedMemberByMethodlike extensionLookup;
         private readonly RealizedMethodLookup realizedMethodLookup;
         public readonly AssemblerTypeTracker typeTracker;
         
-        public MethodMakerVisitor(ModuleBuilder moduleBuilder, ExtensionLookup extensionLookup, RealizedMethodLookup realizedMethodLookup, AssemblerTypeTracker typeCache)
+        public MethodMakerVisitor(ModuleBuilder moduleBuilder, WhoDefinedMemberByMethodlike extensionLookup, RealizedMethodLookup realizedMethodLookup, AssemblerTypeTracker typeCache)
         {
             this.moduleBuilder = moduleBuilder ?? throw new ArgumentNullException(nameof(moduleBuilder));
             this.extensionLookup = extensionLookup ?? throw new ArgumentNullException(nameof(extensionLookup));

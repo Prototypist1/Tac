@@ -21,7 +21,8 @@ namespace Tac.Frontend
 
         private readonly Dictionary<IVerifiableType, Tpn.TypeProblem2.Type> typeCache = new Dictionary<IVerifiableType, Tpn.TypeProblem2.Type>();
 
-        public IProject<TBacking> Parse<TBacking>(string text, IReadOnlyList<IAssembly<TBacking>> dependencies, string name)
+        public IProject<TAssembly, TBacking> Parse<TAssembly,TBacking>(string text, IReadOnlyList<TAssembly> dependencies, string name)
+            where TAssembly: IAssembly<TBacking>
         {
 
             var tokenizer = new Tokenizer(StaticSymbolsRegistry.SymbolsRegistry.Symbols.Except(new[] { SymbolsRegistry.StaticSubtractSymbol }).ToArray());
@@ -40,7 +41,7 @@ namespace Tac.Frontend
                 var type = problem.builder.CreateType(problem.Dependency, new WeakTypeDefinitionConverter());
                 foreach (var memberPair in dependency.Scope.Members)
                 {
-                    var innerType = ConvertType(problem.builder, type, OrType.Make<IVerifiableType, IError>( memberPair.Value.Value.Type));
+                    var innerType = ConvertType(problem.builder, type, OrType.Make<IVerifiableType, IError>( memberPair.Type));
                     innerType.Switch(x =>
                     {
                         problem.builder.CreatePublicMember(type, type, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(Access.ReadOnly, memberPair.Key));
@@ -62,9 +63,11 @@ namespace Tac.Frontend
 
             //var moduleDefinition = solution.GetObject(problem.ModuleRoot).GetValue().Is2OrThrow();
 
+            var dependencyScope = solution.GetScope(problem.Dependency).GetValue().Is2OrThrow();
+
             var context = TransformerExtensions.NewConversionContext();
 
-            return new Project<TBacking>(rootScope.Convert(context), dependencies);
+            return new Project<TAssembly, TBacking>(rootScope.Convert(context), dependencies, dependencyScope.Convert(context));
         }
 
         private OrType<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>> ConvertType(

@@ -87,18 +87,18 @@ namespace Tac.Backend.Interpreted.Public
         public IAssembly<InterpetedAssemblyBacking> Build() {
             var scope = new Scope();
 
-            scope.Build(members);
+            ;
 
             return new Assembly(
                 key,
-                scope,
+                InterfaceType.CreateAndBuild(members.Select(x=>x.Value).ToArray()),
                 new InterpetedAssemblyBacking(memberValues, scope)
                 );
         }
 
         private class Assembly : IAssembly<InterpetedAssemblyBacking>
         {
-            public Assembly(NameKey key, IFinalizedScope scope, InterpetedAssemblyBacking backing)
+            public Assembly(NameKey key, IInterfaceType scope, InterpetedAssemblyBacking backing)
             {
                 Key = key ?? throw new ArgumentNullException(nameof(key));
                 Scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -108,7 +108,7 @@ namespace Tac.Backend.Interpreted.Public
             public IReadOnlyList<IAssembly<InterpetedAssemblyBacking>> References => new List<IAssembly<InterpetedAssemblyBacking>>();
 
             public NameKey Key { get; }
-            public IFinalizedScope Scope { get; }
+            public IInterfaceType Scope { get; }
             public InterpetedAssemblyBacking Backing {get;}
         }
     }

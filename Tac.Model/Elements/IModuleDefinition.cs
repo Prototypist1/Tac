@@ -12,9 +12,11 @@ namespace Tac.Model.Elements
         IEntryPointDefinition EntryPoint { get; }
     }
 
-    public interface IProject<TBacking> 
+    public interface IProject<out TAssembly, out TBacking>
+        where TAssembly : IAssembly<TBacking>
     {
         IRootScope RootScope { get; }
-        IReadOnlyList<IAssembly<TBacking>> References { get; }
+        IFinalizedScope DependencyScope { get; }
+        IReadOnlyList<TAssembly> References { get; }
     }
 }

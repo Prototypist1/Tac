@@ -58,7 +58,7 @@ namespace Tac.Frontend
 
 
             var scope = new WeakScope(
-                assembly.Scope.Members.Select(x => new Box<WeakMemberDefinition>(MemberDefinition(x.Value.Value)).CastTo<IBox<WeakMemberDefinition>>()).ToList());
+                assembly.Scope.Members.Select(x => new Box<WeakMemberDefinition>(MemberDefinition(x)).CastTo<IBox<WeakMemberDefinition>>()).ToList());
 
             return new WeakTypeDefinition(OrType.Make<IBox<WeakScope>, IError>(new Box<WeakScope>(scope)));
 

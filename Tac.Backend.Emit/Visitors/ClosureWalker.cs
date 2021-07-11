@@ -22,14 +22,17 @@ namespace Tac.Backend.Emit.Walkers
 
     class ClosureVisitor : IOpenBoxesContext<IReadOnlyList<IMemberDefinition>>
     {
-        private readonly ExtensionLookup extensionLookup;
-
-        private Dictionary<IMemberDefinition, IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition,IBlockDefinition, IRootScope, IObjectDefiniton>> definedBy = new Dictionary<IMemberDefinition, IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition, IBlockDefinition, IRootScope, IObjectDefiniton>>();
+        private readonly WhoDefinedMemberByMethodlike extensionLookup;
 
 
-        public ClosureVisitor(ExtensionLookup extensionLookup)
+        private readonly HashSet<IMemberDefinition> staticMembers;
+        private readonly Dictionary<IMemberDefinition, IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition,IBlockDefinition, IRootScope, IObjectDefiniton>> definedBy = new Dictionary<IMemberDefinition, IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition, IBlockDefinition, IRootScope, IObjectDefiniton>>();
+
+
+        public ClosureVisitor(WhoDefinedMemberByMethodlike extensionLookup, HashSet<IMemberDefinition> staticMembers)
         {
             this.extensionLookup = extensionLookup ?? throw new ArgumentNullException(nameof(extensionLookup));
+            this.staticMembers = staticMembers ?? throw new ArgumentNullException(nameof(staticMembers));
         }
 
 
@@ -58,7 +61,8 @@ namespace Tac.Backend.Emit.Walkers
             var implementationClosure = Walk(tryAssignOperation.Operands);
 
             return implementationClosure
-            .Except(tryAssignOperation.Scope.Members.Select(x => x.Value.Value)).ToArray();
+                .Except(staticMembers)
+                .Except(tryAssignOperation.Scope.Members.Select(x => x.Value.Value)).ToArray();
 
         }
 
@@ -69,7 +73,8 @@ namespace Tac.Backend.Emit.Walkers
             var implementationClosure = Walk(codeElement.Body);
 
             return implementationClosure
-            .Except(codeElement.Scope.Members.Select(x => x.Value.Value)).ToArray();
+                .Except(staticMembers)
+                .Except(codeElement.Scope.Members.Select(x => x.Value.Value)).ToArray();
 
             // TODO BLOCKS DONT NEED CLOSURES
             //return extensionLookup.blockLookup.GetOrAdd(codeElement,()=> {
@@ -93,7 +98,6 @@ namespace Tac.Backend.Emit.Walkers
             return Walk(co.Operands);
         }
 
-
         public IReadOnlyList<IMemberDefinition> EntryPoint(IEntryPointDefinition entryPointDefinition)
         {
             UpdateDefinedBy(entryPointDefinition.Scope, OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition, IBlockDefinition, IRootScope, IObjectDefiniton>(entryPointDefinition));
@@ -106,7 +110,8 @@ namespace Tac.Backend.Emit.Walkers
             return extensionLookup.entryPointLookup.GetOrAdd(entryPointDefinition, () => {
                 var implementationClosure = Walk(entryPointDefinition.Body);
 
-                return new ClosureLookup(implementationClosure
+                return new WhoDefinedMember(implementationClosure
+                    .Except(staticMembers)
                     .Except(entryPointDefinition.Scope.Members.Select(x => x.Value.Value))
                     .ToDictionary(x=>x, x=>definedBy[x]));
 
@@ -125,7 +130,8 @@ namespace Tac.Backend.Emit.Walkers
             return extensionLookup.implementationLookup.GetOrAdd(implementation, () => {
                 var implementationClosure = Walk(implementation.MethodBody);
 
-                return new ClosureLookup(implementationClosure
+                return new WhoDefinedMember(implementationClosure
+                    .Except(staticMembers)
                     .Except(implementation.IntermediateScope.Members.Select(x => x.Value.Value))
                     .ToDictionary(x => x, x => definedBy[x]));
 
@@ -162,7 +168,8 @@ namespace Tac.Backend.Emit.Walkers
             return extensionLookup.methodLookup.GetOrAdd(method, () => {
                 var implementationClosure = Walk(method.Body);
 
-                return new ClosureLookup(implementationClosure
+                return new WhoDefinedMember(implementationClosure
+                    .Except(staticMembers)
                     .Except(method.Scope.Members.Select(x => x.Value.Value))
                     .ToDictionary(x => x, x => definedBy[x]));
 
@@ -186,7 +193,8 @@ namespace Tac.Backend.Emit.Walkers
             var membersReferenced= Walk(@object.Assignments);
 
             return membersReferenced
-            .Except(@object.Scope.Members.Select(x => x.Value.Value)).ToArray();
+                .Except(staticMembers)
+                .Except(@object.Scope.Members.Select(x => x.Value.Value)).ToArray();
         }
 
         public IReadOnlyList<IMemberDefinition> PathOperation(IPathOperation path)

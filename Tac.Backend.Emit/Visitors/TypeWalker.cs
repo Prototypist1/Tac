@@ -99,7 +99,7 @@ namespace Tac.Backend.Emit.Walkers
                 var inputType = ResolvePossiblyPrimitive(method.InputType);
                 var outputType = ResolvePossiblyPrimitive(method.OutputType);
                 funcCache.GetOrAdd((inputType, outputType), method);
-                return typeof(Func<,>).MakeGenericType(inputType, outputType); 
+                return typeof(Func<,>).MakeGenericType(inputType, outputType);
             }
             else if (verifiableType.SafeIs(out IReferanceType memberReferance))
             {
@@ -328,6 +328,7 @@ namespace Tac.Backend.Emit.Walkers
             {
                 nextTypeCache.AddOrThrow(type.Key, type.Value.CreateType());
             }
+            var nextDependencyType = dependenciesType.CreateType();
             foreach (var action in objectActions)
             {
                 action();
@@ -336,21 +337,72 @@ namespace Tac.Backend.Emit.Walkers
             {
                 nextObjectCache.AddOrThrow(obj.Key,obj.Value.CreateType());
             }
-            return new AssemblerTypeTracker(nextTypeCache, nextObjectCache, funcCache);
+            return new AssemblerTypeTracker(nextTypeCache, nextObjectCache, funcCache, nextDependencyType);
+        }
+
+
+        private TypeBuilder dependenciesType;
+        internal void HandleDependencies(IProject<Assembly, object> project)
+        {
+            dependenciesType = moduleBuilder.DefineType(AssemblerVisitor.GenerateName(), TypeAttributes.Public);
+            
+            typeActions.Add(() =>
+            {
+                foreach (var member in project.References)
+                {
+                    dependenciesType.DefineField(TypeTracker.ConvertName(member.Key.SafeCastTo(out NameKey _).Name), IdempotentAddType(member.Scope), FieldAttributes.Public);
+                }
+            });
+
         }
     }
+
+
+    //public struct DependenciesType : IVerifiableType
+    //{
+    //    // this is a bit werid...
+    //    // I don't think anything should reference this
+    //    // or ever call it's members
+    //    // 
+    //    // I just need a key for typeCache
+    //    // if this turns out to be a problem
+    //    // I can create of object type
+
+    //    public bool TheyAreUs(IVerifiableType they, List<(IVerifiableType, IVerifiableType)> assumeTrue)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public IIsPossibly<IVerifiableType> TryGetInput()
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public IIsPossibly<(IVerifiableType type, Access access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public IIsPossibly<IVerifiableType> TryGetReturn()
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
+
 
     public class AssemblerTypeTracker: TypeTracker<System.Type>
     {
         private readonly ConcurrentIndexed<IVerifiableType, System.Type> typeCache = new ConcurrentIndexed<IVerifiableType, System.Type>();
         private readonly ConcurrentIndexed<IObjectDefiniton, System.Type> objectCache = new ConcurrentIndexed<IObjectDefiniton, System.Type>();
+        private readonly System.Type dependencyType;
         public readonly ConcurrentIndexed<(System.Type, System.Type), TypeBuilder> conversionCache = new ConcurrentIndexed<(System.Type, System.Type), TypeBuilder>();
         public readonly ConcurrentIndexed<(System.Type, System.Type), TypeBuilder> methodConversionCache = new ConcurrentIndexed<(System.Type, System.Type), TypeBuilder>();
 
-        public AssemblerTypeTracker(ConcurrentIndexed<IVerifiableType, System.Type> typeCache, ConcurrentIndexed<IObjectDefiniton, System.Type> objectCache, ConcurrentIndexed<(System.Type, System.Type), IVerifiableType> funcCache) : base(funcCache)
+        public AssemblerTypeTracker(ConcurrentIndexed<IVerifiableType, System.Type> typeCache, ConcurrentIndexed<IObjectDefiniton, System.Type> objectCache, ConcurrentIndexed<(System.Type, System.Type), IVerifiableType> funcCache, System.Type nextDependencyType) : base(funcCache)
         {
             this.typeCache = typeCache ?? throw new ArgumentNullException(nameof(typeCache));
             this.objectCache = objectCache ?? throw new ArgumentNullException(nameof(objectCache));
+            this.dependencyType = nextDependencyType ?? throw new ArgumentNullException(nameof(nextDependencyType));
         }
 
         protected override System.Type ResolveNotPrimitive(IOrType<ITypeOr, IInterfaceModuleType> key)
@@ -362,10 +414,11 @@ namespace Tac.Backend.Emit.Walkers
             return objectCache.GetOrThrow(key);
         }
 
-        internal IVerifiableType lookUpType(System.Type implements)
-        {
-            return typeCache.Single(x => x.Value == implements).Key;
-        }
+        public System.Type GetDependencyType() => dependencyType;
+        //internal IVerifiableType lookUpType(System.Type implements)
+        //{
+        //    return typeCache.Single(x => x.Value == implements).Key;
+        //}
 
         internal RunTimeTypeTracker RunTimeTypeTracker() {
             var runtimeTypeCache = new ConcurrentIndexed<System.Type, IVerifiableType>();
@@ -590,6 +643,16 @@ namespace Tac.Backend.Emit.Walkers
             HandleScope(co.Scope);
             co.EntryPoint.Convert(this);
             return new Nothing();
+        }
+
+        internal void HandleDependencies(IProject<Assembly, object> project)
+        {
+            //foreach (var member in project.DependencyScope.Members)
+            //{
+            //    HandleType(member.Value.Value.Type);
+            //}
+            typeTracker.HandleDependencies(project);
+
         }
     }
 }

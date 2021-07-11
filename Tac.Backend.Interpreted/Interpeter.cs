@@ -8,12 +8,13 @@ using Tac.Model.Elements;
 using Tac.Backend.Interpreted.SyntazModelInterpeter;
 using Tac.Backend.Interpreted.SyntazModelInterpeter.Run_Time_Objects;
 using static Tac.Backend.Interpreted.Public.AssemblyBuilder;
+using Tac.Model;
 
 namespace Tac.Backend.Interpreted
 {
     public static class Interpeter
     {
-        public static void Run(IProject<InterpetedAssemblyBacking> moduleDefinition)
+        public static void Run(IProject<IAssembly<InterpetedAssemblyBacking>,InterpetedAssemblyBacking> moduleDefinition)
         {
             var conversionContext = new Definitions();
 

@@ -8,7 +8,7 @@ namespace Tac.Model
     public interface IAssembly<out TBacking>
     {
         NameKey Key { get; }
-        IFinalizedScope Scope { get; }
+        IInterfaceType Scope { get; }
         // probably need this someday 
         //IReadOnlyList<IAssembly<TBacking>> References { get; }
         TBacking Backing { get; }

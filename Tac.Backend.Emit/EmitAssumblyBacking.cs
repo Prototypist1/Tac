@@ -12,7 +12,7 @@ namespace Tac.Backend.Emit
 
     public class Assembly : IAssembly<object>
     {
-        public Assembly(NameKey key, IFinalizedScope scope, object backing)
+        public Assembly(NameKey key, IInterfaceType scope, object backing)
         {
             Key = key ?? throw new ArgumentNullException(nameof(key));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -22,7 +22,7 @@ namespace Tac.Backend.Emit
         //public IReadOnlyList<IAssembly<EmitAssemblyBacking>> References => new List<IAssembly<EmitAssemblyBacking>>();
 
         public NameKey Key { get; }
-        public IFinalizedScope Scope { get; }
+        public IInterfaceType Scope { get; }
         public object Backing { get; }
     }
 

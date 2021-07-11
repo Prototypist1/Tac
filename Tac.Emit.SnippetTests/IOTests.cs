@@ -22,6 +22,7 @@ namespace Tac.Emit.SnippetTests
  @"
 entry-point [empty; empty;] input {
     new-empty > (in.read-string);
+    new-empty return;
 };", new Empty(), new[] {
                 BasicInputOutput.Input(intIn ,stringIn,boolIn)});
 
@@ -42,6 +43,7 @@ entry-point [empty; empty;] input {
 @"
 entry-point [empty; empty;] input {
     new-empty > (in.read-number);
+    new-empty return;
 };", new Empty(),
                 new[] { BasicInputOutput.Input(intIn, stringIn, boolIn) });
 
@@ -67,6 +69,7 @@ entry-point [empty; empty;] input {
 @"
 entry-point [empty; empty;] input {
     new-empty > (in.read-bool) > (out.write-bool);
+    new-empty return;
 };", new Empty(),
                 new[] {
                     BasicInputOutput.Input(intIn, stringIn, boolIn),
@@ -91,10 +94,11 @@ entry-point [empty; empty;] input {
             Run.CompileAndRun<Empty, Empty>("test",
  @"
  entry-point [empty; empty;] input {
-     2 * 2 > (out.write-number);
-     3 * 2 > (out.write-number);
-     4 * 2 > (out.write-number);
-     5 * 2 > (out.write-number);
+    2 * 2 > (out.write-number);
+    3 * 2 > (out.write-number);
+    4 * 2 > (out.write-number);
+    5 * 2 > (out.write-number);
+    new-empty return;
  };", new Empty(), new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)});
 
@@ -111,7 +115,7 @@ entry-point [empty; empty;] input {
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
 
             Run.CompileAndRun<Empty, Empty>("test",
-                @"entry-point[empty; empty;] input {2*2>(out.write-number);3*2>(out.write-number);4*2>(out.write-number);5*2>(out.write-number);};", new Empty(), new[] {
+                @"entry-point[empty; empty;] input {2*2>(out.write-number);3*2>(out.write-number);4*2>(out.write-number);5*2>(out.write-number);new-empty return;};", new Empty(), new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)});
 
             verifyIntIn();
@@ -129,10 +133,11 @@ entry-point [empty; empty;] input {
             Run.CompileAndRun<Empty, Empty>("test",
  @"
  entry-point [empty; empty;] input {
-     2 - 2 > (out.write-number);
-     3 - 2 > (out.write-number);
-     4 - 2 > (out.write-number);
-     5 - 2 > (out.write-number);
+    2 - 2 > (out.write-number);
+    3 - 2 > (out.write-number);
+    4 - 2 > (out.write-number);
+    5 - 2 > (out.write-number);
+    new-empty return;
  };", new Empty(), new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)});
 
@@ -151,8 +156,7 @@ entry-point [empty; empty;] input {
 
             Run.CompileAndRun<Empty, Empty>("test",
  @"
- entry-point [empty; empty;] input { };", new Empty(), new[] {
-                BasicInputOutput.Output(intIn ,stringIn,boolIn)});
+ entry-point [empty; empty;] input { new-empty return; };", new Empty(), Array.Empty<Tac.Backend.Emit.Assembly>());
 
             verifyIntIn();
             verifyStringIn();
@@ -171,8 +175,9 @@ entry-point [empty; empty;] input {
             Run.CompileAndRun<Empty, Empty>("test",
  @"
  entry-point [empty; empty;] input {
-     2 + 2 > (out.write-number);
- };", new Empty(), new[] {
+    2 + 2 > (out.write-number);
+    new-empty return;
+ };", new Empty(), new[] { 
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)});
 
             verifyIntIn();
@@ -191,9 +196,9 @@ entry-point [empty; empty;] input {
             Run.CompileAndRun<Empty, Empty>("test",
  @"
  entry-point [empty; empty;] input {
-     2 + 2;
- };", new Empty(), new[] {
-                BasicInputOutput.Output(intIn ,stringIn,boolIn)});
+    2 + 2;
+    new-empty return;
+ };", new Empty(), Array.Empty<Backend.Emit.Assembly>());
 
             verifyIntIn();
             verifyStringIn();
@@ -210,7 +215,8 @@ entry-point [empty; empty;] input {
             Run.CompileAndRun<Empty, Empty>("test",
  @"
  entry-point [empty; empty;] input {
-     ((((((((((2)) + ((2))))))) > (((out.write-number))))));
+    ((((((((((2)) + ((2))))))) > (((out.write-number))))));
+    new-empty return;
  };", new Empty(), new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)});
 
@@ -231,10 +237,11 @@ entry-point [empty; empty;] input {
             Run.CompileAndRun<Empty, Empty>("test",
  @"
  entry-point [empty; empty;] input {
-     2 + 2 > (out . write-number);
-     3 + 2 > (out . write-number);
-     4 + 2 > (out . write-number);
-     5 + 2 > (out . write-number);
+    2 + 2 > (out . write-number);
+    3 + 2 > (out . write-number);
+    4 + 2 > (out . write-number);
+    5 + 2 > (out . write-number);
+    new-empty return;
  };", new Empty(), new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)});
 
@@ -253,9 +260,10 @@ entry-point [empty; empty;] input {
             Run.CompileAndRun<Empty, Empty>("test",
  @"
  entry-point [empty; empty;] input {
-     1 <? 2 > (out.write-bool);
-     2 <? 2 > (out.write-bool);
-     3 <? 2 > (out.write-bool);
+    1 <? 2 > (out.write-bool);
+    2 <? 2 > (out.write-bool);
+    3 <? 2 > (out.write-bool);
+    new-empty return;
  };", new Empty(), new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)});
 
@@ -275,6 +283,7 @@ entry-point [empty; empty;] input {
  @"
  entry-point [empty; empty;] input {
      2 > (out.write-number);
+     new-empty return;
  };", new Empty(), new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)});
 
@@ -296,6 +305,7 @@ entry-point [empty; empty;] input {
  entry-point [empty; empty;] input {
      true then { 2.0 > (out.write-number); };
      false then { 1.0 > (out.write-number); };
+     new-empty return;
  };", new Empty(), new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)});
 

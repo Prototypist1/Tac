@@ -39,7 +39,7 @@ namespace Tac.Emit.SnippetTests
             public Func<Empty, bool> read_bool { init; get; }
         }
 
-        public static IAssembly<object> Input(Func<double> numberSource, Func<string> stringSource, Func<bool> boolSource)
+        public static Assembly Input(Func<double> numberSource, Func<string> stringSource, Func<bool> boolSource)
         {
             var input = new InputBacking
             {
@@ -74,11 +74,13 @@ namespace Tac.Emit.SnippetTests
                     Access.ReadOnly),
                     false));
 
-            var scope = new Scope();
+            //var scope = new Scope();
 
-            scope.Build(members);
+            //scope.Build(members);
 
-            return new Assembly(new NameKey("in"), scope, input);
+            ;
+
+            return new Assembly(new NameKey("in"), InterfaceType.CreateAndBuild(members.Select(x => x.Value).ToArray()), input);
         }
 
         public class OutputBacking
@@ -88,7 +90,7 @@ namespace Tac.Emit.SnippetTests
             public Func<bool, Empty> write_bool { init; get; }
         }
 
-        public static IAssembly<object> Output(Action<double> numberDestination, Action<string> stringDestination, Action<bool> boolDestination)
+        public static Assembly Output(Action<double> numberDestination, Action<string> stringDestination, Action<bool> boolDestination)
         {
             var output = new OutputBacking
             {
@@ -123,11 +125,11 @@ namespace Tac.Emit.SnippetTests
                     Access.ReadOnly),
                     false));
 
-            var scope = new Scope();
+            //var scope = new Scope();
 
-            scope.Build(members);
+            //scope.Build(members);
 
-            return new Assembly(new NameKey("out"), scope, output);
+            return new Assembly(new NameKey("out"), InterfaceType.CreateAndBuild(members.Select(x => x.Value).ToArray()), output);
         }
     }
 }

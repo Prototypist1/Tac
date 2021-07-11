@@ -19,6 +19,7 @@ namespace Tac.Backend.Emit.Lookup
         private readonly ConcurrentIndexed<IMemberDefinition, List<IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>>> fields = new ConcurrentIndexed<IMemberDefinition, List<IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition>>>();
         private readonly ConcurrentIndexed<IMemberDefinition, IOrType<IObjectDefiniton, IInterfaceType, ITypeOr>> tacFields = new ConcurrentIndexed<IMemberDefinition, IOrType<IObjectDefiniton, IInterfaceType, ITypeOr>>();
         private readonly ConcurrentIndexed<IMemberDefinition, FieldInfo> staticFields = new ConcurrentIndexed<IMemberDefinition, FieldInfo>();
+        private readonly ConcurrentSet<IMemberDefinition> dependencyFields = new ConcurrentSet<IMemberDefinition>();
 
         internal void AddLocal(IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> owner, IMemberDefinition value)
         {
@@ -56,9 +57,17 @@ namespace Tac.Backend.Emit.Lookup
             tacFields.TryAdd(contextDefinition, codeElement);
         }
 
+        // not convinced this is going to work... 
+        // it's written but not called
+        // MemberKindLookup goes before the types are made
+        // so how would we get the field?
         internal void AddStaticField(FieldInfo fieldInfo, IMemberDefinition member)
         {
             staticFields.AddOrThrow(member, fieldInfo);
+        }
+
+        internal void AddDependency(IMemberDefinition member) {
+            dependencyFields.AddOrThrow(member);
         }
 
         internal bool IsLocal(IMemberDefinition member, out IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> orType)
@@ -82,6 +91,10 @@ namespace Tac.Backend.Emit.Lookup
         internal bool IsStaticField(IMemberDefinition member, out FieldInfo module)
         {
             return staticFields.TryGetValue(member, out module);
+        }
+        internal bool IsDependency(IMemberDefinition member)
+        {
+            return dependencyFields.Contains(member);
         }
     }
 }

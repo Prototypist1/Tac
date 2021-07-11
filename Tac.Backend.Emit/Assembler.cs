@@ -35,42 +35,50 @@ namespace Tac.Backend.Emit
 
         private static Lazy<ModuleBuilder> module = new Lazy<ModuleBuilder>(() =>
         {
-
             return Assembly.Value.DefineDynamicModule(GenerateName());
         });
 
         public static TOut BuildAndRun<Tin, TOut>(IRootScope scope, Tin input) 
         {
-            var complitation = Build<Tin, TOut>(new Project<Assembly>(scope, Array.Empty<IAssembly<Assembly>>()));
+            var complitation = Build<Tin, TOut>(new Project<Assembly, object>(scope, Array.Empty<Assembly>(), Scope.CreateAndBuild(Array.Empty<IsStatic>())));
             return complitation.main(input);
         }
 
-        public static TOut BuildAndRun<Tin,TOut>(IProject<Assembly> project, Tin input)
+        public static TOut BuildAndRun<Tin, TOut>(IRootScope scope, Tin input, IReadOnlyList<Assembly> assemblies)
+        {
+            var complitation = Build<Tin, TOut>(new Project<Assembly, object>(scope, assemblies, Scope.CreateAndBuild(Array.Empty<IsStatic>())));
+            return complitation.main(input);
+        }
+
+        public static TOut BuildAndRun<Tin,TOut>(IProject<Assembly,object> project, Tin input)
         {
             var complitation = Build<Tin,TOut>(project);
             return complitation.main(input);
         }
 
-        private static TacCompilation<Tin, TOut> Build<Tin, TOut>(IProject<Assembly> project)
+        private static TacCompilation<Tin, TOut> Build<Tin, TOut>(IProject<Assembly, object> project)
         {
             var rootScope = project.RootScope;
             // I think we are actually not making an assembly,
             // just a type 
             
-            var extensionLookup = new ExtensionLookup();
-            var closureVisitor = new ClosureVisitor(extensionLookup);
+            var extensionLookup = new WhoDefinedMemberByMethodlike();
+            var closureVisitor = new ClosureVisitor(extensionLookup, project.DependencyScope.Members.Values.Select(x=>x.Value).ToHashSet());
             rootScope.Convert(closureVisitor);
 
-            var memberKindLookup = new MemberKindLookup();
-            var memberKindVisitor = MemberKindVisitor.Make(memberKindLookup, extensionLookup);
+            var (memberKindVisitor, memberKindLookup) = MemberKindVisitor.Make(extensionLookup, project);
             rootScope.Convert(memberKindVisitor);
+            memberKindVisitor.HandleDependencies(project.DependencyScope);
 
             var gens = new List<DebuggableILGenerator>();
 
             var typeTracker = new TypePassTypeTracker(module.Value, gens);
             var typeVisitor = new TypeVisitor(typeTracker);
             rootScope.Convert(typeVisitor);
+            typeVisitor.HandleDependencies(project);
+
             var typeTracker2 = typeTracker.CreateTypesAndProperties();
+            var dependenciesType = typeTracker2.GetDependencyType();
 
             var realizedMethodLookup = new RealizedMethodLookup();
             var methodMakerVisitor = new MethodMakerVisitor(module.Value, extensionLookup, realizedMethodLookup, typeTracker2);
@@ -88,7 +96,8 @@ namespace Tac.Backend.Emit
                 realizedMethodLookup,
                 typeTracker2.ResolvePossiblyPrimitive(rootScope.EntryPoint.InputType),
                 typeTracker2.ResolvePossiblyPrimitive(rootScope.EntryPoint.OutputType),
-                gens);
+                gens,
+                dependenciesType);
             rootScope.Convert(assemblerVisitor);
 
             //finish up
@@ -130,13 +139,18 @@ namespace Tac.Backend.Emit
 
             complitation.runTimeTypeTracker = typeTracker2.RunTimeTypeTracker();
 
-
             var compType =  complitation.GetType();
+
+            var dependenciesField = compType.GetField(nameof(TacCompilation<int, int, object>.dependencies));
+
+            var dependencies = Activator.CreateInstance(dependenciesField.FieldType);
+
+            dependenciesField.SetValue(complitation, dependencies);
 
             foreach (var reference in project.References)
             {
-                var prop = compType.GetProperty(TypeTracker.ConvertName(reference.Key.Name));
-                prop.SetValue(complitation, reference.Backing.Backing);
+                var field = dependenciesType.GetField(TypeTracker.ConvertName(reference.Key.Name));
+                field.SetValue(dependencies, AssemblyWalkerHelp.TryAssignOperationHelper_Cast( reference.Backing, typeTracker2.ResolvePossiblyPrimitive(reference.Scope), complitation.runTimeTypeTracker));
             }
 
             //complitation.indexerArray = assemblerVisitor.indexerList.indexers.ToArray();

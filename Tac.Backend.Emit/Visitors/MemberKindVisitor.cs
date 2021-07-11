@@ -17,21 +17,32 @@ namespace Tac.Backend.Emit.Visitors
     class MemberKindVisitor : IOpenBoxesContext<Nothing>
     {
 
-        private IReadOnlyList<ICodeElement> stack;
+        private IReadOnlyList<IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>> stack;
         private readonly MemberKindLookup lookup;
-        private readonly ExtensionLookup extensionLookup;
+        private readonly WhoDefinedMemberByMethodlike extensionLookup;
 
-        private MemberKindVisitor(IReadOnlyList<ICodeElement> stack, MemberKindLookup lookup, ExtensionLookup extensionLookup)
+        private MemberKindVisitor(IReadOnlyList<IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>> stack, MemberKindLookup lookup, WhoDefinedMemberByMethodlike extensionLookup)
         {
             this.stack = stack ?? throw new ArgumentNullException(nameof(stack));
             this.lookup = lookup ?? throw new ArgumentNullException(nameof(lookup));
             this.extensionLookup = extensionLookup ?? throw new ArgumentNullException(nameof(extensionLookup));
         }
 
-        public static MemberKindVisitor Make(MemberKindLookup lookup, ExtensionLookup extensionLookup) {
-            var res = new MemberKindVisitor(new List<ICodeElement>(), lookup, extensionLookup);
+        public static (MemberKindVisitor, MemberKindLookup) Make(WhoDefinedMemberByMethodlike extensionLookup, IProject<Assembly, object> project) {
+
+            MemberKindLookup lookup = new MemberKindLookup();
+            // 
+            // TODO you are here
+            // we can add project.DependencyScope directly to the lookups
+            // this doesn't really need to happen in here, the MemberKindVisitor isn't involved at all
+            // but it is a nessisray part of the flow
+            //foreach (var member in project.DependencyScope.Members) {
+            //    lookup.AddDependency(xxx, member);
+            //}
+
+            var res = new MemberKindVisitor(new List<IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>>() { }, lookup, extensionLookup);
             //res.Init();
-            return res;
+            return (res, lookup);
         }
 
         //private MemberKindVisitor Init() {
@@ -45,8 +56,32 @@ namespace Tac.Backend.Emit.Visitors
         public MemberKindVisitor Push(ICodeElement another)
         {
             var list = stack.ToList();
-            list.Add(another);
+            if (another.SafeIs(out IInternalMethodDefinition method))
+            {
+                list.Add( OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(method));
+            }
+            if (another.SafeIs(out IImplementationDefinition implementation))
+            {
+                list.Add( OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(implementation) );
+            }
+            if (another.SafeIs(out IEntryPointDefinition entry))
+            {
+                list.Add( OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(entry) );
+            }
+            if (another.SafeIs(out IRootScope root))
+            {
+                list.Add( OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(root) );
+            }
+
             return new MemberKindVisitor(list, lookup, extensionLookup);
+        }
+
+        internal void HandleDependencies(IFinalizedScope dependencyScope)
+        {
+            foreach (var member in dependencyScope.Members.Values.Select(x=>x.Value))
+            {
+                lookup.AddDependency(member);
+            }
         }
 
         private void Walk(IEnumerable<ICodeElement> codeElements) {
@@ -99,26 +134,7 @@ namespace Tac.Backend.Emit.Visitors
         private IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope> GetOwner()
         {
             // climb the stack until you find a method or implementation or entry point
-            return stack.Reverse().SelectMany(x =>
-            {
-                if (x.SafeIs(out IInternalMethodDefinition method))
-                {
-                    return new[] { OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(method) };
-                }
-                if (x.SafeIs(out IImplementationDefinition implementation))
-                {
-                    return new[] { OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(implementation) };
-                }
-                if (x.SafeIs(out IEntryPointDefinition entry))
-                {
-                    return new[] { OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(entry) };
-                }
-                if (x.SafeIs(out IRootScope root))
-                {
-                    return new[] { OrType.Make<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>(root) };
-                }
-                return new IOrType<IEntryPointDefinition, IImplementationDefinition, IInternalMethodDefinition, IRootScope>[] { };
-            }).First();
+            return stack.Reverse().First();
         }
 
         public Nothing NextCallOperation(INextCallOperation co)
@@ -151,7 +167,6 @@ namespace Tac.Backend.Emit.Visitors
             Push(co).Walk(co.Operands);
             return new Nothing();
         }
-
 
         // deadends:
         public Nothing ConstantBool(IConstantBool constantBool) => new Nothing();
@@ -237,6 +252,7 @@ namespace Tac.Backend.Emit.Visitors
 
             return new Nothing();
         }
+
         public Nothing BlockDefinition(IBlockDefinition codeElement)
         {
             var owner = GetOwner();
