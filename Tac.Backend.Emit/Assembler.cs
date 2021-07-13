@@ -78,7 +78,14 @@ namespace Tac.Backend.Emit
             typeVisitor.HandleDependencies(project);
 
             var typeTracker2 = typeTracker.CreateTypesAndProperties();
-            var dependenciesType = typeTracker2.GetDependencyType();
+
+            var dependenciesTypeBuider = module.Value.DefineType(AssemblerVisitor.GenerateName(), TypeAttributes.Public);
+            foreach (var member in project.References)
+            {
+                dependenciesTypeBuider.DefineField(TypeTracker.ConvertName(member.Key.Name), typeTracker2.ResolvePossiblyPrimitive(member.Scope), FieldAttributes.Public);
+            }
+            var dependenciesType = dependenciesTypeBuider.CreateType() ?? throw new NullReferenceException("dependenciesTypeBuider.CreateType should not return null");
+            //var dependenciesType = typeTracker2.GetDependencyType();
 
             var realizedMethodLookup = new RealizedMethodLookup();
             var methodMakerVisitor = new MethodMakerVisitor(module.Value, extensionLookup, realizedMethodLookup, typeTracker2);
@@ -111,7 +118,7 @@ namespace Tac.Backend.Emit
             var yo = String.Join(Environment.NewLine, gens.Select(x => x.GetDeubbingSting()));
 
             // now I need to reflexively find my type and call main
-            var complitation = (TacCompilation)Assembly.Value.CreateInstance(assemblerVisitor.rootType.Name);
+            var complitation = (TacCompilation)(Assembly.Value.CreateInstance(assemblerVisitor.rootType.Name) ?? throw new NullReferenceException());
 
             //var runtimeTypeCache = new ConcurrentIndexed<System.Type,IVerifiableType>();
 
@@ -141,7 +148,7 @@ namespace Tac.Backend.Emit
 
             var compType =  complitation.GetType();
 
-            var dependenciesField = compType.GetField(nameof(TacCompilation<int, int, object>.dependencies));
+            var dependenciesField = compType.GetField(nameof(TacCompilation<int, int, object>.dependencies)) ?? throw new NullReferenceException();
 
             var dependencies = Activator.CreateInstance(dependenciesField.FieldType);
 
@@ -149,8 +156,9 @@ namespace Tac.Backend.Emit
 
             foreach (var reference in project.References)
             {
-                var field = dependenciesType.GetField(TypeTracker.ConvertName(reference.Key.Name));
-                field.SetValue(dependencies, AssemblyWalkerHelp.TryAssignOperationHelper_Cast( reference.Backing, typeTracker2.ResolvePossiblyPrimitive(reference.Scope), complitation.runTimeTypeTracker));
+                var field = dependenciesType.GetField(TypeTracker.ConvertName(reference.Key.Name)) ?? throw new NullReferenceException();
+                var setTo = AssemblyWalkerHelp.TryAssignOperationHelper_Cast(reference.Backing, typeTracker2.ResolvePossiblyPrimitive(reference.Scope), complitation.runTimeTypeTracker);
+                field.SetValue(dependencies, setTo);
             }
 
             //complitation.indexerArray = assemblerVisitor.indexerList.indexers.ToArray();

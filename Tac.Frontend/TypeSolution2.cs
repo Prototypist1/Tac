@@ -14,7 +14,7 @@ namespace Tac.Frontend.New.CrzayNamespace
     internal partial class Tpn {
         internal class TypeSolution {
 
-            readonly Dictionary<EqualibleHashSet<CombinedTypesAnd>, IBox<IOrType<IFrontendType, IError>>> generalLookUp = new Dictionary<EqualibleHashSet<CombinedTypesAnd>, IBox<IOrType<IFrontendType, IError>>>();
+            readonly Dictionary<EqualibleHashSet<CombinedTypesAnd>, IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>> generalLookUp = new Dictionary<EqualibleHashSet<CombinedTypesAnd>, IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>>();
             readonly Dictionary<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, IOrType<Scope, IError>> scopeCache = new Dictionary<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, IOrType<Scope, IError>>();
             readonly Dictionary<TypeProblem2.Object, IBox<IOrType<WeakObjectDefinition, WeakRootScope>>> objectCache = new Dictionary<TypeProblem2.Object, IBox<IOrType<WeakObjectDefinition, WeakRootScope>>>();
             readonly Dictionary<TypeProblem2.Scope, IBox<IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>> scopeOrBlockCache = new Dictionary<TypeProblem2.Scope, IBox<IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>>();
@@ -36,7 +36,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 foreach (var thing in things)
                 {
-                    var box = new Box<IOrType<IFrontendType, IError>>();
+                    var box = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
                     thing.Switch(
                         methodType => {
 
@@ -45,7 +45,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 generalLookUp[value] = box;
                                 todo.Enqueue(() =>
                                 {
-                                    box.Fill(OrType.Make<IFrontendType, IError>(
+                                    box.Fill(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
                                         methodType.Converter.Convert(this, methodType)));
                                 });
                             });
@@ -109,7 +109,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         error => {
                             flowNodes[OrType.Make<ITypeProblemNode, IError>(error)].GetValueAs(out IVirtualFlowNode _).ToRep().IfNotError(value => {
                                 generalLookUp[value] = box;
-                                box.Fill(OrType.Make<IFrontendType, IError>(
+                                box.Fill(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
                                     error));
                             });
                         });
@@ -121,7 +121,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // that might get a little complex lacing them into the whole process
                 foreach (var thing in things)
                 {
-                    var box = new Box<IOrType<IFrontendType, IError>>();
+                    var box = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
                     thing.Switch(
                         methodType => { },
                         type => { },
@@ -173,19 +173,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                     action();
                 }
 
-                IOrType<IFrontendType, IError> Convert(Tpn.CombinedTypesAnd flowNode)
+                IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError> Convert(Tpn.CombinedTypesAnd flowNode)
                 {
 
                     if (flowNode.And.Count == 0)
                     {
-                        return OrType.Make<IFrontendType, IError>(new AnyType());
+                        return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new AnyType());
                     }
 
                     var prim = flowNode.Primitive();
 
                     if (prim.Is2(out var error))
                     {
-                        return OrType.Make<IFrontendType, IError>(error);
+                        return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(error);
                     }
 
                     if (prim.Is1OrThrow().Is(out var _))
@@ -197,7 +197,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     if (scopeOr.Is2(out var e4))
                     {
-                        return OrType.Make<IFrontendType, IError>(e4);
+                        return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(e4);
                     }
                     var scope = scopeOr.Is1OrThrow();
 
@@ -207,7 +207,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         if (inputOr.Is2(out var e2))
                         {
-                            return OrType.Make<IFrontendType, IError>(e2);
+                            return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(e2);
                         }
                     }
                     var input = inputOr?.Is1OrThrow();
@@ -217,7 +217,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         if (outputOr.Is2(out var e3))
                         {
-                            return OrType.Make<IFrontendType, IError>(e3);
+                            return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(e3);
                         }
 
                     }
@@ -237,7 +237,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         // I don't think this is safe see:
                         //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                         return
-                             OrType.Make<IFrontendType, IError>(
+                             OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
                             new MethodType(
                                 SafeLookUp(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>( input)),
                                 SafeLookUp(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(output))));
@@ -249,10 +249,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                         // I don't think this is safe see:
                         //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                         return
-                             OrType.Make<IFrontendType, IError>(
+                             OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
                             new MethodType(
                                 SafeLookUp(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(input)),
-                                new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(new EmptyType()))));
+                                new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new EmptyType()))));
                     }
 
                     if (output != default)
@@ -260,9 +260,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                         // I don't think this is safe see:
                         //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                         return
-                             OrType.Make<IFrontendType, IError>(
+                             OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
                             new MethodType(
-                                new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(new EmptyType())),
+                                new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new EmptyType())),
                                 SafeLookUp(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(output))));
                     }
 
@@ -272,25 +272,25 @@ namespace Tac.Frontend.New.CrzayNamespace
                         return new WeakTypeDefinition(OrType.Make<IBox<WeakScope>, IError>(new Box<WeakScope>(scope.weakScope))).FrontendType();
                     }
 
-                    return OrType.Make<IFrontendType, IError>(new AnyType());
+                    return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new AnyType());
                 }
 
                 void EnqueConversionForSet(EqualibleHashSet<CombinedTypesAnd> equalibleHashSet)
                 {
                     if (equalibleHashSet.backing.Count == 0)
                     {
-                        var box = new Box<IOrType<IFrontendType, IError>>();
+                        var box = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
                         generalLookUp[equalibleHashSet] = box;
                         todo.Enqueue(() =>
                         {
-                            box.Fill(OrType.Make<IFrontendType, IError>(new AnyType()));
+                            box.Fill(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new AnyType()));
                         });
                         return;
                     }
 
                     if (equalibleHashSet.backing.Count == 1)
                     {
-                        var box = new Box<IOrType<IFrontendType, IError>>();
+                        var box = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
                         if (!generalLookUp.TryGetValue(equalibleHashSet, out var _))
                         {
                             generalLookUp[equalibleHashSet] = box;
@@ -309,7 +309,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         // we convert each component
                         if (!generalLookUp.TryGetValue(backerRep, out var _))
                         {
-                            var innerBox = new Box<IOrType<IFrontendType, IError>>();
+                            var innerBox = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
                             generalLookUp[backerRep] = innerBox;
                             todo.Enqueue(() =>
                             {
@@ -325,11 +325,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var orKey = new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd> { first, second });
                     if (!generalLookUp.TryGetValue(orKey, out var _))
                     {
-                        var firstOrBox = new Box<IOrType<IFrontendType, IError>>();
+                        var firstOrBox = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
                         generalLookUp[orKey] = firstOrBox;
                         todo.Enqueue(() =>
                         {
-                            firstOrBox.Fill(OrType.Make<IFrontendType, IError>(new FrontEndOrType(generalLookUp[first.ToRep().Is1OrThrow()].GetValue(), generalLookUp[second.ToRep().Is1OrThrow()].GetValue())));
+                            firstOrBox.Fill(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new FrontEndOrType(generalLookUp[first.ToRep().Is1OrThrow()].GetValue(), generalLookUp[second.ToRep().Is1OrThrow()].GetValue())));
                         });
                     }
 
@@ -340,13 +340,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                         var nextOrKey = new EqualibleHashSet<CombinedTypesAnd>(nextOrKeyBacking);
                         if (!generalLookUp.TryGetValue(nextOrKey, out var _))
                         {
-                            var orBox = new Box<IOrType<IFrontendType, IError>>();
+                            var orBox = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
                             generalLookUp[nextOrKey] = orBox;
                             var myOrKey = orKey;
                             var myEntry = entry;
                             todo.Enqueue(() =>
                             {
-                                orBox.Fill(OrType.Make<IFrontendType, IError>(new FrontEndOrType(generalLookUp[myOrKey].GetValue(), generalLookUp[myEntry.ToRep().Is1OrThrow()].GetValue())));
+                                orBox.Fill(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new FrontEndOrType(generalLookUp[myOrKey].GetValue(), generalLookUp[myEntry.ToRep().Is1OrThrow()].GetValue())));
                             });
                         }
                         orKey = nextOrKey;
@@ -355,7 +355,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 // has a related method
                 // {164031F9-9DFA-45FB-9C54-B23902DF29DC}
-                IBox<IOrType<IFrontendType, IError>> LookUpOrBuild(IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> key)
+                IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> LookUpOrBuild(IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> key)
                 {
                     return key.SwitchReturns(x => {
                         if (generalLookUp.TryGetValue(x, out var res)) {
@@ -365,7 +365,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         return generalLookUp[x];
 
-                    }, error => new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(error)));
+                    }, error => new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(error)));
                 }
 
                 // has a related method
@@ -388,12 +388,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            //private IOrType<IFrontendType, IError> Convert(EqualibleHashSet<CombinedTypesAnd> flowNode)
+            //private IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError> Convert(EqualibleHashSet<CombinedTypesAnd> flowNode)
             //{
 
             //    if (flowNode.backing.Count == 0)
             //    {
-            //        return OrType.Make<IFrontendType, IError>(new AnyType());
+            //        return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new AnyType());
             //    }
 
             //    if (flowNode.backing.Count == 1)
@@ -408,17 +408,17 @@ namespace Tac.Frontend.New.CrzayNamespace
             //    var res = new FrontEndOrType(Convert(first), Convert(second));
             //    foreach (var entry in array.Skip(2))
             //    {
-            //        res = new FrontEndOrType(OrType.Make<IFrontendType, IError>(res), Convert(entry));
+            //        res = new FrontEndOrType(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(res), Convert(entry));
             //    }
 
-            //    return OrType.Make<IFrontendType, IError>(res);
+            //    return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(res);
 
             //}
              
             // has a related method
             // {164031F9-9DFA-45FB-9C54-B23902DF29DC}
-            private IBox<IOrType<IFrontendType, IError>> SafeLookUp(IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> key) {
-                return key.SwitchReturns(x => generalLookUp[x], error => new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(error)));
+            private IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> SafeLookUp(IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> key) {
+                return key.SwitchReturns(x => generalLookUp[x], error => new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(error)));
             }
 
             // has a related method
@@ -449,19 +449,19 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            //public IBox<IOrType<IFrontendType, IError>> GetReturns(Tpn.IVirtualFlowNode node)
+            //public IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> GetReturns(Tpn.IVirtualFlowNode node)
             //{
-            //    return new FuncBox<IOrType<IFrontendType, IError>>(()=>
+            //    return new FuncBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(()=>
             //        node.VirtualOutput().GetOrThrow().TransformInner(x => generalLookUp[x.ToRep()].GetValue()));
             //}
 
-            //public IBox<IOrType<IFrontendType, IError>> GetInput(Tpn.IVirtualFlowNode node)
+            //public IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> GetInput(Tpn.IVirtualFlowNode node)
             //{
-            //    return new FuncBox<IOrType<IFrontendType, IError>>(() =>
+            //    return new FuncBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(() =>
             //        node.VirtualInput().GetOrThrow().TransformInner(x => generalLookUp[x.ToRep()].GetValue()));
             //}
 
-            public IOrType<IFrontendType, IError> ToType(IOrType<
+            public IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError> ToType(IOrType<
                     MethodType,
                     WeakTypeDefinition,
                     WeakGenericTypeDefinition,
@@ -472,14 +472,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                     IError> typeOr)
             {
                 return typeOr.SwitchReturns(
-                    methodType => OrType.Make<IFrontendType, IError>(methodType),
+                    methodType => OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(methodType),
                     weakTypeDefinition => weakTypeDefinition.FrontendType(),
                     weakGenericTypeDefinition => weakGenericTypeDefinition.FrontendType(), //throw new Exception("I don't think this should happen. shouldn't generics be erased at this point?")
-                    primitiveType => OrType.Make<IFrontendType, IError>(primitiveType),
+                    primitiveType => OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(primitiveType),
                     weakObjectDefinition => weakObjectDefinition.Returns(),
                     weakRootScopeDefinition => weakRootScopeDefinition.Returns(), // is this really a type?? throw new Exception("that is not a type")
-                    weakOrTypeOperation => OrType.Make<IFrontendType, IError>(weakOrTypeOperation.FrontendType()),
-                    error => OrType.Make<IFrontendType, IError>(error));
+                    weakOrTypeOperation => OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(weakOrTypeOperation.FrontendType()),
+                    error => OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(error));
             }
 
             internal IVirtualFlowNode GetFlowNode(TypeProblem2.Object from)
@@ -576,9 +576,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            internal IBox<IOrType<IFrontendType, IError>> GetType(IOrType<IVirtualFlowNode, IError> from)
+            internal IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> GetType(IOrType<IVirtualFlowNode, IError> from)
             {
-                return from.SwitchReturns(x => SafeLookUp(x.ToRep()),x=> new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(x)));
+                return from.SwitchReturns(x => SafeLookUp(x.ToRep()),x=> new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(x)));
             }
 
 
@@ -609,7 +609,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return Possibly.IsNot<IOrType<NameKey, ImplicitKey>[]>();
             }
 
-            internal IBox<IOrType<IFrontendType, IError>> GetType(ILookUpType from)
+            internal IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> GetType(ILookUpType from)
             {
                 return SafeLookUp(
                 flowNodeLookUp[from.LooksUp.GetOrThrow().SwitchReturns(
@@ -684,9 +684,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             public readonly Dictionary<IKey, WeakMemberDefinition> members;
             public readonly WeakScope weakScope;
 
-            public Scope(Dictionary<IKey, IBox<IOrType<IFrontendType, IError>>> members, TypeSolution typeSolution)
+            public Scope(Dictionary<IKey, IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>> members, TypeSolution typeSolution)
             {
-                this.members = members?.ToDictionary(x=>x.Key, x=> new WeakMemberDefinition(Model.Elements.Access.ReadWrite, x.Key, new FuncBox<IOrType<IFrontendType, IError>>(() => x.Value.GetValue()))) ?? throw new ArgumentNullException(nameof(members));
+                this.members = members?.ToDictionary(x=>x.Key, x=> new WeakMemberDefinition(Model.Elements.Access.ReadWrite, x.Key, new FuncBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(() => x.Value.GetValue()))) ?? throw new ArgumentNullException(nameof(members));
                 this.weakScope = ToWeakScope(this.members);
             }
 

@@ -84,14 +84,14 @@ namespace Tac.SemanticModel
     // it is certaianly true at somepoint we will need a flattened list 
     internal class WeakMemberDefinition : IConvertable<IMemberDefinition>, IValidate, IReturn
     {
-        public WeakMemberDefinition(Access access, IKey key, IBox<IOrType<IFrontendType, IError>> type)
+        public WeakMemberDefinition(Access access, IKey key, IBox<IOrType<IFrontendType<IVerifiableType>, IError>> type)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             Access = access;
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public IBox<IOrType<IFrontendType, IError>> Type { get; }
+        public IBox<IOrType<IFrontendType<IVerifiableType>, IError>> Type { get; }
         public Access Access { get; }
         public IKey Key { get; }
 
@@ -107,14 +107,14 @@ namespace Tac.SemanticModel
             {
                 maker.Build(
                     Key,
-                    Type.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
+                    Type.GetValue().Is1OrThrow().Convert(context),
                     Access);
             });
         }
 
-        public IOrType<IFrontendType, IError> Returns()
+        public IOrType<IFrontendType<IVerifiableType>, IError> Returns()
         {
-            return OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.RefType(Type.GetValue().TransformInner(x => x)));
+            return OrType.Make<IFrontendType<IVerifiableType>, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.RefType(Type.GetValue().TransformInner(x => x)));
         }
 
         public IEnumerable<IError> Validate()
@@ -183,9 +183,9 @@ namespace Tac.SemanticModel
     {
         private readonly IKey memberName;
         private readonly Access access;
-        private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> type;
+        private readonly ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> type;
 
-        public MemberDefinitionPopulateScope(IKey item, bool isReadonly, ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> typeToken)
+        public MemberDefinitionPopulateScope(IKey item, bool isReadonly, ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> typeToken)
         {
             memberName = item ?? throw new ArgumentNullException(nameof(item));
             access = isReadonly ? Access.ReadOnly: Access.ReadWrite;

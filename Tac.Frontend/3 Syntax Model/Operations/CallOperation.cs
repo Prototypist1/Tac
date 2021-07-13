@@ -58,13 +58,13 @@ namespace Tac.SemanticModel.Operations
             var methodInputTypeOrErrors = method
                 .ReturnsTypeOrErrors()
                 .TransformAndFlatten(thing => thing.TryGetInput().SwitchReturns(orType=> orType, no=>
-                { return OrType.Make<IFrontendType, IError>(Error.Other($"{thing} should return")); }
-                , error => OrType.Make<IFrontendType, IError>(error)));
+                { return OrType.Make<IFrontendType<IVerifiableType>, IError>(Error.Other($"{thing} should return")); }
+                , error => OrType.Make<IFrontendType<IVerifiableType>, IError>(error)));
 
             return inputTypeOrErrors.SwitchReturns(
                 i => methodInputTypeOrErrors.SwitchReturns<IEnumerable<IError>>(
                     mi=> {
-                        if (!i.TheyAreUs(mi, new List<(IFrontendType, IFrontendType)>()).SwitchReturns(x => x, x => false))
+                        if (!i.TheyAreUs(mi, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).SwitchReturns(x => x, x => false))
                         {
                             return new[] { Error.Other($"{method} does not accept {input}") };
                         }
@@ -82,14 +82,14 @@ namespace Tac.SemanticModel.Operations
                     }));
         }
 
-        public static IOrType<IFrontendType, IError> Returns(IOrType<IBox<IFrontendCodeElement>, IError> method) { 
+        public static IOrType<IFrontendType<IVerifiableType>, IError> Returns(IOrType<IBox<IFrontendCodeElement>, IError> method) { 
             return method.ReturnsTypeOrErrors().TransformAndFlatten(thing => {
                 if (thing is SyntaxModel.Elements.AtomicTypes.MethodType method)
                 {
                     return method.OutputType.GetValue();
                 }
 
-                return OrType.Make<IFrontendType, IError>(Error.Other($"{thing} should return"));
+                return OrType.Make<IFrontendType<IVerifiableType>, IError>(Error.Other($"{thing} should return"));
             });
         }
     }
@@ -111,7 +111,7 @@ namespace Tac.SemanticModel.Operations
             });
         }
 
-        public IOrType<IFrontendType, IError> Returns()=>CallOperationSharedCode.Returns(Right);
+        public IOrType<IFrontendType<IVerifiableType>, IError> Returns()=>CallOperationSharedCode.Returns(Right);
         
 
         public override IEnumerable<IError> Validate()
@@ -185,7 +185,7 @@ namespace Tac.SemanticModel.Operations
         }
 
 
-        public IOrType<IFrontendType, IError> Returns() => CallOperationSharedCode.Returns(Left);
+        public IOrType<IFrontendType<IVerifiableType>, IError> Returns() => CallOperationSharedCode.Returns(Left);
 
         public override IEnumerable<IError> Validate()
         {

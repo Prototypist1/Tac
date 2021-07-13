@@ -20,7 +20,7 @@ namespace Tac.Frontend
 
     // ref
     internal interface IReturn {
-        IOrType<IFrontendType, IError> Returns();
+        IOrType<IFrontendType<IVerifiableType>, IError> Returns();
     }
 
     // not every frontend code element is convertable. type definitions are not.
@@ -55,7 +55,8 @@ namespace Tac.Frontend
     }
 
 
-    internal interface IFrontendType: IFrontendCodeElement, IConvertable<IVerifiableType>
+    internal interface IFrontendType<out TTargetType>: IFrontendCodeElement, IConvertable<TTargetType>
+        where TTargetType: IVerifiableType
     {
         // we need to pass around a list of assumed true
         // TheyAreUs is often called inside TheyAreUs
@@ -64,23 +65,23 @@ namespace Tac.Frontend
         // this are actaully the same
         // another case A { B x },  B { C x },  C { A x }
         // these are the same as well
-        IOrType<bool,IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue);
-        IOrType<IOrType<(IFrontendType, Access), IError>, No,IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue);
-        IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn();
-        IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput();
+        IOrType<bool,IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue);
+        IOrType<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No,IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue);
+        IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn();
+        IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput();
     }
 
+    //internal static class IFrontendTypeStatic
+    //{
 
-    internal static class IFrontendTypeStatic
-    {
-
-        public static IVerifiableType ConvertTypeOrThrow(this IFrontendType self, IConversionContext context)
-        {
-            if (self is IFrontendType convertable)
-            {
-                return convertable.Convert(context);
-            }
-            throw new Exception("could not be converted");
-        }
-    }
+    //    public static TTargetType ConvertTypeOrThrow<TTargetType>(this IFrontendType<TTargetType> self, IConversionContext context)
+    //        where TTargetType : IVerifiableType
+    //    {
+    //        if (self is IFrontendType<TTargetType> convertable)
+    //        {
+    //            return convertable.Convert(context);
+    //        }
+    //        throw new Exception("could not be converted");
+    //    }
+    //}
 }

@@ -9,6 +9,7 @@ using Tac.Model;
 using Tac.Parser;
 using Tac.SemanticModel.Operations;
 using Prototypist.Toolbox;
+using Tac.Model.Elements;
 
 namespace Tac.SemanticModel
 {
@@ -18,7 +19,7 @@ namespace Tac.SemanticModel
         IOrType<IBox<WeakScope>, Tac.Model.IError> Scope { get; }
     }
 
-    internal interface IFrontendGenericType : IFrontendType
+    internal interface IFrontendGenericType : IFrontendType<IVerifiableType>
     {
         IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
     }

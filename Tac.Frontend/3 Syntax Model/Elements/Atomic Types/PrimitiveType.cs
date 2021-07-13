@@ -13,24 +13,24 @@ using Tac.Type;
 namespace Tac.SyntaxModel.Elements.AtomicTypes
 {
     internal static class FrontendTypeExtensions{
-        public static IOrType<IFrontendType, IError> UnwrapRefrence(this IFrontendType frontendType) 
+        public static IOrType<IFrontendType<IVerifiableType>, IError> UnwrapRefrence(this IFrontendType<IVerifiableType> frontendType) 
         {
             if (frontendType is RefType refType) {
                 return refType.inner;
             }
-            return OrType.Make< IFrontendType,IError >(frontendType);
+            return OrType.Make< IFrontendType<IVerifiableType>,IError >(frontendType);
         }
     }
 
-    internal interface IPrimitiveType: IFrontendType
+    internal interface IPrimitiveType: IFrontendType<IVerifiableType>
     {
     }
 
-    internal class FrontEndOrType : IFrontendType
+    internal class FrontEndOrType : IFrontendType<IVerifiableType>
     {
-        internal readonly IOrType<IFrontendType,IError> left, right;
+        internal readonly IOrType<IFrontendType<IVerifiableType>,IError> left, right;
 
-        public FrontEndOrType(IOrType<IFrontendType, IError> left, IOrType<IFrontendType, IError> right)
+        public FrontEndOrType(IOrType<IFrontendType<IVerifiableType>, IError> left, IOrType<IFrontendType<IVerifiableType>, IError> right)
         {
             // TODO this is wrong
             // I think
@@ -52,42 +52,42 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 , () =>
                 {
                     builder.Build(
-                        inputType.Is1OrThrow().SafeCastTo<IFrontendType, IFrontendType>().Convert(context),
-                        outputType.Is1OrThrow().SafeCastTo<IFrontendType, IFrontendType>().Convert(context));
+                        inputType.Is1OrThrow().SafeCastTo<IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>>().Convert(context),
+                        outputType.Is1OrThrow().SafeCastTo<IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>>().Convert(context));
                 });
         }
 
-        private static IIsPossibly<(IOrType<IFrontendType, IError> fromLeft, IOrType<IFrontendType, IError> fromRight)> IsOrType(IFrontendType them) {
+        private static IIsPossibly<(IOrType<IFrontendType<IVerifiableType>, IError> fromLeft, IOrType<IFrontendType<IVerifiableType>, IError> fromRight)> IsOrType(IFrontendType<IVerifiableType> them) {
             if (them.SafeIs(out FrontEndOrType orType)) {
-                return Possibly.Is<(IOrType<IFrontendType, IError> fromLeft, IOrType<IFrontendType, IError> fromRight)>((orType.left, orType.right));
+                return Possibly.Is<(IOrType<IFrontendType<IVerifiableType>, IError> fromLeft, IOrType<IFrontendType<IVerifiableType>, IError> fromRight)>((orType.left, orType.right));
             }
-            return Possibly.IsNot<(IOrType<IFrontendType, IError> fromLeft, IOrType<IFrontendType, IError> fromRight)>();
+            return Possibly.IsNot<(IOrType<IFrontendType<IVerifiableType>, IError> fromLeft, IOrType<IFrontendType<IVerifiableType>, IError> fromRight)>();
         }
 
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue)
+        public IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
         {
             return OrTypeLibrary.CanAssign(they, IsOrType, this, left, right, (x, y,list) => x.TheyAreUs(y, list), assumeTrue);
         }
 
-        public IOrType<IOrType<(IFrontendType, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue)
+        public IOrType<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
         {
             return OrTypeLibrary.GetMember(
                 key,
                 left,
                 right,
                 (x, key, list) => x.TryGetMember(key,list),
-                (x, y) => new FrontEndOrType(OrType.Make<IFrontendType, IError>(x), OrType.Make<IFrontendType, IError>(y)),
+                (x, y) => new FrontEndOrType(OrType.Make<IFrontendType<IVerifiableType>, IError>(x), OrType.Make<IFrontendType<IVerifiableType>, IError>(y)),
                 (us, them, list) => us.TheyAreUs(them, list),
                 assumeTrue
                 );
         }
 
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn()
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn()
         {
             return OrTypeLibrary.TryGetReturn(left, right, (x) => x.TryGetReturn(), (x, y) => new FrontEndOrType(x, y));
         }
 
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput()
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput()
         {
             return OrTypeLibrary.TryGetInput(left, right, (x) => x.TryGetInput(), (x, y) => new FrontEndOrType(x, y));
         }
@@ -105,11 +105,11 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         }
     }
 
-    internal class HasMembersType : IFrontendType {
+    internal class HasMembersType : IFrontendType<IInterfaceType> {
 
         private struct Yes { }
 
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) {
+        public IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue) {
             return HasMembersLibrary.CanAssign(
                 they,
                 this,
@@ -120,14 +120,14 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 );
         }
         
-        public IEnumerable<IError> Validate() => weakScope.membersList.Select(x => x.GetValue().Type.GetValue().Possibly1()).OfType<IIsDefinately<IFrontendType>>().SelectMany(x => x.Value.Validate());
+        public IEnumerable<IError> Validate() => weakScope.membersList.Select(x => x.GetValue().Type.GetValue().Possibly1()).OfType<IIsDefinately<IFrontendType<IVerifiableType>>>().SelectMany(x => x.Value.Validate());
 
-        public IOrType<IOrType<(IFrontendType,Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue)
+        public IOrType<IOrType<(IFrontendType<IVerifiableType>,Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
         {
             return HasMembersLibrary.TryGetMember(key, weakScope.membersList.Select(x => (x.GetValue().Key, x.GetValue().Type.GetValue().TransformInner(y => (y, x.GetValue().Access)))).ToList());
         }
 
-        public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
+        public IBuildIntention<IInterfaceType> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = InterfaceType.Create();
             return new BuildIntention<IInterfaceType>(toBuild, () =>
@@ -136,10 +136,10 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             });
         }
 
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
 
-        //public readonly IReadOnlyDictionary<IKey, IOrType<IFrontendType, IError>> members;
+        //public readonly IReadOnlyDictionary<IKey, IOrType<IFrontendType<IVerifiableType>, IError>> members;
 
         public readonly WeakScope weakScope;
 
@@ -151,7 +151,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
     // still bad at structs is this a struct?
     //internal struct HowTypesThinkOfMembers {
-    //    public IOrType<IFrontendType, IError> orType;
+    //    public IOrType<IFrontendType<IVerifiableType>, IError> orType;
     //    public IKey key;
     //}
 
@@ -159,7 +159,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
     // but it probably does not mean what you think it means
     // it really means you can assign to it
     // this is what is returned by member and member reference 
-    internal class RefType : IFrontendType, IPrimitiveType {
+    internal class RefType : IFrontendType<IVerifiableType>, IPrimitiveType {
         public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
             return new BuildIntention<IReferanceType>(new Model.Instantiated.ReferanceType(), () => { });
@@ -167,9 +167,9 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
         public IEnumerable<IError> Validate() => inner.SwitchReturns(x=>x.Validate(), x=>Array.Empty<IError>());
 
-        public IOrType<IOrType<(IFrontendType, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<IOrType<(IFrontendType, Access), IError>, No, IError>(new No());
+        public IOrType<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue) => OrType.Make<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError>(new No());
 
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue)
+        public IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
         {
             // the method calling this
             // is in charge of unwrapping
@@ -179,21 +179,21 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             // a lot of a smell
         }
 
-        public readonly IOrType< IFrontendType,IError> inner;
+        public readonly IOrType< IFrontendType<IVerifiableType>,IError> inner;
 
-        public RefType(IOrType<IFrontendType, IError> inner)
+        public RefType(IOrType<IFrontendType<IVerifiableType>, IError> inner)
         {
             this.inner = inner ?? throw new ArgumentNullException(nameof(inner));
         }
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
     }
 
     // should this really exist?
     // is it a type?
     // it is an error...
     // it is not convertable
-    //internal class IndeterminateType : IFrontendType
+    //internal class IndeterminateType : IFrontendType<IVerifiableType>
     //{
     //    private readonly IError error;
 
@@ -202,14 +202,14 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
     //        this.error = error ?? throw new ArgumentNullException(nameof(error));
     //    }
 
-    //    public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue)
+    //    public IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
     //    {
     //        return OrType.Make<bool, IError>(ReferenceEquals(this, they));
     //    }
 
-    //    public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
-    //    public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
-    //    public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+    //    public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
+    //    public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetMember(IKey key) => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
+    //    public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
 
     //    public IEnumerable<IError> Validate()
     //    {
@@ -217,66 +217,66 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
     //    }
     //}
 
-    internal struct BlockType : IFrontendType, IPrimitiveType
+    internal struct BlockType : IFrontendType<IVerifiableType>, IPrimitiveType
     {
         public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
             return new BuildIntention<IBlockType>(new Model.Instantiated.BlockType(), () => { });
         }
 
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<bool, IError> (they is BlockType);
+        public IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue) => OrType.Make<bool, IError> (they is BlockType);
 
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
-        public IOrType<IOrType<(IFrontendType, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<IOrType<(IFrontendType, Access), IError>, No, IError>(new No());
+        public IOrType<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue) => OrType.Make<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError>(new No());
 
 
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
     }
 
-    internal struct StringType : IFrontendType, IPrimitiveType
+    internal struct StringType : IFrontendType<IVerifiableType>, IPrimitiveType
     {
         public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
             return new BuildIntention<IStringType>(new Model.Instantiated.StringType(), () => { });
         }
 
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<bool, IError>(they is StringType);
-        public IOrType<IOrType<(IFrontendType, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<IOrType<(IFrontendType, Access), IError>, No, IError>(new No());
+        public IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue) => OrType.Make<bool, IError>(they is StringType);
+        public IOrType<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue) => OrType.Make<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError>(new No());
 
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
     }
-    internal struct EmptyType : IFrontendType, IPrimitiveType
+    internal struct EmptyType : IFrontendType<IVerifiableType>, IPrimitiveType
     {
         public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
             return new BuildIntention<IEmptyType>(new Model.Instantiated.EmptyType(), () => { });
         }
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<bool, IError>(they is EmptyType);
-        public IOrType<IOrType<(IFrontendType, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<IOrType<(IFrontendType, Access), IError>, No, IError>(new No());
+        public IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue) => OrType.Make<bool, IError>(they is EmptyType);
+        public IOrType<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue) => OrType.Make<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError>(new No());
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
     }
 
-    internal struct NumberType : IFrontendType, IPrimitiveType
+    internal struct NumberType : IFrontendType<IVerifiableType>, IPrimitiveType
     {
         public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
             return new BuildIntention<INumberType>(new Model.Instantiated.NumberType(), () => { });
         }
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<bool, IError>(they is NumberType);
-        public IOrType<IOrType<(IFrontendType, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<IOrType<(IFrontendType, Access), IError>, No, IError>(new No());
+        public IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue) => OrType.Make<bool, IError>(they is NumberType);
+        public IOrType<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue) => OrType.Make<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError>(new No());
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
     }
 
     // I don't think this is a type....
     // placeholders are effectively defined by constraints really just metadata
-    internal interface IGenericTypeParameterPlacholder //: IFrontendType
+    internal interface IGenericTypeParameterPlacholder //: IFrontendType<IVerifiableType>
     {
         IOrType<NameKey, ImplicitKey> Key { get; }
     }
@@ -318,60 +318,60 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
     }
 
-    internal struct AnyType : IFrontendType, IPrimitiveType
+    internal struct AnyType : IFrontendType<IVerifiableType>, IPrimitiveType
     {
         public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
             return new BuildIntention<IAnyType>(new Model.Instantiated.AnyType(), () => { });
         }
 
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<bool, IError>(true);
+        public IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue) => OrType.Make<bool, IError>(true);
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
-        public IOrType<IOrType<(IFrontendType, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<IOrType<(IFrontendType, Access), IError>, No, IError>(new No());
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue) => OrType.Make<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
     }
 
-    internal struct BooleanType : IFrontendType, IPrimitiveType
+    internal struct BooleanType : IFrontendType<IVerifiableType>, IPrimitiveType
     {
         public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
             return new BuildIntention<IBooleanType>(new Tac.Model.Instantiated.BooleanType(), () => { });
         }
 
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<bool, IError>(they is BooleanType);
+        public IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue) => OrType.Make<bool, IError>(they is BooleanType);
 
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
-        public IOrType<IOrType<(IFrontendType, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<IOrType<(IFrontendType, Access), IError>, No, IError>(new No());
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(new No());
+        public IOrType<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue) => OrType.Make<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
     }
 
-    internal class MethodType : IFrontendType, IPrimitiveType
+    internal class MethodType : IFrontendType<IVerifiableType>, IPrimitiveType
     {
 
         private struct Yes { }
 
         // is the meta-data here worth capturing
         public static MethodType ImplementationType(
-            IBox<IOrType<IFrontendType, IError>> inputType,
-            IBox<IOrType<IFrontendType, IError>> outputType,
-            IBox<IOrType<IFrontendType, IError>> contextType) {
+            IBox<IOrType<IFrontendType<IVerifiableType>, IError>> inputType,
+            IBox<IOrType<IFrontendType<IVerifiableType>, IError>> outputType,
+            IBox<IOrType<IFrontendType<IVerifiableType>, IError>> contextType) {
             return new MethodType(
                 contextType,
-                new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError> (new MethodType(inputType, outputType))));
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError> (new MethodType(inputType, outputType))));
         }
 
         public MethodType(
-            IBox< IOrType<IFrontendType, IError>> inputType,
-            IBox<IOrType<IFrontendType, IError>> outputType)
+            IBox< IOrType<IFrontendType<IVerifiableType>, IError>> inputType,
+            IBox<IOrType<IFrontendType<IVerifiableType>, IError>> outputType)
         {
             InputType = inputType ?? throw new ArgumentNullException(nameof(inputType));
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
         }
 
-        public IBox<IOrType<IFrontendType, IError>> InputType { get; }
-        public IBox<IOrType<IFrontendType, IError>> OutputType { get; }
+        public IBox<IOrType<IFrontendType<IVerifiableType>, IError>> InputType { get; }
+        public IBox<IOrType<IFrontendType<IVerifiableType>, IError>> OutputType { get; }
 
         public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
@@ -385,8 +385,8 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 , () =>
                 {
                     builder.Build(
-                        inputType.GetValue().Is1OrThrow().SafeCastTo<IFrontendType,IFrontendType>().Convert(context),
-                        outputType.GetValue().Is1OrThrow().SafeCastTo<IFrontendType, IFrontendType>().Convert(context));
+                        inputType.GetValue().Is1OrThrow().SafeCastTo<IFrontendType<IVerifiableType>,IFrontendType<IVerifiableType>>().Convert(context),
+                        outputType.GetValue().Is1OrThrow().SafeCastTo<IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>>().Convert(context));
                 });
         }
 
@@ -402,7 +402,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             }
         }
 
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue)
+        public IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
         {
             return MethodLibrary.CanAssign(
                 they,
@@ -414,12 +414,12 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 (target, other, list) => target.TheyAreUs(other, list),
                 assumeTrue);
         }
-        public IOrType<IOrType<(IFrontendType, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue) => OrType.Make<IOrType<(IFrontendType, Access), IError>, No, IError>(new No());
+        public IOrType<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue) => OrType.Make<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError>(new No());
 
 
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(OutputType.GetValue());
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(InputType.GetValue());
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(OutputType.GetValue());
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(InputType.GetValue());
     }
 
-    internal interface IGenericMethodType : IFrontendType, IFrontendGenericType { }
+    internal interface IGenericMethodType : IFrontendType<IVerifiableType>, IFrontendGenericType { }
 }

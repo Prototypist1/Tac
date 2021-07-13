@@ -39,7 +39,7 @@ namespace Tac.SemanticModel
         WeakAbstractBlockDefinition<IInternalMethodDefinition>, IReturn
     {
         public WeakMethodDefinition(
-            IBox<IOrType<IFrontendType, IError>> outputType,
+            IBox<IOrType<IFrontendType<IVerifiableType>, IError>> outputType,
             IBox<WeakMemberDefinition> parameterDefinition,
             IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> body,
             IOrType<IBox<WeakScope>, IError> scope,
@@ -49,8 +49,8 @@ namespace Tac.SemanticModel
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
         }
 
-        public IBox<IOrType<IFrontendType,IError>> InputType => ParameterDefinition.GetValue().Type;
-        public IBox<IOrType<IFrontendType, IError>> OutputType { get; }
+        public IBox<IOrType<IFrontendType<IVerifiableType>,IError>> InputType => ParameterDefinition.GetValue().Type;
+        public IBox<IOrType<IFrontendType<IVerifiableType>, IError>> OutputType { get; }
         public IBox<WeakMemberDefinition> ParameterDefinition { get; }
 
         public override IBuildIntention<IInternalMethodDefinition> GetBuildIntention(IConversionContext context)
@@ -59,7 +59,7 @@ namespace Tac.SemanticModel
             return new BuildIntention<IInternalMethodDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    OutputType.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
+                    OutputType.GetValue().Is1OrThrow().Convert(context),
                     ParameterDefinition.GetValue().Convert(context),
                     Scope.Is1OrThrow().GetValue().Convert(context),
                     Body.GetValue().Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
@@ -67,11 +67,11 @@ namespace Tac.SemanticModel
             });
         }
 
-        public IOrType<IFrontendType, IError> Returns()
+        public IOrType<IFrontendType<IVerifiableType>, IError> Returns()
         {
             // TODO
             // are there really frontend types that arn't convertable?
-            return OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.MethodType(
+            return OrType.Make<IFrontendType<IVerifiableType>, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.MethodType(
                 InputType,
                 OutputType
                 ));
@@ -88,7 +88,7 @@ namespace Tac.SemanticModel
         public ITokenMatching<ISetUp<IBox<WeakMethodDefinition>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-            ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> inputType = null, outputType = null;
+            ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> inputType = null, outputType = null;
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
 
             var matching = tokenMatching
@@ -130,15 +130,15 @@ namespace Tac.SemanticModel
 
     internal class MethodDefinitionPopulateScope : ISetUp<IBox<WeakMethodDefinition>, Tpn.IValue>
     {
-        private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> parameterDefinition;
+        private readonly ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> parameterDefinition;
         private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
-        private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> output;
+        private readonly ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> output;
         private readonly string parameterName;
 
         public MethodDefinitionPopulateScope(
-            ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> parameterDefinition,
+            ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> parameterDefinition,
             IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements,
-            ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> output,
+            ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> output,
             string parameterName
             )
         {

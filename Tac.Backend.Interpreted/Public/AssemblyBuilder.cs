@@ -12,14 +12,19 @@ using Tac.Model.Instantiated;
 using Tac.Backend.Interpreted.SyntazModelInterpeter;
 using static Tac.Model.Instantiated.Scope;
 using Prototypist.Toolbox.Object;
+using static Tac.Backend.Interpreted.Public.AssemblyBuilder;
 
 namespace Tac.Backend.Interpreted.Public
 {
-    public class AssemblyBuilder
+    public class AssemblyBuilder: IAsseblyPendingType<IAssembly<InterpetedAssemblyBacking>, InterpetedAssemblyBacking>
     {
         private readonly NameKey key;
         private readonly Dictionary<IKey, (IInterpetedOperation,IVerifiableType)> memberValues = new Dictionary<IKey, (IInterpetedOperation, IVerifiableType)>();
         private readonly List<IsStatic> members = new List<IsStatic>();
+
+        public NameKey Key => key;
+
+        public IReadOnlyList<IMemberDefinition> Members => members.Select(x => x.Value).ToArray();
 
         public AssemblyBuilder(NameKey key)
         {
@@ -84,14 +89,13 @@ namespace Tac.Backend.Interpreted.Public
 
         }
 
-        public IAssembly<InterpetedAssemblyBacking> Build() {
+        public IAssembly<InterpetedAssemblyBacking> Convert(IInterfaceType interfaceType)
+        {
             var scope = new Scope();
-
-            ;
 
             return new Assembly(
                 key,
-                InterfaceType.CreateAndBuild(members.Select(x=>x.Value).ToArray()),
+                interfaceType,
                 new InterpetedAssemblyBacking(memberValues, scope)
                 );
         }

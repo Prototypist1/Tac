@@ -15,7 +15,7 @@ using Prototypist.Toolbox;
 namespace Tac.SemanticModel
 {
 
-    // does not seems like this should be an "IFrontendType"
+    // does not seems like this should be an "IFrontendType<IVerifiableType>"
     internal interface IWeakMemberReference : IConvertableFrontendCodeElement<IMemberReference>
     {
         IBox<WeakMemberDefinition> MemberDefinition { get; }
@@ -41,9 +41,9 @@ namespace Tac.SemanticModel
             });
         }
 
-        public IOrType<IFrontendType, IError> Returns()
+        public IOrType<IFrontendType<IVerifiableType>, IError> Returns()
         {
-            return OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.RefType(MemberDefinition.GetValue().Type.GetValue()));
+            return OrType.Make<IFrontendType<IVerifiableType>, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.RefType(MemberDefinition.GetValue().Type.GetValue()));
         }
 
         public IEnumerable<IError> Validate() => MemberDefinition.GetValue().Validate();

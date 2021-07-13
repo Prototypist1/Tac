@@ -9,6 +9,7 @@ using System.Linq;
 using Tac.Frontend._3_Syntax_Model.Elements;
 using Tac.Frontend.SyntaxModel.Operations;
 using Tac.Model;
+using Tac.Model.Elements;
 using Tac.SemanticModel;
 using Tac.SyntaxModel.Elements.AtomicTypes;
 using Xunit.Sdk;
@@ -55,9 +56,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 internal IConvertTo<Tin, Tout> Converter { get; }
             }
-            public class TypeReference : TypeProblemNode<TypeReference, IFrontendType>, ILookUpType
+            public class TypeReference : TypeProblemNode<TypeReference, IFrontendType<IVerifiableType>>, ILookUpType
             {
-                public TypeReference(Builder problem, string debugName, IConvertTo<TypeReference, IFrontendType> converter) : base(problem, debugName, converter)
+                public TypeReference(Builder problem, string debugName, IConvertTo<TypeReference, IFrontendType<IVerifiableType>> converter) : base(problem, debugName, converter)
                 {
                 }
 
@@ -131,13 +132,13 @@ namespace Tac.Frontend.New.CrzayNamespace
             // you are making members
             // right now this will fail
             // if the parent has a member of this name
-            public class Type : TypeProblemNode<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>, IExplicitType, IHavePossibleMembers
+            public class Type : TypeProblemNode<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>>, IExplicitType, IHavePossibleMembers
             {
                 public Type(
                     Builder problem,
                     string debugName,
                     IIsPossibly<IOrType<NameKey, ImplicitKey>> key,
-                    IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter,
+                    IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> converter,
                     bool isPlaceHolder,
                     IIsPossibly<Guid> primitiveId
                     ) : base(problem, debugName, converter)
@@ -1835,13 +1836,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public TypeProblem2(IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> rootConverter, RootScopePopulateScope rootScopePopulateScope)
+            public TypeProblem2(IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> rootConverter, RootScopePopulateScope rootScopePopulateScope, Action<TypeProblem2> initDependencyScope)
             {
                 builder = new Builder(this);
                 Primitive = new Scope(this.builder, "base", rootConverter);
-                Dependency = builder.CreateScope(Primitive, rootConverter);
-                ModuleRoot = rootScopePopulateScope.InitizeForTypeProblem(this);
-
                 builder.CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("block")), new PrimitiveTypeConverter(new BlockType()), Possibly.Is(Guid.NewGuid()));
                 builder.CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("number")), new PrimitiveTypeConverter(new NumberType()), Possibly.Is(Guid.NewGuid()));
                 builder.CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("string")), new PrimitiveTypeConverter(new StringType()), Possibly.Is(Guid.NewGuid()));
@@ -1870,6 +1868,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                 res.Input = Possibly.Is(builder.CreatePrivateMember(res, res, methodInputKey, Prototypist.Toolbox.OrType.Make<IKey, IError>(new NameKey("T1")), new WeakMemberDefinitionConverter(Model.Elements.Access.ReadWrite, methodInputKey)));
                 res.Returns = Possibly.Is(builder.CreateTransientMember(res, new NameKey("T2"), $"return of {res.DebugName} "));
                 builder.IsChildOf(Primitive, res);
+
+
+                Dependency = builder.CreateScope(Primitive, rootConverter);
+                initDependencyScope(this);
+                ModuleRoot = rootScopePopulateScope.InitizeForTypeProblem(this);
+
+
             }
 
             private class GenericTypeKey

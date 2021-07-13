@@ -51,11 +51,11 @@ namespace Tac.SemanticModel
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             Assignments = assigns ?? throw new ArgumentNullException(nameof(assigns));
 
-            returns = new Lazy<IOrType<IFrontendType, IError>>(() =>
+            returns = new Lazy<IOrType<IFrontendType<IVerifiableType>, IError>>(() =>
             {
                 return Scope.SwitchReturns(
-                      x => OrType.Make<IFrontendType, IError>(new HasMembersType(x.GetValue())),
-                      x => OrType.Make<IFrontendType, IError>(x));
+                      x => OrType.Make<IFrontendType<IVerifiableType>, IError>(new HasMembersType(x.GetValue())),
+                      x => OrType.Make<IFrontendType<IVerifiableType>, IError>(x));
             });
         }
 
@@ -95,9 +95,9 @@ namespace Tac.SemanticModel
             }
         }
 
-        private readonly Lazy<IOrType<IFrontendType, IError>> returns;
+        private readonly Lazy<IOrType<IFrontendType<IVerifiableType>, IError>> returns;
 
-        public IOrType<IFrontendType, IError> Returns()
+        public IOrType<IFrontendType<IVerifiableType>, IError> Returns()
         {
             return returns.Value;
         }

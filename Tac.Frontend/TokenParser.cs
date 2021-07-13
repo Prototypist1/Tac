@@ -16,12 +16,15 @@ using Tac.SemanticModel.CodeStuff;
 
 namespace Tac.Frontend
 {
+
+
+
     public class TokenParser
     {
 
         private readonly Dictionary<IVerifiableType, Tpn.TypeProblem2.Type> typeCache = new Dictionary<IVerifiableType, Tpn.TypeProblem2.Type>();
 
-        public IProject<TAssembly, TBacking> Parse<TAssembly,TBacking>(string text, IReadOnlyList<TAssembly> dependencies, string name)
+        public IProject<TAssembly, TBacking> Parse<TAssembly,TBacking>(string text, IReadOnlyList<IAsseblyPendingType<TAssembly, TBacking>> dependencies, string name)
             where TAssembly: IAssembly<TBacking>
         {
 
@@ -34,25 +37,51 @@ namespace Tac.Frontend
 
             var dependencyConverter = new DependencyConverter();
 
-            var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), scopePopulator);
 
-            foreach (var dependency in dependencies)
-            {
-                var type = problem.builder.CreateType(problem.Dependency, new WeakTypeDefinitionConverter());
-                foreach (var memberPair in dependency.Scope.Members)
+            List<Func<Tpn.TypeSolution, IConversionContext, TAssembly>> soonToBeAssemblies = new List<Func<Tpn.TypeSolution, IConversionContext, TAssembly>>();
+
+
+            var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), scopePopulator, prob => {
+
+
+                // I don't think what I'm doing here is right
+                // I'm taking external types and recreating them in the type problem 
+                // I then use those internally
+                // and export those so the external types can confirm to my view of them
+                // really,
+                // the type problem should support external type
+                // TODO  {27F6D80F-0E67-498B-A2F2-191FCBEF1D18}
+                foreach (var dependency in dependencies)
                 {
-                    var innerType = ConvertType(problem.builder, type, OrType.Make<IVerifiableType, IError>( memberPair.Type));
-                    innerType.Switch(x =>
+                    var type = prob.builder.CreateType(prob.Dependency, new WeakTypeDefinitionConverter());
+
+                    foreach (var memberPair in dependency.Members)
                     {
-                        problem.builder.CreatePublicMember(type, type, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(Access.ReadOnly, memberPair.Key));
-                    }, y =>
+                        var innerType = ConvertType(prob.builder, type, OrType.Make<IVerifiableType, IError>(memberPair.Type));
+                        innerType.Switch(x =>
+                        {
+                            prob.builder.CreatePublicMember(type, type, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(Access.ReadOnly, memberPair.Key));
+                        }, y =>
+                        {
+                            prob.builder.CreatePublicMember(type, memberPair.Key, y, new WeakMemberDefinitionConverter(Access.ReadOnly, memberPair.Key));
+                        });
+                    }
+                    prob.builder.CreatePrivateMember(prob.Dependency, dependency.Key, OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(type), new WeakMemberDefinitionConverter(Access.ReadOnly, dependency.Key));
+
+                    soonToBeAssemblies.Add((solution, context) =>
                     {
-                        problem.builder.CreatePublicMember(type, memberPair.Key, y, new WeakMemberDefinitionConverter(Access.ReadOnly, memberPair.Key));
+                        var explicitType = solution.GetExplicitType(type);
+
+                        var interfaceType = explicitType.GetValue().SwitchReturns(
+                           x => x.Convert(context),
+                           x => throw new NotImplementedException("I don't think a dependency could be a generic type. If it happens for some reason I'll worry about it then"),
+                           x => throw new NotImplementedException("I don't think a dependency could be a primitive type."));
+
+                        return dependency.Convert(interfaceType);
                     });
                 }
-                problem.builder.CreatePrivateMember(problem.Dependency, dependency.Key, OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(type), new WeakMemberDefinitionConverter(Access.ReadOnly, dependency.Key));
+            });
 
-            }
 
             var populateScopeContex = new SetUpContext(problem.builder);
             var referanceResolver = scopePopulator.Run(problem.ModuleRoot, populateScopeContex).Resolve;
@@ -65,9 +94,10 @@ namespace Tac.Frontend
 
             var dependencyScope = solution.GetScope(problem.Dependency).GetValue().Is2OrThrow();
 
+
             var context = TransformerExtensions.NewConversionContext();
 
-            return new Project<TAssembly, TBacking>(rootScope.Convert(context), dependencies, dependencyScope.Convert(context));
+            return new Project<TAssembly, TBacking>(rootScope.Convert(context), soonToBeAssemblies.Select(x=>x(solution, context)).ToArray(), dependencyScope.Convert(context));
         }
 
         private OrType<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>> ConvertType(

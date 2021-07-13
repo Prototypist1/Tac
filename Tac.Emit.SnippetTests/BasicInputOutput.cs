@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Tac.Backend.Emit;
 using Tac.Backend.Emit.Walkers;
 using Tac.Backend.Interpreted.Public;
+using Tac.Emit.Runner;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
@@ -13,6 +14,24 @@ using Xunit;
 
 namespace Tac.Emit.SnippetTests
 {
+
+    public class InputBacking
+    {
+        public Func<Empty, double> read_number { init; get; }
+        public Func<Empty, string> read_string { init; get; }
+        public Func<Empty, bool> read_bool { init; get; }
+    }
+
+
+    public class OutputBacking
+    {
+        public Func<double, Empty> write_number { init; get; }
+        public Func<string, Empty> write_string { init; get; }
+        public Func<bool, Empty> write_bool { init; get; }
+    }
+
+
+
     internal static class BasicInputOutput
     {
         internal static (Func<T>, Action) ToInput<T>(IReadOnlyList<T> list)
@@ -33,13 +52,7 @@ namespace Tac.Emit.SnippetTests
             );
         }
 
-        public class InputBacking {
-            public Func<Empty, double> read_number { init; get; }
-            public Func<Empty, string> read_string { init; get; }
-            public Func<Empty, bool> read_bool { init; get; }
-        }
-
-        public static Assembly Input(Func<double> numberSource, Func<string> stringSource, Func<bool> boolSource)
+        public static AsseblyPendingType Input(Func<double> numberSource, Func<string> stringSource, Func<bool> boolSource)
         {
             var input = new InputBacking
             {
@@ -48,31 +61,28 @@ namespace Tac.Emit.SnippetTests
                 read_bool = (Empty _) => boolSource(),
             };
 
-            List<IsStatic> members = new List<IsStatic>();
-            members.Add(new IsStatic(
+            List<IMemberDefinition> members = new List<IMemberDefinition>();
+            members.Add(
                 MemberDefinition.CreateAndBuild(
                     new NameKey("read-number"), 
                     MethodType.CreateAndBuild(
                         new EmptyType(),
                         new NumberType()), 
-                    Access.ReadOnly), 
-                    false));
-            members.Add(new IsStatic(
+                    Access.ReadOnly));
+            members.Add(
                 MemberDefinition.CreateAndBuild(
                     new NameKey("read-string"),
                     MethodType.CreateAndBuild(
                         new EmptyType(),
                         new StringType()),
-                    Access.ReadOnly),
-                    false));
-            members.Add(new IsStatic(
+                    Access.ReadOnly));
+            members.Add(
                 MemberDefinition.CreateAndBuild(
                     new NameKey("read-bool"),
                     MethodType.CreateAndBuild(
                         new EmptyType(),
                         new BooleanType()),
-                    Access.ReadOnly),
-                    false));
+                    Access.ReadOnly));
 
             //var scope = new Scope();
 
@@ -80,17 +90,10 @@ namespace Tac.Emit.SnippetTests
 
             ;
 
-            return new Assembly(new NameKey("in"), InterfaceType.CreateAndBuild(members.Select(x => x.Value).ToArray()), input);
+            return new AsseblyPendingType(new NameKey("in"), members, input);
         }
 
-        public class OutputBacking
-        {
-            public Func<double, Empty> write_number { init; get; }
-            public Func<string, Empty> write_string { init; get; }
-            public Func<bool, Empty> write_bool { init; get; }
-        }
-
-        public static Assembly Output(Action<double> numberDestination, Action<string> stringDestination, Action<bool> boolDestination)
+        public static AsseblyPendingType Output(Action<double> numberDestination, Action<string> stringDestination, Action<bool> boolDestination)
         {
             var output = new OutputBacking
             {
@@ -99,37 +102,34 @@ namespace Tac.Emit.SnippetTests
                 write_bool = (bool x) => { boolDestination(x); return new Empty(); },
             };
 
-            List<IsStatic> members = new List<IsStatic>();
-            members.Add(new IsStatic(
+            List<IMemberDefinition> members = new List<IMemberDefinition>();
+            members.Add(
                 MemberDefinition.CreateAndBuild(
                     new NameKey("write-number"),
                     MethodType.CreateAndBuild(
                         new NumberType(),
                         new EmptyType()),
-                    Access.ReadOnly),
-                    false));
-            members.Add(new IsStatic(
+                    Access.ReadOnly));
+            members.Add(
                 MemberDefinition.CreateAndBuild(
                     new NameKey("write-string"),
                     MethodType.CreateAndBuild(
                         new StringType(),
                         new EmptyType()),
-                    Access.ReadOnly),
-                    false));
-            members.Add(new IsStatic(
+                    Access.ReadOnly));
+            members.Add(
                 MemberDefinition.CreateAndBuild(
                     new NameKey("write-bool"),
                     MethodType.CreateAndBuild(
                         new BooleanType(),
                         new EmptyType()),
-                    Access.ReadOnly),
-                    false));
+                    Access.ReadOnly));
 
             //var scope = new Scope();
 
             //scope.Build(members);
 
-            return new Assembly(new NameKey("out"), InterfaceType.CreateAndBuild(members.Select(x => x.Value).ToArray()), output);
+            return new AsseblyPendingType(new NameKey("out"), members, output);
         }
     }
 }

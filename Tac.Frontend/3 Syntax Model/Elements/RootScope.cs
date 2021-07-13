@@ -28,11 +28,11 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             Assignments = assigns ?? throw new ArgumentNullException(nameof(assigns));
 
 
-            returns = new Lazy<IOrType<IFrontendType, IError>>(() =>
+            returns = new Lazy<IOrType<IFrontendType<IVerifiableType>, IError>>(() =>
             {
                 return Scope.SwitchReturns(
-                      x => OrType.Make<IFrontendType, IError>(new HasMembersType(x.GetValue())),
-                      x => OrType.Make<IFrontendType, IError>(x));
+                      x => OrType.Make<IFrontendType<IVerifiableType>, IError>(new HasMembersType(x.GetValue())),
+                      x => OrType.Make<IFrontendType<IVerifiableType>, IError>(x));
             });
         }
 
@@ -75,9 +75,9 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             }
         }
 
-        private readonly Lazy<IOrType<IFrontendType, IError>> returns;
+        private readonly Lazy<IOrType<IFrontendType<IVerifiableType>, IError>> returns;
 
-        public IOrType<IFrontendType, IError> Returns()
+        public IOrType<IFrontendType<IVerifiableType>, IError> Returns()
         {
             return returns.Value;
         }
@@ -170,14 +170,14 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
     internal class ResolveReferanceRootScope : IResolve<IBox<WeakRootScope>>
     {
         private readonly Tpn.TypeProblem2.Object myScope;
-        private readonly IReadOnlyList< IOrType<IResolve<IBox<IFrontendType>>, IError>> ranTypes;
+        private readonly IReadOnlyList< IOrType<IResolve<IBox<IFrontendType<IVerifiableType>>>, IError>> ranTypes;
         private readonly IReadOnlyList<IOrType<IResolve<IBox<WeakGenericTypeDefinition>>, IError>> ranGenericTypes;
         private readonly IOrType<IResolve<IBox<WeakAssignOperation>>, IError>[] nextElements;
         private readonly IOrType<IResolve<IBox<WeakEntryPointDefinition>>, IError> nextEntry;
         private readonly Box<IReadOnlyList<IOrType<IBox<WeakAssignOperation>, IError>>> assignmentsBox;
         private readonly Box<IOrType<IBox<WeakEntryPointDefinition>, IError>> entryBox;
 
-        public ResolveReferanceRootScope(Tpn.TypeProblem2.Object myScope, IReadOnlyList<IOrType<IResolve<IBox<IFrontendType>>, IError>> ranTypes, IReadOnlyList<IOrType<IResolve<IBox<WeakGenericTypeDefinition>>, IError>> ranGenericTypes,
+        public ResolveReferanceRootScope(Tpn.TypeProblem2.Object myScope, IReadOnlyList<IOrType<IResolve<IBox<IFrontendType<IVerifiableType>>>, IError>> ranTypes, IReadOnlyList<IOrType<IResolve<IBox<WeakGenericTypeDefinition>>, IError>> ranGenericTypes,
             IOrType<IResolve<IBox<WeakAssignOperation>>,IError>[] nextElements,
             IOrType<IResolve<IBox<WeakEntryPointDefinition>>,IError> nextEntry,
             Box<IReadOnlyList<IOrType<IBox<WeakAssignOperation>, IError>>> assignmentsBox,

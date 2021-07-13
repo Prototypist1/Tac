@@ -47,15 +47,15 @@ namespace Tac.Parser
 
         private static Condition<T> MustBeAfter<T>(System.Type type) => list => list.Where(x => type.IsAssignableFrom(x.GetType())).Any();
 
-        private static readonly List<Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>>> implicitElementMakers = new List<Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<ISetUp<IFrontendCodeElement,Tpn.ITypeProblemNode>>>>();
+        private static readonly List<Func<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>, WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>>> implicitElementMakers = new List<Func<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>, WithConditions<ISetUp<IFrontendCodeElement,Tpn.ITypeProblemNode>>>>();
         private static readonly List<WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>> operationMatchers = new List<WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>>();
         private static readonly List<WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>> elementMakers = new List<WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>>();
-        private static readonly List<WithConditions<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>> typeOperationMatchers = new List<WithConditions<ISetUp<IBox<IFrontendType> , Tpn.ITypeProblemNode>>>();
-        private static readonly List<WithConditions<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>> typeMakers = new List<WithConditions<ISetUp<IBox<IFrontendType> , Tpn.ITypeProblemNode>>>();
+        private static readonly List<WithConditions<ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.ITypeProblemNode>>> typeOperationMatchers = new List<WithConditions<ISetUp<IBox<IFrontendType<IVerifiableType>> , Tpn.ITypeProblemNode>>>();
+        private static readonly List<WithConditions<ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.ITypeProblemNode>>> typeMakers = new List<WithConditions<ISetUp<IBox<IFrontendType<IVerifiableType>> , Tpn.ITypeProblemNode>>>();
         public IEnumerable<IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>> OperationMatchers => Process(operationMatchers);
         public IEnumerable<IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>> ElementMakers => Process(elementMakers);
-        public IEnumerable<IMaker<ISetUp<IBox<IFrontendType>,  Tpn.ITypeProblemNode>>> TypeOperationMatchers => Process(typeOperationMatchers);
-        public IEnumerable<IMaker<ISetUp<IBox<IFrontendType>,  Tpn.ITypeProblemNode>>> TypeMakers => Process(typeMakers);
+        public IEnumerable<IMaker<ISetUp<IBox<IFrontendType<IVerifiableType>>,  Tpn.ITypeProblemNode>>> TypeOperationMatchers => Process(typeOperationMatchers);
+        public IEnumerable<IMaker<ISetUp<IBox<IFrontendType<IVerifiableType>>,  Tpn.ITypeProblemNode>>> TypeMakers => Process(typeMakers);
 
         private IEnumerable<IMaker<T>> Process<T>(List<WithConditions<T>> withConditionss) {
             var lastCount = -1;
@@ -95,11 +95,11 @@ namespace Tac.Parser
             throw new Exception("could not order");
         }
 
-        private static Func<IBox<IIsPossibly<IFrontendType>>, WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>> AddImplicitOperationMatcher(
-            Func<IBox<IIsPossibly<IFrontendType>>, IMaker<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>> func, 
+        private static Func<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>, WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>> AddImplicitOperationMatcher(
+            Func<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>, IMaker<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>> func, 
             params Condition<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>[] conditions)
         {
-            WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> res(IBox<IIsPossibly<IFrontendType>> x) => new WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(() => func(x), conditions.ToList());
+            WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>> res(IBox<IIsPossibly<IFrontendType<IVerifiableType>>> x) => new WithConditions<ISetUp<IFrontendCodeElement, Tpn.ITypeProblemNode>>(() => func(x), conditions.ToList());
             implicitElementMakers.Add(res);
             return res;
         }
@@ -114,15 +114,15 @@ namespace Tac.Parser
             elementMakers.Add(res);
             return res;
         }
-        private static WithConditions<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>> AddTypeOperationMatcher(Func<IMaker<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>> item, params Condition<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>[] conditions)
+        private static WithConditions<ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.ITypeProblemNode>> AddTypeOperationMatcher(Func<IMaker<ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.ITypeProblemNode>>> item, params Condition<ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.ITypeProblemNode>>[] conditions)
         {
-            var res = new WithConditions<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>(item, conditions.ToList());
+            var res = new WithConditions<ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.ITypeProblemNode>>(item, conditions.ToList());
             typeOperationMatchers.Add(res);
             return res;
         }
-        private static WithConditions<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>> AddTypeMaker(Func<IMaker<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>> item, params Condition<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>[] conditions)
+        private static WithConditions<ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.ITypeProblemNode>> AddTypeMaker(Func<IMaker<ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.ITypeProblemNode>>> item, params Condition<ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.ITypeProblemNode>>[] conditions)
         {
-            var res = new WithConditions<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>>(item, conditions.ToList());
+            var res = new WithConditions<ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.ITypeProblemNode>>(item, conditions.ToList());
             typeMakers.Add(res);
             return res;
         }

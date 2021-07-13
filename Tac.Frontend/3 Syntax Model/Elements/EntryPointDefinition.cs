@@ -37,7 +37,7 @@ namespace Tac.SemanticModel
         WeakAbstractBlockDefinition<IEntryPointDefinition>
     {
         public WeakEntryPointDefinition(
-            IBox<IOrType<IFrontendType, IError>> outputType,
+            IBox<IOrType<IFrontendType<IVerifiableType>, IError>> outputType,
             IBox<WeakMemberDefinition> parameterDefinition,
             IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>,IError>>> body,
             IOrType<IBox<WeakScope>, IError> scope,
@@ -47,8 +47,8 @@ namespace Tac.SemanticModel
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
         }
 
-        public IBox<IOrType<IFrontendType, IError>> InputType => ParameterDefinition.GetValue().Type;
-        public IBox<IOrType<IFrontendType, IError>> OutputType { get; }
+        public IBox<IOrType<IFrontendType<IVerifiableType>, IError>> InputType => ParameterDefinition.GetValue().Type;
+        public IBox<IOrType<IFrontendType<IVerifiableType>, IError>> OutputType { get; }
         public IBox<WeakMemberDefinition> ParameterDefinition { get; }
 
         public override IBuildIntention<IEntryPointDefinition> GetBuildIntention(IConversionContext context)
@@ -57,7 +57,7 @@ namespace Tac.SemanticModel
             return new BuildIntention<IEntryPointDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    OutputType.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
+                    OutputType.GetValue().Is1OrThrow().Convert(context),
                     ParameterDefinition.GetValue().Convert(context),
                     Scope.Is1OrThrow().GetValue().Convert(context),
                     Body.GetValue().Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
@@ -75,7 +75,7 @@ namespace Tac.SemanticModel
         public ITokenMatching<ISetUp<IBox<WeakEntryPointDefinition>, Tpn.IScope>> TryMake(IMatchedTokenMatching tokenMatching)
         {
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-            ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> inputType = null, outputType = null;
+            ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> inputType = null, outputType = null;
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
 
             var matching = tokenMatching
@@ -116,15 +116,15 @@ namespace Tac.SemanticModel
     internal class EntryPointDefinitionPopulateScope : ISetUp<IBox<WeakEntryPointDefinition>, Tpn.TypeProblem2.Method>
     {
 
-        private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> parameterDefinition;
+        private readonly ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> parameterDefinition;
         private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
-        private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> output;
+        private readonly ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> output;
         private readonly string parameterName;
 
         public EntryPointDefinitionPopulateScope(
-            ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> parameterDefinition,
+            ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> parameterDefinition,
             IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements,
-            ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> output,
+            ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> output,
             string parameterName
             )
         {
@@ -139,7 +139,7 @@ namespace Tac.SemanticModel
             //var box = new Box<IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]>();
 
             //var inputBox = new Box<IResolve<IBox<WeakMemberReference>>>();
-            //var outputBox = new Box<IResolve<IBox<IFrontendType>>>();
+            //var outputBox = new Box<IResolve<IBox<IFrontendType<IVerifiableType>>>>();
 
             //var innerScope = context.TypeProblem.CreateScope(scope, new WeakEntryPointConverter(box, inputBox, outputBox));
             //context.TypeProblem.HasEntryPoint(scope, innerScope);

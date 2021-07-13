@@ -82,7 +82,7 @@ namespace Tac.Frontend
                 var interpetedMemberDefinition = new WeakMemberDefinition(
                     member.Access,
                     member.Key,
-                    new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType,IError>(TypeMap.MapType(member.Type))));
+                    new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>,IError>(TypeMap.MapType(member.Type))));
                 backing.Add(member, interpetedMemberDefinition);
                 return interpetedMemberDefinition;
             }
@@ -103,7 +103,7 @@ namespace Tac.Frontend
         //    //}
         //}
 
-        public IFrontendType TypeDefinition(IInterfaceType _)
+        public IFrontendType<IVerifiableType> TypeDefinition(IInterfaceType _)
         {
             throw new NotImplementedException();
             //if (backing.TryGetValue(codeElement, out var res))
@@ -122,7 +122,7 @@ namespace Tac.Frontend
     internal static class TypeMap
     {
 
-        public static IFrontendType MapType(IVerifiableType verifiableType)
+        public static IFrontendType<IVerifiableType> MapType(IVerifiableType verifiableType)
         {
 
 
@@ -153,8 +153,8 @@ namespace Tac.Frontend
             if (verifiableType is IMethodType method)
             {
                 return new MethodType(
-                    new Box<IOrType<IFrontendType,IError>>( OrType.Make<IFrontendType, IError>(MapType(method.InputType))),
-                    new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(MapType(method.OutputType)))
+                    new Box<IOrType<IFrontendType<IVerifiableType>,IError>>( OrType.Make<IFrontendType<IVerifiableType>, IError>(MapType(method.InputType))),
+                    new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(MapType(method.OutputType)))
                     );
             }
             //if (verifiableType is IImplementationType implementation)

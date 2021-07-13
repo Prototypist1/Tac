@@ -16,6 +16,7 @@ using Prototypist.Toolbox;
 using Tac.SemanticModel;
 using System.Linq;
 using Tac.SyntaxModel.Elements.AtomicTypes;
+using Tac.Model.Elements;
 
 namespace Tac.SemanticModel.CodeStuff
 {
@@ -71,11 +72,11 @@ namespace Tac.SemanticModel.Operations
             });
         }
 
-        public IOrType<IFrontendType, IError> Returns() => Left.TransformAndFlatten(x => {
+        public IOrType<IFrontendType<IVerifiableType>, IError> Returns() => Left.TransformAndFlatten(x => {
             if (x is IReturn @return) {
                 return @return.Returns();
             }
-            return OrType.Make<IFrontendType, IError>(Error.Other("left needs to return"));
+            return OrType.Make<IFrontendType<IVerifiableType>, IError>(Error.Other("left needs to return"));
         } );
 
         public override IEnumerable<IError> Validate()
@@ -90,7 +91,7 @@ namespace Tac.SemanticModel.Operations
 
             foreach (var error in leftTypeOrErrors.SwitchReturns(l =>
                rightTypeOrErrors.SwitchReturns<IEnumerable<IError>>(r => {
-                   if (!r.TheyAreUs(l, new List<(IFrontendType, IFrontendType)>()).SwitchReturns(x=>x,x=>false))
+                   if (!r.TheyAreUs(l, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).SwitchReturns(x=>x,x=>false))
                    {
                        return new[] { Error.Other($"can not assign {l} to {r}") };
                    }

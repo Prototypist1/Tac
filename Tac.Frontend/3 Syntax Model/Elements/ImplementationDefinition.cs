@@ -43,7 +43,7 @@ namespace Tac.SemanticModel
         public WeakImplementationDefinition(
             IBox<WeakMemberDefinition> contextDefinition,
             IBox<WeakMemberDefinition> parameterDefinition,
-            IBox<IOrType<IFrontendType, IError>> outputType,
+            IBox<IOrType<IFrontendType<IVerifiableType>, IError>> outputType,
             IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> metohdBody,
             IBox<WeakScope> scope, 
             IEnumerable<IFrontendCodeElement> staticInitializers)
@@ -56,7 +56,7 @@ namespace Tac.SemanticModel
             StaticInitialzers = staticInitializers ?? throw new ArgumentNullException(nameof(staticInitializers));
         }
 
-        public IBox<IOrType<IFrontendType, IError>> OutputType { get; }
+        public IBox<IOrType<IFrontendType<IVerifiableType>, IError>> OutputType { get; }
         public IBox<WeakMemberDefinition> ContextDefinition { get; }
         public IBox<WeakMemberDefinition> ParameterDefinition { get; }
         public IBox<WeakScope> Scope { get; }
@@ -74,7 +74,7 @@ namespace Tac.SemanticModel
                 var contextMember = ContextDefinition.GetValue().Convert(context);
 
                 maker.Build(
-                    OutputType.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
+                    OutputType.GetValue().Is1OrThrow().Convert(context),
                     contextMember,
                     ParameterDefinition.GetValue().Convert(context),
                     Scope.GetValue().Convert(context),
@@ -86,11 +86,11 @@ namespace Tac.SemanticModel
             });
         }
 
-        public IOrType<IFrontendType, IError> Returns()
+        public IOrType<IFrontendType<IVerifiableType>, IError> Returns()
         {
             // TODO
             // are there really frontend types that arnt convertable?!
-            return OrType.Make<IFrontendType, IError>(SyntaxModel.Elements.AtomicTypes.MethodType.ImplementationType(
+            return OrType.Make<IFrontendType<IVerifiableType>, IError>(SyntaxModel.Elements.AtomicTypes.MethodType.ImplementationType(
                 ParameterDefinition.Transfrom(x=>x.Type.GetValue()),
                 OutputType,
                 ContextDefinition.Transfrom(x=>x.Type.GetValue())));
@@ -146,7 +146,7 @@ namespace Tac.SemanticModel
             // this is not great
             // but the typing here is hard to get right 
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-            ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> context= null, input = null, output = null;
+            ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> context= null, input = null, output = null;
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
 
             var match = tokenMatching
@@ -190,18 +190,18 @@ namespace Tac.SemanticModel
 
     internal class PopulateScopeImplementationDefinition : ISetUp<IBox<WeakImplementationDefinition>, Tpn.IValue>
     {
-        private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> contextDefinition;
-        private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> parameterDefinition;
+        private readonly ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> contextDefinition;
+        private readonly ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> parameterDefinition;
         private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
-        private readonly ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> output;
+        private readonly ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> output;
         private readonly string contextName;
         private readonly string parameterName;
 
         public PopulateScopeImplementationDefinition(
-            ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> contextDefinition,
-            ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> parameterDefinition,
+            ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> contextDefinition,
+            ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> parameterDefinition,
             IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements,
-            ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> output,
+            ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> output,
             string contextName,
             string parameterName)
         {

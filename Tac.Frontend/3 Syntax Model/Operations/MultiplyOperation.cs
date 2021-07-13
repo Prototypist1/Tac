@@ -62,7 +62,7 @@ namespace Tac.SemanticModel.Operations
             });
         }
 
-        public IOrType<IFrontendType, IError> Returns() => OrType.Make<IFrontendType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType());
+        public IOrType<IFrontendType<IVerifiableType>, IError> Returns() => OrType.Make<IFrontendType<IVerifiableType>, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType());
 
         public override IEnumerable<IError> Validate()
         {

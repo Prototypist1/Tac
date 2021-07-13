@@ -59,14 +59,14 @@ namespace Tac.SemanticModel.Operations
             });
         }
 
-        public IOrType<IFrontendType, IError> Returns()
+        public IOrType<IFrontendType<IVerifiableType>, IError> Returns()
         {
             return Right.TransformAndFlatten(x =>
             {
                 if (x is IReturn @return) {
                     return @return.Returns();
                 }
-                return OrType.Make<IFrontendType, IError>(Error.Other($"{Right} should return"));
+                return OrType.Make<IFrontendType<IVerifiableType>, IError>(Error.Other($"{Right} should return"));
             });
         }
 

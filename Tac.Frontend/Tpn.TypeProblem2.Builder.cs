@@ -5,6 +5,7 @@ using System.Linq;
 using Tac.Frontend._3_Syntax_Model.Elements;
 using Tac.Frontend.SyntaxModel.Operations;
 using Tac.Model;
+using Tac.Model.Elements;
 using Tac.SemanticModel;
 using Tac.SyntaxModel.Elements.AtomicTypes;
 
@@ -250,7 +251,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return res;
                 }
 
-                public TypeReference CreateTypeReference(IStaticScope context, IKey typeKey, IConvertTo<TypeReference, IFrontendType> converter)
+                public TypeReference CreateTypeReference(IStaticScope context, IKey typeKey, IConvertTo<TypeReference, IFrontendType<IVerifiableType>> converter)
                 {
                     var res = new TypeReference(this, typeKey.ToString()!, converter);
                     HasReference(context, res);
@@ -266,12 +267,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return res;
                 }
 
-                public Type CreateType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter)
+                public Type CreateType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> converter)
                 {
                     return CreateType(parent, key, converter, Possibly.IsNot<Guid>());
                 }
 
-                public Type CreateType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter, IIsPossibly<Guid> primitive)
+                public Type CreateType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> converter, IIsPossibly<Guid> primitive)
                 {
                     var res = new Type(this, key.ToString()!, Possibly.Is(key), converter, false, primitive);
                     IsChildOf(parent, res);
@@ -279,7 +280,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return res;
                 }
 
-                public Type CreateType(IStaticScope parent, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter)
+                public Type CreateType(IStaticScope parent, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> converter)
                 {
                     var key = new ImplicitKey(Guid.NewGuid());
                     var res = new Type(this, key.ToString()!, Possibly.IsNot<IOrType<NameKey, ImplicitKey>>(), converter, false, null);
@@ -290,7 +291,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
 
-                public Type CreateGenericType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter)
+                public Type CreateGenericType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> converter)
                 {
                     var res = new Type(
                         this,

@@ -18,9 +18,9 @@ using Tac.Type;
 
 namespace Tac.SemanticModel
 {
-    //internal class OverlayTypeReference //: IFrontendType
+    //internal class OverlayTypeReference //: IFrontendType<IVerifiableType>
     //{
-    //    public OverlayTypeReference(IFrontendType weakTypeReferance, Overlay overlay)
+    //    public OverlayTypeReference(IFrontendType<IVerifiableType> weakTypeReferance, Overlay overlay)
     //    {
     //        if (weakTypeReferance == null)
     //        {
@@ -34,20 +34,20 @@ namespace Tac.SemanticModel
 
     //        TypeDefinition = weakTypeReferance.TypeDefinition.IfIs(x =>
     //            Possibly.Is(
-    //                new DelegateBox<IIsPossibly<IFrontendType>>(() => x
+    //                new DelegateBox<IIsPossibly<IFrontendType<IVerifiableType>>>(() => x
     //                    .GetValue()
     //                    .IfIs(y => Possibly.Is(overlay.Convert(y))))));
 
     //    }
 
-    //    public IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition { get; }
+    //    public IIsPossibly<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>> TypeDefinition { get; }
 
     //    public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
     //    {
     //        return TypeReferenceStatic.GetBuildIntention(TypeDefinition, context);
     //    }
 
-    //    public IIsPossibly<IFrontendType> Returns()
+    //    public IIsPossibly<IFrontendType<IVerifiableType>> Returns()
     //    {
     //        return TypeDefinition.IfIs(x => x.GetValue());
     //    }
@@ -55,22 +55,22 @@ namespace Tac.SemanticModel
 
     //internal interface IWeakTypeReference : IConvertableFrontendType<IVerifiableType>, IFrontendCodeElement
     //{
-    //    IIsPossibly<IBox<IIsPossibly<IFrontendType>>> TypeDefinition { get; }
+    //    IIsPossibly<IBox<IIsPossibly<IFrontendType<IVerifiableType>>>> TypeDefinition { get; }
     //}
 
 
     // now sure why this needs to be a thing
     // can't I just use the type?
     // we have it because sometimes the reference might not find what it is looking for
-    internal class WeakTypeReference : IFrontendType
+    internal class WeakTypeReference : IFrontendType<IVerifiableType>
     {
-        public WeakTypeReference(IBox<IOrType<IFrontendType, IError>> typeDefinition)
+        public WeakTypeReference(IBox<IOrType<IFrontendType<IVerifiableType>, IError>> typeDefinition)
         {
             TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
         }
 
 
-        public IBox<IOrType<IFrontendType, IError>> TypeDefinition { get; }
+        public IBox<IOrType<IFrontendType<IVerifiableType>, IError>> TypeDefinition { get; }
 
         //public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         //{
@@ -83,37 +83,37 @@ namespace Tac.SemanticModel
             return TypeDefinition.GetValue().Is1OrThrow().GetBuildIntention(context);
         }
 
-        //public IIsPossibly<IFrontendType> Returns()
+        //public IIsPossibly<IFrontendType<IVerifiableType>> Returns()
         //{
         //    return Possibly.Is(TypeDefinition.GetValue());
         //}
 
-        public IOrType<bool, IError> TheyAreUs(IFrontendType they, List<(IFrontendType, IFrontendType)> assumeTrue)
+        public IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
         {
             return TypeDefinition.GetValue().TransformAndFlatten(x=> x.TheyAreUs(they, assumeTrue));
         }
 
-        public IOrType<IOrType<(IFrontendType,Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType, IFrontendType)> assumeTrue)
+        public IOrType<IOrType<(IFrontendType<IVerifiableType>,Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
         {
             return TypeDefinition.GetValue().SwitchReturns(
                     x => x.TryGetMember(key, assumeTrue),
-                    x => OrType.Make<IOrType<(IFrontendType,Access), IError>, No, IError>(x)
+                    x => OrType.Make<IOrType<(IFrontendType<IVerifiableType>,Access), IError>, No, IError>(x)
                 );
         }
 
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetReturn()
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn()
         {
             return TypeDefinition.GetValue().SwitchReturns(
                 x => x.TryGetReturn(),
-                x => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(x)
+                x => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(x)
             );
         }
 
-        public IOrType<IOrType<IFrontendType, IError>, No, IError> TryGetInput()
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput()
         {
             return TypeDefinition.GetValue().SwitchReturns(
                 x => x.TryGetInput(),
-                x => OrType.Make<IOrType<IFrontendType, IError>, No, IError>(x)
+                x => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(x)
             );
         }
 
@@ -128,9 +128,9 @@ namespace Tac.SemanticModel
 
     internal static class TypeReferenceStatic
     {
-        public static IBuildIntention<IVerifiableType> GetBuildIntention(IBox<IFrontendType> TypeDefinition, IConversionContext context)
+        public static IBuildIntention<IVerifiableType> GetBuildIntention(IBox<IFrontendType<IVerifiableType>> TypeDefinition, IConversionContext context)
         {
-            if (TypeDefinition.GetValue() is IFrontendType convertableType)
+            if (TypeDefinition.GetValue() is IFrontendType<IVerifiableType> convertableType)
             {
                 return convertableType.GetBuildIntention(context);
             }
@@ -188,9 +188,9 @@ namespace Tac.SemanticModel
         }
     }
 
-    internal class TypeReferanceMaker : IMaker<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>>
+    internal class TypeReferanceMaker : IMaker<ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference>>
     {
-        public ITokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
             return tokenMatching
                 .Has(new TypeNameMaker())
@@ -199,7 +199,7 @@ namespace Tac.SemanticModel
 
     }
 
-    internal class TypeReferancePopulateScope : ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>
+    internal class TypeReferancePopulateScope : ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference>
     {
         private readonly IKey key;
 
@@ -208,15 +208,15 @@ namespace Tac.SemanticModel
             key = typeName ?? throw new ArgumentNullException(nameof(typeName));
         }
 
-        public ISetUpResult<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> Run(Tpn.IStaticScope scope, ISetUpContext context)
+        public ISetUpResult<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
             var type = context.TypeProblem.CreateTypeReference(scope, key, new WeakTypeReferenceConverter());
-            return new SetUpResult<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>(new TypeReferanceResolveReference(
+            return new SetUpResult<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference>(new TypeReferanceResolveReference(
                 type), OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(type));
         }
     }
 
-    internal class TypeReferanceResolveReference : IResolve<IBox<IFrontendType>>
+    internal class TypeReferanceResolveReference : IResolve<IBox<IFrontendType<IVerifiableType>>>
     {
         private readonly Tpn.TypeProblem2.TypeReference type;
 
@@ -225,9 +225,9 @@ namespace Tac.SemanticModel
             this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
-        public IBox<IFrontendType> Run(Tpn.TypeSolution context)
+        public IBox<IFrontendType<IVerifiableType>> Run(Tpn.TypeSolution context)
         {
-            return new FuncBox<IFrontendType>(()=> context.GetType(type).GetValue().Is1OrThrow());
+            return new FuncBox<IFrontendType<IVerifiableType>>(()=> context.GetType(type).GetValue().Is1OrThrow());
         }
     }
 

@@ -328,7 +328,7 @@ namespace Tac.Backend.Emit.Walkers
             {
                 nextTypeCache.AddOrThrow(type.Key, type.Value.CreateType());
             }
-            var nextDependencyType = dependenciesType.CreateType();
+            //var nextDependencyType = dependenciesType.CreateType();
             foreach (var action in objectActions)
             {
                 action();
@@ -337,22 +337,27 @@ namespace Tac.Backend.Emit.Walkers
             {
                 nextObjectCache.AddOrThrow(obj.Key,obj.Value.CreateType());
             }
-            return new AssemblerTypeTracker(nextTypeCache, nextObjectCache, funcCache, nextDependencyType);
+            return new AssemblerTypeTracker(nextTypeCache, nextObjectCache, funcCache);//, nextDependencyType);
         }
 
 
-        private TypeBuilder dependenciesType;
+        //private TypeBuilder dependenciesType;
         internal void HandleDependencies(IProject<Assembly, object> project)
         {
-            dependenciesType = moduleBuilder.DefineType(AssemblerVisitor.GenerateName(), TypeAttributes.Public);
-            
-            typeActions.Add(() =>
+            //dependenciesType = moduleBuilder.DefineType(AssemblerVisitor.GenerateName(), TypeAttributes.Public);
+
+            foreach (var member in project.References)
             {
-                foreach (var member in project.References)
-                {
-                    dependenciesType.DefineField(TypeTracker.ConvertName(member.Key.SafeCastTo(out NameKey _).Name), IdempotentAddType(member.Scope), FieldAttributes.Public);
-                }
-            });
+                IdempotentAddType(member.Scope);
+            }
+
+            //typeActions.Add(() =>
+            //{
+            //    foreach (var member in project.References)
+            //    {
+            //        dependenciesType.DefineField(TypeTracker.ConvertName(member.Key.SafeCastTo(out NameKey _).Name), IdempotentAddType(member.Scope), FieldAttributes.Public);
+            //    }
+            //});
 
         }
     }
@@ -394,15 +399,16 @@ namespace Tac.Backend.Emit.Walkers
     {
         private readonly ConcurrentIndexed<IVerifiableType, System.Type> typeCache = new ConcurrentIndexed<IVerifiableType, System.Type>();
         private readonly ConcurrentIndexed<IObjectDefiniton, System.Type> objectCache = new ConcurrentIndexed<IObjectDefiniton, System.Type>();
-        private readonly System.Type dependencyType;
+        //private readonly System.Type dependencyType;
         public readonly ConcurrentIndexed<(System.Type, System.Type), TypeBuilder> conversionCache = new ConcurrentIndexed<(System.Type, System.Type), TypeBuilder>();
         public readonly ConcurrentIndexed<(System.Type, System.Type), TypeBuilder> methodConversionCache = new ConcurrentIndexed<(System.Type, System.Type), TypeBuilder>();
 
-        public AssemblerTypeTracker(ConcurrentIndexed<IVerifiableType, System.Type> typeCache, ConcurrentIndexed<IObjectDefiniton, System.Type> objectCache, ConcurrentIndexed<(System.Type, System.Type), IVerifiableType> funcCache, System.Type nextDependencyType) : base(funcCache)
+        //, System.Type nextDependencyType
+        public AssemblerTypeTracker(ConcurrentIndexed<IVerifiableType, System.Type> typeCache, ConcurrentIndexed<IObjectDefiniton, System.Type> objectCache, ConcurrentIndexed<(System.Type, System.Type), IVerifiableType> funcCache) : base(funcCache)
         {
             this.typeCache = typeCache ?? throw new ArgumentNullException(nameof(typeCache));
             this.objectCache = objectCache ?? throw new ArgumentNullException(nameof(objectCache));
-            this.dependencyType = nextDependencyType ?? throw new ArgumentNullException(nameof(nextDependencyType));
+            //this.dependencyType = nextDependencyType ?? throw new ArgumentNullException(nameof(nextDependencyType));
         }
 
         protected override System.Type ResolveNotPrimitive(IOrType<ITypeOr, IInterfaceModuleType> key)
@@ -414,7 +420,7 @@ namespace Tac.Backend.Emit.Walkers
             return objectCache.GetOrThrow(key);
         }
 
-        public System.Type GetDependencyType() => dependencyType;
+        //public System.Type GetDependencyType() => dependencyType;
         //internal IVerifiableType lookUpType(System.Type implements)
         //{
         //    return typeCache.Single(x => x.Value == implements).Key;

@@ -32,7 +32,7 @@ namespace Tac.Interpreted.SnippetTests
                 });
         }
 
-        public static IAssembly<InterpetedAssemblyBacking> Input(Func<double> numberSource, Func<string> stringSource, Func<bool> boolSource) {
+        public static AssemblyBuilder Input(Func<double> numberSource, Func<string> stringSource, Func<bool> boolSource) {
             return new AssemblyBuilder(new NameKey("in"))
                        .AddMethod(
                            new NameKey("read-number"),
@@ -51,11 +51,10 @@ namespace Tac.Interpreted.SnippetTests
                            (IInterpetedAnyType x) => TypeManager.Bool(boolSource()),
                            MethodType.CreateAndBuild(
                                    new EmptyType(),
-                                   new BooleanType()))
-                       .Build();
+                                   new BooleanType()));
         }
 
-        public static IAssembly<InterpetedAssemblyBacking> Output(Action<double> numberDestination, Action<string> stringDestination, Action<bool> boolDestination)
+        public static AssemblyBuilder Output(Action<double> numberDestination, Action<string> stringDestination, Action<bool> boolDestination)
         {
             return new AssemblyBuilder(new NameKey("out"))
                        .AddMethod(
@@ -75,8 +74,7 @@ namespace Tac.Interpreted.SnippetTests
                            (IInterpetedAnyType x) => { boolDestination(x.Has<IBoxedBool>().Value); return TypeManager.Empty(); },
                            MethodType.CreateAndBuild(
                                    new BooleanType(),
-                                   new EmptyType()))
-                       .Build();
+                                   new EmptyType()));
         }
     }
 }

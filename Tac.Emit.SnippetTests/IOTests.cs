@@ -156,7 +156,7 @@ entry-point [empty; empty;] input {
 
             Run.CompileAndRun<Empty, Empty>("test",
  @"
- entry-point [empty; empty;] input { new-empty return; };", new Empty(), Array.Empty<Tac.Backend.Emit.Assembly>());
+ entry-point [empty; empty;] input { new-empty return; };", new Empty(), Array.Empty<AsseblyPendingType>());
 
             verifyIntIn();
             verifyStringIn();
@@ -173,11 +173,11 @@ entry-point [empty; empty;] input {
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
 
             Run.CompileAndRun<Empty, Empty>("test",
- @"
- entry-point [empty; empty;] input {
+@"
+entry-point [empty; empty;] input {
     2 + 2 > (out.write-number);
     new-empty return;
- };", new Empty(), new[] { 
+};", new Empty(), new[] { 
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)});
 
             verifyIntIn();
@@ -198,7 +198,7 @@ entry-point [empty; empty;] input {
  entry-point [empty; empty;] input {
     2 + 2;
     new-empty return;
- };", new Empty(), Array.Empty<Backend.Emit.Assembly>());
+ };", new Empty(), Array.Empty<AsseblyPendingType>());
 
             verifyIntIn();
             verifyStringIn();

@@ -19,9 +19,9 @@ namespace Tac.Frontend
 {
     internal class PlaceholderValue
     {
-        public readonly IBox<IOrType<IFrontendType, IError>> Type;
+        public readonly IBox<IOrType<IFrontendType<IVerifiableType>, IError>> Type;
 
-        public PlaceholderValue(IBox<IOrType<IFrontendType, IError>> testType)
+        public PlaceholderValue(IBox<IOrType<IFrontendType<IVerifiableType>, IError>> testType)
         {
             Type = testType ?? throw new ArgumentNullException(nameof(testType));
         }
@@ -161,9 +161,9 @@ namespace Tac.Frontend
         }
     }
 
-    internal class WeakTypeReferenceConverter : Tpn.IConvertTo<Tpn.TypeProblem2.TypeReference, IFrontendType>
+    internal class WeakTypeReferenceConverter : Tpn.IConvertTo<Tpn.TypeProblem2.TypeReference, IFrontendType<IVerifiableType>>
     {
-        public IFrontendType Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.TypeReference from)
+        public IFrontendType<IVerifiableType> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.TypeReference from)
         {
             // I don't think this is safe see:
             // {D27D98BA-96CF-402C-824C-744DACC63FEE}
@@ -176,8 +176,8 @@ namespace Tac.Frontend
         public WeakTypeOrOperation Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.OrType from)
         {
             return new WeakTypeOrOperation(
-                from.Left.IfElseReturn(value => typeSolution.GetType(value), () => new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(Error.Other("that should have had a value")))),
-                from.Right.IfElseReturn(value => typeSolution.GetType(value), () => new Box<IOrType<IFrontendType, IError>>(OrType.Make<IFrontendType, IError>(Error.Other("that should have had a value"))))
+                from.Left.IfElseReturn(value => typeSolution.GetType(value), () => new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(Error.Other("that should have had a value")))),
+                from.Right.IfElseReturn(value => typeSolution.GetType(value), () => new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(Error.Other("that should have had a value"))))
                 );
         }
     }

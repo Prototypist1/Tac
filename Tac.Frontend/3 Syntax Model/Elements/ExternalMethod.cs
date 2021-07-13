@@ -12,10 +12,10 @@ namespace Tac.Frontend.SyntaxModel.Elements
 
     // uhhh.. this never used?
     // not really atleast
-    internal interface IMethodDefinition: IFrontendType
+    internal interface IMethodDefinition: IFrontendType<IVerifiableType>
     {
-        IIsPossibly<IFrontendType> InputType { get; }
-        IIsPossibly<IFrontendType> OutputType { get; }
+        IIsPossibly<IFrontendType<IVerifiableType>> InputType { get; }
+        IIsPossibly<IFrontendType<IVerifiableType>> OutputType { get; }
         IIsPossibly<IBox<IIsPossibly<WeakMemberDefinition>>> ParameterDefinition { get; }
     }
 }

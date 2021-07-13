@@ -22,10 +22,10 @@ namespace Tac.Parser
 
     internal partial class MakerRegistry
     {
-        private static readonly WithConditions<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>> StaticTypeOrMaker = AddTypeOperationMatcher(() => new TypeOrOperationMaker());
+        private static readonly WithConditions<ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.ITypeProblemNode>> StaticTypeOrMaker = AddTypeOperationMatcher(() => new TypeOrOperationMaker());
 #pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly WithConditions<ISetUp<IBox<IFrontendType>, Tpn.ITypeProblemNode>> TypeOrMaker = StaticTypeOrMaker;
+        private readonly WithConditions<ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.ITypeProblemNode>> TypeOrMaker = StaticTypeOrMaker;
 #pragma warning restore IDE0052 // Remove unread private members
 #pragma warning restore CA1823
     }
@@ -45,13 +45,13 @@ namespace Tac.SemanticModel.CodeStuff
 namespace Tac.Frontend.SyntaxModel.Operations
 {
     // what even is the point of this? it just defers to the type
-    internal class WeakTypeOrOperation : BinaryTypeOperation<IFrontendType, IFrontendType, ITypeOr>, IFrontendCodeElement//, IIsType
+    internal class WeakTypeOrOperation : BinaryTypeOperation<IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>, ITypeOr>, IFrontendCodeElement//, IIsType
     {
-        //private readonly IBox<IOrType<IFrontendType, IError>> left;
-        //private readonly IBox<IOrType<IFrontendType, IError>> right;
+        //private readonly IBox<IOrType<IFrontendType<IVerifiableType>, IError>> left;
+        //private readonly IBox<IOrType<IFrontendType<IVerifiableType>, IError>> right;
         private readonly Lazy<FrontEndOrType> lazy;
 
-        public WeakTypeOrOperation(IBox<IOrType<IFrontendType, IError>> left, IBox<IOrType<IFrontendType, IError>> right) : base(left, right)
+        public WeakTypeOrOperation(IBox<IOrType<IFrontendType<IVerifiableType>, IError>> left, IBox<IOrType<IFrontendType<IVerifiableType>, IError>> right) : base(left, right)
         {
             //this.left = left ?? throw new ArgumentNullException(nameof(left));
             //this.right = right ?? throw new ArgumentNullException(nameof(right));
@@ -64,8 +64,8 @@ namespace Tac.Frontend.SyntaxModel.Operations
 
             var (res, builder) = TypeOr.Create();
             return new BuildIntention<ITypeOr>(res, () => builder.Build(
-                Left.GetValue().Is1OrThrow().ConvertTypeOrThrow(context),
-                Right.GetValue().Is1OrThrow().ConvertTypeOrThrow(context)
+                Left.GetValue().Is1OrThrow().Convert(context),
+                Right.GetValue().Is1OrThrow().Convert(context)
                 ));
         }
 

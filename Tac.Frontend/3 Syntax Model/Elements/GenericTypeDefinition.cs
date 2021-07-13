@@ -52,10 +52,10 @@ namespace Tac.SemanticModel
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             
             // lazy was just blindly copied from WeakTypeDefinition
-            lazy = new Lazy<IOrType<IFrontendType, IError>>(() =>
+            lazy = new Lazy<IOrType<IFrontendType<IVerifiableType>, IError>>(() =>
                 Scope.SwitchReturns(
-                    x => OrType.Make<IFrontendType, IError>(new HasMembersType(x.GetValue())),
-                    x => OrType.Make<IFrontendType, IError>(x)));
+                    x => OrType.Make<IFrontendType<IVerifiableType>, IError>(new HasMembersType(x.GetValue())),
+                    x => OrType.Make<IFrontendType<IVerifiableType>, IError>(x)));
         }
 
         public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
@@ -63,9 +63,9 @@ namespace Tac.SemanticModel
         public IOrType<IBox<WeakScope>, IError> Scope { get; }
 
 
-        private readonly Lazy<IOrType<IFrontendType, IError>> lazy;
+        private readonly Lazy<IOrType<IFrontendType<IVerifiableType>, IError>> lazy;
 
-        public IOrType<IFrontendType, IError> FrontendType()
+        public IOrType<IFrontendType<IVerifiableType>, IError> FrontendType()
         {
             return lazy.Value;
         }

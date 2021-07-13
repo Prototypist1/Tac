@@ -10,6 +10,7 @@ using Tac.SemanticModel.CodeStuff;
 using Prototypist.Toolbox.Bool;
 using Tac.SemanticModel;
 using Tac.Frontend.New.CrzayNamespace;
+using Tac.Model.Elements;
 
 namespace Tac.Frontend.Parser
 {
@@ -297,7 +298,7 @@ namespace Tac.Frontend.Parser
         }
     }
 
-    internal class BinaryTypeOperationMatcher : IMaker<(ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> lhs, AtomicToken token, ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference> rhs)>
+    internal class BinaryTypeOperationMatcher : IMaker<(ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> lhs, AtomicToken token, ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> rhs)>
     {
         private readonly string s;
 
@@ -306,20 +307,20 @@ namespace Tac.Frontend.Parser
             this.s = s ?? throw new ArgumentNullException(nameof(s));
         }
 
-        public ITokenMatching<(ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>, AtomicToken, ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>)> TryMake(IMatchedTokenMatching self)
+        public ITokenMatching<(ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference>, AtomicToken, ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference>)> TryMake(IMatchedTokenMatching self)
         {
             if (self.Has(new TypeMakerNoOp())
                     .Has(new LiteralMaker(s))
-                    .Has(new TypeMaker()).SafeIs(out IMatchedTokenMatching<ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>, AtomicToken, ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>> matched))
+                    .Has(new TypeMaker()).SafeIs(out IMatchedTokenMatching<ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference>, AtomicToken, ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference>> matched))
             {
-                return TokenMatching<(ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>, AtomicToken, ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>)>.MakeMatch(
+                return TokenMatching<(ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference>, AtomicToken, ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference>)>.MakeMatch(
                     self,
                     (matched.Value1, matched.Value2, matched.Value3),
                     matched.EndIndex);
             }
 
 
-            return TokenMatching<(ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>, AtomicToken, ISetUp<IBox<IFrontendType>, Tpn.TypeProblem2.TypeReference>)>.MakeNotMatch(self.Context);
+            return TokenMatching<(ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference>, AtomicToken, ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference>)>.MakeNotMatch(self.Context);
         }
     }
 
