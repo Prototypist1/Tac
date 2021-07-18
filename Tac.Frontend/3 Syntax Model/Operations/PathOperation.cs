@@ -203,12 +203,14 @@ namespace Tac.SemanticModel.Operations
         public IBox<WeakPathOperation> Run(Tpn.TypeSolution context)
         {
             var leftRes = left.TransformInner(x => x.Run(context));
+
             var res = new Box<WeakPathOperation>(new WeakPathOperation(
                 leftRes,
                 member.SwitchReturns(
                     x => OrType.Make<IBox<IFrontendCodeElement>, IError>(new FuncBox<IFrontendCodeElement>(()=> {
+                        //context.TryGetMember(,key)
                         return new WeakMemberReference(new Box<WeakMemberDefinition>(
-                            context.GetMember(context.GetFlowNode(value), key).Is1OrThrow()));
+                            context.GetMember(value.LooksUp, key).Is1OrThrow()));
                     })),
                     y => OrType.Make<IBox<IFrontendCodeElement>, IError>(Error.Cascaded("", y)))));
             return res;

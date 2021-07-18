@@ -61,17 +61,22 @@ namespace Tac.SemanticModel
         public IOrType<IBox<WeakScope>, IError> Scope { get; }
 
         private readonly Lazy<IOrType<IFrontendType<IInterfaceType>, IError>> lazy;
-        
 
+        private class DummyBuildIntention : IBuildIntention<IInterfaceType>
+        {
+            public DummyBuildIntention(IInterfaceType tobuild)
+            {
+                Tobuild = tobuild ?? throw new ArgumentNullException(nameof(tobuild));
+            }
+
+            public Action Build => () => { };
+
+            public IInterfaceType Tobuild { get; init; }
+        }
         public IBuildIntention<IInterfaceType> GetBuildIntention(IConversionContext context)
         {
-            return lazy.Value.Is1OrThrow().GetBuildIntention(context);
-
-            //var (toBuild, maker) = InterfaceType.Create();
-            //return new BuildIntention<IInterfaceType>(toBuild, () =>
-            //{
-            //    maker.Build(Scope.Is1OrThrow().GetValue().Convert(context).Members.Values.Select(x=>x.Value).ToArray());
-            //});
+            // this and the HasMembersType type it holds both convert to the same IInterfaceType
+            return new DummyBuildIntention(lazy.Value.Is1OrThrow().Convert(context));
         }
 
         public IOrType<IFrontendType<IVerifiableType>, IError> FrontendType()
@@ -82,7 +87,6 @@ namespace Tac.SemanticModel
         public IEnumerable<IError> Validate() => Scope.SwitchReturns(x=>x.GetValue().Validate(),x=>new IError[] { x});
 
     }
-
 
     internal class TypeDefinitionMaker : IMaker<ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference>>
     {

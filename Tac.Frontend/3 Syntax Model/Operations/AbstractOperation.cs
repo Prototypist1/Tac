@@ -148,7 +148,7 @@ namespace Tac.SemanticModel.CodeStuff
         }
 
 
-        public abstract IBuildIntention<TType> GetBuildIntention(IConversionContext context);
+        //public abstract IBuildIntention<TType> GetBuildIntention(IConversionContext context);
 
         public virtual IEnumerable<IError> Validate()
         {
@@ -311,17 +311,18 @@ namespace Tac.SemanticModel.CodeStuff
     {
         private readonly BinaryOperation.ToTypeProblemThings toTypeProblemThings;
 
-        public BinaryTypeMaker(string symbol, BinaryOperation.MakeBinaryType<IBox<IFrontendType<IVerifiableType>>> make,
+        public BinaryTypeMaker(string symbol, 
+            //BinaryOperation.MakeBinaryType<IBox<IFrontendType<IVerifiableType>>> make,
             BinaryOperation.ToTypeProblemThings toTypeProblemThings
             )
         {
             Symbol = symbol ?? throw new ArgumentNullException(nameof(symbol));
-            Make = make ?? throw new ArgumentNullException(nameof(make));
+            //Make = make ?? throw new ArgumentNullException(nameof(make));
             this.toTypeProblemThings = toTypeProblemThings ?? throw new ArgumentNullException(nameof(toTypeProblemThings));
         }
 
         public string Symbol { get; }
-        private BinaryOperation.MakeBinaryType<IBox<IFrontendType<IVerifiableType>>> Make { get; }
+        //private BinaryOperation.MakeBinaryType<IBox<IFrontendType<IVerifiableType>>> Make { get; }
 
         public ITokenMatching<ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference>> TryMake(IMatchedTokenMatching tokenMatching)
         {
@@ -343,7 +344,7 @@ namespace Tac.SemanticModel.CodeStuff
                 //    rightType = rightTypeMatched;
                 //}
 
-                var res = new BinaryPopulateScope(match.lhs, match.rhs, Make, toTypeProblemThings);
+                var res = new BinaryPopulateScope(match.lhs, match.rhs, /*Make,*/ toTypeProblemThings);
 
                 //matching.Context.Map.SetElementParent(match.lhs, res);
                 //matching.Context.Map.SetElementParent(match.rhs, res);
@@ -390,18 +391,18 @@ namespace Tac.SemanticModel.CodeStuff
     {
         private readonly ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.ITypeProblemNode> left;
         private readonly ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.ITypeProblemNode> right;
-        private readonly BinaryOperation.MakeBinaryType<IBox<IFrontendType<IVerifiableType>>> make;
+        //private readonly BinaryOperation.MakeBinaryType<IBox<IFrontendType<IVerifiableType>>> make;
         private readonly BinaryOperation.ToTypeProblemThings toTypeProblemThings;
 
         public BinaryPopulateScope(
             ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.ITypeProblemNode> left,
             ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.ITypeProblemNode> right,
-            BinaryOperation.MakeBinaryType<IBox<IFrontendType<IVerifiableType>>> make,
+            //BinaryOperation.MakeBinaryType<IBox<IFrontendType<IVerifiableType>>> make,
             BinaryOperation.ToTypeProblemThings toTypeProblemThings)
         {
             this.left = left ?? throw new ArgumentNullException(nameof(left));
             this.right = right ?? throw new ArgumentNullException(nameof(right));
-            this.make = make ?? throw new ArgumentNullException(nameof(make));
+            //this.make = make ?? throw new ArgumentNullException(nameof(make));
             this.toTypeProblemThings = toTypeProblemThings ?? throw new ArgumentNullException(nameof(toTypeProblemThings));
         }
 
@@ -430,7 +431,8 @@ namespace Tac.SemanticModel.CodeStuff
             return new SetUpResult<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference>(new BinaryResolveReferance(
                 nextLeft.Resolve,
                 nextRight.Resolve,
-                make
+                //make,
+                type
                 ), OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(type));
         }
     }
@@ -440,51 +442,48 @@ namespace Tac.SemanticModel.CodeStuff
     {
         public readonly IResolve<IBox<IFrontendType<IVerifiableType>>> left;
         public readonly IResolve<IBox<IFrontendType<IVerifiableType>>> right;
-        private readonly BinaryOperation.MakeBinaryType<IBox<IFrontendType<IVerifiableType>>> make;
+        //private readonly BinaryOperation.MakeBinaryType<IBox<IFrontendType<IVerifiableType>>> make;
+        private readonly Tpn.TypeProblem2.TypeReference type;
 
         public BinaryResolveReferance(
             IResolve<IBox<IFrontendType<IVerifiableType>>> resolveReferance1,
             IResolve<IBox<IFrontendType<IVerifiableType>>> resolveReferance2,
-            BinaryOperation.MakeBinaryType<IBox<IFrontendType<IVerifiableType>>> make)
+            //BinaryOperation.MakeBinaryType<IBox<IFrontendType<IVerifiableType>>> make,
+            Tpn.TypeProblem2.TypeReference type)
         {
             left = resolveReferance1 ?? throw new ArgumentNullException(nameof(resolveReferance1));
             right = resolveReferance2 ?? throw new ArgumentNullException(nameof(resolveReferance2));
-            this.make = make ?? throw new ArgumentNullException(nameof(make));
+            //this.make = make ?? throw new ArgumentNullException(nameof(make));
+            this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         // I think IResolve<TCodeElement> should return TCodeElement instead of IBox<TCodeElement>
         // that will be expensive but I think it gives me more control
         public IBox<IFrontendType<IVerifiableType>> Run(Tpn.TypeSolution context)
         {
-            var res = make(
-                new BoxThenOr(left.Run(context)),
-                new BoxThenOr(right.Run(context)));
 
-            return res;
+            //var res = make(
+            //    new BoxThenOr(left.Run(context)),
+            //    new BoxThenOr(right.Run(context)));
+
+            return new BoxThenOr(context.GetType(type));
         }
     }
 
     // maybe this is a good standard format for my tetering towers of Boxes and Ors
-    internal class BoxThenOr : IBox<IOrType<IFrontendType<IVerifiableType>, IError>>
+    internal class BoxThenOr : IBox<IFrontendType<IVerifiableType>>
     {
-        private IOrType<IBox<IFrontendType<IVerifiableType>>, IError> orType;
-        private IBox<IFrontendType<IVerifiableType>> box;
+        private IBox<IOrType<IFrontendType<IVerifiableType>, IError>> orType;
 
-        public BoxThenOr(IOrType<IBox<IFrontendType<IVerifiableType>>, IError> orType)
+        public BoxThenOr(IBox<IOrType<IFrontendType<IVerifiableType>, IError>> orType)
         {
             this.orType = orType ?? throw new ArgumentNullException(nameof(orType));
         }
 
-        public BoxThenOr(IBox<IFrontendType<IVerifiableType>> box)
-        {
-            this.box = box;
-        }
 
-        public IOrType<IFrontendType<IVerifiableType>, IError> GetValue()
+        public IFrontendType<IVerifiableType> GetValue()
         {
-            return orType.SwitchReturns(
-                x => OrType.Make<IFrontendType<IVerifiableType>, IError>(x.GetValue()),
-                x => OrType.Make<IFrontendType<IVerifiableType>, IError>(x));
+            return orType.GetValue().Is1OrThrow();
         }
     }
 }

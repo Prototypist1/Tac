@@ -388,6 +388,44 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
+            internal IOrType<WeakMemberDefinition, IError> GetMember(IIsPossibly<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> looksUp, IKey key)
+            {
+                return looksUp.IfElseReturn(outer => outer.SwitchReturns(
+                    x=> { 
+                        if (TryGetMember(x, key, out var y))
+                        {
+                            return y;
+                        }
+                        else {
+                            throw new NotImplementedException("what does this mean?, probaly just return an IError");
+                        }
+                    },
+                    x => {
+                        if (TryGetMember(x, key, out var y))
+                        {
+                            return y;
+                        }
+                        else
+                        {
+                            throw new NotImplementedException("what does this mean?, probaly just return an IError");
+                        }
+                    },
+                    x => {
+                        if (TryGetMember(x, key, out var y))
+                        {
+                            return y;
+                        }
+                        else
+                        {
+                            throw new NotImplementedException("what does this mean?, probaly just return an IError");
+                        }
+                    },
+                    x => GetMemberFromType(GetFlowNode(x),key),
+                    x => GetMemberFromType(GetFlowNode(x), key),
+                    x => OrType.Make<WeakMemberDefinition, IError>(x)),
+                    () => OrType.Make<WeakMemberDefinition, IError>(Error.Other("this should exist right?")));
+            }
+
             //private IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError> Convert(EqualibleHashSet<CombinedTypesAnd> flowNode)
             //{
 
@@ -414,7 +452,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             //    return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(res);
 
             //}
-             
+
             // has a related method
             // {164031F9-9DFA-45FB-9C54-B23902DF29DC}
             private IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> SafeLookUp(IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> key) {
@@ -423,7 +461,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             // has a related method
             // {7737F6C2-0328-477B-900B-2E6C44AEF6D3}
-            private IOrType<Scope, IError> GetMyScope(Tpn.IVirtualFlowNode node)
+            private IOrType<Scope, IError> GetTypesScope(Tpn.IVirtualFlowNode node)
             {
                 var rep = node.ToRep();
 
@@ -440,12 +478,24 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             public IOrType<WeakScope, IError> GetWeakScope(Tpn.IVirtualFlowNode node) {
-                return GetMyScope(node).TransformInner(x => x.weakScope);
+                return GetTypesScope(node).TransformInner(x => x.weakScope);
             }
 
-            public IOrType<WeakMemberDefinition, IError> GetMember(Tpn.IVirtualFlowNode node, IKey key)
+            public IOrType<WeakMemberDefinition, IError> GetMemberFromType(Tpn.IVirtualFlowNode node, IKey key)
             {
-                return GetMyScope(node).TransformInner(x => x.members[key]);
+                // YOU ARE HERE
+                // I don't think this is good
+                // you don't know node is a type, you could be looking up from a method
+                // if you are looking up form a method get my scope will end up creating a second scope for that mthod
+                // i added a more generic method
+                // I've still got a lot of calls to thing
+                // don't know if they are right
+                // GetWeakScope also might be affected
+
+                // left this a bit half baked
+                // review in the morning
+
+                return GetTypesScope(node).TransformInner(x => x.members[key]);
             }
 
 
@@ -483,6 +533,16 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             internal IVirtualFlowNode GetFlowNode(TypeProblem2.Object from)
+            {
+                return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
+            }
+
+            internal IVirtualFlowNode GetFlowNode(TypeProblem2.OrType from)
+            {
+                return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
+            }
+
+            internal IVirtualFlowNode GetFlowNode(TypeProblem2.InferredType from)
             {
                 return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
             }
@@ -529,7 +589,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 var foundIt = false;
 
-                var outer = GetMyScope(node.GetValueAs(out IVirtualFlowNode _)).TransformInner(x => {
+                var outer = GetTypesScope(node.GetValueAs(out IVirtualFlowNode _)).TransformInner(x => {
                     foundIt = x.members.TryGetValue(key, out var member);
                     return member;
                 });

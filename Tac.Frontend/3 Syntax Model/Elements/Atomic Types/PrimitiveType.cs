@@ -26,7 +26,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
     {
     }
 
-    internal class FrontEndOrType : IFrontendType<IVerifiableType>
+    internal class FrontEndOrType : IFrontendType<ITypeOr>
     {
         internal readonly IOrType<IFrontendType<IVerifiableType>,IError> left, right;
 
@@ -41,10 +41,9 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             this.right = right ?? throw new ArgumentNullException(nameof(right));
         }
 
-        public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
+        public IBuildIntention<ITypeOr> GetBuildIntention(IConversionContext context)
         {
             var (res, builder) = Tac.Model.Instantiated.TypeOr.Create();
-
 
             var inputType = left;
             var outputType = right;

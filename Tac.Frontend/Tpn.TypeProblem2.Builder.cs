@@ -518,13 +518,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return method.Input.GetOrThrow();
                 }
 
-
                 public IIsPossibly<IKey> GetKey(TypeReference type)
                 {
                     return type.TypeKey.Possibly1();
                 }
-
-
 
                 public TransientMember GetReturns(IStaticScope s)
                 {

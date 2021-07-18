@@ -177,7 +177,7 @@ entry-point [empty; empty;] input {
 entry-point [empty; empty;] input {
     2 + 2 > (out.write-number);
     new-empty return;
-};", new Empty(), new[] { 
+};", new Empty(), new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)});
 
             verifyIntIn();
@@ -307,7 +307,7 @@ entry-point [empty; empty;] input {
      false then { 1.0 > (out.write-number); };
      new-empty return;
  };", new Empty(), new[] {
-                BasicInputOutput.Output(intIn ,stringIn,boolIn)});
+                BasicInputOutput.Output(intIn ,stringIn, boolIn)});
 
             verifyIntIn();
             verifyStringIn();
@@ -326,6 +326,7 @@ entry-point [empty; empty;] input {
  entry-point [empty; empty;] input {
      true else { 1.0 > (out.write-number); };
      false else { 2.0 > (out.write-number); };
+     new-empty return;
  };", new Empty(), new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)});
 
@@ -345,7 +346,9 @@ entry-point [empty; empty;] input {
             Run.CompileAndRun<Empty, Empty>("test",
  @"
 entry-point [empty; empty;] input {
-   ""hello world"" > (out.write-string);
+    ""hello world"" > (out.write-string);
+    
+    new-empty return;
 };", new Empty(), new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)});
 
@@ -370,6 +373,8 @@ entry-point  [empty; empty;] input{
 
     x is number y { y > (out.write-number) };
     x is bool y { y > (out.write-bool) };
+    
+    new-empty return;
 };", new Empty(), new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)});
 
@@ -393,6 +398,8 @@ entry-point [empty; empty;] input {
 
     x is number y { y > (out.write-number) };
     x is bool z { z > (out.write-bool) } ;
+
+    new-empty return;
 };", new Empty(), new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)});
 
@@ -414,6 +421,8 @@ entry-point [empty; empty;] input {
     true =: bool | bool x;
 
     x  > (out.write-bool) ;
+
+    new-empty return;
 };", new Empty(), new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)});
 
@@ -424,12 +433,14 @@ entry-point [empty; empty;] input {
 
 
         [Fact]
+
         public void OrType4()
         {
             var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { 5 });
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { true });
 
+            // x is type { bool b; number a;} z { z.a > (out.write-number) } ;
             Run.CompileAndRun<Empty, Empty>("test",
 @"
 entry-point  [empty; empty;] input{
@@ -437,6 +448,8 @@ entry-point  [empty; empty;] input{
 
     x.b  > (out.write-bool) ;
     x is type { bool b; number a;} z { z.a > (out.write-number) } ;
+
+    new-empty return;
 };", new Empty(), new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)});
 
@@ -458,6 +471,8 @@ entry-point  [empty; empty;] input{
     true =: bool | ( bool| bool) | bool x;
 
     x  > (out.write-bool) ;
+
+    new-empty return;
 };", new Empty(), new[] {
                     BasicInputOutput.Output(intIn ,stringIn,boolIn)});
 
@@ -479,6 +494,8 @@ entry-point  [empty; empty;] input{
     object { true =: bool b; 5 =: number a } =: type { bool b; number a;} | bool x;
 
     x is type { bool b; number a;} z { z.a > (out.write-number) } ;
+
+    new-empty return;
 };", new Empty(), new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)});
 
@@ -495,14 +512,43 @@ entry-point  [empty; empty;] input{
             var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
             var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
 
+            // 
             Run.CompileAndRun<Empty, Empty>("test",
 @"
 entry-point [empty; empty;] input {
     object { true =: bool b; 5 =: number a } =: type { bool b; number a;} | type { bool b; number a;} x;
 
     x.a is number a { a > out.write-number };
+
+    new-empty return;
 };",
 new Empty(), new[] {
+                BasicInputOutput.Output(intIn ,stringIn,boolIn)});
+
+            verifyIntIn();
+            verifyStringIn();
+            verifyBoolIn();
+        }
+
+        // I can probably get rid of this down the road, it's just OrType7 but slightly simplied to reproduce a bug
+        [Fact]
+        public void OrType8()
+        {
+            var (intIn, verifyIntIn) = BasicInputOutput.ToOutput(new double[] { 5 });
+            var (stringIn, verifyStringIn) = BasicInputOutput.ToOutput(new string[] { });
+            var (boolIn, verifyBoolIn) = BasicInputOutput.ToOutput(new bool[] { });
+
+            // x.a is number a { a > out.write-number };
+            Run.CompileAndRun<Empty, Empty>("test",
+    @"
+entry-point [empty; empty;] input {
+    object { 5 =: number a } =: type { number a;} | type { number a;} x;
+
+    x.a > out.write-number;
+
+    new-empty return;
+};",
+    new Empty(), new[] {
                 BasicInputOutput.Output(intIn ,stringIn,boolIn)});
 
             verifyIntIn();

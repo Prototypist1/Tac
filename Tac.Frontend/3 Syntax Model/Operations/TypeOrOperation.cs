@@ -55,19 +55,38 @@ namespace Tac.Frontend.SyntaxModel.Operations
         {
             //this.left = left ?? throw new ArgumentNullException(nameof(left));
             //this.right = right ?? throw new ArgumentNullException(nameof(right));
+
+
+            // I think type solution should be the only thing creating FrontEndOrTypes 
             lazy = new Lazy<FrontEndOrType>(()=> new FrontEndOrType(left.GetValue().TransformInner(x => x), right.GetValue().TransformInner(x => x)));
         }
 
-        public override IBuildIntention<ITypeOr> GetBuildIntention(IConversionContext context)
+        private class DummyBuildIntention : IBuildIntention<ITypeOr>
         {
-            // not sure what I am doing with this ... should it just become a type?
+            public DummyBuildIntention(ITypeOr tobuild)
+            {
+                Tobuild = tobuild ?? throw new ArgumentNullException(nameof(tobuild));
+            }
 
-            var (res, builder) = TypeOr.Create();
-            return new BuildIntention<ITypeOr>(res, () => builder.Build(
-                Left.GetValue().Is1OrThrow().Convert(context),
-                Right.GetValue().Is1OrThrow().Convert(context)
-                ));
+            public Action Build => () => { };
+
+            public ITypeOr Tobuild { get; init; }
         }
+
+        // this doesn't actually build in to anything
+        //public override IBuildIntention<ITypeOr> GetBuildIntention(IConversionContext context)
+        //{
+        //   // defer to what the type we wrap converts to
+        //    return new DummyBuildIntention(lazy.Value.Convert(context));
+
+        //    // not sure what I am doing with this ... should it just become a type?
+
+        //    //var (res, builder) = TypeOr.Create();
+        //    //return new BuildIntention<ITypeOr>(res, () => builder.Build(
+        //    //    Left.GetValue().Is1OrThrow().Convert(context),
+        //    //    Right.GetValue().Is1OrThrow().Convert(context)
+        //    //    ));
+        //}
 
         public FrontEndOrType FrontendType()
         {
@@ -79,14 +98,14 @@ namespace Tac.Frontend.SyntaxModel.Operations
     {
         public TypeOrOperationMaker() : base(
             SymbolsRegistry.StaticTypeOrSymbol, 
-            (l, r) => new Box<FrontEndOrType>(new WeakTypeOrOperation(l, r).FrontendType()),
+            //(l, r) => new Box<FrontEndOrType>(new WeakTypeOrOperation(l, r).FrontendType()),
             (s,c,l,r)=> {
                 var key = new ImplicitKey(Guid.NewGuid());
-                c.TypeProblem.CreateOrType(
+                var orType = c.TypeProblem.CreateOrType(
                     s, 
                     key,
                     l.SetUpSideNode.TransformInner(y=>y.SafeCastTo<Tpn.ITypeProblemNode, Tpn.TypeProblem2.TypeReference>()), 
-                    r.SetUpSideNode.TransformInner(y => y.SafeCastTo<Tpn.ITypeProblemNode, Tpn.TypeProblem2.TypeReference>()), 
+                    r.SetUpSideNode.TransformInner(y => y.SafeCastTo<Tpn.ITypeProblemNode, Tpn.TypeProblem2.TypeReference>()),
                     new WeakTypeOrOperationConverter());
                 var reference = c.TypeProblem.CreateTypeReference(s, key, new WeakTypeReferenceConverter());
                 return reference;

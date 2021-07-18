@@ -422,9 +422,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 // b would look up to the right thing
                                 // and then c would look up off b
                                 // so as long is c is right b should be right 
+                                var startingValue = pair.Value.LooksUp;
                                 foreach (var item in typeProblemNodes.OfType<ILookUpType>())
                                 {
-                                    if (item.LooksUp == pair.Value.LooksUp)
+                                    if (item.LooksUp == startingValue)
                                     {
                                         item.LooksUp = member.LooksUp;
                                     }
@@ -468,7 +469,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         flows.Add((From: flowFrom, To: flowTo));
 
-                        // if anything looks up to the hopeful node, it should indstead look up to the node we defer to
+                        // if anything looks up to the hopeful node, it should instead look up to the node we defer to
                         foreach (var item in typeProblemNodes.OfType<ILookUpType>())
                         {
                             if (item.LooksUp == hopeful) {
