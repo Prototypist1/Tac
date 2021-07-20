@@ -43,14 +43,14 @@ namespace Tac.Frontend
                 return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>(
                     new WeakGenericTypeDefinition(
                         from.Key,
-                        typeSolution.GetWeakScope(typeSolution.GetFlowNode(from)).TransformInner(x => new Box<WeakScope>(x)), // wrapping in a box here is weird 
+                        typeSolution.GetWeakTypeScope(from).TransformInner(x => new Box<WeakScope>(x)), // wrapping in a box here is weird 
                         x.Select(x=> Possibly.Is<IGenericTypeParameterPlacholder>(new GenericTypeParameterPlacholder(x))).ToArray()));//, key
             },
             () =>
             {
                 return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>(
                     new WeakTypeDefinition(
-                        typeSolution.GetWeakScope(typeSolution.GetFlowNode(from)).TransformInner(y=>new Box<WeakScope>(y))));//, key ?
+                        typeSolution.GetWeakTypeScope(from).TransformInner(y=>new Box<WeakScope>(y))));//, key ?
             });
         }
     }
@@ -258,7 +258,7 @@ namespace Tac.Frontend
         public IOrType<WeakObjectDefinition, WeakRootScope> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Object from)
         {
             return OrType.Make<WeakObjectDefinition,  WeakRootScope>(new WeakObjectDefinition(
-                typeSolution.GetWeakScope(typeSolution.GetFlowNode(from)).TransformInner(x => new Box<WeakScope>(x)),
+                typeSolution.GetWeakTypeScope(from).TransformInner(x => new Box<WeakScope>(x)),
                 box));
         }
     }
@@ -279,7 +279,7 @@ namespace Tac.Frontend
         public IOrType<WeakObjectDefinition, WeakRootScope> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Object from)
         {
             return OrType.Make<WeakObjectDefinition, WeakRootScope>(new WeakRootScope(
-                typeSolution.GetWeakScope(typeSolution.GetFlowNode(from)).TransformInner(x => new Box<WeakScope>(x)),
+                typeSolution.GetWeakTypeScope(from).TransformInner(x => new Box<WeakScope>(x)),
                 assigns,
                 entryPoint));
         }
