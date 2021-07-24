@@ -208,9 +208,22 @@ namespace Tac.SemanticModel.Operations
                 leftRes,
                 member.SwitchReturns(
                     x => OrType.Make<IBox<IFrontendCodeElement>, IError>(new FuncBox<IFrontendCodeElement>(()=> {
+
+
+                        // TODO you are here
+                        // I don't I should need to ask the solution for the member def, the left's return type should give me that
+
+                        // why doesn't TryGetMember return a member definition!
+                        // probably because of Ortypes
+
+                        // I thinkg TypeSolution TryGetMember is really just for TypeProblem2.Method and TypeProblem2.Scope
+                        // maybe I am thinking about this wrong and scopeCache only need to exist during TypeSolution's constructor
+                        WeakMemberReference memberRef = leftRes.Is1OrThrow().GetValue().CastTo<WeakMemberReference>();
+                        var memberDef= memberRef.MemberDefinition.GetValue().Type.GetValue().Is1OrThrow().TryGetMember(key, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>());
+
                         //context.TryGetMember(,key)
-                        return new WeakMemberReference(new Box<WeakMemberDefinition>(
-                            context.GetMember(value.LooksUp, key).Is1OrThrow()));
+
+                        return new WeakMemberReference(new Box<WeakMemberDefinition>(memberDef.Is1OrThrow().Is1OrThrow()));
                     })),
                     y => OrType.Make<IBox<IFrontendCodeElement>, IError>(Error.Cascaded("", y)))));
             return res;

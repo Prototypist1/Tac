@@ -93,11 +93,11 @@ namespace Tac.SemanticModel
             return TypeDefinition.GetValue().TransformAndFlatten(x=> x.TheyAreUs(they, assumeTrue));
         }
 
-        public IOrType<IOrType<(IFrontendType<IVerifiableType>,Access), IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
+        public IOrType<IOrType<WeakMemberDefinition, IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
         {
             return TypeDefinition.GetValue().SwitchReturns(
                     x => x.TryGetMember(key, assumeTrue),
-                    x => OrType.Make<IOrType<(IFrontendType<IVerifiableType>,Access), IError>, No, IError>(x)
+                    x => OrType.Make<IOrType<WeakMemberDefinition, IError>, No, IError>(x)
                 );
         }
 

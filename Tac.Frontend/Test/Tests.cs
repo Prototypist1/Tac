@@ -38,7 +38,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
         private static IFrontendType<IVerifiableType> HasMember(IFrontendType<IVerifiableType> result, IKey key)
         {
-            return result.TryGetMember(key, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Item1;
+            return result.TryGetMember(key, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Type.GetValue().Is1OrThrow();
         }
 
         private static void DoesNotHaveMember(IFrontendType<IVerifiableType> result, IKey key)
@@ -179,23 +179,25 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var m1t = MemberToType(solution.GetMemberFromType(x.ModuleRoot, new NameKey("m1")).Is1OrThrow());
+            var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
+
+            var m1t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m1"))).GetValue());
             HasMember(m1t, new NameKey("x"));
             DoesNotHaveMember(m1t, new NameKey("y"));
 
-            var m2t = MemberToType(solution.GetMemberFromType(x.ModuleRoot, new NameKey("m2")).Is1OrThrow());
+            var m2t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m2"))).GetValue());
             DoesNotHaveMember(m2t, new NameKey("x"));
             HasMember(m2t, new NameKey("y"));
 
-            var m3t = MemberToType(solution.GetMemberFromType(x.ModuleRoot, new NameKey("m3")).Is1OrThrow());
+            var m3t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m3"))).GetValue());
             DoesNotHaveMember(m3t, new NameKey("x"));
             DoesNotHaveMember(m3t, new NameKey("y"));
 
-            var m4t = MemberToType(solution.GetMemberFromType(x.ModuleRoot, new NameKey("m4")).Is1OrThrow());
+            var m4t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m4"))).GetValue());
             DoesNotHaveMember(m4t, new NameKey("x"));
             DoesNotHaveMember(m4t, new NameKey("y"));
 
-            var m5t = MemberToType(solution.GetMemberFromType(x.ModuleRoot, new NameKey("m5")).Is1OrThrow());
+            var m5t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m5"))).GetValue());
             DoesNotHaveMember(m5t, new NameKey("x"));
             DoesNotHaveMember(m5t, new NameKey("y"));
 
@@ -230,23 +232,26 @@ namespace Tac.Frontend.TypeProblem.Test
             //HasCount(1, MemberToType(solution.GetMemberFromType(m4).GetValue()));
             //HasCount(1, MemberToType(solution.GetMemberFromType(m5).GetValue()));
 
-            var m1t = MemberToType(solution.GetMemberFromType(x.ModuleRoot, new NameKey("m1")).Is1OrThrow());
+            var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
+
+
+            var m1t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m1"))).GetValue());
             HasMember(m1t, new NameKey("x"));
             HasMember(m1t, new NameKey("y"));
 
-            var m2t = MemberToType(solution.GetMemberFromType(x.ModuleRoot, new NameKey("m2")).Is1OrThrow());
+            var m2t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m2"))).GetValue());
             HasMember(m2t, new NameKey("x"));
             HasMember(m2t, new NameKey("y"));
 
-            var m3t = MemberToType(solution.GetMemberFromType(x.ModuleRoot, new NameKey("m3")).Is1OrThrow());
+            var m3t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m3"))).GetValue());
             HasMember(m3t, new NameKey("x"));
             HasMember(m3t, new NameKey("y"));
 
-            var m4t = MemberToType(solution.GetMemberFromType(x.ModuleRoot, new NameKey("m4")).Is1OrThrow());
+            var m4t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m4"))).GetValue());
             HasMember(m4t, new NameKey("x"));
             DoesNotHaveMember(m4t, new NameKey("y"));
 
-            var m5t = MemberToType(solution.GetMemberFromType(x.ModuleRoot, new NameKey("m5")).Is1OrThrow());
+            var m5t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m5"))).GetValue());
             DoesNotHaveMember(m5t, new NameKey("x"));
             HasMember(m5t, new NameKey("y"));
 
@@ -272,12 +277,15 @@ namespace Tac.Frontend.TypeProblem.Test
             m2.AssignTo(m1);
 
             var solution = x.Solve();
+            var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
-            var m1t = MemberToType(solution.GetMemberFromType(x.ModuleRoot, new NameKey("m1")).Is1OrThrow());
+
+
+            var m1t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m1"))).GetValue());
             HasMember(m1t, new NameKey("x"));
             HasMember(m1t, new NameKey("y"));
 
-            var m2t = MemberToType(solution.GetMemberFromType(x.ModuleRoot, new NameKey("m2")).Is1OrThrow());
+            var m2t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m2"))).GetValue());
             HasMember(m2t, new NameKey("x"));
             HasMember(m2t, new NameKey("y"));
 
@@ -301,9 +309,11 @@ namespace Tac.Frontend.TypeProblem.Test
             m2.AssignTo(m1);
 
             var solution = x.Solve();
+            var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
 
-            var m2t = MemberToType(solution.GetMemberFromType(x.ModuleRoot, new NameKey("m2")).Is1OrThrow());
+
+            var m2t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m2"))).GetValue());
             var x1t = HasMember(m2t, new NameKey("x1"));
             var x2t = HasMember(x1t, new NameKey("x2"));
             HasMember(x2t, new NameKey("x3"));
@@ -335,8 +345,10 @@ namespace Tac.Frontend.TypeProblem.Test
             var chickenPair = x.builder.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("x"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("pair"), new IOrType<IKey, IError>[] { OrType.Make<IKey, IError>(new NameKey("chicken")) })), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("x")));
 
             var solution = x.Solve();
+            var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
-            var chickenPairResult = solution.GetMemberFromType(x.ModuleRoot, new NameKey("x")).Is1OrThrow();
+
+            var chickenPairResult = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("x"))).GetValue();
 
             var chickePairResultType = MemberToType(chickenPairResult);
 
@@ -379,9 +391,11 @@ namespace Tac.Frontend.TypeProblem.Test
                 OrType.Make<IKey, IError>(new NameKey("chicken"))
             })), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("thing")));
 
-            var solution = x.Solve();
+            var solution = x.Solve(); 
+            var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
-            var thingResult = solution.GetMemberFromType(x.ModuleRoot, new NameKey("thing")).Is1OrThrow();
+
+            var thingResult = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("thing"))).GetValue();
             var thingResultType = MemberToType(thingResult);
 
             //HasCount(1, thingResultType);
@@ -430,8 +444,9 @@ namespace Tac.Frontend.TypeProblem.Test
             x.builder.IsAssignedTo(xMember, thing);
 
             var solution = x.Solve();
+            var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
-            var thingResult = solution.GetMemberFromType(x.ModuleRoot, new NameKey("thing")).Is1OrThrow();
+            var thingResult = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("thing"))).GetValue();
             var thingResultType = MemberToType(thingResult);
 
             var nextResult = HasMember(thingResultType, new NameKey("next"));
@@ -439,7 +454,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             Equal(thingResultType, nextResult);
 
-            var xMemberResult = MemberToType(solution.GetMemberFromType(x.ModuleRoot, new NameKey("x")).Is1OrThrow());
+            var xMemberResult = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("x"))).GetValue());
             for (int i = 0; i < 100; i++)
             {
                 xMemberResult = HasMember(xMemberResult, new NameKey("next"));
@@ -494,9 +509,10 @@ namespace Tac.Frontend.TypeProblem.Test
             x.builder.IsAssignedTo(rightMember, leftMember);
 
             var solution = x.Solve();
+            var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
-            var leftResult = solution.GetMemberFromType(x.ModuleRoot, new NameKey("left-member")).Is1OrThrow();
-            var rightResult = solution.GetMemberFromType(x.ModuleRoot, new NameKey("right-member")).Is1OrThrow();
+            var leftResult = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("left-member"))).GetValue();
+            var rightResult = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("right-member"))).GetValue();
 
             var leftResultType = MemberToType(leftResult);
             var rightResultType = MemberToType(rightResult);
@@ -542,8 +558,9 @@ namespace Tac.Frontend.TypeProblem.Test
             var xMember = x.builder.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("x"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("pair"), new IOrType<IKey, IError>[] { OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("pair"), new IOrType<IKey, IError>[] { OrType.Make<IKey, IError>(new NameKey("chicken")) })) })), new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey("x")));
 
             var solution = x.Solve();
+            var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
-            var xMemberResult = solution.GetMemberFromType(x.ModuleRoot, new NameKey("x")).Is1OrThrow();
+            var xMemberResult = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("x"))).GetValue();
             var xMemberResultType = MemberToType(xMemberResult);
             //HasCount(1, xMemberResultType);
             var xMemberResultX = HasMember(xMemberResultType, new NameKey("x"));
@@ -651,8 +668,9 @@ namespace Tac.Frontend.TypeProblem.Test
             x.builder.IsAssignedTo(c, ab);
 
             var solution = x.Solve();
+            var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
-            var member = solution.GetMemberFromType(x.ModuleRoot, new NameKey("c")).Is1OrThrow();
+            var member = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("c"))).GetValue();
 
             HasMember(member.Type.GetValue().Is1OrThrow(), new NameKey("x"));
         }
@@ -689,8 +707,9 @@ namespace Tac.Frontend.TypeProblem.Test
             x.builder.IsAssignedTo(c, b);
 
             var solution = x.Solve();
+            var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
-            var cType = solution.GetMemberFromType(x.ModuleRoot, new NameKey("c")).Is1OrThrow().Type.GetValue().Is1OrThrow();
+            var cType = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("c"))).GetValue().Type.GetValue().Is1OrThrow();
 
             var cOrType = Assert.IsType<FrontEndOrType>(cType);
 
@@ -732,8 +751,9 @@ namespace Tac.Frontend.TypeProblem.Test
             x.builder.IsAssignedTo(c, d);
 
             var solution = x.Solve();
+            var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
-            var cType = solution.GetMemberFromType(x.ModuleRoot, new NameKey("c")).Is1OrThrow().Type.GetValue().Is1OrThrow();
+            var cType = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("c"))).GetValue().Type.GetValue().Is1OrThrow();
 
             Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(cType);
 
@@ -804,8 +824,9 @@ namespace Tac.Frontend.TypeProblem.Test
             x.builder.IsAssignedTo(c, b);
 
             var solution = x.Solve();
+            var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
-            var cTypeResult = solution.GetMemberFromType(x.ModuleRoot, new NameKey("c")).Is1OrThrow().Type.GetValue().Is1OrThrow();
+            var cTypeResult = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("c"))).GetValue().Type.GetValue().Is1OrThrow();
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
                 new List<IBox<WeakMemberDefinition>> {
@@ -899,8 +920,9 @@ namespace Tac.Frontend.TypeProblem.Test
             x.builder.IsAssignedTo(c, b);
 
             var solution = x.Solve();
+            var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
-            var cTypeResult = solution.GetMemberFromType(x.ModuleRoot, new NameKey("c")).Is1OrThrow().Type.GetValue().Is1OrThrow();
+            var cTypeResult = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("c"))).GetValue().Type.GetValue().Is1OrThrow();
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
                 new List<IBox<WeakMemberDefinition>> {
@@ -1117,7 +1139,8 @@ namespace Tac.Frontend.TypeProblem.Test
             var cType = solution.GetType(c);
 
             var hasMembers = Assert.IsType<HasMembersType>(cType.GetValue().Is1OrThrow());
-            hasMembers.TryGetMember(new NameKey("x"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is2OrThrow();
+            var member = hasMembers.TryGetMember(new NameKey("x"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow();
+            member.Type.GetValue().Is2OrThrow();
         }
 
 
@@ -1156,7 +1179,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var solution = x.Solve();
 
             var aType = solution.GetType(a).GetValue().Is1OrThrow();
-            var a_xType = aType.TryGetMember(new NameKey("x"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Item1;
+            var a_xType = aType.TryGetMember(new NameKey("x"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Type.GetValue().Is1OrThrow();
             a_xType.TryGetMember(new NameKey("y"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow();
         }
 
@@ -1256,7 +1279,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var solution = typeProblem.Solve();
 
             var xType = solution.GetType(x).GetValue().Is1OrThrow();
-            var aType = xType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Item1;
+            var aType = xType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Type.GetValue().Is1OrThrow();
 
             Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.AnyType>(aType);
         }
@@ -1285,9 +1308,9 @@ namespace Tac.Frontend.TypeProblem.Test
 
 
             var xType = solution.GetType(x).GetValue().Is1OrThrow();
-            var aType = xType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Item1;
-            var aaType = aType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Item1;
-            var aaaType = aaType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Item1;
+            var aType = xType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Type.GetValue().Is1OrThrow(); ;
+            var aaType = aType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Type.GetValue().Is1OrThrow(); ;
+            var aaaType = aaType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Type.GetValue().Is1OrThrow(); ;
         }
 
         // x.a =: x
@@ -1316,9 +1339,9 @@ namespace Tac.Frontend.TypeProblem.Test
 
 
             var xType = solution.GetType(x).GetValue().Is1OrThrow();
-            var aType = xType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Item1;
-            var aaType = aType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Item1;
-            var aaaType = aaType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Item1;
+            var aType = xType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Type.GetValue().Is1OrThrow(); ;
+            var aaType = aType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Type.GetValue().Is1OrThrow(); ;
+            var aaaType = aaType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Type.GetValue().Is1OrThrow(); ;
         }
 
         // flow in to member 2

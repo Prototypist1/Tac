@@ -5,6 +5,7 @@ using System.Text;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Model.Instantiated;
+using Tac.SemanticModel;
 using Tac.SyntaxModel.Elements.AtomicTypes;
 using Tac.Type;
 
@@ -58,6 +59,9 @@ namespace Tac.Frontend
     internal interface IFrontendType<out TTargetType>: IFrontendCodeElement, IConvertable<TTargetType>
         where TTargetType: IVerifiableType
     {
+        // the double or on these is weird....
+
+
         // we need to pass around a list of assumed true
         // TheyAreUs is often called inside TheyAreUs
         // and the parameters to the inner can be the same as the outer
@@ -66,9 +70,10 @@ namespace Tac.Frontend
         // another case A { B x },  B { C x },  C { A x }
         // these are the same as well
         IOrType<bool,IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue);
-        IOrType<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No,IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue);
+        IOrType<IOrType<WeakMemberDefinition, IError>, No,IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue);
         IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn();
         IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput();
+        //List<IBox<WeakMemberDefinition>> GetMembers();
     }
 
     //internal static class IFrontendTypeStatic

@@ -25,11 +25,9 @@ namespace Tac.Parser
         private static readonly WithConditions<ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.ITypeProblemNode>> StaticTypeDefinitionMaker = AddTypeMaker(
             () => new TypeDefinitionMaker(),
             MustBeBefore<ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
-#pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.ITypeProblemNode>> TypeDefinitionMaker = StaticTypeDefinitionMaker;
 #pragma warning restore IDE0052 // Remove unread private members
-#pragma warning restore CA1823
 
     }
 }
@@ -120,7 +118,12 @@ namespace Tac.SemanticModel
         {
             var type = context.TypeProblem.CreateType(scope, key, new WeakTypeDefinitionConverter());
             var typeReference = context.TypeProblem.CreateTypeReference(scope, key.SwitchReturns<IKey>(x => x, x => x), new WeakTypeReferenceConverter());
-            elements.Select(x => x.TransformInner(y => y.Run(type, context.CreateChildContext(this)))).ToArray();
+            foreach (var element in elements)
+            {
+                if (element.Is1(out var setUp)) {
+                    setUp.Run(type, context.CreateChildContext(this));
+                }
+            }
             return new SetUpResult<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference>(new TypeReferanceResolveReference(typeReference), OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(typeReference));
         }
     }

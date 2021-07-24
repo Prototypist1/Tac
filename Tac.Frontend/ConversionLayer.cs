@@ -36,7 +36,7 @@ namespace Tac.Frontend
 
         public IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Type from)
         {
-            var placeHolders = typeSolution.HasPlacholders(from);
+            var placeHolders = Tpn.TypeSolution.HasPlacholders(from);
 
             return placeHolders.IfElseReturn(x =>
             {

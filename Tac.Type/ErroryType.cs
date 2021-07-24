@@ -382,19 +382,19 @@ namespace Tac.Type
 
 
 
-        public static IOrType<IOrType<(T,Access), IError>, No, IError> TryGetMember<T>(
+        public static IOrType<IOrType<T, IError>, No, IError> TryGetMember<T>(
             IKey key, 
-            IReadOnlyList<(IKey key, IOrType<(T,Access), IError> type)> ourMembers)
+            IReadOnlyList<(IKey key, IOrType<T, IError> type)> ourMembers)
         {
             var matches = ourMembers.Where(x =>
                 x.key.Equals(key));
             if (matches.Count() == 1)
             {
-                return OrType.Make<IOrType<(T, Access), IError>, No, IError>(matches.First().type);
+                return OrType.Make<IOrType<T, IError>, No, IError>(matches.First().type);
             }
             else
             {
-                return OrType.Make<IOrType<(T, Access), IError>, No, IError>(new No());
+                return OrType.Make<IOrType<T, IError>, No, IError>(new No());
             }
         }
 

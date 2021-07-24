@@ -15,12 +15,12 @@ namespace Tac.Frontend.New.CrzayNamespace
         internal class TypeSolution {
 
             readonly Dictionary<EqualibleHashSet<CombinedTypesAnd>, IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>> generalLookUp = new Dictionary<EqualibleHashSet<CombinedTypesAnd>, IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>>();
-            readonly Dictionary<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, IOrType<Scope, IError>> scopeCache = new Dictionary<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, IOrType<Scope, IError>>();
             readonly Dictionary<TypeProblem2.Object, IBox<IOrType<WeakObjectDefinition, WeakRootScope>>> objectCache = new Dictionary<TypeProblem2.Object, IBox<IOrType<WeakObjectDefinition, WeakRootScope>>>();
             readonly Dictionary<TypeProblem2.Scope, IBox<IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>> scopeOrBlockCache = new Dictionary<TypeProblem2.Scope, IBox<IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>>>();
             readonly Dictionary<TypeProblem2.Method, IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>>> methodCache = new Dictionary<TypeProblem2.Method, IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>>>();
             readonly Dictionary<TypeProblem2.Type, IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>> typeCache = new Dictionary<TypeProblem2.Type, IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>>();
 
+            readonly Dictionary<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, IOrType<Scope, IError>> scopeCache = new Dictionary<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>, IOrType<Scope, IError>>();
 
             readonly Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodeLookUp;
 
@@ -29,9 +29,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IReadOnlyList<IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>> things,
                 Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodes) {
 
+
                 flowNodeLookUp = flowNodes ?? throw new ArgumentNullException(nameof(flowNodes));
 
-                var todo = new Queue<Action>();
+                Queue<Action> todo = new Queue<Action>();
 
                 foreach (var thing in things)
                 {
@@ -139,6 +140,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     {
                                         box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(
                                             orType.Converter.Convert(this, orType))));
+                                        var rep = GetFlowNode(orType).ToRep();
+                                        scopeCache[rep] = rep.Is1OrThrow().VirtualMembers().TransformInner(x => new Scope(x.ToDictionary(
+                                            pair => pair.Key,
+                                            pair => LookUpOrBuild(pair.Value.Value))));
+
                                     });
                                 }
                             });
@@ -199,8 +205,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                         return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(e4);
                     }
                     var scope = scopeOr.Is1OrThrow();
-
-
 
                     if (flowNode.VirtualInput().Is(out var inputOr))
                     {
@@ -329,6 +333,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                         todo.Enqueue(() =>
                         {
                             firstOrBox.Fill(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new FrontEndOrType(generalLookUp[first.ToRep().Is1OrThrow()].GetValue(), generalLookUp[second.ToRep().Is1OrThrow()].GetValue())));
+                            // TODO this need to get the scope from the FrontEndOrType
+                            scopeCache[OrType.Make <EqualibleHashSet<CombinedTypesAnd>, IError>(orKey)] = orKey.VirtualMembers().TransformInner(x =>new Scope(x.ToDictionary(
+                                pair => pair.Key,
+                                pair => LookUpOrBuild(pair.Value.Value))));
                         });
                     }
 
@@ -346,6 +354,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                             todo.Enqueue(() =>
                             {
                                 orBox.Fill(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new FrontEndOrType(generalLookUp[myOrKey].GetValue(), generalLookUp[myEntry.ToRep().Is1OrThrow()].GetValue())));
+                                // TODO this need to get the scope from the FrontEndOrType
+                                scopeCache[OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(orKey)] = orKey.VirtualMembers().TransformInner(x => new Scope(x.ToDictionary(
+                                    pair => pair.Key,
+                                    pair => LookUpOrBuild(pair.Value.Value))));
                             });
                         }
                         orKey = nextOrKey;
@@ -380,81 +392,100 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var scope = node.VirtualMembers().TransformInner(x =>
                         new Scope(x.ToDictionary(
                                 pair => pair.Key,
-                                pair => LookUpOrBuild(pair.Value.Value)),
-                            this));
+                                pair => LookUpOrBuild(pair.Value.Value))));
                     scopeCache[rep] = scope;
                     return scope;
                 }
             }
 
 
-            private IOrType<Scope, IError> GetScope(IIsPossibly<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> looksUp) {
-                return 
-                    looksUp.IfElseReturn(
-                        outer => outer.SwitchReturns(
-                            x => ScopeOrError(x),
-                            x => ScopeOrError(x),
-                            x => ScopeOrError(x),
-                            x => GetTypesScope(GetFlowNode( x)),
-                            x => GetTypesScope(GetFlowNode(x)),
-                            x => OrType.Make<Scope, IError>(x)),
-                        () => OrType.Make<Scope, IError>(Error.Other("this should exist right?")));
-            }
-
-
-            internal IOrType<WeakMemberDefinition, IError> GetMember(IIsPossibly<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> looksUp, IKey key)
+            // has a related method
+            // {7737F6C2-0328-477B-900B-2E6C44AEF6D3}
+            private IOrType<Scope, IError> GetTypesScope(Tpn.IVirtualFlowNode node)
             {
-                return GetScope(looksUp).TransformInner(x =>
-                {
-                    if (x.members.TryGetValue(key, out var y))
-                    {
-                        return y;
-                    }
-                    else
-                    {
-                        throw new NotImplementedException("what does this mean?, probaly just return an IError");
-                    }
-                });
+                var rep = node.ToRep();
 
-                //return looksUp.IfElseReturn(outer => outer.SwitchReturns(
-                //    x =>
-                //    {
-                //        if (TryGetMember(x, key, out var y))
-                //        {
-                //            return y;
-                //        }
-                //        else
-                //        {
-                //            throw new NotImplementedException("what does this mean?, probaly just return an IError");
-                //        }
-                //    },
-                //    x =>
-                //    {
-                //        if (TryGetMember(x, key, out var y))
-                //        {
-                //            return y;
-                //        }
-                //        else
-                //        {
-                //            throw new NotImplementedException("what does this mean?, probaly just return an IError");
-                //        }
-                //    },
-                //    x =>
-                //    {
-                //        if (TryGetMember(x, key, out var y))
-                //        {
-                //            return y;
-                //        }
-                //        else
-                //        {
-                //            throw new NotImplementedException("what does this mean?, probaly just return an IError");
-                //        }
-                //    },
-                //    x => GetMemberFromType(GetFlowNode(x), key),
-                //    x => GetMemberFromType(GetFlowNode(x), key),
-                //    x => OrType.Make<WeakMemberDefinition, IError>(x)),
-                //    () => OrType.Make<WeakMemberDefinition, IError>(Error.Other("this should exist right?")));
+                if (scopeCache.TryGetValue(rep, out var current))
+                {
+                    return current;
+                }
+                var scope = node.VirtualMembers().TransformInner(x =>
+                    new Scope(x.ToDictionary(
+                            pair => pair.Key,
+                            pair => SafeLookUp(pair.Value.Value.TransformInner(virtualNode => virtualNode.ToRep())))));
+                scopeCache[rep] = scope;
+                return scope;
             }
+
+
+
+            //private IOrType<Scope, IError> GetScope(IIsPossibly<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> looksUp) {
+            //    return 
+            //        looksUp.IfElseReturn(
+            //            outer => outer.SwitchReturns(
+            //                x => ScopeOrError(x),
+            //                x => ScopeOrError(x),
+            //                x => ScopeOrError(x),
+            //                x => GetTypesScope(GetFlowNode( x)),
+            //                x => GetTypesScope(GetFlowNode(x)),
+            //                x => OrType.Make<Scope, IError>(x)),
+            //            () => OrType.Make<Scope, IError>(Error.Other("this should exist right?")));
+            //}
+
+
+            //internal IOrType<WeakMemberDefinition, IError> GetMember(IIsPossibly<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> looksUp, IKey key)
+            //{
+            //    return GetScope(looksUp).TransformInner(x =>
+            //    {
+            //        if (x.members.TryGetValue(key, out var y))
+            //        {
+            //            return y;
+            //        }
+            //        else
+            //        {
+            //            throw new NotImplementedException("what does this mean?, probaly just return an IError");
+            //        }
+            //    });
+
+            //    //return looksUp.IfElseReturn(outer => outer.SwitchReturns(
+            //    //    x =>
+            //    //    {
+            //    //        if (TryGetMember(x, key, out var y))
+            //    //        {
+            //    //            return y;
+            //    //        }
+            //    //        else
+            //    //        {
+            //    //            throw new NotImplementedException("what does this mean?, probaly just return an IError");
+            //    //        }
+            //    //    },
+            //    //    x =>
+            //    //    {
+            //    //        if (TryGetMember(x, key, out var y))
+            //    //        {
+            //    //            return y;
+            //    //        }
+            //    //        else
+            //    //        {
+            //    //            throw new NotImplementedException("what does this mean?, probaly just return an IError");
+            //    //        }
+            //    //    },
+            //    //    x =>
+            //    //    {
+            //    //        if (TryGetMember(x, key, out var y))
+            //    //        {
+            //    //            return y;
+            //    //        }
+            //    //        else
+            //    //        {
+            //    //            throw new NotImplementedException("what does this mean?, probaly just return an IError");
+            //    //        }
+            //    //    },
+            //    //    x => GetMemberFromType(GetFlowNode(x), key),
+            //    //    x => GetMemberFromType(GetFlowNode(x), key),
+            //    //    x => OrType.Make<WeakMemberDefinition, IError>(x)),
+            //    //    () => OrType.Make<WeakMemberDefinition, IError>(Error.Other("this should exist right?")));
+            //}
 
             //private IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError> Convert(EqualibleHashSet<CombinedTypesAnd> flowNode)
             //{
@@ -489,41 +520,25 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return key.SwitchReturns(x => generalLookUp[x], error => new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(error)));
             }
 
-            // has a related method
-            // {7737F6C2-0328-477B-900B-2E6C44AEF6D3}
-            private IOrType<Scope, IError> GetTypesScope(Tpn.IVirtualFlowNode node)
-            {
-                var rep = node.ToRep();
-
-                if (scopeCache.TryGetValue(rep, out var current)) {
-                    return current;
-                }
-                var scope = node.VirtualMembers().TransformInner(x => 
-                    new Scope(x.ToDictionary(
-                            pair => pair.Key,
-                            pair => SafeLookUp(pair.Value.Value.TransformInner(virtualNode => virtualNode.ToRep()))),
-                        this));
-                scopeCache[rep] = scope;
-                return scope;
-            }
-
             internal IOrType<WeakScope, IError> GetWeakTypeScope(TypeProblem2.Type from)
             {
-                return ScopeOrError(from).TransformInner(x => x.weakScope);
+                return GetTypesScope(GetFlowNode(from)).TransformInner(x => x.weakScope);
+                //    return ScopeOrError(from).TransformInner(x => x.weakScope);
             }
 
             internal IOrType<WeakScope, IError> GetWeakTypeScope(TypeProblem2.Object from)
             {
-                return ScopeOrError(from).TransformInner(x => x.weakScope);
+                return GetTypesScope(GetFlowNode(from)).TransformInner(x => x.weakScope);
+                //    return ScopeOrError(from).TransformInner(x => x.weakScope);
             }
 
 
-            public IOrType<WeakMemberDefinition, IError> GetMemberFromType(TypeProblem2.Object from, IKey key)
-            {
-                return GetTypesScope(flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _)).TransformInner(x => x.members[key]);
-            }
+            //public IOrType<WeakMemberDefinition, IError> GetMemberFromType(TypeProblem2.Object from, IKey key)
+            //{
+            //    return GetTypesScope(flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _)).TransformInner(x => x.members[key]);
+            //}
 
-            public IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError> ToType(IOrType<
+            public static IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError> ToType(IOrType<
                     MethodType,
                     WeakTypeDefinition,
                     WeakGenericTypeDefinition,
@@ -549,41 +564,58 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
             }
 
-            private IVirtualFlowNode GetFlowNode(TypeProblem2.InferredType from)
+            private IVirtualFlowNode GetFlowNode(TypeProblem2.Type from)
             {
                 return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
             }
 
-            private IOrType<Scope, IError> ScopeOrError(Tpn.IStaticScope from)
+            private IVirtualFlowNode GetFlowNode(TypeProblem2.Object from)
             {
-                if (from.SafeIs(out TypeProblem2.Method method))
-                {
-                    return OrType.Make<Scope,IError>( GetWeakScopeInner(method));
-                }
-
-                if (from.SafeIs(out TypeProblem2.Scope typeProblemScope))
-                {
-                    return OrType.Make<Scope, IError>(GetWeakScopeInner(typeProblemScope));
-                }
-
-                if (!flowNodeLookUp.TryGetValue(OrType.Make<ITypeProblemNode, IError>(from), out var node))
-                {
-                    return OrType.Make<Scope, IError>(Error.Other("node not found"));
-                }
-                return GetTypesScope(node.GetValueAs(out IVirtualFlowNode _));
+                return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
             }
+
+            //private IVirtualFlowNode GetFlowNode(TypeProblem2.InferredType from)
+            //{
+            //    return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
+            //}
+
+            //private IOrType<Scope, IError> ScopeOrError(Tpn.IStaticScope from)
+            //{
+            //    if (from.SafeIs(out TypeProblem2.Method method))
+            //    {
+            //        return OrType.Make<Scope,IError>( GetWeakScopeInner(method));
+            //    }
+
+            //    if (from.SafeIs(out TypeProblem2.Scope typeProblemScope))
+            //    {
+            //        return OrType.Make<Scope, IError>(GetWeakScopeInner(typeProblemScope));
+            //    }
+
+            //    //if (!flowNodeLookUp.TryGetValue(OrType.Make<ITypeProblemNode, IError>(from), out var node))
+            //    //{
+            //    //    return OrType.Make<Scope, IError>(Error.Other("node not found"));
+            //    //}
+            //    //return GetTypesScope(node.GetValueAs(out IVirtualFlowNode _));
+            //}
 
             internal bool TryGetMember(Tpn.IStaticScope from, IKey key, out IOrType<WeakMemberDefinition, IError> res)
             {
-                if (from.SafeIs(out TypeProblem2.Method method)) {
-                    var scope= GetWeakScopeInner(method);
+                if (from.SafeIs(out TypeProblem2.Method method))
+                {
+                    var scope = GetWeakScopeInner(method);
 
-                    if (scope.members.TryGetValue(key, out var memberDef)){
+                    if (scope.members.TryGetValue(key, out var memberDef))
+                    {
                         res = OrType.Make<WeakMemberDefinition, IError>(memberDef);
                         return true;
                     }
+                    else
+                    {
+                        res = default;
+                        return false;
+                    }
                 }
-
+                else
                 if (from.SafeIs(out TypeProblem2.Scope typeProblemScope))
                 {
                     var scope = GetWeakScopeInner(typeProblemScope);
@@ -593,27 +625,169 @@ namespace Tac.Frontend.New.CrzayNamespace
                         res = OrType.Make<WeakMemberDefinition, IError>(memberDef);
                         return true;
                     }
+                    else
+                    {
+                        res = default;
+                        return false;
+                    }
                 }
-
-                if (!flowNodeLookUp.TryGetValue(OrType.Make<ITypeProblemNode, IError>(from), out var node)) {
-                    res = default;
-                    return false;
-                }
-
-                var foundIt = false;
-
-                var outer = GetTypesScope(node.GetValueAs(out IVirtualFlowNode _)).TransformInner(x => {
-                    foundIt = x.members.TryGetValue(key, out var member);
-                    return member;
-                });
-                if (foundIt)
+                else if (from.SafeIs(out TypeProblem2.Object typeProblemObject))
                 {
-                    res = outer;
-                    return true;
+                    // gross
+                    var value = objectCache[typeProblemObject].GetValue();
+                    if (value.Is1(out var v1))
+                    {
+                        if (v1.Scope.Is1(out var isScope))
+                        {
+                            WeakScope scopeValue = isScope.GetValue();
+                            if (!scopeValue.membersList.Any(z => z.GetValue().Key.Equals(key)))
+                            {
+
+                                res = default;
+                                return false;
+                            }
+                            else
+                            {
+                                res = OrType.Make<WeakMemberDefinition, IError>(scopeValue.membersList.Single(z => z.GetValue().Key.Equals(key)).GetValue());
+                                return true;
+                            }
+
+                        }
+                        else if (v1.Scope.Is2(out var error))
+                        {
+                            res = OrType.Make<WeakMemberDefinition, IError>(error);
+                            return true;
+                        }
+                        else
+                        {
+                            throw new Exception("or overflown");
+                        }
+                    }
+                    else if (value.Is2(out var v2))
+                    {
+                        if (v2.Scope.Is1(out var isScope))
+                        {
+                            WeakScope scopeValue = isScope.GetValue();
+                            if (!scopeValue.membersList.Any(z => z.GetValue().Key.Equals(key)))
+                            {
+
+                                res = default;
+                                return false;
+                            }
+                            else
+                            {
+                                res = OrType.Make<WeakMemberDefinition, IError>(scopeValue.membersList.Single(z => z.GetValue().Key.Equals(key)).GetValue());
+                                return true;
+                            }
+
+                        }
+                        else if (v2.Scope.Is2(out var error))
+                        {
+                            res = OrType.Make<WeakMemberDefinition, IError>(error);
+                            return true;
+                        }
+                        else
+                        {
+                            throw new Exception("or overflown");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("or overflown");
+                    }
+                }
+                else if (from.SafeIs(out TypeProblem2.Type typeProblemType))
+                {
+                    // gross
+                    var value = typeCache[typeProblemType].GetValue();
+                    if (value.Is1(out var v1))
+                    {
+                        if (v1.Scope.Is1(out var isScope))
+                        {
+                            WeakScope scopeValue = isScope.GetValue();
+                            if (!scopeValue.membersList.Any(z => z.GetValue().Key.Equals(key)))
+                            {
+
+                                res = default;
+                                return false;
+                            }
+                            else
+                            {
+                                res = OrType.Make<WeakMemberDefinition, IError>(scopeValue.membersList.Single(z => z.GetValue().Key.Equals(key)).GetValue());
+                                return true;
+                            }
+
+                        }
+                        else if (v1.Scope.Is2(out var error))
+                        {
+                            res = OrType.Make<WeakMemberDefinition, IError>(error);
+                            return true;
+                        }
+                        else
+                        {
+                            throw new Exception("or overflown");
+                        }
+                    }
+                    else if (value.Is2(out var v2))
+                    {
+                        if (v2.Scope.Is1(out var isScope))
+                        {
+                            WeakScope scopeValue = isScope.GetValue();
+                            if (!scopeValue.membersList.Any(z => z.GetValue().Key.Equals(key)))
+                            {
+
+                                res = default;
+                                return false;
+                            }
+                            else
+                            {
+                                res = OrType.Make<WeakMemberDefinition, IError>(scopeValue.membersList.Single(z => z.GetValue().Key.Equals(key)).GetValue());
+                                return true;
+                            }
+
+                        }
+                        else if (v2.Scope.Is2(out var error))
+                        {
+                            res = OrType.Make<WeakMemberDefinition, IError>(error);
+                            return true;
+                        }
+                        else
+                        {
+                            throw new Exception("or overflown");
+                        }
+                    } else if (value.Is3(out var v3)) {
+
+                        throw new Exception("how did we get in a primitive, what does it mean?");
+                    }
+                    else
+                    {
+                        throw new Exception("or overflown");
+                    }
+                }
+                else
+                {
+                    throw new Exception("I think this is really just for Methods, Scopes, objects and types...");
                 }
 
-                res = default;
-                return false;
+                //if (!flowNodeLookUp.TryGetValue(OrType.Make<ITypeProblemNode, IError>(from), out var node))
+                //{
+                //    res = default;
+                //    return false;
+                //}
+
+                //var foundIt = false;
+
+                //var outer = GetTypesScope(node.GetValueAs(out IVirtualFlowNode _)).TransformInner(x =>
+                //{
+                //    foundIt = x.members.TryGetValue(key, out var member);
+                //    return member;
+                //});
+                //if (foundIt)
+                //{
+                //    res = outer;
+                //    return true;
+                //}
+
             }
 
             internal IBox<IOrType<WeakObjectDefinition, WeakRootScope>> GetObject(TypeProblem2.Object from)
@@ -654,8 +828,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return from.SwitchReturns(x => SafeLookUp(x.ToRep()),x=> new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(x)));
             }
 
+            internal IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> GetOrType(TypeProblem2.OrType from)
+            {
+                return SafeLookUp(flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _).ToRep());
+            }
 
-            public IIsPossibly<IOrType<NameKey, ImplicitKey>[]> HasPlacholders(TypeProblem2.Type type)
+
+            public static IIsPossibly<IOrType<NameKey, ImplicitKey>[]> HasPlacholders(TypeProblem2.Type type)
             {
                 var res = new List<IOrType<NameKey, ImplicitKey>>();
                 foreach (var value in type.GenericOverlays.Values.Select(x => x.Possibly2()))
@@ -717,7 +896,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     return res;
                 }
-                res = new Scope(from.PrivateMembers.ToDictionary(x => x.Key, x => GetType(x.Value)), this);
+                res = new Scope(from.PrivateMembers.ToDictionary(x => x.Key, x => GetType(x.Value)));
                 scopeScopeCache[from] = res;
                 return res;
             }
@@ -733,15 +912,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     return res;
                 }
-                res = new Scope(from.PrivateMembers.ToDictionary(x => x.Key, x => GetType(x.Value)), this);
+                res = new Scope(from.PrivateMembers.ToDictionary(x => x.Key, x => GetType(x.Value)));
                 methodScopeCache[from] = res;
                 return res;
             }
 
-            internal WeakScope GetWeakScope(TypeProblem2.Method from)
-            {
-                return GetWeakScopeInner(from).weakScope;
-            }
+            internal WeakScope GetWeakScope(TypeProblem2.Method from) => GetWeakScopeInner(from).weakScope;
 
             internal WeakMemberDefinition GetMethodMember(TypeProblem2.Method from, IKey key)
             {
@@ -757,19 +933,11 @@ namespace Tac.Frontend.New.CrzayNamespace
             public readonly Dictionary<IKey, WeakMemberDefinition> members;
             public readonly WeakScope weakScope;
 
-            public Scope(Dictionary<IKey, IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>> members, TypeSolution typeSolution)
+            public Scope(Dictionary<IKey, IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>> members)
             {
                 this.members = members?.ToDictionary(x=>x.Key, x=> new WeakMemberDefinition(Model.Elements.Access.ReadWrite, x.Key, new FuncBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(() => x.Value.GetValue()))) ?? throw new ArgumentNullException(nameof(members));
-                this.weakScope = ToWeakScope(this.members);
+                this.weakScope = new WeakScope(this.members.Select(x => (IBox<WeakMemberDefinition>)new Box<WeakMemberDefinition>(x.Value)).ToList());
             }
-
-            private WeakScope ToWeakScope(Dictionary<IKey, WeakMemberDefinition> betterView)
-            {
-                return new WeakScope(betterView.Select(x => (IBox<WeakMemberDefinition>)new Box<WeakMemberDefinition>(x.Value)).ToList());
-            }
-
-
         }
-
     }
 }

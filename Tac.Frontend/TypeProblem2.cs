@@ -29,10 +29,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public TypeProblemNode(Builder problem, string debugName)
                 {
-                    if (string.IsNullOrEmpty(debugName)) {
-                        var db = 0;
-                    }
-
                     Problem = problem ?? throw new ArgumentNullException(nameof(problem));
                     this.DebugName = debugName;
                     problem.Register(this);
@@ -66,10 +62,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IIsPossibly<IStaticScope> Context { get; set; } = Possibly.IsNot<IStaticScope>();
                 public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType, IError>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
 
-                public IReadOnlyDictionary<IKey, Member> GetPublicMembers()
-                {
-                    return new Dictionary<IKey, Member>();
-                }
+                //public IReadOnlyDictionary<IKey, Member> GetPublicMembers()
+                //{
+                //    return new Dictionary<IKey, Member>();
+                //}
             }
 
             public class Value : TypeProblemNode<Value, PlaceholderValue>, IValue
@@ -293,7 +289,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             public readonly Builder builder;
 
             // these are pretty much the same
-            private List<(ILookUpType, ILookUpType)> assignments = new List<(ILookUpType, ILookUpType)>();
+            private readonly List<(ILookUpType, ILookUpType)> assignments = new List<(ILookUpType, ILookUpType)>();
 
             // I am interested in rewriting large parts of thi
             // instead of merging I can have the defering node flow in to the dominate node
@@ -1252,7 +1248,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 else
                 {
-                    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(Error.TypeNotFound($"could not find type for {key.ToString()} in {from.ToString()}"));
+                    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(Error.TypeNotFound($"could not find type for {key} in {from}"));
                 }
             }
 
@@ -1702,19 +1698,19 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
             // TODO this does not need to be a method
-            static bool IsNotInferedHasMembers(IOrType<MethodType, Type, Object, OrType, InferredType, IError> type, out IHavePublicMembers? haveMembers)
-            {
-                var res = false;
-                (haveMembers, res) = type.SwitchReturns<(IHavePublicMembers?, bool)>(
-                    v1 => (default, false),
-                    v2 => (v2, true),
-                    v3 => (v3, true),
-                    v4 => (default, false),
-                    v5 => (default, false),
-                    v1 => (default, false));
+            //static bool IsNotInferedHasMembers(IOrType<MethodType, Type, Object, OrType, InferredType, IError> type, out IHavePublicMembers? haveMembers)
+            //{
+            //    var res = false;
+            //    (haveMembers, res) = type.SwitchReturns<(IHavePublicMembers?, bool)>(
+            //        v1 => (default, false),
+            //        v2 => (v2, true),
+            //        v3 => (v3, true),
+            //        v4 => (default, false),
+            //        v5 => (default, false),
+            //        v1 => (default, false));
 
-                return res;
-            }
+            //    return res;
+            //}
 
             // OK I think OrTypes should just make a infered type to represent them 
 
@@ -1854,7 +1850,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 var res = new MethodType(
                     this.builder,
-                    $"generic-{key.ToString()}-{placeholders.Aggregate("", (x, y) => x + "-" + y.key.ToString())}",
+                    $"generic-{key}-{placeholders.Aggregate("", (x, y) => x + "-" + y.key.ToString())}",
                     new MethodTypeConverter());
 
                 builder.HasMethodType(Primitive, key, res);
