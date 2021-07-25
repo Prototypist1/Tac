@@ -182,7 +182,11 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 {
                     builder.Build(
                         localLeft.Is1OrThrow().SafeCastTo<IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>>().Convert(context),
-                        localRight.Is1OrThrow().SafeCastTo<IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>>().Convert(context));
+                        localRight.Is1OrThrow().SafeCastTo<IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>>().Convert(context),
+                        members.Is1OrThrow().Select(x=>x.Convert(context)).ToArray(),
+                        input.TransformInner(x=>x.GetValue().Is1OrThrow().Convert(context)),
+                        output.TransformInner(x => x.GetValue().Is1OrThrow().Convert(context))
+                        );
                 });
         }
 

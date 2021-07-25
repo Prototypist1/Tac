@@ -113,13 +113,16 @@ namespace Tac.Model.Instantiated
 
         private readonly Buildable<IVerifiableType> left = new Buildable<IVerifiableType>();
         private readonly Buildable<IVerifiableType> right = new Buildable<IVerifiableType>();
-        private Buildable<Lazy<List<IMemberDefinition>>> members = new Buildable<Lazy<List<IMemberDefinition>>>();
+        private readonly Buildable<IReadOnlyList<IMemberDefinition>> members = new Buildable<IReadOnlyList< IMemberDefinition>>();
+        private readonly Buildable<IIsPossibly< IVerifiableType>> input = new Buildable<IIsPossibly<IVerifiableType>>();
+        private readonly Buildable<IIsPossibly<IVerifiableType>> output = new Buildable<IIsPossibly<IVerifiableType>>();
+
 
         public IVerifiableType Left => left.Get();
 
         public IVerifiableType Right => right.Get();
 
-        public IReadOnlyList<IMemberDefinition> Members => members.Get().Value;
+        public IReadOnlyList<IMemberDefinition> Members => members.Get();
 
         public static (ITypeOr, ITypeOrBuilder) Create()
         {
@@ -127,16 +130,16 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public static ITypeOr CreateAndBuild(IVerifiableType left, IVerifiableType right)
+        public static ITypeOr CreateAndBuild(IVerifiableType left, IVerifiableType right, IMemberDefinition[] members, IIsPossibly<IVerifiableType> input, IIsPossibly<IVerifiableType> output)
         {
             var res = new TypeOr();
-            res.Build(left, right);
+            res.Build(left, right, members,input,output);
 
             return res;
         }
 
 
-        public void Build(IVerifiableType left, IVerifiableType right)
+        public void Build(IVerifiableType left, IVerifiableType right, IMemberDefinition[] members, IIsPossibly<IVerifiableType> input, IIsPossibly<IVerifiableType> output)
         {
             if (left == null)
             {
@@ -150,32 +153,9 @@ namespace Tac.Model.Instantiated
 
             this.left.Set(left);
             this.right.Set(right);
-
-
-            members.Set(new Lazy<List<IMemberDefinition>> (() => {
-                var list = new List<IMemberDefinition>();
-                if (left.SafeIs(out IInterfaceType @interface))
-                {
-                    foreach (var member in @interface.Members)
-                    {
-                        right.TryGetMember(member.Key, new List<(IVerifiableType, IVerifiableType)>()).If(x =>
-                        {
-                            list.Add(MemberDefinition.CreateAndBuild(member.Key, x.Item1, x.Item2));
-                        });
-                    }
-                }
-                else if (left.SafeIs(out ITypeOr typeOr))
-                {
-                    foreach (var member in typeOr.Members)
-                    {
-                        right.TryGetMember(member.Key, new List<(IVerifiableType, IVerifiableType)>()).If(x =>
-                        {
-                            list.Add(MemberDefinition.CreateAndBuild(member.Key, x.Item1, x.Item2));
-                        });
-                    }
-                }
-                return list;
-            }));
+            this.members.Set(members);
+            this.input.Set(input);
+            this.output.Set(output);
         }
 
         public bool TheyAreUs(IVerifiableType they, List<(IVerifiableType, IVerifiableType)> assumeTrue)
@@ -199,71 +179,24 @@ namespace Tac.Model.Instantiated
 
         public IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assume)
         {
-            var res = OrTypeLibrary.GetMember(
-                key,
-                OrType.Make<IVerifiableType, IError>(this.Left),
-                OrType.Make<IVerifiableType, IError>(this.Right),
-                (target, key,list) => target.TryGetMember(key,list).IfElseReturn(
-                    x => OrType.Make<IOrType<(IVerifiableType, Access), IError>, No, IError>(OrType.Make<(IVerifiableType, Access), IError>(x)),
-                    () => OrType.Make<IOrType<(IVerifiableType, Access), IError>, No, IError>(new No())
-                ),
-                (left, right) => CreateAndBuild(left, right),
-                (us,them,assume) => OrType.Make<bool, IError>(us.TheyAreUs(them,assume)),
-                assume
-                );
+            var matches = members.Get().Where(x => x.Key.Equals(key)).ToArray();
 
-            if (res.Is2(out var _))
-            {
+            if (!matches.Any()) {
                 return Possibly.IsNot<(IVerifiableType, Access)>();
             }
 
-            return Possibly.Is(res.Is1OrThrow().Is1OrThrow());
+            var match = matches.Single();
+
+            return Possibly.Is((match.Type, match.Access));
         }
 
-        public IIsPossibly<IVerifiableType> TryGetReturn()
-        {
-            var res = OrTypeLibrary.TryGetReturn(
-                           OrType.Make<IVerifiableType, IError>(this.Left),
-                           OrType.Make<IVerifiableType, IError>(this.Right),
-                           (target) => target.TryGetReturn().IfElseReturn(
-                               x => OrType.Make<IOrType<IVerifiableType, IError>, No, IError>(OrType.Make<IVerifiableType, IError>(x)),
-                               () => OrType.Make<IOrType<IVerifiableType, IError>, No, IError>(new No())
-                           ),
-                           (left, right) => CreateAndBuild(left.Is1OrThrow(), right.Is1OrThrow())
-                           );
-
-            if (res.Is2(out var _))
-            {
-                return Possibly.IsNot<IVerifiableType>();
-            }
-
-            return Possibly.Is(res.Is1OrThrow().Is1OrThrow());
-        }
-
-        public IIsPossibly<IVerifiableType> TryGetInput()
-        {
-            var res = OrTypeLibrary.TryGetReturn(
-                           OrType.Make<IVerifiableType, IError>(this.Left),
-                           OrType.Make<IVerifiableType, IError>(this.Right),
-                           (target) => target.TryGetInput().IfElseReturn(
-                               x => OrType.Make<IOrType<IVerifiableType, IError>, No, IError>(OrType.Make<IVerifiableType, IError>(x)),
-                               () => OrType.Make<IOrType<IVerifiableType, IError>, No, IError>(new No())
-                           ),
-                           (left, right) => CreateAndBuild(left.Is1OrThrow(), right.Is1OrThrow())
-                           );
-
-            if (res.Is2(out var _))
-            {
-                return Possibly.IsNot<IVerifiableType>();
-            }
-
-            return Possibly.Is(res.Is1OrThrow().Is1OrThrow());
-        }
+        public IIsPossibly<IVerifiableType> TryGetReturn() => output.Get();
+        public IIsPossibly<IVerifiableType> TryGetInput() => input.Get();
     }
 
     public interface ITypeOrBuilder
     {
-        void Build(IVerifiableType left, IVerifiableType right);
+        void Build(IVerifiableType left, IVerifiableType right, IMemberDefinition[] members, IIsPossibly<IVerifiableType> input, IIsPossibly<IVerifiableType> output);
     }
 
     public struct TypeAnd : ITypeAnd

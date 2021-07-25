@@ -25,26 +25,26 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             readonly Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodeLookUp;
 
+            readonly Dictionary<TypeProblem2.Method, Scope> methodScopeCache = new Dictionary<TypeProblem2.Method, Scope>();
+            readonly Dictionary<TypeProblem2.Scope, Scope> scopeScopeCache = new Dictionary<TypeProblem2.Scope, Scope>();
+
             private class Yolo
             {
-                internal IOrType<IReadOnlyList<(IKey, IOrType<Yolo, IError>)>, IError> Members;
+                internal IOrType<IReadOnlyList<(IKey, IOrType<Yolo, IError>)>, IError> members;
 
-                internal IIsPossibly<IOrType<Yolo, IError>> Output;
-                internal IIsPossibly<IOrType<Yolo, IError>> Input;
+                internal IIsPossibly<IOrType<Yolo, IError>> output;
+                internal IIsPossibly<IOrType<Yolo, IError>> input;
 
                 // for or types
-                internal IIsPossibly<IOrType<Yolo, IError>> Left;
-                internal IIsPossibly<IOrType<Yolo, IError>> Right;
+                internal IIsPossibly<IOrType<Yolo, IError>> left;
+                internal IIsPossibly<IOrType<Yolo, IError>> right;
 
-                internal Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> Type = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
+                internal Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> type = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
             }
 
             public TypeSolution(
                 IReadOnlyList<IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>> things,
                 Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodes) {
-
-
-
 
 
                 // from the top then.
@@ -70,18 +70,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                         if (current == myBox) {
 
 
-                            myBox.Members = equalableHashSet.VirtualMembers().TransformInner(members => members.Select(virtualMember=>(virtualMember.Key, GetOrAdd(virtualMember.Value.Value))).ToArray());
-                            myBox.Input = equalableHashSet.VirtualInput().TransformInner(input => GetOrAdd(input));
-                            myBox.Output = equalableHashSet.VirtualOutput().TransformInner(output => GetOrAdd(output));
+                            myBox.members = equalableHashSet.VirtualMembers().TransformInner(members => members.Select(virtualMember=>(virtualMember.Key, GetOrAdd(virtualMember.Value.Value))).ToArray());
+                            myBox.input = equalableHashSet.VirtualInput().TransformInner(input => GetOrAdd(input));
+                            myBox.output = equalableHashSet.VirtualOutput().TransformInner(output => GetOrAdd(output));
 
                             if (equalableHashSet.Count() > 1)
                             {
-                                myBox.Left = Possibly.Is(GetOrAdd(OrType.Make<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>(new EqualibleHashSet<Tpn.CombinedTypesAnd>(equalableHashSet.Take(equalableHashSet.Count() - 1).ToHashSet()))));
-                                myBox.Right = Possibly.Is( GetOrAdd(OrType.Make<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>(new EqualibleHashSet<Tpn.CombinedTypesAnd>(new HashSet<Tpn.CombinedTypesAnd>() { equalableHashSet.Last() }))));
+                                myBox.left = Possibly.Is(GetOrAdd(OrType.Make<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>(new EqualibleHashSet<Tpn.CombinedTypesAnd>(equalableHashSet.Take(equalableHashSet.Count() - 1).ToHashSet()))));
+                                myBox.right = Possibly.Is( GetOrAdd(OrType.Make<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>(new EqualibleHashSet<Tpn.CombinedTypesAnd>(new HashSet<Tpn.CombinedTypesAnd>() { equalableHashSet.Last() }))));
                             }
                             else {
-                                myBox.Left = Possibly.IsNot<IOrType<Yolo, IError>>();
-                                myBox.Right = Possibly.IsNot<IOrType<Yolo, IError>>();
+                                myBox.left = Possibly.IsNot<IOrType<Yolo, IError>>();
+                                myBox.right = Possibly.IsNot<IOrType<Yolo, IError>>();
                             }
                         }
                         return current;
@@ -92,28 +92,28 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     if (key.Count() == 1)
                     {
-                        value.Type.Fill(Convert2(key.First(), value));
+                        value.type.Fill(Convert2(key.First(), value));
                     }
                     else 
                     {
-                        value.Type.Fill(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError> (new FrontEndOrType(
-                            value.Left.IfElseReturn(x => x, () => throw new Exception("better have a left")).SwitchReturns(
-                                x=>x.Type,
+                        value.type.Fill(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError> (new FrontEndOrType(
+                            value.left.IfElseReturn(x => x, () => throw new Exception("better have a left")).SwitchReturns(
+                                x=>x.type,
                                 e=> new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(e))),
-                            value.Right.IfElseReturn(x => x, () => throw new Exception("better have a right")).SwitchReturns(
-                                x => x.Type,
+                            value.right.IfElseReturn(x => x, () => throw new Exception("better have a right")).SwitchReturns(
+                                x => x.type,
                                 e => new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(e))),
-                            value.Members.TransformInner(actually => actually.Select(x => new WeakMemberDefinition(
+                            value.members.TransformInner(actually => actually.Select(x => new WeakMemberDefinition(
                                 Model.Elements.Access.ReadWrite,
                                 x.Item1,
                                 x.Item2.SwitchReturns(
-                                    y => y.Type,
+                                    y => y.type,
                                     y => (IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>)new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(y))))).ToList()),
-                            value.Input.TransformInner(x=>x.SwitchReturns(
-                                    y=>y.Type,
+                            value.input.TransformInner(x=>x.SwitchReturns(
+                                    y=>y.type,
                                     error => (IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>)new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(error)))),
-                            value.Output.TransformInner(x => x.SwitchReturns(
-                                    y => y.Type,
+                            value.output.TransformInner(x => x.SwitchReturns(
+                                    y => y.type,
                                     error => (IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>)new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(error))))
                             )));
                     }
@@ -142,11 +142,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
 
 
-                    if (yolo.Members.Is2(out var e4))
+                    if (yolo.members.Is2(out var e4))
                     {
                         return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(e4);
                     }
-                    var members = yolo.Members.Is1OrThrow();
+                    var members = yolo.members.Is1OrThrow();
 
                     if (flowNode.VirtualInput().Is(out var inputOr))
                     {
@@ -219,7 +219,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 Model.Elements.Access.ReadWrite,
                                 x.Item1,
                                 x.Item2.SwitchReturns(
-                                    y => y.Type,
+                                    y => y.type,
                                     y =>(IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>) new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(y))))).ToList())));
                     }
 
@@ -228,393 +228,377 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
 
-                flowNodeLookUp = flowNodes ?? throw new ArgumentNullException(nameof(flowNodes));
+                //flowNodeLookUp = flowNodes ?? throw new ArgumentNullException(nameof(flowNodes));
 
-                Queue<Action> todo = new Queue<Action>();
+                //Queue<Action> todo = new Queue<Action>();
 
-                foreach (var thing in things)
-                {
-                    var box = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
-                    thing.Switch(
-                        methodType => {
+                //foreach (var thing in things)
+                //{
+                //    var box = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
+                //    thing.Switch(
+                //        methodType => {
 
-                            flowNodes[OrType.Make<ITypeProblemNode, IError>(methodType)].GetValueAs(out IVirtualFlowNode _).ToRep().IfNotError(value =>
-                            {
-                                generalLookUp[value] = box;
-                                todo.Enqueue(() =>
-                                {
-                                    box.Fill(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
-                                        methodType.Converter.Convert(this, methodType)));
-                                });
-                            });
-                        },
-                        type => {
-                            flowNodes[OrType.Make<ITypeProblemNode, IError>(type)].GetValueAs(out IVirtualFlowNode _).ToRep().IfNotError(value =>
-                            {
-                                generalLookUp[value] = box;
-                                var typeBox = new Box<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>();
-                                typeCache[type] = typeBox;
-                                todo.Enqueue(() =>
-                                {
-                                    type.Converter.Convert(this, type).Switch(
-                                        weakType =>
-                                        {
-                                            box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakType)));
-                                            typeBox.Fill(OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(weakType));
-                                        },
-                                        weakGenericType =>
-                                        {
-                                            box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakGenericType)));
-                                            typeBox.Fill(OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(weakGenericType));
-                                        },
-                                        primitiveType =>
-                                        {
-                                            box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(primitiveType)));
-                                            typeBox.Fill(OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(primitiveType));
-                                        })
-                                    ;
-                                });
-                            });
-                        },
-                        obj => {
-                            flowNodes[OrType.Make<ITypeProblemNode, IError>(obj)].GetValueAs(out IVirtualFlowNode _).ToRep().IfNotError(value => {
-                                generalLookUp[value] = box;
-                                var objBox = new Box<IOrType<WeakObjectDefinition, WeakRootScope>>();
-                                objectCache[obj] = objBox;
-                                todo.Enqueue(() => {
+                //            flowNodes[OrType.Make<ITypeProblemNode, IError>(methodType)].GetValueAs(out IVirtualFlowNode _).ToRep().IfNotError(value =>
+                //            {
+                //                generalLookUp[value] = box;
+                //                todo.Enqueue(() =>
+                //                {
+                //                    box.Fill(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
+                //                        methodType.Converter.Convert(this, methodType)));
+                //                });
+                //            });
+                //        },
+                //        type => {
+                //            flowNodes[OrType.Make<ITypeProblemNode, IError>(type)].GetValueAs(out IVirtualFlowNode _).ToRep().IfNotError(value =>
+                //            {
+                //                generalLookUp[value] = box;
+                //                var typeBox = new Box<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>>();
+                //                typeCache[type] = typeBox;
+                //                todo.Enqueue(() =>
+                //                {
+                //                    type.Converter.Convert(this, type).Switch(
+                //                        weakType =>
+                //                        {
+                //                            box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakType)));
+                //                            typeBox.Fill(OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(weakType));
+                //                        },
+                //                        weakGenericType =>
+                //                        {
+                //                            box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakGenericType)));
+                //                            typeBox.Fill(OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(weakGenericType));
+                //                        },
+                //                        primitiveType =>
+                //                        {
+                //                            box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(primitiveType)));
+                //                            typeBox.Fill(OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>(primitiveType));
+                //                        })
+                //                    ;
+                //                });
+                //            });
+                //        },
+                //        obj => {
+                //            flowNodes[OrType.Make<ITypeProblemNode, IError>(obj)].GetValueAs(out IVirtualFlowNode _).ToRep().IfNotError(value => {
+                //                generalLookUp[value] = box;
+                //                var objBox = new Box<IOrType<WeakObjectDefinition, WeakRootScope>>();
+                //                objectCache[obj] = objBox;
+                //                todo.Enqueue(() => {
 
-                                    obj.Converter.Convert(this, obj).Switch(
-                                        weakObj => {
-                                            box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakObj)));
-                                            objBox.Fill(OrType.Make<WeakObjectDefinition, WeakRootScope>(weakObj));
-                                        },
-                                        weakRoot => {
-                                            box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakRoot)));
-                                            objBox.Fill(OrType.Make<WeakObjectDefinition, WeakRootScope>(weakRoot));
-                                        });
-                                });
-                            });
-                        },
-                        orType => {
-                            // or types go letter
-                            // they need to go after anything that they could be looking up
-                        },
-                        inferred => {
-                            // inferred go letter
-                            // they might end up with the same key as something else
-                            // in that case they defer
-                        },
-                        error => {
-                            flowNodes[OrType.Make<ITypeProblemNode, IError>(error)].GetValueAs(out IVirtualFlowNode _).ToRep().IfNotError(value => {
-                                generalLookUp[value] = box;
-                                box.Fill(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
-                                    error));
-                            });
-                        });
-                }
+                //                    obj.Converter.Convert(this, obj).Switch(
+                //                        weakObj => {
+                //                            box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakObj)));
+                //                            objBox.Fill(OrType.Make<WeakObjectDefinition, WeakRootScope>(weakObj));
+                //                        },
+                //                        weakRoot => {
+                //                            box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(weakRoot)));
+                //                            objBox.Fill(OrType.Make<WeakObjectDefinition, WeakRootScope>(weakRoot));
+                //                        });
+                //                });
+                //            });
+                //        },
+                //        orType => {
+                //            // or types go letter
+                //            // they need to go after anything that they could be looking up
+                //        },
+                //        inferred => {
+                //            // inferred go letter
+                //            // they might end up with the same key as something else
+                //            // in that case they defer
+                //        },
+                //        error => {
+                //            flowNodes[OrType.Make<ITypeProblemNode, IError>(error)].GetValueAs(out IVirtualFlowNode _).ToRep().IfNotError(value => {
+                //                generalLookUp[value] = box;
+                //                box.Fill(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
+                //                    error));
+                //            });
+                //        });
+                //}
 
-                // for now ors go before inferred
-                // this might have to changed if I allow "Cat | inferred x"
-                // then I think they just need to go after their component parts
-                // that might get a little complex lacing them into the whole process
-                foreach (var thing in things)
-                {
-                    var box = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
-                    thing.Switch(
-                        methodType => { },
-                        type => { },
-                        obj => { },
-                        orType => {
+                //// for now ors go before inferred
+                //// this might have to changed if I allow "Cat | inferred x"
+                //// then I think they just need to go after their component parts
+                //// that might get a little complex lacing them into the whole process
+                //foreach (var thing in things)
+                //{
+                //    var box = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
+                //    thing.Switch(
+                //        methodType => { },
+                //        type => { },
+                //        obj => { },
+                //        orType => {
 
-                            // in some cases this has already been added
-                            // bool | bool say
-                            var key = flowNodes[OrType.Make<ITypeProblemNode, IError>(orType)].GetValueAs(out IVirtualFlowNode _).ToRep();
-                            key.IfNotError(value =>
-                            {
-                                if (!generalLookUp.ContainsKey(value))
-                                {
-                                    generalLookUp[value] = box;
-                                    todo.Enqueue(() =>
-                                    {
-                                        box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(
-                                            orType.Converter.Convert(this, orType))));
-                                        var rep = GetFlowNode(orType).ToRep();
-                                        scopeCache[rep] = rep.Is1OrThrow().VirtualMembers().TransformInner(x => new Scope(x.ToDictionary(
-                                            pair => pair.Key,
-                                            pair => LookUpOrBuild(pair.Value.Value))));
+                //            // in some cases this has already been added
+                //            // bool | bool say
+                //            var key = flowNodes[OrType.Make<ITypeProblemNode, IError>(orType)].GetValueAs(out IVirtualFlowNode _).ToRep();
+                //            key.IfNotError(value =>
+                //            {
+                //                if (!generalLookUp.ContainsKey(value))
+                //                {
+                //                    generalLookUp[value] = box;
+                //                    todo.Enqueue(() =>
+                //                    {
+                //                        box.Fill(ToType(OrType.Make<MethodType, WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, WeakObjectDefinition, WeakRootScope, WeakTypeOrOperation, IError>(
+                //                            orType.Converter.Convert(this, orType))));
+                //                        var rep = GetFlowNode(orType).ToRep();
+                //                        scopeCache[rep] = rep.Is1OrThrow().VirtualMembers().TransformInner(x => new Scope(x.ToDictionary(
+                //                            pair => pair.Key,
+                //                            pair => LookUpOrBuild(pair.Value.Value))));
 
-                                    });
-                                }
-                            });
-                        },
-                        inferred => { },
-                        error => { });
-                }
+                //                    });
+                //                }
+                //            });
+                //        },
+                //        inferred => { },
+                //        error => { });
+                //}
 
-                foreach (var thing in things)
-                {
+                //foreach (var thing in things)
+                //{
                     
-                    thing.Switch(
-                        methodType => {},
-                        type => {},
-                        obj => {},
-                        orType => {},
-                        inferred => {
-                            var key = flowNodes[OrType.Make<ITypeProblemNode, IError>(inferred)].GetValueAs<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode, IVirtualFlowNode>(out var _).ToRep();
-                            key.Switch(equalibleHashSet =>
-                            {
-                                EnqueConversionForSet(equalibleHashSet);
-                            },
-                            error =>
-                            {
-                            });
-                        },
-                        error => {});
-                }
+                //    thing.Switch(
+                //        methodType => {},
+                //        type => {},
+                //        obj => {},
+                //        orType => {},
+                //        inferred => {
+                //            var key = flowNodes[OrType.Make<ITypeProblemNode, IError>(inferred)].GetValueAs<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode, IVirtualFlowNode>(out var _).ToRep();
+                //            key.Switch(equalibleHashSet =>
+                //            {
+                //                EnqueConversionForSet(equalibleHashSet);
+                //            },
+                //            error =>
+                //            {
+                //            });
+                //        },
+                //        error => {});
+                //}
 
-                while (todo.TryDequeue(out var action)) {
-                    action();
-                }
+                //while (todo.TryDequeue(out var action)) {
+                //    action();
+                //}
 
-                IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError> Convert(Tpn.CombinedTypesAnd flowNode)
-                {
+                //IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError> Convert(Tpn.CombinedTypesAnd flowNode)
+                //{
 
-                    if (flowNode.And.Count == 0)
-                    {
-                        return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new AnyType());
-                    }
+                //    if (flowNode.And.Count == 0)
+                //    {
+                //        return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new AnyType());
+                //    }
 
-                    var prim = flowNode.Primitive();
+                //    var prim = flowNode.Primitive();
 
-                    if (prim.Is2(out var error))
-                    {
-                        return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(error);
-                    }
+                //    if (prim.Is2(out var error))
+                //    {
+                //        return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(error);
+                //    }
 
-                    if (prim.Is1OrThrow().Is(out var _))
-                    {
-                        throw new Exception("this should have been converted already");
-                    }
+                //    if (prim.Is1OrThrow().Is(out var _))
+                //    {
+                //        throw new Exception("this should have been converted already");
+                //    }
 
-                    var scopeOr = GetScopeOrBuildScope(flowNode);
+                //    var scopeOr = GetScopeOrBuildScope(flowNode);
 
-                    if (scopeOr.Is2(out var e4))
-                    {
-                        return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(e4);
-                    }
-                    var scope = scopeOr.Is1OrThrow();
+                //    if (scopeOr.Is2(out var e4))
+                //    {
+                //        return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(e4);
+                //    }
+                //    var scope = scopeOr.Is1OrThrow();
 
-                    if (flowNode.VirtualInput().Is(out var inputOr))
-                    {
-                        if (inputOr.Is2(out var e2))
-                        {
-                            return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(e2);
-                        }
-                    }
-                    var input = inputOr?.Is1OrThrow();
-
-
-                    if (flowNode.VirtualOutput().Is(out var outputOr))
-                    {
-                        if (outputOr.Is2(out var e3))
-                        {
-                            return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(e3);
-                        }
-
-                    }
-                    var output = outputOr?.Is1OrThrow();
-
-                    if ((input != default || output != default) && scope.members.Count > 1)
-                    {
-                        // this might be wrong
-                        // methods might end up with more than one member
-                        // input counts as a member but it is really something different
-                        // todo
-                        throw new Exception("so... this is a type and a method?!");
-                    }
-
-                    if (input != default && output != default)
-                    {
-                        // I don't think this is safe see:
-                        //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
-                        return
-                             OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
-                            new MethodType(
-                                SafeLookUp(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>( input)),
-                                SafeLookUp(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(output))));
-                    }
+                //    if (flowNode.VirtualInput().Is(out var inputOr))
+                //    {
+                //        if (inputOr.Is2(out var e2))
+                //        {
+                //            return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(e2);
+                //        }
+                //    }
+                //    var input = inputOr?.Is1OrThrow();
 
 
-                    if (input != default)
-                    {
-                        // I don't think this is safe see:
-                        //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
-                        return
-                             OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
-                            new MethodType(
-                                SafeLookUp(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(input)),
-                                new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new EmptyType()))));
-                    }
+                //    if (flowNode.VirtualOutput().Is(out var outputOr))
+                //    {
+                //        if (outputOr.Is2(out var e3))
+                //        {
+                //            return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(e3);
+                //        }
 
-                    if (output != default)
-                    {
-                        // I don't think this is safe see:
-                        //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
-                        return
-                             OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
-                            new MethodType(
-                                new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new EmptyType())),
-                                SafeLookUp(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(output))));
-                    }
+                //    }
+                //    var output = outputOr?.Is1OrThrow();
 
-                    // if it has members it must be a scope
-                    if (scope.members.Any())
-                    {
-                        return new WeakTypeDefinition(OrType.Make<IBox<WeakScope>, IError>(new Box<WeakScope>(scope.weakScope))).FrontendType();
-                    }
+                //    if ((input != default || output != default) && scope.members.Count > 1)
+                //    {
+                //        // this might be wrong
+                //        // methods might end up with more than one member
+                //        // input counts as a member but it is really something different
+                //        // todo
+                //        throw new Exception("so... this is a type and a method?!");
+                //    }
 
-                    return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new AnyType());
-                }
+                //    if (input != default && output != default)
+                //    {
+                //        // I don't think this is safe see:
+                //        //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
+                //        return
+                //             OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
+                //            new MethodType(
+                //                SafeLookUp(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>( input)),
+                //                SafeLookUp(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(output))));
+                //    }
 
-                void EnqueConversionForSet(EqualibleHashSet<CombinedTypesAnd> equalibleHashSet)
-                {
-                    if (equalibleHashSet.backing.Count == 0)
-                    {
-                        var box = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
-                        generalLookUp[equalibleHashSet] = box;
-                        todo.Enqueue(() =>
-                        {
-                            box.Fill(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new AnyType()));
-                        });
-                        return;
-                    }
 
-                    if (equalibleHashSet.backing.Count == 1)
-                    {
-                        var box = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
-                        if (!generalLookUp.TryGetValue(equalibleHashSet, out var _))
-                        {
-                            generalLookUp[equalibleHashSet] = box;
+                //    if (input != default)
+                //    {
+                //        // I don't think this is safe see:
+                //        //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
+                //        return
+                //             OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
+                //            new MethodType(
+                //                SafeLookUp(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(input)),
+                //                new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new EmptyType()))));
+                //    }
 
-                            todo.Enqueue(() =>
-                            {
-                                box.Fill(Convert(equalibleHashSet.backing.First()));
-                            });
-                        }
-                        return;
-                    }
+                //    if (output != default)
+                //    {
+                //        // I don't think this is safe see:
+                //        //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
+                //        return
+                //             OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
+                //            new MethodType(
+                //                new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new EmptyType())),
+                //                SafeLookUp(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(output))));
+                //    }
 
-                    foreach (var backer in equalibleHashSet.backing)
-                    {
-                        var backerRep = backer.ToRep().Is1OrThrow();
-                        // we convert each component
-                        if (!generalLookUp.TryGetValue(backerRep, out var _))
-                        {
-                            var innerBox = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
-                            generalLookUp[backerRep] = innerBox;
-                            todo.Enqueue(() =>
-                            {
-                                innerBox.Fill(Convert(backer));
-                            });
-                        }
-                    }
+                //    // if it has members it must be a scope
+                //    if (scope.members.Any())
+                //    {
+                //        return new WeakTypeDefinition(OrType.Make<IBox<WeakScope>, IError>(new Box<WeakScope>(scope.weakScope))).FrontendType();
+                //    }
 
-                    // build the ors by looking up the componets
-                    var array = equalibleHashSet.backing.ToArray();
-                    var first = array[0];
-                    var second = array[1];
-                    var orKey = new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd> { first, second });
-                    if (!generalLookUp.TryGetValue(orKey, out var _))
-                    {
-                        var firstOrBox = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
-                        generalLookUp[orKey] = firstOrBox;
-                        todo.Enqueue(() =>
-                        {
-                            firstOrBox.Fill(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new FrontEndOrType(generalLookUp[first.ToRep().Is1OrThrow()].GetValue(), generalLookUp[second.ToRep().Is1OrThrow()].GetValue())));
-                            // TODO this need to get the scope from the FrontEndOrType
-                            scopeCache[OrType.Make <EqualibleHashSet<CombinedTypesAnd>, IError>(orKey)] = orKey.VirtualMembers().TransformInner(x =>new Scope(x.ToDictionary(
-                                pair => pair.Key,
-                                pair => LookUpOrBuild(pair.Value.Value))));
-                        });
-                    }
+                //    return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new AnyType());
+                //}
 
-                    foreach (var entry in array.Skip(2))
-                    {
-                        var nextOrKeyBacking = orKey.backing.ToHashSet();
-                        nextOrKeyBacking.Add(entry); ;
-                        var nextOrKey = new EqualibleHashSet<CombinedTypesAnd>(nextOrKeyBacking);
-                        if (!generalLookUp.TryGetValue(nextOrKey, out var _))
-                        {
-                            var orBox = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
-                            generalLookUp[nextOrKey] = orBox;
-                            var myOrKey = orKey;
-                            var myEntry = entry;
-                            todo.Enqueue(() =>
-                            {
-                                orBox.Fill(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new FrontEndOrType(generalLookUp[myOrKey].GetValue(), generalLookUp[myEntry.ToRep().Is1OrThrow()].GetValue())));
-                                // TODO this need to get the scope from the FrontEndOrType
-                                scopeCache[OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(orKey)] = orKey.VirtualMembers().TransformInner(x => new Scope(x.ToDictionary(
-                                    pair => pair.Key,
-                                    pair => LookUpOrBuild(pair.Value.Value))));
-                            });
-                        }
-                        orKey = nextOrKey;
-                    }
-                }
+                //void EnqueConversionForSet(EqualibleHashSet<CombinedTypesAnd> equalibleHashSet)
+                //{
+                //    if (equalibleHashSet.backing.Count == 0)
+                //    {
+                //        var box = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
+                //        generalLookUp[equalibleHashSet] = box;
+                //        todo.Enqueue(() =>
+                //        {
+                //            box.Fill(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new AnyType()));
+                //        });
+                //        return;
+                //    }
 
-                // has a related method
-                // {164031F9-9DFA-45FB-9C54-B23902DF29DC}
-                IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> LookUpOrBuild(IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> key)
-                {
-                    return key.SwitchReturns(x => {
-                        if (generalLookUp.TryGetValue(x, out var res)) {
-                            return res;
-                        }
-                        EnqueConversionForSet(x);
+                //    if (equalibleHashSet.backing.Count == 1)
+                //    {
+                //        var box = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
+                //        if (!generalLookUp.TryGetValue(equalibleHashSet, out var _))
+                //        {
+                //            generalLookUp[equalibleHashSet] = box;
 
-                        return generalLookUp[x];
+                //            todo.Enqueue(() =>
+                //            {
+                //                box.Fill(Convert(equalibleHashSet.backing.First()));
+                //            });
+                //        }
+                //        return;
+                //    }
 
-                    }, error => new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(error)));
-                }
+                //    foreach (var backer in equalibleHashSet.backing)
+                //    {
+                //        var backerRep = backer.ToRep().Is1OrThrow();
+                //        // we convert each component
+                //        if (!generalLookUp.TryGetValue(backerRep, out var _))
+                //        {
+                //            var innerBox = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
+                //            generalLookUp[backerRep] = innerBox;
+                //            todo.Enqueue(() =>
+                //            {
+                //                innerBox.Fill(Convert(backer));
+                //            });
+                //        }
+                //    }
 
-                // has a related method
-                // {7737F6C2-0328-477B-900B-2E6C44AEF6D3}
-                IOrType<Scope, IError> GetScopeOrBuildScope(CombinedTypesAnd node)
-                {
-                    var rep = node.ToRep();
+                //    // build the ors by looking up the componets
+                //    var array = equalibleHashSet.backing.ToArray();
+                //    var first = array[0];
+                //    var second = array[1];
+                //    var orKey = new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd> { first, second });
+                //    if (!generalLookUp.TryGetValue(orKey, out var _))
+                //    {
+                //        var firstOrBox = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
+                //        generalLookUp[orKey] = firstOrBox;
+                //        todo.Enqueue(() =>
+                //        {
+                //            firstOrBox.Fill(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new FrontEndOrType(generalLookUp[first.ToRep().Is1OrThrow()].GetValue(), generalLookUp[second.ToRep().Is1OrThrow()].GetValue())));
+                //            // TODO this need to get the scope from the FrontEndOrType
+                //            scopeCache[OrType.Make <EqualibleHashSet<CombinedTypesAnd>, IError>(orKey)] = orKey.VirtualMembers().TransformInner(x =>new Scope(x.ToDictionary(
+                //                pair => pair.Key,
+                //                pair => LookUpOrBuild(pair.Value.Value))));
+                //        });
+                //    }
 
-                    if (scopeCache.TryGetValue(rep, out var current))
-                    {
-                        return current;
-                    }
-                    var scope = node.VirtualMembers().TransformInner(x =>
-                        new Scope(x.ToDictionary(
-                                pair => pair.Key,
-                                pair => LookUpOrBuild(pair.Value.Value))));
-                    scopeCache[rep] = scope;
-                    return scope;
-                }
+                //    foreach (var entry in array.Skip(2))
+                //    {
+                //        var nextOrKeyBacking = orKey.backing.ToHashSet();
+                //        nextOrKeyBacking.Add(entry); ;
+                //        var nextOrKey = new EqualibleHashSet<CombinedTypesAnd>(nextOrKeyBacking);
+                //        if (!generalLookUp.TryGetValue(nextOrKey, out var _))
+                //        {
+                //            var orBox = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
+                //            generalLookUp[nextOrKey] = orBox;
+                //            var myOrKey = orKey;
+                //            var myEntry = entry;
+                //            todo.Enqueue(() =>
+                //            {
+                //                orBox.Fill(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new FrontEndOrType(generalLookUp[myOrKey].GetValue(), generalLookUp[myEntry.ToRep().Is1OrThrow()].GetValue())));
+                //                // TODO this need to get the scope from the FrontEndOrType
+                //                scopeCache[OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(orKey)] = orKey.VirtualMembers().TransformInner(x => new Scope(x.ToDictionary(
+                //                    pair => pair.Key,
+                //                    pair => LookUpOrBuild(pair.Value.Value))));
+                //            });
+                //        }
+                //        orKey = nextOrKey;
+                //    }
+                //}
+
+                //// has a related method
+                //// {164031F9-9DFA-45FB-9C54-B23902DF29DC}
+                //IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> LookUpOrBuild(IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> key)
+                //{
+                //    return key.SwitchReturns(x => {
+                //        if (generalLookUp.TryGetValue(x, out var res)) {
+                //            return res;
+                //        }
+                //        EnqueConversionForSet(x);
+
+                //        return generalLookUp[x];
+
+                //    }, error => new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(error)));
+                //}
+
+                //// has a related method
+                //// {7737F6C2-0328-477B-900B-2E6C44AEF6D3}
+                //IOrType<Scope, IError> GetScopeOrBuildScope(CombinedTypesAnd node)
+                //{
+                //    var rep = node.ToRep();
+
+                //    if (scopeCache.TryGetValue(rep, out var current))
+                //    {
+                //        return current;
+                //    }
+                //    var scope = node.VirtualMembers().TransformInner(x =>
+                //        new Scope(x.ToDictionary(
+                //                pair => pair.Key,
+                //                pair => LookUpOrBuild(pair.Value.Value))));
+                //    scopeCache[rep] = scope;
+                //    return scope;
+                //}
             }
 
 
             // has a related method
             // {7737F6C2-0328-477B-900B-2E6C44AEF6D3}
-            private IOrType<Scope, IError> GetTypesScope(Tpn.IVirtualFlowNode node)
-            {
-                var rep = node.ToRep();
-
-                if (scopeCache.TryGetValue(rep, out var current))
-                {
-                    return current;
-                }
-                var scope = node.VirtualMembers().TransformInner(x =>
-                    new Scope(x.ToDictionary(
-                            pair => pair.Key,
-                            pair => SafeLookUp(pair.Value.Value.TransformInner(virtualNode => virtualNode.ToRep())))));
-                scopeCache[rep] = scope;
-                return scope;
-            }
-
 
 
             //private IOrType<Scope, IError> GetScope(IIsPossibly<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> looksUp) {
@@ -714,63 +698,38 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             // has a related method
             // {164031F9-9DFA-45FB-9C54-B23902DF29DC}
-            private IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> SafeLookUp(IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> key) {
-                return key.SwitchReturns(x => generalLookUp[x], error => new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(error)));
-            }
-
-            internal IOrType<WeakScope, IError> GetWeakTypeScope(TypeProblem2.Type from)
-            {
-                return GetTypesScope(GetFlowNode(from)).TransformInner(x => x.weakScope);
-                //    return ScopeOrError(from).TransformInner(x => x.weakScope);
-            }
-
-            internal IOrType<WeakScope, IError> GetWeakTypeScope(TypeProblem2.Object from)
-            {
-                return GetTypesScope(GetFlowNode(from)).TransformInner(x => x.weakScope);
-                //    return ScopeOrError(from).TransformInner(x => x.weakScope);
-            }
-
 
             //public IOrType<WeakMemberDefinition, IError> GetMemberFromType(TypeProblem2.Object from, IKey key)
             //{
             //    return GetTypesScope(flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _)).TransformInner(x => x.members[key]);
             //}
 
-            public static IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError> ToType(IOrType<
-                    MethodType,
-                    WeakTypeDefinition,
-                    WeakGenericTypeDefinition,
-                    IPrimitiveType,
-                    WeakObjectDefinition,
-                    WeakRootScope,
-                    WeakTypeOrOperation,
-                    IError> typeOr)
-            {
-                return typeOr.SwitchReturns(
-                    methodType => OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(methodType),
-                    weakTypeDefinition => weakTypeDefinition.FrontendType(),
-                    weakGenericTypeDefinition => weakGenericTypeDefinition.FrontendType(), //throw new Exception("I don't think this should happen. shouldn't generics be erased at this point?")
-                    primitiveType => OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(primitiveType),
-                    weakObjectDefinition => weakObjectDefinition.Returns(),
-                    weakRootScopeDefinition => weakRootScopeDefinition.Returns(), // is this really a type?? throw new Exception("that is not a type")
-                    weakOrTypeOperation => OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(weakOrTypeOperation.FrontendType()),
-                    error => OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(error));
-            }
+            //public static IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError> ToType(IOrType<
+            //        MethodType,
+            //        WeakTypeDefinition,
+            //        WeakGenericTypeDefinition,
+            //        IPrimitiveType,
+            //        WeakObjectDefinition,
+            //        WeakRootScope,
+            //        WeakTypeOrOperation,
+            //        IError> typeOr)
+            //{
+            //    return typeOr.SwitchReturns(
+            //        methodType => OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(methodType),
+            //        weakTypeDefinition => weakTypeDefinition.FrontendType(),
+            //        weakGenericTypeDefinition => weakGenericTypeDefinition.FrontendType(), //throw new Exception("I don't think this should happen. shouldn't generics be erased at this point?")
+            //        primitiveType => OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(primitiveType),
+            //        weakObjectDefinition => weakObjectDefinition.Returns(),
+            //        weakRootScopeDefinition => weakRootScopeDefinition.Returns(), // is this really a type?? throw new Exception("that is not a type")
+            //        weakOrTypeOperation => OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(weakOrTypeOperation.FrontendType()),
+            //        error => OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(error));
+            //}
 
-            private IVirtualFlowNode GetFlowNode(TypeProblem2.OrType from)
-            {
-                return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
-            }
+            //private IVirtualFlowNode GetFlowNode(TypeProblem2.OrType from)
+            //{
+            //    return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
+            //}
 
-            private IVirtualFlowNode GetFlowNode(TypeProblem2.Type from)
-            {
-                return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
-            }
-
-            private IVirtualFlowNode GetFlowNode(TypeProblem2.Object from)
-            {
-                return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
-            }
 
             //private IVirtualFlowNode GetFlowNode(TypeProblem2.InferredType from)
             //{
@@ -796,6 +755,75 @@ namespace Tac.Frontend.New.CrzayNamespace
             //    //return GetTypesScope(node.GetValueAs(out IVirtualFlowNode _));
             //}
 
+            //internal IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> GetOrType(TypeProblem2.OrType from)
+            //{
+            //    return SafeLookUp(flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _).ToRep());
+            //}
+
+            private Scope GetWeakScopeInner(TypeProblem2.Scope from)
+            {
+                if (scopeScopeCache.TryGetValue(from, out var res))
+                {
+                    return res;
+                }
+                res = new Scope(from.PrivateMembers.ToDictionary(x => x.Key, x => GetType(x.Value)));
+                scopeScopeCache[from] = res;
+                return res;
+            }
+            private IVirtualFlowNode GetFlowNode(TypeProblem2.Type from)
+            {
+                return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
+            }
+
+            private IVirtualFlowNode GetFlowNode(TypeProblem2.Object from)
+            {
+                return flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _);
+            }
+
+            private IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> SafeLookUp(IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> key)
+            {
+                return key.SwitchReturns(x => generalLookUp[x], error => new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(error)));
+            }
+
+            private IOrType<Scope, IError> GetTypesScope(Tpn.IVirtualFlowNode node)
+            {
+                var rep = node.ToRep();
+
+                if (scopeCache.TryGetValue(rep, out var current))
+                {
+                    return current;
+                }
+                var scope = node.VirtualMembers().TransformInner(x =>
+                    new Scope(x.ToDictionary(
+                            pair => pair.Key,
+                            pair => SafeLookUp(pair.Value.Value.TransformInner(virtualNode => virtualNode.ToRep())))));
+                scopeCache[rep] = scope;
+                return scope;
+            }
+
+            private Scope GetWeakScopeInner(TypeProblem2.Method from)
+            {
+                if (methodScopeCache.TryGetValue(from, out var res))
+                {
+                    return res;
+                }
+                res = new Scope(from.PrivateMembers.ToDictionary(x => x.Key, x => GetType(x.Value)));
+                methodScopeCache[from] = res;
+                return res;
+            }
+
+
+
+            internal IOrType<WeakScope, IError> GetWeakTypeScope(TypeProblem2.Type from)
+            {
+                return GetTypesScope(GetFlowNode(from)).TransformInner(x => x.weakScope);
+                //    return ScopeOrError(from).TransformInner(x => x.weakScope);
+            }
+            internal IOrType<WeakScope, IError> GetWeakTypeScope(TypeProblem2.Object from)
+            {
+                return GetTypesScope(GetFlowNode(from)).TransformInner(x => x.weakScope);
+                //    return ScopeOrError(from).TransformInner(x => x.weakScope);
+            }
             internal bool TryGetMember(Tpn.IStaticScope from, IKey key, out IOrType<WeakMemberDefinition, IError> res)
             {
                 if (from.SafeIs(out TypeProblem2.Method method))
@@ -987,17 +1015,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //}
 
             }
-
             internal IBox<IOrType<WeakObjectDefinition, WeakRootScope>> GetObject(TypeProblem2.Object from)
             {
                 return objectCache[from];
             }
-
             internal IBox<IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> GetExplicitType(TypeProblem2.Type from)
             {
                 return typeCache[from];
             }
-
             internal IBox<IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> GetScope(TypeProblem2.Scope from)
             {
                 if (scopeOrBlockCache.TryGetValue(from, out var res)) {
@@ -1007,8 +1032,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 scopeOrBlockCache[from] = res;
                 return res;
             }
-
-
             internal IBox<IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>> GetMethod(TypeProblem2.Method from)
             {
                 if (methodCache.TryGetValue(from, out var res))
@@ -1019,16 +1042,43 @@ namespace Tac.Frontend.New.CrzayNamespace
                 methodCache[from] = res;
                 return res;
             }
-
-
             internal IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> GetType(IOrType<IVirtualFlowNode, IError> from)
             {
                 return from.SwitchReturns(x => SafeLookUp(x.ToRep()),x=> new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(x)));
             }
 
-            internal IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> GetOrType(TypeProblem2.OrType from)
+            internal IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> GetType(ILookUpType from)
             {
-                return SafeLookUp(flowNodeLookUp[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _).ToRep());
+                return SafeLookUp(
+                flowNodeLookUp[from.LooksUp.GetOrThrow().SwitchReturns(
+                    methodType => OrType.Make<ITypeProblemNode,IError>(methodType),
+                    type => OrType.Make<ITypeProblemNode, IError>(type),
+                    obj => OrType.Make<ITypeProblemNode, IError>(obj),
+                    orType=> OrType.Make<ITypeProblemNode, IError>(orType),
+                    inferred => OrType.Make<ITypeProblemNode, IError>(inferred),
+                    error=> OrType.Make<ITypeProblemNode, IError>(error))]
+                   .GetValueAs(out IVirtualFlowNode _).ToRep());
+            }
+            internal IVirtualFlowNode GetFlowNode(ILookUpType from)
+            {
+                return 
+                flowNodeLookUp[from.LooksUp.GetOrThrow().SwitchReturns(
+                    methodType => OrType.Make<ITypeProblemNode, IError>(methodType),
+                    type => OrType.Make<ITypeProblemNode, IError>(type),
+                    obj => OrType.Make<ITypeProblemNode, IError>(obj),
+                    orType => OrType.Make<ITypeProblemNode, IError>(orType),
+                    inferred => OrType.Make<ITypeProblemNode, IError>(inferred),
+                    error => OrType.Make<ITypeProblemNode, IError>(error))]
+                   .GetValueAs(out IVirtualFlowNode _);
+            }
+            internal WeakScope GetWeakScope(TypeProblem2.Scope from)
+            {
+                return GetWeakScopeInner(from).weakScope;
+            }
+            internal WeakScope GetWeakScope(TypeProblem2.Method from) => GetWeakScopeInner(from).weakScope;
+            internal WeakMemberDefinition GetMethodMember(TypeProblem2.Method from, IKey key)
+            {
+                return GetWeakScopeInner(from).members[key];
             }
 
 
@@ -1045,7 +1095,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 res.Add(x);
                                 return 1; // todo I need a version of this api that takes an action
-                                        });
+                            });
                         }
                         return 1; // todo I need a version of this api that takes an action
                     });
@@ -1058,70 +1108,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 return Possibly.IsNot<IOrType<NameKey, ImplicitKey>[]>();
             }
-
-            internal IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> GetType(ILookUpType from)
-            {
-                return SafeLookUp(
-                flowNodeLookUp[from.LooksUp.GetOrThrow().SwitchReturns(
-                    methodType => OrType.Make<ITypeProblemNode,IError>(methodType),
-                    type => OrType.Make<ITypeProblemNode, IError>(type),
-                    obj => OrType.Make<ITypeProblemNode, IError>(obj),
-                    orType=> OrType.Make<ITypeProblemNode, IError>(orType),
-                    inferred => OrType.Make<ITypeProblemNode, IError>(inferred),
-                    error=> OrType.Make<ITypeProblemNode, IError>(error))]
-                   .GetValueAs(out IVirtualFlowNode _).ToRep());
-            }
-
-            internal IVirtualFlowNode GetFlowNode(ILookUpType from)
-            {
-                return 
-                flowNodeLookUp[from.LooksUp.GetOrThrow().SwitchReturns(
-                    methodType => OrType.Make<ITypeProblemNode, IError>(methodType),
-                    type => OrType.Make<ITypeProblemNode, IError>(type),
-                    obj => OrType.Make<ITypeProblemNode, IError>(obj),
-                    orType => OrType.Make<ITypeProblemNode, IError>(orType),
-                    inferred => OrType.Make<ITypeProblemNode, IError>(inferred),
-                    error => OrType.Make<ITypeProblemNode, IError>(error))]
-                   .GetValueAs(out IVirtualFlowNode _);
-            }
-
-
-            readonly Dictionary<TypeProblem2.Scope, Scope> scopeScopeCache = new Dictionary<TypeProblem2.Scope, Scope>();
-
-            private Scope GetWeakScopeInner(TypeProblem2.Scope from)
-            {
-                if (scopeScopeCache.TryGetValue(from, out var res))
-                {
-                    return res;
-                }
-                res = new Scope(from.PrivateMembers.ToDictionary(x => x.Key, x => GetType(x.Value)));
-                scopeScopeCache[from] = res;
-                return res;
-            }
-            internal WeakScope GetWeakScope(TypeProblem2.Scope from)
-            {
-                return GetWeakScopeInner(from).weakScope;
-            }
-            readonly Dictionary<TypeProblem2.Method, Scope> methodScopeCache = new Dictionary<TypeProblem2.Method, Scope>();
-
-            private Scope GetWeakScopeInner(TypeProblem2.Method from)
-            {
-                if (methodScopeCache.TryGetValue(from, out var res))
-                {
-                    return res;
-                }
-                res = new Scope(from.PrivateMembers.ToDictionary(x => x.Key, x => GetType(x.Value)));
-                methodScopeCache[from] = res;
-                return res;
-            }
-
-            internal WeakScope GetWeakScope(TypeProblem2.Method from) => GetWeakScopeInner(from).weakScope;
-
-            internal WeakMemberDefinition GetMethodMember(TypeProblem2.Method from, IKey key)
-            {
-                return GetWeakScopeInner(from).members[key];
-            }
-
             // I am thinking maybe the conversion layer is where we should protect against something being converted twice
             // everything can set a box on the first pass
             // and return the box on the next passes
