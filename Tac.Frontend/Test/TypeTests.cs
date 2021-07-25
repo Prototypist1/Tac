@@ -22,8 +22,8 @@ namespace Tac.Frontend.Test
         private IFrontendType<IVerifiableType> A1()
         {
             var member1Key = new NameKey("am1");
-            var member1 = new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite, member1Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType()))));
-            var type1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member1 }));
+            var member1 = new WeakMemberDefinition(Access.ReadWrite, member1Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType())));
+            var type1 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { member1 }));
 
             return type1;
         }
@@ -31,12 +31,12 @@ namespace Tac.Frontend.Test
         private IFrontendType<IVerifiableType> A2()
         {
             var member1Key = new NameKey("am1");
-            var member1 = new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite, member1Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType()))));
+            var member1 = new WeakMemberDefinition(Access.ReadWrite, member1Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType())));
 
             var member2Key = new NameKey("am2");
-            var member2 = new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite, member2Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType()))));
+            var member2 = new WeakMemberDefinition(Access.ReadWrite, member2Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType())));
 
-            var type1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member1, member2 }));
+            var type1 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { member1, member2 }));
 
             return type1;
         }
@@ -44,8 +44,8 @@ namespace Tac.Frontend.Test
         private IFrontendType<IVerifiableType> B1()
         {
             var member1Key = new NameKey("bm1");
-            var member1 = new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite, member1Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType()))));
-            var type1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member1 }));
+            var member1 = new WeakMemberDefinition(Access.ReadWrite, member1Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType())));
+            var type1 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { member1 }));
 
             return type1;
         }
@@ -53,12 +53,12 @@ namespace Tac.Frontend.Test
         private IFrontendType<IVerifiableType> B2()
         {
             var member1Key = new NameKey("bm1");
-            var member1 = new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite, member1Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType()))));
+            var member1 = new WeakMemberDefinition(Access.ReadWrite, member1Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType())));
 
             var member2Key = new NameKey("bm2");
-            var member2 = new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite, member2Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType()))));
+            var member2 = new WeakMemberDefinition(Access.ReadWrite, member2Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType())));
 
-            var type1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member1, member2 }));
+            var type1 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { member1, member2 }));
 
             return type1;
         }
@@ -66,16 +66,16 @@ namespace Tac.Frontend.Test
         private IFrontendType<IVerifiableType> B3()
         {
             var member1Key = new NameKey("bm1");
-            var member1 = new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite, member1Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType()))));
+            var member1 = new WeakMemberDefinition(Access.ReadWrite, member1Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType())));
 
             var member2Key = new NameKey("bm2");
-            var member2 = new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite, member2Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType()))));
+            var member2 = new WeakMemberDefinition(Access.ReadWrite, member2Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType())));
 
 
             var member3Key = new NameKey("bm3");
-            var member3 = new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite, member3Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType()))));
+            var member3 = new WeakMemberDefinition(Access.ReadWrite, member3Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType())));
 
-            var type1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member1, member2, member3 }));
+            var type1 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { member1, member2, member3 }));
 
             return type1;
         }
@@ -195,17 +195,14 @@ namespace Tac.Frontend.Test
         public void BasicTypes()
         {
             var member1Key = new NameKey("x");
-            var member1 = new Box<WeakMemberDefinition>();
-            var type1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member1 }));
-            member1.Fill(new WeakMemberDefinition(Access.ReadWrite, member1Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType()))));
+            var member1 = new WeakMemberDefinition(Access.ReadWrite, member1Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType())));
+            var type1 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { member1 }));
 
             var member2Key = new NameKey("x");
-            var member2 = new Box<WeakMemberDefinition>();
+            var member2 = new WeakMemberDefinition(Access.ReadWrite, member2Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType())));
             var member3Key = new NameKey("y");
-            var member3 = new Box<WeakMemberDefinition>();
-            var type2 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member2, member3 }));
-            member2.Fill(new WeakMemberDefinition(Access.ReadWrite, member2Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType()))));
-            member3.Fill(new WeakMemberDefinition(Access.ReadWrite, member3Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType()))));
+            var member3 = new WeakMemberDefinition(Access.ReadWrite, member3Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType())));
+            var type2 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { member2, member3 }));
 
             Assert.True(type1.TheyAreUs(type2, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
             Assert.False(type2.TheyAreUs(type1, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
@@ -216,14 +213,16 @@ namespace Tac.Frontend.Test
         public void InterestingCase1()
         {
             var member1Key = new NameKey("x");
-            var member1 = new Box<WeakMemberDefinition>();
-            var type1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member1 }));
-            member1.Fill(new WeakMemberDefinition(Access.ReadWrite, member1Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(type1))));
+            var memeber1TypeBox = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
+            var member1 = new WeakMemberDefinition(Access.ReadWrite, member1Key, memeber1TypeBox);
+            var type1 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { member1 }));
+            memeber1TypeBox.Fill(OrType.Make<IFrontendType<IVerifiableType>, IError>(type1));
 
             var member2Key = new NameKey("x");
-            var member2 = new Box<WeakMemberDefinition>();
-            var type2 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member2 }));
-            member2.Fill(new WeakMemberDefinition(Access.ReadWrite, member2Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(type2))));
+            var member2TypeBox = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
+            var member2 = new WeakMemberDefinition(Access.ReadWrite, member2Key, member2TypeBox);
+            var type2 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { member2 }));
+            member2TypeBox.Fill(OrType.Make<IFrontendType<IVerifiableType>, IError>(type2));
 
             Assert.True(type1.TheyAreUs(type2, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
             Assert.True(type2.TheyAreUs(type1, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
@@ -234,17 +233,18 @@ namespace Tac.Frontend.Test
         public void InterestingCase2()
         {
             var member1Key = new NameKey("x");
-            var member1 = new Box<WeakMemberDefinition>();
-            var type1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member1 }));
-            member1.Fill(new WeakMemberDefinition(Access.ReadWrite, member1Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(type1))));
+            var memeber1TypeBox = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
+            var member1 = new WeakMemberDefinition(Access.ReadWrite, member1Key, memeber1TypeBox);
+            var type1 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { member1 }));
+            memeber1TypeBox.Fill(OrType.Make<IFrontendType<IVerifiableType>, IError>(type1));
 
             var member2Key = new NameKey("x");
-            var member2 = new Box<WeakMemberDefinition>();
+            var memeber2TypeBox = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
+            var member2 = new WeakMemberDefinition(Access.ReadWrite, member2Key, memeber2TypeBox);
             var member3Key = new NameKey("y");
-            var member3 = new Box<WeakMemberDefinition>();
-            var type2 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member2, member3 }));
-            member2.Fill(new WeakMemberDefinition(Access.ReadWrite, member2Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(type2))));
-            member3.Fill(new WeakMemberDefinition(Access.ReadWrite, member3Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType()))));
+            var member3 = new WeakMemberDefinition(Access.ReadWrite, member3Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType())));
+            var type2 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { member2, member3 }));
+            memeber2TypeBox.Fill(OrType.Make<IFrontendType<IVerifiableType>, IError>(type2));
 
             Assert.False(type1.TheyAreUs(type2, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
             Assert.False(type2.TheyAreUs(type1, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
@@ -256,15 +256,17 @@ namespace Tac.Frontend.Test
         public void InterestingCase3()
         {
             var member1Key = new NameKey("x");
-            var member1 = new Box<WeakMemberDefinition>();
-            var type1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member1 }));
+            var member1TypeBox = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
+            var member1 = new WeakMemberDefinition(Access.ReadWrite, member1Key, member1TypeBox);
+            var type1 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { member1 }));
 
             var member2Key = new NameKey("x");
-            var member2 = new Box<WeakMemberDefinition>();
-            var type2 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member2 }));
+            var memeber2TypeBox = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
+            var member2 = new WeakMemberDefinition(Access.ReadWrite, member2Key, memeber2TypeBox);
+            var type2 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { member2 }));
 
-            member1.Fill(new WeakMemberDefinition(Access.ReadWrite, member1Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(type2))));
-            member2.Fill(new WeakMemberDefinition(Access.ReadWrite, member2Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(type1))));
+            member1TypeBox.Fill(OrType.Make<IFrontendType<IVerifiableType>, IError>(type2));
+            memeber2TypeBox.Fill(OrType.Make<IFrontendType<IVerifiableType>, IError>(type1));
 
             Assert.True(type1.TheyAreUs(type2, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
             Assert.True(type2.TheyAreUs(type1, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
@@ -275,20 +277,23 @@ namespace Tac.Frontend.Test
         public void InterestingCase4()
         {
             var member1Key = new NameKey("x");
-            var member1 = new Box<WeakMemberDefinition>();
-            var type1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member1 }));
+            var member1TypeBox = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
+            var member1 = new WeakMemberDefinition(Access.ReadWrite, member1Key, member1TypeBox);
+            var type1 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { member1 }));
 
             var member2Key = new NameKey("x");
-            var member2 = new Box<WeakMemberDefinition>();
-            var type2 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member2 }));
+            var member2TypeBox = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
+            var member2 = new WeakMemberDefinition(Access.ReadWrite, member2Key, member2TypeBox);
+            var type2 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { member2 }));
 
             var member3Key = new NameKey("x");
-            var member3 = new Box<WeakMemberDefinition>();
-            var type3 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { member3 }));
+            var member3TypeBox = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
+            var member3 = new WeakMemberDefinition(Access.ReadWrite, member3Key, member3TypeBox);
+            var type3 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { member3 }));
 
-            member1.Fill(new WeakMemberDefinition(Access.ReadWrite, member1Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(type2))));
-            member2.Fill(new WeakMemberDefinition(Access.ReadWrite, member2Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(type3))));
-            member3.Fill(new WeakMemberDefinition(Access.ReadWrite, member3Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(type1))));
+            member1TypeBox.Fill(OrType.Make<IFrontendType<IVerifiableType>, IError>(type2));
+            member2TypeBox.Fill(OrType.Make<IFrontendType<IVerifiableType>, IError>(type3));
+            member3TypeBox.Fill(OrType.Make<IFrontendType<IVerifiableType>, IError>(type1));
 
             Assert.True(type1.TheyAreUs(type2, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
             Assert.True(type2.TheyAreUs(type1, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
@@ -310,13 +315,13 @@ namespace Tac.Frontend.Test
             var b1 = B1();
             var b2 = B2();
 
-            var t1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> {
-                new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite, new NameKey("a"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(a1)))),
-                new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite, new NameKey("b"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(b1))))}));
+            var t1 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> {
+                new WeakMemberDefinition(Access.ReadWrite, new NameKey("a"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(a1))),
+                new WeakMemberDefinition(Access.ReadWrite, new NameKey("b"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(b1)))}));
 
-            var t2 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { 
-                new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite, new NameKey("a"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(a2)))),
-                new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite, new NameKey("b"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(b2))))}));
+            var t2 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { 
+                new WeakMemberDefinition(Access.ReadWrite, new NameKey("a"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(a2))),
+               new WeakMemberDefinition(Access.ReadWrite, new NameKey("b"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(b2)))}));
 
 
             Assert.False(t2.TheyAreUs(t1, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
@@ -350,12 +355,12 @@ namespace Tac.Frontend.Test
             var b2 = B2();
             var m1 = new MethodType(new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(a2)), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(b1)));
             var m2 = new MethodType(new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(a1)), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(b2)));
-            var t1 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> {
-                new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite, new NameKey("a"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(a1)))),
-                new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite, new NameKey("b"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(b1))))}));
-            var t2 = new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> {
-                new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite, new NameKey("a"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(a2)))),
-                new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite, new NameKey("b"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(b2))))}));
+            var t1 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> {
+                new WeakMemberDefinition(Access.ReadWrite, new NameKey("a"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(a1))),
+                new WeakMemberDefinition(Access.ReadWrite, new NameKey("b"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(b1)))}));
+            var t2 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> {
+                new WeakMemberDefinition(Access.ReadWrite, new NameKey("a"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(a2))),
+                new WeakMemberDefinition(Access.ReadWrite, new NameKey("b"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(b2)))}));
             var or1 = new FrontEndOrType(OrType.Make<IFrontendType<IVerifiableType>, IError>(a1), OrType.Make<IFrontendType<IVerifiableType>, IError>(b1));
             var or2 = new FrontEndOrType(OrType.Make<IFrontendType<IVerifiableType>, IError>(b1), OrType.Make<IFrontendType<IVerifiableType>, IError>(a1));
 

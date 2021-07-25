@@ -218,12 +218,26 @@ namespace Tac.SemanticModel.Operations
 
                         // I thinkg TypeSolution TryGetMember is really just for TypeProblem2.Method and TypeProblem2.Scope
                         // maybe I am thinking about this wrong and scopeCache only need to exist during TypeSolution's constructor
-                        WeakMemberReference memberRef = leftRes.Is1OrThrow().GetValue().CastTo<WeakMemberReference>();
-                        var memberDef= memberRef.MemberDefinition.GetValue().Type.GetValue().Is1OrThrow().TryGetMember(key, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>());
+                        var returns = leftRes.Is1OrThrow().GetValue().CastTo<IReturn>().Returns().Is1OrThrow();
+
+                        // smells
+                        if (returns.SafeIs(out Tac.SyntaxModel.Elements.AtomicTypes.RefType refType)) {
+                            returns = refType.inner.Is1OrThrow();
+                        }
+
+                        var memberDef=  returns.TryGetMember(key, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>());
 
                         //context.TryGetMember(,key)
 
                         return new WeakMemberReference(new Box<WeakMemberDefinition>(memberDef.Is1OrThrow().Is1OrThrow()));
+
+
+                        //WeakMemberReference memberRef = leftRes.Is1OrThrow().GetValue().CastTo<WeakMemberReference>();
+                        //var memberDef = memberRef.MemberDefinition.GetValue().Type.GetValue().Is1OrThrow().TryGetMember(key, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>());
+
+                        ////context.TryGetMember(,key)
+
+                        //return new WeakMemberReference(new Box<WeakMemberDefinition>(memberDef.Is1OrThrow().Is1OrThrow()));
                     })),
                     y => OrType.Make<IBox<IFrontendCodeElement>, IError>(Error.Cascaded("", y)))));
             return res;

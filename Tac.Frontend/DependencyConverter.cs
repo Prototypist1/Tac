@@ -17,52 +17,52 @@ namespace Tac.Frontend
     {
 
 
-        public WeakTypeDefinition ConvertToType<TBaking>(IAssembly<TBaking> assembly)
-        {
-            // is it ok to create a scope here?
-            // yeah i think so
-            // it is not like you are going to be mocking scope
-            // i mean it is not a pure data objet
-            // what is the cost to passing it in?
+        //public WeakTypeDefinition ConvertToType<TBaking>(IAssembly<TBaking> assembly)
+        //{
+        //    // is it ok to create a scope here?
+        //    // yeah i think so
+        //    // it is not like you are going to be mocking scope
+        //    // i mean it is not a pure data objet
+        //    // what is the cost to passing it in?
 
-            //var scope = new PopulatableScope();
-            //foreach (var member in assembly.Scope.Members)
-            //{
-            //    if (!scope.TryAddMember(DefintionLifetime.Instance,member.Key,new Box<IIsPossibly<WeakMemberDefinition>>(Possibly.Is( MemberDefinition(member))))) {
-            //        throw new Exception("😨 member should not already exist");
-            //    }
-            //}
-            ////foreach (var type in assembly.Scope.Types)
-            ////{
-            ////    if (type.Type is IInterfaceType interfaceType)
-            ////    {
-            ////        if (!scope.TryAddType(type.Key, new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(Possibly.Is(TypeDefinition(interfaceType)))))
-            ////        {
-            ////            throw new Exception("type should not already exist");
-            ////        }
-            ////    }
-            ////}
-            ////foreach (var genericType in assembly.Scope.GenericTypes)
-            ////{
-            ////    if (genericType.Type is IGenericInterfaceDefinition genericInterface)
-            ////    {
-            ////        if (!scope.TryAddGeneric(genericType.Key.Name, new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(GenericTypeDefinition(genericInterface)))))
-            ////        {
-            ////            throw new Exception("type should not already exist");
-            ////        }
-            ////    }
-            ////}
-            //var resolvelizableScope = scope.GetResolvelizableScope();
-            //var resolvableScope = resolvelizableScope.FinalizeScope();
-            //return new WeakTypeDefinition(resolvableScope, Possibly.Is(new ImplicitKey()));
+        //    //var scope = new PopulatableScope();
+        //    //foreach (var member in assembly.Scope.Members)
+        //    //{
+        //    //    if (!scope.TryAddMember(DefintionLifetime.Instance,member.Key,new Box<IIsPossibly<WeakMemberDefinition>>(Possibly.Is( MemberDefinition(member))))) {
+        //    //        throw new Exception("😨 member should not already exist");
+        //    //    }
+        //    //}
+        //    ////foreach (var type in assembly.Scope.Types)
+        //    ////{
+        //    ////    if (type.Type is IInterfaceType interfaceType)
+        //    ////    {
+        //    ////        if (!scope.TryAddType(type.Key, new Box<IIsPossibly<IConvertableFrontendType<IVerifiableType>>>(Possibly.Is(TypeDefinition(interfaceType)))))
+        //    ////        {
+        //    ////            throw new Exception("type should not already exist");
+        //    ////        }
+        //    ////    }
+        //    ////}
+        //    ////foreach (var genericType in assembly.Scope.GenericTypes)
+        //    ////{
+        //    ////    if (genericType.Type is IGenericInterfaceDefinition genericInterface)
+        //    ////    {
+        //    ////        if (!scope.TryAddGeneric(genericType.Key.Name, new Box<IIsPossibly<IFrontendGenericType>>(Possibly.Is(GenericTypeDefinition(genericInterface)))))
+        //    ////        {
+        //    ////            throw new Exception("type should not already exist");
+        //    ////        }
+        //    ////    }
+        //    ////}
+        //    //var resolvelizableScope = scope.GetResolvelizableScope();
+        //    //var resolvableScope = resolvelizableScope.FinalizeScope();
+        //    //return new WeakTypeDefinition(resolvableScope, Possibly.Is(new ImplicitKey()));
 
 
-            var scope = new WeakScope(
-                assembly.Scope.Members.Select(x => new Box<WeakMemberDefinition>(MemberDefinition(x)).CastTo<IBox<WeakMemberDefinition>>()).ToList());
+        //    var scope = new WeakScope(
+        //        assembly.Scope.Members.Select(x => new Box<WeakMemberDefinition>(MemberDefinition(x)).CastTo<IBox<WeakMemberDefinition>>()).ToList());
 
-            return new WeakTypeDefinition(OrType.Make<IBox<WeakScope>, IError>(new Box<WeakScope>(scope)));
+        //    return new WeakTypeDefinition(OrType.Make<IBox<WeakScope>, IError>(new Box<WeakScope>(scope)));
 
-        }
+        //}
 
 
         private readonly Dictionary<IMemberDefinition, WeakMemberDefinition> backing = new Dictionary<IMemberDefinition, WeakMemberDefinition>();

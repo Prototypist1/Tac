@@ -59,7 +59,7 @@ namespace Tac.Frontend
     internal interface IFrontendType<out TTargetType>: IFrontendCodeElement, IConvertable<TTargetType>
         where TTargetType: IVerifiableType
     {
-        // the double or on these is weird....
+        
 
 
         // we need to pass around a list of assumed true
@@ -70,10 +70,22 @@ namespace Tac.Frontend
         // another case A { B x },  B { C x },  C { A x }
         // these are the same as well
         IOrType<bool,IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue);
+        /// <summary>
+        /// the outer error means we don't know if we have the member
+        /// the inner error means we have the memeber but we don't know details about it
+        /// </summary>
         IOrType<IOrType<WeakMemberDefinition, IError>, No,IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue);
+        /// <summary>
+        /// the outer error means we don't know if we return
+        /// the inner error means we return something but we don't know what type it is
+        /// </summary>
         IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn();
+        /// <summary>
+        /// the outer error means we don't know if we have input
+        /// the inner error means we have input but we don't know what type it is
+        /// </summary>
         IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput();
-        //List<IBox<WeakMemberDefinition>> GetMembers();
+        //IReadOnlyList<WeakMemberDefinition> GetMembers();
     }
 
     //internal static class IFrontendTypeStatic

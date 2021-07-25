@@ -1,4 +1,5 @@
-﻿using Prototypist.Toolbox;
+﻿using Prototypist.TaskChain;
+using Prototypist.Toolbox;
 using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
@@ -24,10 +25,207 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             readonly Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodeLookUp;
 
+            private class Yolo
+            {
+                internal IOrType<IReadOnlyList<(IKey, IOrType<Yolo, IError>)>, IError> Members;
+
+                internal IIsPossibly<IOrType<Yolo, IError>> Output;
+                internal IIsPossibly<IOrType<Yolo, IError>> Input;
+
+                // for or types
+                internal IIsPossibly<IOrType<Yolo, IError>> Left;
+                internal IIsPossibly<IOrType<Yolo, IError>> Right;
+
+                internal Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> Type = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
+            }
 
             public TypeSolution(
                 IReadOnlyList<IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>> things,
                 Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodes) {
+
+
+
+
+
+                // from the top then.
+                // because rewriting is a better idea than understnading what is currently going on
+                // bad ideas after bad ideas...
+
+                ConcurrentIndexed<EqualibleHashSet<Tpn.CombinedTypesAnd>, Yolo> cache = new ConcurrentIndexed<EqualibleHashSet<CombinedTypesAnd>, Yolo>();
+
+                foreach (var flowNode in flowNodes)
+                {
+                    IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError> rep = flowNode.Value.GetValueAs(out IVirtualFlowNode _).ToRep();
+                    GetOrAdd(rep);
+                }
+
+                IOrType < Yolo, IError> GetOrAdd(IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>  rep){
+
+                    return rep.TransformInner(equalableHashSet => {
+
+                        var myBox = new Yolo();
+                        var current = cache.GetOrAdd(equalableHashSet, myBox);
+
+                        // if we added it, fill it
+                        if (current == myBox) {
+
+
+                            myBox.Members = equalableHashSet.VirtualMembers().TransformInner(members => members.Select(virtualMember=>(virtualMember.Key, GetOrAdd(virtualMember.Value.Value))).ToArray());
+                            myBox.Input = equalableHashSet.VirtualInput().TransformInner(input => GetOrAdd(input));
+                            myBox.Output = equalableHashSet.VirtualOutput().TransformInner(output => GetOrAdd(output));
+
+                            if (equalableHashSet.Count() > 1)
+                            {
+                                myBox.Left = Possibly.Is(GetOrAdd(OrType.Make<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>(new EqualibleHashSet<Tpn.CombinedTypesAnd>(equalableHashSet.Take(equalableHashSet.Count() - 1).ToHashSet()))));
+                                myBox.Right = Possibly.Is( GetOrAdd(OrType.Make<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>(new EqualibleHashSet<Tpn.CombinedTypesAnd>(new HashSet<Tpn.CombinedTypesAnd>() { equalableHashSet.Last() }))));
+                            }
+                            else {
+                                myBox.Left = Possibly.IsNot<IOrType<Yolo, IError>>();
+                                myBox.Right = Possibly.IsNot<IOrType<Yolo, IError>>();
+                            }
+                        }
+                        return current;
+                    });
+                }
+
+                foreach (var (key, value) in cache)
+                {
+                    if (key.Count() == 1)
+                    {
+                        value.Type.Fill(Convert2(key.First(), value));
+                    }
+                    else 
+                    {
+                        value.Type.Fill(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError> (new FrontEndOrType(
+                            value.Left.IfElseReturn(x => x, () => throw new Exception("better have a left")).SwitchReturns(
+                                x=>x.Type,
+                                e=> new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(e))),
+                            value.Right.IfElseReturn(x => x, () => throw new Exception("better have a right")).SwitchReturns(
+                                x => x.Type,
+                                e => new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(e))),
+                            value.Members.TransformInner(actually => actually.Select(x => new WeakMemberDefinition(
+                                Model.Elements.Access.ReadWrite,
+                                x.Item1,
+                                x.Item2.SwitchReturns(
+                                    y => y.Type,
+                                    y => (IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>)new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(y))))).ToList()),
+                            value.Input.TransformInner(x=>x.SwitchReturns(
+                                    y=>y.Type,
+                                    error => (IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>)new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(error)))),
+                            value.Output.TransformInner(x => x.SwitchReturns(
+                                    y => y.Type,
+                                    error => (IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>)new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(error))))
+                            )));
+                    }
+                }
+
+                // ok, all the boxes are filled!
+
+                IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError> Convert2(Tpn.CombinedTypesAnd flowNode, Yolo yolo)
+                {
+
+                    if (flowNode.And.Count == 0)
+                    {
+                        return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new AnyType());
+                    }
+
+                    var prim = flowNode.Primitive();
+
+                    if (prim.Is2(out var error))
+                    {
+                        return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(error);
+                    }
+
+                    if (prim.Is1OrThrow().Is(out var _))
+                    {
+                        throw new Exception("this should have been converted already");
+                    }
+
+
+                    if (yolo.Members.Is2(out var e4))
+                    {
+                        return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(e4);
+                    }
+                    var members = yolo.Members.Is1OrThrow();
+
+                    if (flowNode.VirtualInput().Is(out var inputOr))
+                    {
+                        if (inputOr.Is2(out var e2))
+                        {
+                            return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(e2);
+                        }
+                    }
+                    var input = inputOr?.Is1OrThrow();
+
+
+                    if (flowNode.VirtualOutput().Is(out var outputOr))
+                    {
+                        if (outputOr.Is2(out var e3))
+                        {
+                            return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(e3);
+                        }
+
+                    }
+                    var output = outputOr?.Is1OrThrow();
+
+                    if ((input != default || output != default) && members.Count > 1)
+                    {
+                        // this might be wrong
+                        // methods might end up with more than one member
+                        // input counts as a member but it is really something different
+                        // todo
+                        throw new Exception("so... this is a type and a method?!");
+                    }
+
+                    if (input != default && output != default)
+                    {
+                        // I don't think this is safe see:
+                        //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
+                        return
+                             OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
+                            new MethodType(
+                                SafeLookUp(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(input)),
+                                SafeLookUp(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(output))));
+                    }
+
+
+                    if (input != default)
+                    {
+                        // I don't think this is safe see:
+                        //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
+                        return
+                             OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
+                            new MethodType(
+                                SafeLookUp(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(input)),
+                                new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new EmptyType()))));
+                    }
+
+                    if (output != default)
+                    {
+                        // I don't think this is safe see:
+                        //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
+                        return
+                             OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
+                            new MethodType(
+                                new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new EmptyType())),
+                                SafeLookUp(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(output))));
+                    }
+
+                    // if it has members it must be a scope
+                    if (members.Any())
+                    {
+                        return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
+                            new HasMembersType(new WeakScope(members.Select(x => new WeakMemberDefinition(
+                                Model.Elements.Access.ReadWrite,
+                                x.Item1,
+                                x.Item2.SwitchReturns(
+                                    y => y.Type,
+                                    y =>(IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>) new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(y))))).ToList())));
+                    }
+
+                    return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(new AnyType());
+                }
+
 
 
                 flowNodeLookUp = flowNodes ?? throw new ArgumentNullException(nameof(flowNodes));
@@ -640,7 +838,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         if (v1.Scope.Is1(out var isScope))
                         {
                             WeakScope scopeValue = isScope.GetValue();
-                            if (!scopeValue.membersList.Any(z => z.GetValue().Key.Equals(key)))
+                            if (!scopeValue.membersList.Any(z => z.Key.Equals(key)))
                             {
 
                                 res = default;
@@ -648,7 +846,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                             else
                             {
-                                res = OrType.Make<WeakMemberDefinition, IError>(scopeValue.membersList.Single(z => z.GetValue().Key.Equals(key)).GetValue());
+                                res = OrType.Make<WeakMemberDefinition, IError>(scopeValue.membersList.Single(z => z.Key.Equals(key)));
                                 return true;
                             }
 
@@ -668,7 +866,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         if (v2.Scope.Is1(out var isScope))
                         {
                             WeakScope scopeValue = isScope.GetValue();
-                            if (!scopeValue.membersList.Any(z => z.GetValue().Key.Equals(key)))
+                            if (!scopeValue.membersList.Any(z => z.Key.Equals(key)))
                             {
 
                                 res = default;
@@ -676,7 +874,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                             else
                             {
-                                res = OrType.Make<WeakMemberDefinition, IError>(scopeValue.membersList.Single(z => z.GetValue().Key.Equals(key)).GetValue());
+                                res = OrType.Make<WeakMemberDefinition, IError>(scopeValue.membersList.Single(z => z.Key.Equals(key)));
                                 return true;
                             }
 
@@ -705,7 +903,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         if (v1.Scope.Is1(out var isScope))
                         {
                             WeakScope scopeValue = isScope.GetValue();
-                            if (!scopeValue.membersList.Any(z => z.GetValue().Key.Equals(key)))
+                            if (!scopeValue.membersList.Any(z => z.Key.Equals(key)))
                             {
 
                                 res = default;
@@ -713,7 +911,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                             else
                             {
-                                res = OrType.Make<WeakMemberDefinition, IError>(scopeValue.membersList.Single(z => z.GetValue().Key.Equals(key)).GetValue());
+                                res = OrType.Make<WeakMemberDefinition, IError>(scopeValue.membersList.Single(z => z.Key.Equals(key)));
                                 return true;
                             }
 
@@ -733,7 +931,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         if (v2.Scope.Is1(out var isScope))
                         {
                             WeakScope scopeValue = isScope.GetValue();
-                            if (!scopeValue.membersList.Any(z => z.GetValue().Key.Equals(key)))
+                            if (!scopeValue.membersList.Any(z => z.Key.Equals(key)))
                             {
 
                                 res = default;
@@ -741,7 +939,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                             else
                             {
-                                res = OrType.Make<WeakMemberDefinition, IError>(scopeValue.membersList.Single(z => z.GetValue().Key.Equals(key)).GetValue());
+                                res = OrType.Make<WeakMemberDefinition, IError>(scopeValue.membersList.Single(z => z.Key.Equals(key)));
                                 return true;
                             }
 
@@ -935,8 +1133,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public Scope(Dictionary<IKey, IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>> members)
             {
-                this.members = members?.ToDictionary(x=>x.Key, x=> new WeakMemberDefinition(Model.Elements.Access.ReadWrite, x.Key, new FuncBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(() => x.Value.GetValue()))) ?? throw new ArgumentNullException(nameof(members));
-                this.weakScope = new WeakScope(this.members.Select(x => (IBox<WeakMemberDefinition>)new Box<WeakMemberDefinition>(x.Value)).ToList());
+                this.members = members?.ToDictionary(x=>x.Key, x=> new WeakMemberDefinition(Model.Elements.Access.ReadWrite, x.Key, x.Value)) ?? throw new ArgumentNullException(nameof(members));
+                this.weakScope = new WeakScope(this.members.Select(x => x.Value).ToList());
             }
         }
     }

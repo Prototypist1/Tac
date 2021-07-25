@@ -181,23 +181,23 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
-            var m1t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m1"))).GetValue());
+            var m1t = MemberToType(obj.membersList.Single(x => x.Key.Equals(new NameKey("m1"))));
             HasMember(m1t, new NameKey("x"));
             DoesNotHaveMember(m1t, new NameKey("y"));
 
-            var m2t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m2"))).GetValue());
+            var m2t = MemberToType(obj.membersList.Single(x => x.Key.Equals(new NameKey("m2"))));
             DoesNotHaveMember(m2t, new NameKey("x"));
             HasMember(m2t, new NameKey("y"));
 
-            var m3t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m3"))).GetValue());
+            var m3t = MemberToType(obj.membersList.Single(x => x.Key.Equals(new NameKey("m3"))));
             DoesNotHaveMember(m3t, new NameKey("x"));
             DoesNotHaveMember(m3t, new NameKey("y"));
 
-            var m4t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m4"))).GetValue());
+            var m4t = MemberToType(obj.membersList.Single(x => x.Key.Equals(new NameKey("m4"))));
             DoesNotHaveMember(m4t, new NameKey("x"));
             DoesNotHaveMember(m4t, new NameKey("y"));
 
-            var m5t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m5"))).GetValue());
+            var m5t = MemberToType(obj.membersList.Single(x => x.Key.Equals(new NameKey("m5"))));
             DoesNotHaveMember(m5t, new NameKey("x"));
             DoesNotHaveMember(m5t, new NameKey("y"));
 
@@ -235,23 +235,23 @@ namespace Tac.Frontend.TypeProblem.Test
             var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
 
-            var m1t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m1"))).GetValue());
+            var m1t = MemberToType(obj.membersList.Single(x => x.Key.Equals(new NameKey("m1"))));
             HasMember(m1t, new NameKey("x"));
             HasMember(m1t, new NameKey("y"));
 
-            var m2t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m2"))).GetValue());
+            var m2t = MemberToType(obj.membersList.Single(x => x.Key.Equals(new NameKey("m2"))));
             HasMember(m2t, new NameKey("x"));
             HasMember(m2t, new NameKey("y"));
 
-            var m3t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m3"))).GetValue());
+            var m3t = MemberToType(obj.membersList.Single(x => x.Key.Equals(new NameKey("m3"))));
             HasMember(m3t, new NameKey("x"));
             HasMember(m3t, new NameKey("y"));
 
-            var m4t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m4"))).GetValue());
+            var m4t = MemberToType(obj.membersList.Single(x => x.Key.Equals(new NameKey("m4"))));
             HasMember(m4t, new NameKey("x"));
             DoesNotHaveMember(m4t, new NameKey("y"));
 
-            var m5t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m5"))).GetValue());
+            var m5t = MemberToType(obj.membersList.Single(x => x.Key.Equals(new NameKey("m5"))));
             DoesNotHaveMember(m5t, new NameKey("x"));
             HasMember(m5t, new NameKey("y"));
 
@@ -281,11 +281,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
 
 
-            var m1t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m1"))).GetValue());
+            var m1t = MemberToType(obj.membersList.Single(x => x.Key.Equals(new NameKey("m1"))));
             HasMember(m1t, new NameKey("x"));
             HasMember(m1t, new NameKey("y"));
 
-            var m2t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m2"))).GetValue());
+            var m2t = MemberToType(obj.membersList.Single(x => x.Key.Equals(new NameKey("m2"))));
             HasMember(m2t, new NameKey("x"));
             HasMember(m2t, new NameKey("y"));
 
@@ -313,7 +313,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
 
 
-            var m2t = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("m2"))).GetValue());
+            var m2t = MemberToType(obj.membersList.Single(x => x.Key.Equals(new NameKey("m2"))));
             var x1t = HasMember(m2t, new NameKey("x1"));
             var x2t = HasMember(x1t, new NameKey("x2"));
             HasMember(x2t, new NameKey("x3"));
@@ -348,7 +348,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
 
-            var chickenPairResult = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("x"))).GetValue();
+            var chickenPairResult = obj.membersList.Single(x => x.Key.Equals(new NameKey("x")));
 
             var chickePairResultType = MemberToType(chickenPairResult);
 
@@ -395,7 +395,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
 
-            var thingResult = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("thing"))).GetValue();
+            var thingResult = obj.membersList.Single(x => x.Key.Equals(new NameKey("thing")));
             var thingResultType = MemberToType(thingResult);
 
             //HasCount(1, thingResultType);
@@ -446,7 +446,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var solution = x.Solve();
             var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
-            var thingResult = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("thing"))).GetValue();
+            var thingResult = obj.membersList.Single(x => x.Key.Equals(new NameKey("thing")));
             var thingResultType = MemberToType(thingResult);
 
             var nextResult = HasMember(thingResultType, new NameKey("next"));
@@ -454,7 +454,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             Equal(thingResultType, nextResult);
 
-            var xMemberResult = MemberToType(obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("x"))).GetValue());
+            var xMemberResult = MemberToType(obj.membersList.Single(x => x.Key.Equals(new NameKey("x"))));
             for (int i = 0; i < 100; i++)
             {
                 xMemberResult = HasMember(xMemberResult, new NameKey("next"));
@@ -511,8 +511,8 @@ namespace Tac.Frontend.TypeProblem.Test
             var solution = x.Solve();
             var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
-            var leftResult = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("left-member"))).GetValue();
-            var rightResult = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("right-member"))).GetValue();
+            var leftResult = obj.membersList.Single(x => x.Key.Equals(new NameKey("left-member")));
+            var rightResult = obj.membersList.Single(x => x.Key.Equals(new NameKey("right-member")));
 
             var leftResultType = MemberToType(leftResult);
             var rightResultType = MemberToType(rightResult);
@@ -560,7 +560,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var solution = x.Solve();
             var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
-            var xMemberResult = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("x"))).GetValue();
+            var xMemberResult = obj.membersList.Single(x => x.Key.Equals(new NameKey("x")));
             var xMemberResultType = MemberToType(xMemberResult);
             //HasCount(1, xMemberResultType);
             var xMemberResultX = HasMember(xMemberResultType, new NameKey("x"));
@@ -670,7 +670,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var solution = x.Solve();
             var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
-            var member = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("c"))).GetValue();
+            var member = obj.membersList.Single(x => x.Key.Equals(new NameKey("c")));
 
             HasMember(member.Type.GetValue().Is1OrThrow(), new NameKey("x"));
         }
@@ -709,7 +709,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var solution = x.Solve();
             var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
-            var cType = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("c"))).GetValue().Type.GetValue().Is1OrThrow();
+            var cType = obj.membersList.Single(x => x.Key.Equals(new NameKey("c"))).Type.GetValue().Is1OrThrow();
 
             var cOrType = Assert.IsType<FrontEndOrType>(cType);
 
@@ -753,7 +753,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var solution = x.Solve();
             var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
-            var cType = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("c"))).GetValue().Type.GetValue().Is1OrThrow();
+            var cType = obj.membersList.Single(x => x.Key.Equals(new NameKey("c"))).Type.GetValue().Is1OrThrow();
 
             Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(cType);
 
@@ -826,43 +826,43 @@ namespace Tac.Frontend.TypeProblem.Test
             var solution = x.Solve();
             var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
-            var cTypeResult = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("c"))).GetValue().Type.GetValue().Is1OrThrow();
+            var cTypeResult = obj.membersList.Single(x => x.Key.Equals(new NameKey("c"))).Type.GetValue().Is1OrThrow();
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
-                new List<IBox<WeakMemberDefinition>> {
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite,new NameKey("x"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite,new NameKey("y"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite,new NameKey("z"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
+                new List<WeakMemberDefinition> {
+                    new WeakMemberDefinition(Access.ReadWrite,new NameKey("x"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))),
+                    new WeakMemberDefinition(Access.ReadWrite,new NameKey("y"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))),
+                    new WeakMemberDefinition(Access.ReadWrite,new NameKey("z"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))
                 })), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
-                new List<IBox<WeakMemberDefinition>> {
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite,new NameKey("x"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite,new NameKey("y"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite,new NameKey("w"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
+                new List<WeakMemberDefinition>{
+                    new WeakMemberDefinition(Access.ReadWrite,new NameKey("x"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))),
+                    new WeakMemberDefinition(Access.ReadWrite,new NameKey("y"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))),
+                    new WeakMemberDefinition(Access.ReadWrite,new NameKey("w"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))
                 })),
                 new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
-                new List<IBox<WeakMemberDefinition>> {
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite,new NameKey("z"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite,new NameKey("w"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite,new NameKey("x"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
+                new List<WeakMemberDefinition> {
+                    new WeakMemberDefinition(Access.ReadWrite,new NameKey("z"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))),
+                    new WeakMemberDefinition(Access.ReadWrite,new NameKey("w"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))),
+                    new WeakMemberDefinition(Access.ReadWrite,new NameKey("x"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))
                 }
                 )),
                 new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
-                new List<IBox<WeakMemberDefinition>> {
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite,new NameKey("z"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite,new NameKey("w"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite,new NameKey("y"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
+                new List<WeakMemberDefinition> {
+                    new WeakMemberDefinition(Access.ReadWrite,new NameKey("z"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))),
+                    new WeakMemberDefinition(Access.ReadWrite,new NameKey("w"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))),
+                    new WeakMemberDefinition(Access.ReadWrite,new NameKey("y"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))
                 }
                 )),
                 new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
 
             Assert.False(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
-                new List<IBox<WeakMemberDefinition>> { }
+                new List<WeakMemberDefinition> { }
                 )), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
 
         }
@@ -922,26 +922,26 @@ namespace Tac.Frontend.TypeProblem.Test
             var solution = x.Solve();
             var obj = solution.GetObject(x.ModuleRoot).GetValue().Is2OrThrow().Scope.Is1OrThrow().GetValue();
 
-            var cTypeResult = obj.membersList.Single(x => x.GetValue().Key.Equals(new NameKey("c"))).GetValue().Type.GetValue().Is1OrThrow();
+            var cTypeResult = obj.membersList.Single(x => x.Key.Equals(new NameKey("c"))).Type.GetValue().Is1OrThrow();
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
-                new List<IBox<WeakMemberDefinition>> {
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite,new NameKey("x"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite,new NameKey("y"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite,new NameKey("z"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
+                new List<WeakMemberDefinition> {
+                    new WeakMemberDefinition(Access.ReadWrite,new NameKey("x"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))),
+                    new WeakMemberDefinition(Access.ReadWrite,new NameKey("y"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))),
+                    new WeakMemberDefinition(Access.ReadWrite,new NameKey("z"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))
                 })),
                 new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
 
             Assert.True(cTypeResult.TheyAreUs(new HasMembersType(new WeakScope(
-                new List<IBox<WeakMemberDefinition>> {
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite,new NameKey("w"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite,new NameKey("x"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))),
-                    new Box<WeakMemberDefinition>(new WeakMemberDefinition(Access.ReadWrite,new NameKey("z"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))))
+                new List<WeakMemberDefinition> {
+                    new WeakMemberDefinition(Access.ReadWrite,new NameKey("w"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))),
+                    new WeakMemberDefinition(Access.ReadWrite,new NameKey("x"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))),
+                   new WeakMemberDefinition(Access.ReadWrite,new NameKey("z"),new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>( new Tac.SyntaxModel.Elements.AtomicTypes.AnyType())))
                 })),
                 new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
 
             Assert.False(cTypeResult.TheyAreUs(
-                new HasMembersType(new WeakScope(new List<IBox<WeakMemberDefinition>> { })),
+                new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { })),
                 new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
 
         }

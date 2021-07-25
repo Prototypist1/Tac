@@ -124,6 +124,7 @@ namespace Tac.SemanticModel
             }
         }
 
+        public IReadOnlyList<WeakMemberDefinition> GetMembers() => Array.Empty<WeakMemberDefinition>();
     }
 
     internal static class TypeReferenceStatic

@@ -10,9 +10,9 @@ namespace Tac.Frontend
 {
     internal class WeakScope : IConvertable<IFinalizedScope>
     {
-        public readonly List<IBox<WeakMemberDefinition>> membersList;
+        public readonly List<WeakMemberDefinition> membersList;
 
-        public WeakScope(List<IBox<WeakMemberDefinition>> membersList)
+        public WeakScope(List<WeakMemberDefinition> membersList)
         {
             this.membersList = membersList;
         }
@@ -21,13 +21,13 @@ namespace Tac.Frontend
         {
             var scope = new Tac.Model.Instantiated.Scope();
             return new BuildIntention<Model.Instantiated.Scope>(scope, () => {
-                scope.Build(membersList.Select(x=>new IsStatic(x.GetValue().Convert(context),false)).ToArray());
+                scope.Build(membersList.Select(x=>new IsStatic(x.Convert(context),false)).ToArray());
              });
         }
 
         internal IEnumerable<IError> Validate()
         {
-            return membersList.SelectMany(x => x.GetValue().Validate());
+            return membersList.SelectMany(x => x.Validate());
         }
     }
 }
