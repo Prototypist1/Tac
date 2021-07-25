@@ -65,11 +65,9 @@ namespace Tac.Frontend.Test
 
         private IFrontendType<IVerifiableType> B3()
         {
-            var member1Key = new NameKey("bm1");
-            var member1 = new WeakMemberDefinition(Access.ReadWrite, member1Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType())));
+            var member1 = new WeakMemberDefinition(Access.ReadWrite, new NameKey("bm1"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType())));
 
-            var member2Key = new NameKey("bm2");
-            var member2 = new WeakMemberDefinition(Access.ReadWrite, member2Key, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType())));
+            var member2 = new WeakMemberDefinition(Access.ReadWrite, new NameKey("bm2"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType())));
 
 
             var member3Key = new NameKey("bm3");
@@ -135,7 +133,12 @@ namespace Tac.Frontend.Test
         public void OrTypesWork()
         {
 
-            var or = new FrontEndOrType(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType()), OrType.Make<IFrontendType<IVerifiableType>, IError>(new StringType()));
+            var or = new FrontEndOrType(
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>> (OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType())),
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new StringType())),
+                OrType.Make<IReadOnlyList<WeakMemberDefinition>, IError>(Array.Empty<WeakMemberDefinition>()),
+                Possibly.IsNot < IBox < IOrType<IFrontendType<IVerifiableType>, IError> >>(),
+                Possibly.IsNot < IBox < IOrType<IFrontendType<IVerifiableType>, IError> >>());
 
             Assert.True(or.TheyAreUs(new NumberType(), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
             Assert.True(or.TheyAreUs(new StringType(), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
@@ -153,8 +156,20 @@ namespace Tac.Frontend.Test
             var b1 = B1();
             var b2 = B2();
 
-            var or1 = new FrontEndOrType(OrType.Make<IFrontendType<IVerifiableType>, IError>(a1), OrType.Make<IFrontendType<IVerifiableType>, IError>(b1));
-            var or2 = new FrontEndOrType(OrType.Make<IFrontendType<IVerifiableType>, IError>(a2), OrType.Make<IFrontendType<IVerifiableType>, IError>(b2));
+            var or1 = new FrontEndOrType(
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(a1)),
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(b1)),
+                OrType.Make<IReadOnlyList<WeakMemberDefinition>, IError>(Array.Empty<WeakMemberDefinition>()),
+                Possibly.IsNot<IBox<IOrType<IFrontendType<IVerifiableType>, IError>>>(),
+                Possibly.IsNot<IBox<IOrType<IFrontendType<IVerifiableType>, IError>>>()
+                );
+            var or2 = new FrontEndOrType(
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(a2)),
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(b2)),
+                OrType.Make<IReadOnlyList<WeakMemberDefinition>, IError>(Array.Empty<WeakMemberDefinition>()),
+                Possibly.IsNot<IBox<IOrType<IFrontendType<IVerifiableType>, IError>>>(),
+                Possibly.IsNot<IBox<IOrType<IFrontendType<IVerifiableType>, IError>>>()
+                );
 
             Assert.True(or1.TheyAreUs(or2, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
             Assert.False(or2.TheyAreUs(or1, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
@@ -168,8 +183,21 @@ namespace Tac.Frontend.Test
             var b2 = B2();
             var b3 = B3();
 
-            var or1 = new FrontEndOrType(OrType.Make<IFrontendType<IVerifiableType>, IError>(a1), OrType.Make<IFrontendType<IVerifiableType>, IError>(b1));
-            var or2 = new FrontEndOrType(OrType.Make<IFrontendType<IVerifiableType>, IError>(b2), OrType.Make<IFrontendType<IVerifiableType>, IError>(b3));
+            var or1 = new FrontEndOrType(
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(a1)), 
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(b1)),
+                OrType.Make<IReadOnlyList<WeakMemberDefinition>, IError>(Array.Empty<WeakMemberDefinition>()),
+                Possibly.IsNot<IBox<IOrType<IFrontendType<IVerifiableType>, IError>>>(),
+                Possibly.IsNot<IBox<IOrType<IFrontendType<IVerifiableType>, IError>>>());
+            var or2 = new FrontEndOrType(
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(b2)), 
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(b3)),
+                OrType.Make<IReadOnlyList<WeakMemberDefinition>, IError>(new List<WeakMemberDefinition> {
+                    new WeakMemberDefinition(Access.ReadWrite, new NameKey("bm1"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType()))),
+                    new WeakMemberDefinition(Access.ReadWrite, new NameKey("bm2"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new NumberType())))
+                }),
+                Possibly.IsNot<IBox<IOrType<IFrontendType<IVerifiableType>, IError>>>(),
+                Possibly.IsNot<IBox<IOrType<IFrontendType<IVerifiableType>, IError>>>());
 
             // this works since both b2 and b3 are b1
             Assert.True(or1.TheyAreUs(or2, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
@@ -183,8 +211,20 @@ namespace Tac.Frontend.Test
             var a1 = A1();
             var b1 = B1();
 
-            var or1 = new FrontEndOrType(OrType.Make<IFrontendType<IVerifiableType>, IError>(a1), OrType.Make<IFrontendType<IVerifiableType>, IError>(b1));
-            var or2 = new FrontEndOrType(OrType.Make<IFrontendType<IVerifiableType>, IError>(b1), OrType.Make<IFrontendType<IVerifiableType>, IError>(a1));
+            var or1 = new FrontEndOrType(
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(a1)),
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(b1)),
+                OrType.Make<IReadOnlyList<WeakMemberDefinition>, IError>(Array.Empty<WeakMemberDefinition>()),
+                Possibly.IsNot<IBox<IOrType<IFrontendType<IVerifiableType>, IError>>>(),
+                Possibly.IsNot<IBox<IOrType<IFrontendType<IVerifiableType>, IError>>>()
+                );
+            var or2 = new FrontEndOrType(
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(b1)),
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(a1)),
+                OrType.Make<IReadOnlyList<WeakMemberDefinition>, IError>(Array.Empty<WeakMemberDefinition>()),
+                Possibly.IsNot<IBox<IOrType<IFrontendType<IVerifiableType>, IError>>>(),
+                Possibly.IsNot<IBox<IOrType<IFrontendType<IVerifiableType>, IError>>>()
+                );
 
             Assert.True(or1.TheyAreUs(or2, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
             Assert.True(or2.TheyAreUs(or1, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
@@ -361,8 +401,20 @@ namespace Tac.Frontend.Test
             var t2 = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> {
                 new WeakMemberDefinition(Access.ReadWrite, new NameKey("a"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(a2))),
                 new WeakMemberDefinition(Access.ReadWrite, new NameKey("b"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(b2)))}));
-            var or1 = new FrontEndOrType(OrType.Make<IFrontendType<IVerifiableType>, IError>(a1), OrType.Make<IFrontendType<IVerifiableType>, IError>(b1));
-            var or2 = new FrontEndOrType(OrType.Make<IFrontendType<IVerifiableType>, IError>(b1), OrType.Make<IFrontendType<IVerifiableType>, IError>(a1));
+            var or1 = new FrontEndOrType(
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(a1)),
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(b1)),
+                OrType.Make<IReadOnlyList<WeakMemberDefinition>, IError>(Array.Empty<WeakMemberDefinition>()),
+                Possibly.IsNot<IBox<IOrType<IFrontendType<IVerifiableType>, IError>>>(),
+                Possibly.IsNot<IBox<IOrType<IFrontendType<IVerifiableType>, IError>>>()
+                );
+            var or2 = new FrontEndOrType(
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(b1)),
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(a1)),
+                OrType.Make<IReadOnlyList<WeakMemberDefinition>, IError>(Array.Empty<WeakMemberDefinition>()),
+                Possibly.IsNot<IBox<IOrType<IFrontendType<IVerifiableType>, IError>>>(),
+                Possibly.IsNot<IBox<IOrType<IFrontendType<IVerifiableType>, IError>>>()
+                );
 
             var any = new AnyType();
 

@@ -228,7 +228,7 @@ namespace Tac.SemanticModel
 
         public IBox<IFrontendType<IVerifiableType>> Run(Tpn.TypeSolution context)
         {
-            return new FuncBox<IFrontendType<IVerifiableType>>(()=> context.GetType(type).GetValue().Is1OrThrow());
+            return new FuncBox<IFrontendType<IVerifiableType>>(()=> context.GetType(type).Is1OrThrow());
         }
     }
 

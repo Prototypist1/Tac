@@ -84,14 +84,14 @@ namespace Tac.SemanticModel
     // it is certaianly true at somepoint we will need a flattened list 
     internal class WeakMemberDefinition : IConvertable<IMemberDefinition>, IValidate, IReturn
     {
-        public WeakMemberDefinition(Access access, IKey key, IOrType<IFrontendType<IVerifiableType>, IError> type)
+        public WeakMemberDefinition(Access access, IKey key,IBox< IOrType<IFrontendType<IVerifiableType>, IError>> type)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             Access = access;
             Key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public IOrType<IFrontendType<IVerifiableType>, IError> Type { get; }
+        public IBox<IOrType<IFrontendType<IVerifiableType>, IError>> Type { get; }
         public Access Access { get; }
         public IKey Key { get; }
 
@@ -107,19 +107,19 @@ namespace Tac.SemanticModel
             {
                 maker.Build(
                     Key,
-                    Type.Is1OrThrow().Convert(context),
+                    Type.GetValue().Is1OrThrow().Convert(context),
                     Access);
             });
         }
 
         public IOrType<IFrontendType<IVerifiableType>, IError> Returns()
         {
-            return OrType.Make<IFrontendType<IVerifiableType>, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.RefType(Type.TransformInner(x => x)));
+            return OrType.Make<IFrontendType<IVerifiableType>, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.RefType(Type.GetValue().TransformInner(x => x)));
         }
 
         public IEnumerable<IError> Validate()
         {
-            foreach (var error in Type.SwitchReturns(x => x.Validate(), x => new[] { x }))
+            foreach (var error in Type.GetValue().SwitchReturns(x => x.Validate(), x => new[] { x }))
             {
                 yield return error;
             }
@@ -198,7 +198,7 @@ namespace Tac.SemanticModel
             var type = this.type.Run(scope, context.CreateChildContext(this));
 
 
-            var member = context.TypeProblem.CreateMember(scope, memberName, type.SetUpSideNode.TransformInner(x => x.Key()), new WeakMemberDefinitionConverter(access, memberName));
+            var member = context.TypeProblem.CreateMember(scope, memberName, type.SetUpSideNode.TransformInner(x => x.Key()));
 
 
             return new SetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>(new MemberDefinitionResolveReferance(

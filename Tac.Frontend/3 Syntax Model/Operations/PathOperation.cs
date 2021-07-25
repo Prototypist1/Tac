@@ -159,8 +159,7 @@ namespace Tac.SemanticModel.Operations
                             val = value;
                             return OrType.Make<Tpn.TypeProblem2.Member, IError>(context.TypeProblem.CreateHopefulMember(
                                 value,
-                                new NameKey(actualName),
-                                new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey(actualName))));
+                                new NameKey(actualName)));
                         }
                         else
                         {

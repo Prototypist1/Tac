@@ -60,19 +60,18 @@ namespace Tac.Frontend
                         var innerType = ConvertType(prob.builder, type, OrType.Make<IVerifiableType, IError>(memberPair.Type));
                         innerType.Switch(x =>
                         {
-                            prob.builder.CreatePublicMember(type, type, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(Access.ReadOnly, memberPair.Key));
+                            prob.builder.CreatePublicMember(type, type, memberPair.Key, OrType.Make<IKey, IError>(x));
                         }, y =>
                         {
-                            prob.builder.CreatePublicMember(type, memberPair.Key, y, new WeakMemberDefinitionConverter(Access.ReadOnly, memberPair.Key));
+                            prob.builder.CreatePublicMember(type, memberPair.Key, y);
                         });
                     }
-                    prob.builder.CreatePrivateMember(prob.Dependency, dependency.Key, OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(type), new WeakMemberDefinitionConverter(Access.ReadOnly, dependency.Key));
+                    prob.builder.CreatePrivateMember(prob.Dependency, dependency.Key, OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(type));
 
                     soonToBeAssemblies.Add((solution, context) =>
                     {
-                        var explicitType = solution.GetExplicitType(type);
-
-                        var interfaceType = explicitType.GetValue().SwitchReturns(
+                        
+                        var interfaceType = type.Converter.Convert(solution, type).SwitchReturns(
                            x => x.Convert(context),
                            x => throw new NotImplementedException("I don't think a dependency could be a generic type. If it happens for some reason I'll worry about it then"),
                            x => throw new NotImplementedException("I don't think a dependency could be a primitive type."));
@@ -90,9 +89,7 @@ namespace Tac.Frontend
 
             var rootScope = referanceResolver.Run(solution).GetValue();
 
-            //var moduleDefinition = solution.GetObject(problem.ModuleRoot).GetValue().Is2OrThrow();
-
-            var dependencyScope = solution.GetScope(problem.Dependency).GetValue().Is2OrThrow();
+            var dependencyScope = problem.Dependency.Converter.Convert(solution, problem.Dependency).Is2OrThrow();
 
 
             var context = TransformerExtensions.NewConversionContext();
@@ -150,10 +147,10 @@ namespace Tac.Frontend
                         var innerType = ConvertType(problem, tpnType, OrType.Make<IVerifiableType, IError>(memberPair.Type));
                         innerType.Switch(x =>
                         {
-                            problem.CreatePublicMember(tpnType, tpnType, memberPair.Key, OrType.Make<IKey, IError>(x), new WeakMemberDefinitionConverter(Access.ReadOnly, memberPair.Key));
+                            problem.CreatePublicMember(tpnType, tpnType, memberPair.Key, OrType.Make<IKey, IError>(x));
                         }, y =>
                         {
-                            problem.CreatePublicMember(tpnType, memberPair.Key, y, new WeakMemberDefinitionConverter(Access.ReadOnly, memberPair.Key));
+                            problem.CreatePublicMember(tpnType, memberPair.Key, y);
                         });
                     }
                     return OrType.Make<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>>(orType);

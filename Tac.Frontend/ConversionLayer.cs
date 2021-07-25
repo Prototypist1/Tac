@@ -146,25 +146,25 @@ namespace Tac.Frontend
 
     }
 
-    internal class WeakMemberDefinitionConverter : Tpn.IConvertTo<IOrType<Tpn.IVirtualFlowNode, IError>, WeakMemberDefinition>
-    {
-        private readonly Access access;
-        private readonly IKey nameKey;
-        private readonly Tpn.IHavePrivateMembers havePrivateMembers;
+    //internal class WeakMemberDefinitionConverter : Tpn.IConvertTo<IOrType<Tpn.IVirtualFlowNode, IError>, WeakMemberDefinition>
+    //{
+    //    private readonly Access access;
+    //    private readonly IKey nameKey;
+    //    private readonly Tpn.IHavePrivateMembers havePrivateMembers;
 
-        public WeakMemberDefinitionConverter(Access access, IKey nameKey, Tpn.IHavePrivateMembers havePrivateMembers)
-        {
-            this.access = access;
-            this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
-            this.havePrivateMembers = havePrivateMembers;
-        }
+    //    public WeakMemberDefinitionConverter(Access access, IKey nameKey, Tpn.IHavePrivateMembers havePrivateMembers)
+    //    {
+    //        this.access = access;
+    //        this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
+    //        this.havePrivateMembers = havePrivateMembers;
+    //    }
 
-        public WeakMemberDefinition Convert(Tpn.TypeSolution typeSolution, IOrType< Tpn.IVirtualFlowNode, IError> from)
-        {
-            return typeSolution.GetWeakScope(havePrivateMembers).membersList.Single(x => x.Key.Equals(nameKey));
-            //return new WeakMemberDefinition(access, nameKey, typeSolution.GetType(from));
-        }
-    }
+    //    public WeakMemberDefinition Convert(Tpn.TypeSolution typeSolution, IOrType< Tpn.IVirtualFlowNode, IError> from)
+    //    {
+    //        return typeSolution.GetWeakScope(havePrivateMembers).membersList.Single(x => x.Key.Equals(nameKey));
+    //        //return new WeakMemberDefinition(access, nameKey, typeSolution.GetType(from));
+    //    }
+    //}
 
     internal class WeakTypeReferenceConverter : Tpn.IConvertTo<Tpn.TypeProblem2.TypeReference, IFrontendType<IVerifiableType>>
     {
@@ -207,7 +207,7 @@ namespace Tac.Frontend
             return OrType.Make<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>(
                 new WeakBlockDefinition(
                     body,
-                    OrType.Make<IBox<WeakScope>, IError>(new Box<WeakScope>(typeSolution.GetWeakScope(from))),
+                    OrType.Make<WeakScope, IError>(typeSolution.GetWeakScope(from)),
                     Array.Empty<IIsPossibly<IFrontendCodeElement>>()));
         }
     }

@@ -56,9 +56,9 @@ namespace Tac.SemanticModel
             StaticInitialzers = staticInitializers ?? throw new ArgumentNullException(nameof(staticInitializers));
 
             type = OrType.Make<IFrontendType<IVerifiableType>, IError>(SyntaxModel.Elements.AtomicTypes.MethodType.ImplementationType(
-                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(ParameterDefinition.Type),
+                ParameterDefinition.Type,
                 new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OutputType),
-                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(ContextDefinition.Type)));
+                ContextDefinition.Type));
         }
 
         public IOrType<IFrontendType<IVerifiableType>, IError> OutputType { get; }
@@ -250,10 +250,7 @@ namespace Tac.SemanticModel
                 contextName, 
                 new WeakImplementationDefinitionConverter(
                     new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>(Array.Empty<IOrType<IBox<IFrontendCodeElement>,IError>>()), 
-                    innerBox), 
-                new WeakMemberDefinitionConverter(
-                    Access.ReadWrite, 
-                    new NameKey(parameterName)));
+                    innerBox));
 
             var inner = context.TypeProblem.CreateMethod(
                 outer, 
@@ -261,10 +258,7 @@ namespace Tac.SemanticModel
                 realizedOutput.SetUpSideNode, 
                 parameterName, 
                 new WeakMethodDefinitionConverter(
-                    linesBox), 
-                new WeakMemberDefinitionConverter(
-                    Access.ReadWrite, 
-                    new NameKey(parameterName)));
+                    linesBox));
 
             innerBox.Fill(inner);
             var nextElements = elements.Select(y => y.TransformInner(x => x.Run(inner, context.CreateChildContext(this)).Resolve)).ToArray();

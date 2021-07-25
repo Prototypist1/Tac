@@ -85,9 +85,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //    return HopefulMembers;
                 //}
             }
-            public class Member : TypeProblemNode<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition>, IMember
+            public class Member : TypeProblemNode, IMember
             {
-                public Member(Builder problem, string debugName, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter) : base(problem, debugName, converter)
+                public Member(Builder problem, string debugName) : base(problem, debugName)
                 {
                 }
 
@@ -1599,7 +1599,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var member in innerFromPublicMembers.PublicMembers)
                             {
-                                var newValue = Copy(member.Value, new Member(this.builder, $"copied from {((TypeProblemNode)member.Value).DebugName}", member.Value.Converter));
+                                var newValue = Copy(member.Value, new Member(this.builder, $"copied from {((TypeProblemNode)member.Value).DebugName}"));
                                 Builder.HasPublicMember(innerToPublicMembers, member.Key, newValue);
                             }
                         }
@@ -1627,7 +1627,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var member in innerFromScope.PrivateMembers)
                             {
-                                var newValue = Copy(member.Value, new Member(this.builder, $"copied from {((TypeProblemNode)member.Value).DebugName}", member.Value.Converter));
+                                var newValue = Copy(member.Value, new Member(this.builder, $"copied from {((TypeProblemNode)member.Value).DebugName}"));
                                 Builder.HasPrivateMember(innerScopeTo, member.Key, newValue);
                             }
                         }
@@ -1635,7 +1635,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var possible in innerFromScope.PossibleMembers)
                             {
-                                Builder.HasMembersPossiblyOnParent(innerScopeTo, possible.Key, ()=> Copy(possible.Value, new Member(this.builder, $"copied from {((TypeProblemNode)possible.Value).DebugName}", possible.Value.Converter)));
+                                Builder.HasMembersPossiblyOnParent(innerScopeTo, possible.Key, ()=> Copy(possible.Value, new Member(this.builder, $"copied from {((TypeProblemNode)possible.Value).DebugName}")));
                             }
                         }
                     }
@@ -1862,7 +1862,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 var methodInputKey = new NameKey("method type input" + Guid.NewGuid());
                 // here it is ok for these to be members because we are using a method type
-                res.Input = Possibly.Is(builder.CreatePrivateMember(res, res, methodInputKey, Prototypist.Toolbox.OrType.Make<IKey, IError>(new NameKey("T1")), new WeakMemberDefinitionConverter(Model.Elements.Access.ReadWrite, methodInputKey)));
+                res.Input = Possibly.Is(builder.CreatePrivateMember(res, res, methodInputKey, Prototypist.Toolbox.OrType.Make<IKey, IError>(new NameKey("T1"))));
                 res.Returns = Possibly.Is(builder.CreateTransientMember(res, new NameKey("T2"), $"return of {res.DebugName} "));
                 builder.IsChildOf(Primitive, res);
 

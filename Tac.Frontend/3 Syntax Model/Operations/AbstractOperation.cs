@@ -466,7 +466,7 @@ namespace Tac.SemanticModel.CodeStuff
             //    new BoxThenOr(left.Run(context)),
             //    new BoxThenOr(right.Run(context)));
 
-            return new BoxThenOr(context.GetType(type));
+            return new Box<IFrontendType<IVerifiableType>>( context.GetType(type).Is1OrThrow());
         }
     }
 

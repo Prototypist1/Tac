@@ -130,6 +130,9 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
+        // I am passing stuff around that could be calcuated
+        // but I do that because it is calcuated at the start of things
+        // and then flows through
         public static ITypeOr CreateAndBuild(IVerifiableType left, IVerifiableType right, IMemberDefinition[] members, IIsPossibly<IVerifiableType> input, IIsPossibly<IVerifiableType> output)
         {
             var res = new TypeOr();

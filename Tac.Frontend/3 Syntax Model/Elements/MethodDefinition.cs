@@ -50,12 +50,12 @@ namespace Tac.SemanticModel
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
             type = OrType.Make<SyntaxModel.Elements.AtomicTypes.MethodType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.MethodType(
-                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(InputType),
+                InputType,
                 new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OutputType)
                 ));
         }
 
-        public IOrType<IFrontendType<IVerifiableType>, IError> InputType => ParameterDefinition.Type;
+        public IBox<IOrType<IFrontendType<IVerifiableType>, IError>> InputType => ParameterDefinition.Type;
         public IOrType<IFrontendType<IVerifiableType>, IError> OutputType { get; }
         public WeakMemberDefinition ParameterDefinition { get; }
 
@@ -170,7 +170,7 @@ namespace Tac.SemanticModel
 
             var box = new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>();
             var converter = new WeakMethodDefinitionConverter(box);
-            var method = context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, new WeakMemberDefinitionConverter(Access.ReadWrite, new NameKey(parameterName)));
+            var method = context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter);
 
             var nextElements = elements.Select(x => x.TransformInner(y => y.Run(method, context.CreateChildContext(this)).Resolve)).ToArray();
 

@@ -53,11 +53,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                     throw new ArgumentNullException(nameof(things));
                 }
 
-
-                // from the top then.
-                // because rewriting is a better idea than understnading what is currently going on
-                // bad ideas after bad ideas...
-
                 this.flowNodes = flowNodes ?? throw new ArgumentNullException(nameof(flowNodes));
 
 
@@ -631,7 +626,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-
             // has a related method
             // {7737F6C2-0328-477B-900B-2E6C44AEF6D3}
 
@@ -1181,24 +1175,78 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             internal WeakScope GetWeakScope(Tpn.IHavePrivateMembers from)=>
                 nonTypeScopes.GetOrAdd(from, () =>
-                    new WeakScope(from.PrivateMembers.Select(x => new WeakMemberDefinition(Model.Elements.Access.ReadWrite, x.Key, GetType(x.Value))).ToList()));    
-            
+                    new WeakScope(from.PrivateMembers.Select(x => new WeakMemberDefinition(Model.Elements.Access.ReadWrite, x.Key, new Box<IOrType< IFrontendType<Model.Elements.IVerifiableType>, IError>>( GetType(x.Value)))).ToList()));
 
+            internal bool TryGetMember(IStaticScope scope, IKey key, out IOrType<WeakMemberDefinition, IError> res)
+            {
+                if (flowNodes.TryGetValue(OrType.Make<ITypeProblemNode, IError>(scope), out var flowNode)) {
+                    var rep = flowNode.GetValueAs(out IVirtualFlowNode _).ToRep();
+                    if (rep.Is1(out var combinedTypesAnds)) {
+                        var type = cache[combinedTypesAnds].type.GetValue();
+                        if (type.Is1(out var reallyType))
+                        {
+                            var maybeMember = reallyType.TryGetMember(key, new List<(IFrontendType<Model.Elements.IVerifiableType>, IFrontendType<Model.Elements.IVerifiableType>)>());
+
+                            if (maybeMember.Is1(out var member)) {
+                                res = member;
+                                return true;
+                            } else if (maybeMember.Is2(out var _)) {
+                                res = default;
+                                return false;
+                            }
+                            else
+                            {
+                                res = OrType.Make<WeakMemberDefinition, IError>(maybeMember.Is3OrThrow());
+                                return true;
+                            }
+
+                        }
+                        else {
+                            res = OrType.Make<WeakMemberDefinition, IError>(type.Is2OrThrow());
+                            return true;
+                        }
+                    } else {
+                        res = OrType.Make<WeakMemberDefinition, IError>(rep.Is2OrThrow());
+                        return true;
+                    }
+                }
+
+
+                if (scope is Tpn.IHavePrivateMembers privateMembers) {
+                    var matches = GetWeakScope(privateMembers).membersList.Where(x => x.Key.Equals(key)).ToArray();
+
+                    if (matches.Length > 1) {
+                        throw new Exception("that's not right");
+                    }
+
+                    if (matches.Length == 0) {
+                        res = default;
+                        return false;
+                    }
+
+                    res = OrType.Make < WeakMemberDefinition, IError > (matches.First());
+                    return true;
+                }
+
+
+                // should pass in an more descritive type so I don't end up with this weird exception
+                throw new Exception("I... don't think it should get here.");
+            }
 
             // I am thinking maybe the conversion layer is where we should protect against something being converted twice
             // everything can set a box on the first pass
             // and return the box on the next passes
         }
 
-        private class Scope {
-            public readonly Dictionary<IKey, WeakMemberDefinition> members;
-            public readonly WeakScope weakScope;
+        //private class Scope {
+        //    public readonly Dictionary<IKey, WeakMemberDefinition> members;
+        //    public readonly WeakScope weakScope;
 
-            public Scope(Dictionary<IKey, IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>> members)
-            {
-                this.members = members?.ToDictionary(x=>x.Key, x=> new WeakMemberDefinition(Model.Elements.Access.ReadWrite, x.Key, x.Value)) ?? throw new ArgumentNullException(nameof(members));
-                this.weakScope = new WeakScope(this.members.Select(x => x.Value).ToList());
-            }
-        }
+        //    public Scope(Dictionary<IKey, IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>> members)
+        //    {
+        //        this.members = members?.ToDictionary(x=>x.Key, x=> new WeakMemberDefinition(Model.Elements.Access.ReadWrite, x.Key, x.Value)) ?? throw new ArgumentNullException(nameof(members));
+        //        this.weakScope = new WeakScope(this.members.Select(x => x.Value).ToList());
+        //    }
+        //}
     }
 }

@@ -1,4 +1,5 @@
-﻿using Prototypist.Toolbox.Object;
+﻿using Prototypist.Toolbox;
+using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -672,7 +673,7 @@ namespace Tac.Backend.Emit.Test
         {
             var (node, nodeBuilder) = InterfaceType.Create();
 
-            var nodeOrNull = TypeOr.CreateAndBuild(node, new EmptyType());
+            var nodeOrNull = TypeOr.CreateAndBuild(node, new EmptyType(), new IMemberDefinition[] { }, Possibly.IsNot<IVerifiableType>(), Possibly.IsNot<IVerifiableType>());
 
             var next = MemberDefinition.CreateAndBuild(new NameKey("next"), nodeOrNull, Model.Elements.Access.ReadWrite);
 
@@ -734,7 +735,7 @@ namespace Tac.Backend.Emit.Test
         {
             var (node, nodeBuilder) = InterfaceType.Create();
 
-            var nodeOrNull = TypeOr.CreateAndBuild(node, new EmptyType());
+            var nodeOrNull = TypeOr.CreateAndBuild(node, new EmptyType(), new IMemberDefinition[] { }, Possibly.IsNot<IVerifiableType>(), Possibly.IsNot<IVerifiableType>());
 
             var next = MemberDefinition.CreateAndBuild(new NameKey("next"), nodeOrNull, Model.Elements.Access.ReadWrite);
 
@@ -819,7 +820,7 @@ namespace Tac.Backend.Emit.Test
         {
             var (node, nodeBuilder) = InterfaceType.Create();
 
-            var nodeOrNull = TypeOr.CreateAndBuild(node, new EmptyType());
+            var nodeOrNull = TypeOr.CreateAndBuild(node, new EmptyType(), new IMemberDefinition[] { }, Possibly.IsNot<IVerifiableType>(), Possibly.IsNot<IVerifiableType>());
 
             var next = MemberDefinition.CreateAndBuild(new NameKey("next"), nodeOrNull, Model.Elements.Access.ReadWrite);
 
@@ -1114,7 +1115,7 @@ namespace Tac.Backend.Emit.Test
         public void NumberOrAnyNumber()
         {
 
-            var nb = MemberDefinition.CreateAndBuild(new NameKey("n-b"), TypeOr.CreateAndBuild(new NumberType(), new BooleanType()), Access.ReadWrite);
+            var nb = MemberDefinition.CreateAndBuild(new NameKey("n-b"), TypeOr.CreateAndBuild(new NumberType(), new BooleanType(), new IMemberDefinition[] { }, Possibly.IsNot<IVerifiableType>(), Possibly.IsNot<IVerifiableType>()), Access.ReadWrite);
             var a = MemberDefinition.CreateAndBuild(new NameKey("a"), new AnyType(), Access.ReadWrite);
             var n = MemberDefinition.CreateAndBuild(new NameKey("n"), new NumberType(), Access.ReadWrite);
 
@@ -1158,7 +1159,7 @@ namespace Tac.Backend.Emit.Test
 
             var (node, nodeBuilder) = InterfaceType.Create();
 
-            var nodeOrNull = TypeOr.CreateAndBuild(node, new EmptyType());
+            var nodeOrNull = TypeOr.CreateAndBuild(node, new EmptyType(), new IMemberDefinition[] { }, Possibly.IsNot<IVerifiableType>(), Possibly.IsNot<IVerifiableType>());
 
             var next = MemberDefinition.CreateAndBuild(new NameKey("next"), nodeOrNull, Model.Elements.Access.ReadWrite);
 
@@ -1167,7 +1168,7 @@ namespace Tac.Backend.Emit.Test
                 next
             });
 
-            var nb = MemberDefinition.CreateAndBuild(new NameKey("n-t"), TypeOr.CreateAndBuild(new NumberType(), node), Access.ReadWrite);
+            var nb = MemberDefinition.CreateAndBuild(new NameKey("n-t"), TypeOr.CreateAndBuild(new NumberType(), node, new IMemberDefinition[] { }, Possibly.IsNot<IVerifiableType>(), Possibly.IsNot<IVerifiableType>()), Access.ReadWrite);
             var a = MemberDefinition.CreateAndBuild(new NameKey("a"), new AnyType(), Access.ReadWrite);
             var n = MemberDefinition.CreateAndBuild(new NameKey("t"), node, Access.ReadWrite);
 
@@ -1219,7 +1220,7 @@ namespace Tac.Backend.Emit.Test
                 MemberDefinition.CreateAndBuild(new NameKey("a"),new NumberType(),Access.ReadWrite)
             });
 
-            var orType = TypeOr.CreateAndBuild(aType, abType);
+            var orType = TypeOr.CreateAndBuild(aType, abType, new IMemberDefinition[] { MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite) }, Possibly.IsNot<IVerifiableType>(), Possibly.IsNot<IVerifiableType>());
 
             var orType_a = orType.Members.Where(x => x.Key.SafeIs(out NameKey nameKey) && nameKey.Name == "a").Single();
 
@@ -1298,7 +1299,7 @@ namespace Tac.Backend.Emit.Test
                 MemberDefinition.CreateAndBuild(new NameKey("a"),new NumberType(),Access.ReadWrite)
             });
 
-            var orType = TypeOr.CreateAndBuild(aType, abType);
+            var orType = TypeOr.CreateAndBuild(aType, abType, new IMemberDefinition[] { MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite) }, Possibly.IsNot<IVerifiableType>(), Possibly.IsNot<IVerifiableType>());
 
             var orType_a = orType.Members.Where(x => x.Key.SafeIs(out NameKey nameKey) && nameKey.Name == "a").Single();
 
@@ -1364,7 +1365,7 @@ namespace Tac.Backend.Emit.Test
                 MemberDefinition.CreateAndBuild(new NameKey("a"),new NumberType(),Access.ReadWrite)
             });
 
-            var orType = TypeOr.CreateAndBuild(aType, abType);
+            var orType = TypeOr.CreateAndBuild(aType, abType, new IMemberDefinition[] { MemberDefinition.CreateAndBuild(new NameKey("a"), new NumberType(), Access.ReadWrite) }, Possibly.IsNot<IVerifiableType>(), Possibly.IsNot<IVerifiableType>());
 
             var orType_a = orType.Members.Where(x => x.Key.SafeIs(out NameKey nameKey) && nameKey.Name == "a").Single();
 
@@ -1506,7 +1507,7 @@ namespace Tac.Backend.Emit.Test
         [Fact]
         public void MethodOfOr()
         {
-            var numOrBool = TypeOr.CreateAndBuild(new BooleanType(), new NumberType());
+            var numOrBool = TypeOr.CreateAndBuild(new BooleanType(), new NumberType(), new IMemberDefinition[] { }, Possibly.IsNot<IVerifiableType>(), Possibly.IsNot<IVerifiableType>());
             var input = MemberDefinition.CreateAndBuild(new NameKey("input"), numOrBool, Access.ReadWrite);
 
             var methodDef = Model.Instantiated.MethodDefinition.CreateAndBuild(
@@ -1561,7 +1562,7 @@ namespace Tac.Backend.Emit.Test
                 aTypeAMember
             });
 
-            var aOrBool = TypeOr.CreateAndBuild(aType, new BooleanType());
+            var aOrBool = TypeOr.CreateAndBuild(aType, new BooleanType(), new IMemberDefinition[] { }, Possibly.IsNot<IVerifiableType>(), Possibly.IsNot<IVerifiableType>());
             var input = MemberDefinition.CreateAndBuild(new NameKey("input"), aOrBool, Access.ReadWrite);
             var hasA = MemberDefinition.CreateAndBuild(new NameKey("has-a"), aType, Access.ReadWrite);
 
@@ -1639,7 +1640,7 @@ namespace Tac.Backend.Emit.Test
                 aTypeAMember
             });
 
-            var anyOrBool = TypeOr.CreateAndBuild(new AnyType(), new BooleanType());
+            var anyOrBool = TypeOr.CreateAndBuild(new AnyType(), new BooleanType(), new IMemberDefinition[] { }, Possibly.IsNot<IVerifiableType>(), Possibly.IsNot<IVerifiableType>());
             var input = MemberDefinition.CreateAndBuild(new NameKey("input"), anyOrBool, Access.ReadWrite);
             var hasA = MemberDefinition.CreateAndBuild(new NameKey("has-a"), aType, Access.ReadWrite);
 
@@ -1710,7 +1711,7 @@ namespace Tac.Backend.Emit.Test
         [Fact]
         public void DoesNotGoInTheOr()
         {
-            var numberOrBool = TypeOr.CreateAndBuild(new NumberType(), new BooleanType());
+            var numberOrBool = TypeOr.CreateAndBuild(new NumberType(), new BooleanType(), new IMemberDefinition[] { }, Possibly.IsNot<IVerifiableType>(), Possibly.IsNot<IVerifiableType>());
             var input = MemberDefinition.CreateAndBuild(new NameKey("input"), numberOrBool, Access.ReadWrite);
 
 

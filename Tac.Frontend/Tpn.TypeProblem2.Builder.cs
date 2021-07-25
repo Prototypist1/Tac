@@ -134,10 +134,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Member CreateMember(
                     IStaticScope scope,
                     IKey key,
-                    IOrType<IKey, IError> typeKey,
-                    IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter)
+                    IOrType<IKey, IError> typeKey)
                 {
-                    var res = new Member(this, key.ToString()!, converter);
+                    var res = new Member(this, key.ToString()!);
                     if (scope is IHavePublicMembers publicMembers)
                     {
                         HasPublicMember(publicMembers, key, res);
@@ -160,10 +159,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                     IStaticScope scope,
                     IHavePublicMembers havePublicMembers,
                     IKey key,
-                    IOrType<IKey, IError> typeKey,
-                    IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter)
+                    IOrType<IKey, IError> typeKey)
                 {
-                    var res = new Member(this, key.ToString()!, converter);
+                    var res = new Member(this, key.ToString()!);
                     HasPublicMember(havePublicMembers, key, res);
                     res.Context = Possibly.Is(scope);
                     res.TypeKey = typeKey.SwitchReturns(x => Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x), x => Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x));
@@ -173,10 +171,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Member CreatePublicMember(
                     IStaticScope scope,
                     IHavePublicMembers havePublicMembers,
-                    IKey key,
-                    IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter)
+                    IKey key)
                 {
-                    var res = new Member(this, key.ToString()!, converter);
+                    var res = new Member(this, key.ToString()!);
                     HasPublicMember(havePublicMembers, key, res);
                     res.Context = Possibly.Is(scope);
                     return res;
@@ -185,10 +182,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Member CreatePublicMember(
                     IHavePublicMembers scope,
                     IKey key,
-                    IOrType<MethodType, Type, Object, OrType, InferredType, IError> type,
-                    IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter)
+                    IOrType<MethodType, Type, Object, OrType, InferredType, IError> type)
                 {
-                    var res = new Member(this, key.ToString()!, converter);
+                    var res = new Member(this, key.ToString()!);
                     HasPublicMember(scope, key, res);
                     res.LooksUp = Possibly.Is(type);
                     return res;
@@ -198,10 +194,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                     IStaticScope scope,
                     IHavePrivateMembers havePrivateMembers,
                     IKey key,
-                    IOrType<IKey, IError> typeKey,
-                    IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter)
+                    IOrType<IKey, IError> typeKey)
                 {
-                    var res = new Member(this, key.ToString()!, converter);
+                    var res = new Member(this, key.ToString()!);
                     HasPrivateMember(havePrivateMembers, key, res);
                     res.Context = Possibly.Is(scope);
                     res.TypeKey = typeKey.SwitchReturns(x => Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x), x => Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(x));
@@ -211,10 +206,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Member CreatePrivateMember(
                     IStaticScope scope,
                     IHavePrivateMembers havePrivateMembers,
-                    IKey key,
-                    IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter)
+                    IKey key)
                 {
-                    var res = new Member(this, key.ToString()!, converter);
+                    var res = new Member(this, key.ToString()!);
                     HasPrivateMember(havePrivateMembers, key, res);
                     res.Context = Possibly.Is(scope);
                     return res;
@@ -223,16 +217,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Member CreatePrivateMember(
                     IHavePrivateMembers scope,
                     IKey key,
-                    IOrType<MethodType, Type, Object, OrType, InferredType, IError> type,
-                    IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter)
+                    IOrType<MethodType, Type, Object, OrType, InferredType, IError> type)
                 {
-                    var res = new Member(this, key.ToString()!, converter);
+                    var res = new Member(this, key.ToString()!);
                     HasPrivateMember(scope, key, res);
                     res.LooksUp = Possibly.Is(type);
                     return res;
                 }
 
-                public Member CreateMemberPossiblyOnParent(IStaticScope scope, IHavePossibleMembers havePossibleMembers, IKey key, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter)
+                public Member CreateMemberPossiblyOnParent(IStaticScope scope, IHavePossibleMembers havePossibleMembers, IKey key)
                 {
                     // this is weird, but since C# does not have and types...
                     // scope and havePossibleMembers are expected to be the same object
@@ -246,7 +239,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         return res1;
                     }
 
-                    var res = HasMembersPossiblyOnParent(havePossibleMembers, key, ()=> new Member(this, "possibly on parent -" + key.ToString(), converter));
+                    var res = HasMembersPossiblyOnParent(havePossibleMembers, key, ()=> new Member(this, "possibly on parent -" + key.ToString()));
                     res.Context = Possibly.Is(scope);
                     return res;
                 }
@@ -326,7 +319,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return res;
                 }
 
-                public Method CreateMethod(IStaticScope parent, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition>> converter, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> inputConverter)
+                public Method CreateMethod(IStaticScope parent, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition>> converter)
                 {
                     var res = new Method(this, $"method{{inputName:{inputName}}}", converter);
                     IsChildOf(parent, res);
@@ -334,13 +327,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                     // here it is ok for these to be members because we are using a method
                     var returns = CreateTransientMember(res, $"return of {res.DebugName}");
                     res.Returns = Possibly.Is(returns);
-                    var input = CreatePrivateMember(res, res, new NameKey(inputName), inputConverter);
+                    var input = CreatePrivateMember(res, res, new NameKey(inputName));
                     res.Input = Possibly.Is(input);
                     return res;
                 }
 
 
-                public Method CreateMethod(IStaticScope parent, IOrType<TypeReference, IError> inputType, IOrType<TypeReference, IError> outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>> converter, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> inputConverter)
+                public Method CreateMethod(IStaticScope parent, IOrType<TypeReference, IError> inputType, IOrType<TypeReference, IError> outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>> converter)
                 {
                     if (!inputType.Is1(out var inputTypeValue))
                     {
@@ -363,22 +356,22 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
 
                             // here it is ok for these to be members because we are using a method
-                            res.Input = Possibly.Is(CreatePrivateMember(res, res, new NameKey(inputName), Prototypist.Toolbox.OrType.Make<IKey, IError>(typeKey.Value), inputConverter));
+                            res.Input = Possibly.Is(CreatePrivateMember(res, res, new NameKey(inputName), Prototypist.Toolbox.OrType.Make<IKey, IError>(typeKey.Value)));
                         }
                         else
                         {
 
                             // here it is ok for these to be members because we are using a method
-                            res.Input = Possibly.Is(CreatePrivateMember(res, res, new NameKey(inputName), inputConverter));
+                            res.Input = Possibly.Is(CreatePrivateMember(res, res, new NameKey(inputName)));
                         }
                     }
                     return res;
                 }
 
 
-                public Member CreateHopefulMember(IValue scope, IKey key, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> converter)
+                public Member CreateHopefulMember(IValue scope, IKey key)
                 {
-                    var res = HasHopefulMember(scope, key, ()=> new Member(this, "hopeful - " + key.ToString()!, converter));
+                    var res = HasHopefulMember(scope, key, ()=> new Member(this, "hopeful - " + key.ToString()!));
                     return res;
                 }
 
@@ -476,10 +469,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // it is just something of type method
                 // it is really just a type
                 //
-                public Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>> converter, IConvertTo<IOrType<Tpn.IFlowNode, IError>, WeakMemberDefinition> inputConverter)
+                public Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>> converter)
                 {
                     var thing = CreateTransientMember(parent, $"is method for {target.DebugName}");
-                    var method = CreateMethod(parent, "input", converter, inputConverter);
+                    var method = CreateMethod(parent, "input", converter);
                     IsAssignedTo(target, thing);
                     return method;
                 }
@@ -501,7 +494,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         // it is not a public member
                         // and infered to do not have private members
                         var methodInputKey = new NameKey("generated infered method input - " + Guid.NewGuid());
-                        var inputMember = new Member(this, methodInputKey.ToString()!, new WeakMemberDefinitionConverter(Model.Elements.Access.ReadWrite, methodInputKey));
+                        var inputMember = new Member(this, methodInputKey.ToString()!);
                         inputMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")));
                         inferredMethodType.Input = Possibly.Is(inputMember);
 
@@ -560,7 +553,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         // it is not a public member
                         // and infered to do not have private members
                         var methodInputKey = new NameKey("generated infered method input - " + Guid.NewGuid());
-                        var inputMember = new Member(this, methodInputKey.ToString()!, new WeakMemberDefinitionConverter(Model.Elements.Access.ReadWrite, methodInputKey));
+                        var inputMember = new Member(this, methodInputKey.ToString()!);
                         inputMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")));
                         inferredMethodType.Input = Possibly.Is(inputMember);
 
