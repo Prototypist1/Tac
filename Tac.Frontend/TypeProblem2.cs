@@ -68,7 +68,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //}
             }
 
-            public class Value : TypeProblemNode<Value, PlaceholderValue>, IValue
+            public class Value : TypeProblemNode<Value, PlaceholderValue>, IValue, ILookUpType
             {
                 public Value(Builder problem, string debugName, IConvertTo<Value, PlaceholderValue> converter) : base(problem, debugName, converter)
                 {

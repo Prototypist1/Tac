@@ -37,19 +37,19 @@ namespace Tac.SemanticModel
         WeakAbstractBlockDefinition<IEntryPointDefinition>
     {
         public WeakEntryPointDefinition(
-            IBox<IOrType<IFrontendType<IVerifiableType>, IError>> outputType,
-            IBox<WeakMemberDefinition> parameterDefinition,
+            IOrType<IFrontendType<IVerifiableType>, IError> outputType,
+            WeakMemberDefinition parameterDefinition,
             IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>,IError>>> body,
-            IOrType<IBox<WeakScope>, IError> scope,
+            IOrType<WeakScope, IError> scope,
             IReadOnlyList<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
         }
 
-        public IBox<IOrType<IFrontendType<IVerifiableType>, IError>> InputType => ParameterDefinition.GetValue().Type;
-        public IBox<IOrType<IFrontendType<IVerifiableType>, IError>> OutputType { get; }
-        public IBox<WeakMemberDefinition> ParameterDefinition { get; }
+        //public IOrType<IFrontendType<IVerifiableType>, IError> InputType => ParameterDefinition.Type;
+        public IOrType<IFrontendType<IVerifiableType>, IError> OutputType { get; }
+        public WeakMemberDefinition ParameterDefinition { get; }
 
         public override IBuildIntention<IEntryPointDefinition> GetBuildIntention(IConversionContext context)
         {
@@ -57,9 +57,9 @@ namespace Tac.SemanticModel
             return new BuildIntention<IEntryPointDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    OutputType.GetValue().Is1OrThrow().Convert(context),
-                    ParameterDefinition.GetValue().Convert(context),
-                    Scope.Is1OrThrow().GetValue().Convert(context),
+                    OutputType.Is1OrThrow().Convert(context),
+                    ParameterDefinition.Convert(context),
+                    Scope.Is1OrThrow().Convert(context),
                     Body.GetValue().Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray());
             });
@@ -182,8 +182,8 @@ namespace Tac.SemanticModel
         {
             var finalForm=  converted.Select(x => x.TransformInner(y => y.Run(context))).ToArray();
             box.Fill(finalForm);
-            var res = context.GetMethod(scope);
-            if (res.GetValue().Is3(out var v3))
+            var res = scope.Converter.Convert(context, scope);
+            if (res.Is3(out var v3))
             {
                 return new Box<WeakEntryPointDefinition>(v3);
             }

@@ -38,20 +38,27 @@ namespace Tac.SemanticModel
     internal class WeakMethodDefinition :
         WeakAbstractBlockDefinition<IInternalMethodDefinition>, IReturn
     {
+        private readonly IOrType<SyntaxModel.Elements.AtomicTypes.MethodType, IError> type;
+
         public WeakMethodDefinition(
-            IBox<IOrType<IFrontendType<IVerifiableType>, IError>> outputType,
-            IBox<WeakMemberDefinition> parameterDefinition,
+            IOrType<IFrontendType<IVerifiableType>, IError> outputType,
+            WeakMemberDefinition parameterDefinition,
             IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> body,
-            IOrType<IBox<WeakScope>, IError> scope,
+            IOrType<WeakScope, IError> scope,
             IReadOnlyList<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
+            type = OrType.Make<SyntaxModel.Elements.AtomicTypes.MethodType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.MethodType(
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(InputType),
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OutputType)
+                ));
         }
 
-        public IBox<IOrType<IFrontendType<IVerifiableType>,IError>> InputType => ParameterDefinition.GetValue().Type;
-        public IBox<IOrType<IFrontendType<IVerifiableType>, IError>> OutputType { get; }
-        public IBox<WeakMemberDefinition> ParameterDefinition { get; }
+        public IOrType<IFrontendType<IVerifiableType>, IError> InputType => ParameterDefinition.Type;
+        public IOrType<IFrontendType<IVerifiableType>, IError> OutputType { get; }
+        public WeakMemberDefinition ParameterDefinition { get; }
+
 
         public override IBuildIntention<IInternalMethodDefinition> GetBuildIntention(IConversionContext context)
         {
@@ -59,9 +66,9 @@ namespace Tac.SemanticModel
             return new BuildIntention<IInternalMethodDefinition>(toBuild, () =>
             {
                 maker.Build(
-                    OutputType.GetValue().Is1OrThrow().Convert(context),
-                    ParameterDefinition.GetValue().Convert(context),
-                    Scope.Is1OrThrow().GetValue().Convert(context),
+                    OutputType.Is1OrThrow().Convert(context),
+                    ParameterDefinition.Convert(context),
+                    Scope.Is1OrThrow().Convert(context),
                     Body.GetValue().Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray());
             });
@@ -69,12 +76,13 @@ namespace Tac.SemanticModel
 
         public IOrType<IFrontendType<IVerifiableType>, IError> Returns()
         {
+            return type;
             // TODO
             // are there really frontend types that arn't convertable?
-            return OrType.Make<IFrontendType<IVerifiableType>, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.MethodType(
-                InputType,
-                OutputType
-                ));
+            //return OrType.Make<IFrontendType<IVerifiableType>, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.MethodType(
+            //    InputType,
+            //    OutputType
+            //    ));
         }
     }
 
@@ -191,8 +199,8 @@ namespace Tac.SemanticModel
         public IBox<WeakMethodDefinition> Run(Tpn.TypeSolution context)
         {
             box.Fill(nextElements.Select(x => x.TransformInner(y => y.Run(context))).ToArray());
-            var res = context.GetMethod(method);
-            if (res.GetValue().Is1(out var v1))
+            var res = method.Converter.Convert(context, method);
+            if (res.Is1(out var v1))
             {
                 return new Box<WeakMethodDefinition>(v1);
             }

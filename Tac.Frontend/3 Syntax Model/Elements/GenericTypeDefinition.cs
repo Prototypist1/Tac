@@ -44,33 +44,28 @@ namespace Tac.SemanticModel
     {
         public WeakGenericTypeDefinition(
             IIsPossibly<IOrType<NameKey, ImplicitKey>> key,
-            IOrType< IBox<WeakScope>,IError> scope,
+            IOrType<HasMembersType, IError> type,
             IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions)
         {
             this.TypeParameterDefinitions = TypeParameterDefinitions ?? throw new ArgumentNullException(nameof(TypeParameterDefinitions));
             Key = key ?? throw new ArgumentNullException(nameof(key));
-            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
-            
-            // lazy was just blindly copied from WeakTypeDefinition
-            lazy = new Lazy<IOrType<IFrontendType<IVerifiableType>, IError>>(() =>
-                Scope.SwitchReturns(
-                    x => OrType.Make<IFrontendType<IVerifiableType>, IError>(new HasMembersType(x.GetValue())),
-                    x => OrType.Make<IFrontendType<IVerifiableType>, IError>(x)));
+            this.type = type ?? throw new ArgumentNullException(nameof(type));
+            Scope = type.TransformInner(x => x.weakScope);
         }
 
         public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
         public IIsPossibly<IOrType<NameKey, ImplicitKey>> Key { get; }
-        public IOrType<IBox<WeakScope>, IError> Scope { get; }
+        public IOrType<WeakScope, IError> Scope { get; }
 
 
-        private readonly Lazy<IOrType<IFrontendType<IVerifiableType>, IError>> lazy;
+        private readonly IOrType<HasMembersType, IError> type;
 
         public IOrType<IFrontendType<IVerifiableType>, IError> FrontendType()
         {
-            return lazy.Value;
+            return type;
         }
 
-        public IEnumerable<IError> Validate() => Scope.SwitchReturns(x => x.GetValue().Validate(), x => new IError[] { x });
+        public IEnumerable<IError> Validate() => Scope.SwitchReturns(x => x.Validate(), x => new IError[] { x });
     }
 
     internal class GenericTypeDefinitionMaker : IMaker<ISetUp<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType>>
@@ -157,7 +152,7 @@ namespace Tac.SemanticModel
             // uhhh it is werid that I have to do this
             nextLines.Select(x => x.TransformInner(y => y.Run(context))).ToArray();
 
-            return new Box<WeakGenericTypeDefinition>(context.GetExplicitType(myScope).GetValue().Is2OrThrow());
+            return new Box<WeakGenericTypeDefinition>(myScope.Converter.Convert(context, myScope).Is2OrThrow());
         }
     }
 }

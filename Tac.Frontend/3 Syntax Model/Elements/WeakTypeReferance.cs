@@ -64,13 +64,13 @@ namespace Tac.SemanticModel
     // we have it because sometimes the reference might not find what it is looking for
     internal class WeakTypeReference : IFrontendType<IVerifiableType>
     {
-        public WeakTypeReference(IBox<IOrType<IFrontendType<IVerifiableType>, IError>> typeDefinition)
+        public WeakTypeReference(IOrType<IFrontendType<IVerifiableType>, IError> typeDefinition)
         {
             TypeDefinition = typeDefinition ?? throw new ArgumentNullException(nameof(typeDefinition));
         }
 
 
-        public IBox<IOrType<IFrontendType<IVerifiableType>, IError>> TypeDefinition { get; }
+        public IOrType<IFrontendType<IVerifiableType>, IError> TypeDefinition { get; }
 
         //public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         //{
@@ -80,7 +80,7 @@ namespace Tac.SemanticModel
 
         public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
-            return TypeDefinition.GetValue().Is1OrThrow().GetBuildIntention(context);
+            return TypeDefinition.Is1OrThrow().GetBuildIntention(context);
         }
 
         //public IIsPossibly<IFrontendType<IVerifiableType>> Returns()
@@ -90,12 +90,12 @@ namespace Tac.SemanticModel
 
         public IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
         {
-            return TypeDefinition.GetValue().TransformAndFlatten(x=> x.TheyAreUs(they, assumeTrue));
+            return TypeDefinition.TransformAndFlatten(x=> x.TheyAreUs(they, assumeTrue));
         }
 
         public IOrType<IOrType<WeakMemberDefinition, IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
         {
-            return TypeDefinition.GetValue().SwitchReturns(
+            return TypeDefinition.SwitchReturns(
                     x => x.TryGetMember(key, assumeTrue),
                     x => OrType.Make<IOrType<WeakMemberDefinition, IError>, No, IError>(x)
                 );
@@ -103,7 +103,7 @@ namespace Tac.SemanticModel
 
         public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn()
         {
-            return TypeDefinition.GetValue().SwitchReturns(
+            return TypeDefinition.SwitchReturns(
                 x => x.TryGetReturn(),
                 x => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(x)
             );
@@ -111,7 +111,7 @@ namespace Tac.SemanticModel
 
         public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput()
         {
-            return TypeDefinition.GetValue().SwitchReturns(
+            return TypeDefinition.SwitchReturns(
                 x => x.TryGetInput(),
                 x => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(x)
             );
@@ -119,7 +119,7 @@ namespace Tac.SemanticModel
 
         public IEnumerable<IError> Validate()
         {
-            if (TypeDefinition.GetValue().Is2(out var error)) {
+            if (TypeDefinition.Is2(out var error)) {
                 yield return error;
             }
         }

@@ -41,9 +41,9 @@ namespace Tac.SemanticModel
     {
 
         public WeakImplementationDefinition(
-            IBox<WeakMemberDefinition> contextDefinition,
-            IBox<WeakMemberDefinition> parameterDefinition,
-            IBox<IOrType<IFrontendType<IVerifiableType>, IError>> outputType,
+            WeakMemberDefinition contextDefinition,
+            WeakMemberDefinition parameterDefinition,
+            IOrType<IFrontendType<IVerifiableType>, IError> outputType,
             IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> metohdBody,
             IBox<WeakScope> scope, 
             IEnumerable<IFrontendCodeElement> staticInitializers)
@@ -54,14 +54,21 @@ namespace Tac.SemanticModel
             MethodBody = metohdBody ?? throw new ArgumentNullException(nameof(metohdBody));
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
             StaticInitialzers = staticInitializers ?? throw new ArgumentNullException(nameof(staticInitializers));
+
+            type = OrType.Make<IFrontendType<IVerifiableType>, IError>(SyntaxModel.Elements.AtomicTypes.MethodType.ImplementationType(
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(ParameterDefinition.Type),
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OutputType),
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(ContextDefinition.Type)));
         }
 
-        public IBox<IOrType<IFrontendType<IVerifiableType>, IError>> OutputType { get; }
-        public IBox<WeakMemberDefinition> ContextDefinition { get; }
-        public IBox<WeakMemberDefinition> ParameterDefinition { get; }
+        public IOrType<IFrontendType<IVerifiableType>, IError> OutputType { get; }
+        public WeakMemberDefinition ContextDefinition { get; }
+        public WeakMemberDefinition ParameterDefinition { get; }
         public IBox<WeakScope> Scope { get; }
         public IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> MethodBody { get; }
         public IEnumerable<IFrontendCodeElement> StaticInitialzers { get; }
+
+        private readonly OrType<IFrontendType<IVerifiableType>, IError> type;
 
         public IBuildIntention<IImplementationDefinition> GetBuildIntention(IConversionContext context)
         {
@@ -71,12 +78,12 @@ namespace Tac.SemanticModel
 
             return new BuildIntention<IImplementationDefinition>(toBuild, () =>
             {
-                var contextMember = ContextDefinition.GetValue().Convert(context);
+                var contextMember = ContextDefinition.Convert(context);
 
                 maker.Build(
-                    OutputType.GetValue().Is1OrThrow().Convert(context),
+                    OutputType.Is1OrThrow().Convert(context),
                     contextMember,
-                    ParameterDefinition.GetValue().Convert(context),
+                    ParameterDefinition.Convert(context),
                     Scope.GetValue().Convert(context),
                     MethodBody.GetValue().Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitialzers.Select(x => x.ConvertElementOrThrow(context)).ToArray(),
@@ -90,23 +97,20 @@ namespace Tac.SemanticModel
         {
             // TODO
             // are there really frontend types that arnt convertable?!
-            return OrType.Make<IFrontendType<IVerifiableType>, IError>(SyntaxModel.Elements.AtomicTypes.MethodType.ImplementationType(
-                ParameterDefinition.Transfrom(x=>x.Type.GetValue()),
-                OutputType,
-                ContextDefinition.Transfrom(x=>x.Type.GetValue())));
+            return type;
         }
 
         public IEnumerable<IError> Validate()
         {
-            foreach (var error in OutputType.GetValue().SwitchReturns(x=>x.Validate(),x=> new[] { x}))
+            foreach (var error in OutputType.SwitchReturns(x=>x.Validate(),x=> new[] { x}))
             {
                 yield return error;
             }
-            foreach (var error in ContextDefinition.GetValue().Validate())
+            foreach (var error in ContextDefinition.Validate())
             {
                 yield return error;
             }
-            foreach (var error in ParameterDefinition.GetValue().Validate())
+            foreach (var error in ParameterDefinition.Validate())
             {
                 yield return error;
             }
@@ -302,8 +306,8 @@ namespace Tac.SemanticModel
         public IBox<WeakImplementationDefinition> Run(Tpn.TypeSolution context)
         {
             linesBox.Fill(nextElements.Select(x => x.TransformInner(y => y.Run(context))).ToArray());
-            var res = context.GetMethod(outer);
-            if (res.GetValue().Is2(out var v2))
+            var res = outer.Converter.Convert(context, outer);
+            if (res.Is2(out var v2))
             {
                 return new Box<WeakImplementationDefinition>(v2);
             }

@@ -14,7 +14,7 @@ namespace Tac.SemanticModel
         where T: class, ICodeElement
     {
         protected WeakAbstractBlockDefinition(
-            IOrType<IBox<WeakScope>, IError> scope,
+            IOrType<WeakScope, IError> scope,
             IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> body, 
             IReadOnlyList<IIsPossibly<IFrontendCodeElement>> staticInitailizers){
             Scope = scope ?? throw new ArgumentNullException(nameof(scope));
@@ -23,7 +23,8 @@ namespace Tac.SemanticModel
         }
 
 
-        public IOrType<IBox<WeakScope>, IError> Scope { get; }
+        // I'm not conviced Scope is even an IError....
+        public IOrType<WeakScope, IError> Scope { get; }
         public IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> Body { get; }
         // I think I am gettting well ahead of myself with these...
         // I think I should build this I plan on using soonish
@@ -41,7 +42,7 @@ namespace Tac.SemanticModel
             }
             else
             {
-                foreach (var item in Scope.Is1OrThrow().GetValue().Validate())
+                foreach (var item in Scope.Is1OrThrow().Validate())
                 {
                     yield return item;
                 }

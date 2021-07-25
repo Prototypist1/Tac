@@ -46,20 +46,15 @@ namespace Tac.SemanticModel
     // I think there should be a class for that
     internal class WeakObjectDefinition: IConvertableFrontendCodeElement<IObjectDefiniton>, IScoped, IReturn
     {
-        public WeakObjectDefinition(IOrType<IBox<WeakScope>, IError> scope, IBox<IReadOnlyList<IOrType<IBox<WeakAssignOperation>, IError>>> assigns) {
+        public WeakObjectDefinition(IOrType<HasMembersType, IError> type, IBox<IReadOnlyList<IOrType<IBox<WeakAssignOperation>, IError>>> assigns) {
            
-            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            Scope = type?.TransformInner(x=>x.weakScope) ?? throw new ArgumentNullException(nameof(type));
             Assignments = assigns ?? throw new ArgumentNullException(nameof(assigns));
 
-            returns = new Lazy<IOrType<IFrontendType<IVerifiableType>, IError>>(() =>
-            {
-                return Scope.SwitchReturns(
-                      x => OrType.Make<IFrontendType<IVerifiableType>, IError>(new HasMembersType(x.GetValue())),
-                      x => OrType.Make<IFrontendType<IVerifiableType>, IError>(x));
-            });
+            returns = type;
         }
 
-        public IOrType<IBox<WeakScope>, IError> Scope { get; }
+        public IOrType<WeakScope, IError> Scope { get; }
         public IBox<IReadOnlyList<IOrType<IBox<WeakAssignOperation>, IError>>> Assignments { get; }
 
         public IBuildIntention<IObjectDefiniton> GetBuildIntention(IConversionContext context)
@@ -68,7 +63,7 @@ namespace Tac.SemanticModel
             return new BuildIntention<IObjectDefiniton>(toBuild, () =>
             {
                 maker.Build(
-                    Scope.Is1OrThrow().GetValue().Convert(context), 
+                    Scope.Is1OrThrow().Convert(context), 
                     Assignments.GetValue().Select(x => x.Is1OrThrow().GetValue().Convert(context)).ToArray());
             });
         }
@@ -81,7 +76,7 @@ namespace Tac.SemanticModel
             }
             else
             {
-                foreach (var item in Scope.Is1OrThrow().GetValue().Validate())
+                foreach (var item in Scope.Is1OrThrow().Validate())
                 {
                     yield return item;
                 }
@@ -95,11 +90,11 @@ namespace Tac.SemanticModel
             }
         }
 
-        private readonly Lazy<IOrType<IFrontendType<IVerifiableType>, IError>> returns;
+        private readonly IOrType<HasMembersType, IError> returns;
 
         public IOrType<IFrontendType<IVerifiableType>, IError> Returns()
         {
-            return returns.Value;
+            return returns;
         }
     }
 
@@ -212,8 +207,8 @@ namespace Tac.SemanticModel
 
             box.Fill(finalElements);
 
-            var objectOr = context.GetObject(myScope);
-            if (objectOr.GetValue().Is1(out var v1))
+            var objectOr = myScope.Converter.Convert(context, myScope);//;  context.GetObject(myScope);
+            if (objectOr.Is1(out var v1))
             {
                 return new Box<WeakObjectDefinition>(v1);
             }

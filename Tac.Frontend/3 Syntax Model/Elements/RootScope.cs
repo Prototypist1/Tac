@@ -17,23 +17,19 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
 {
     internal class WeakRootScope : IConvertableFrontendCodeElement<IRootScope>, IScoped, IReturn
     {
-        public IOrType<IBox<WeakScope>, IError> Scope { get; }
+        public IOrType<WeakScope, IError> Scope { get; }
         public Box<IReadOnlyList<IOrType<IBox<WeakAssignOperation>, IError>>> Assignments { get; }
         public Box<IOrType<IBox<WeakEntryPointDefinition>, IError>> EntryPoint { get; }
 
-        public WeakRootScope(IOrType<IBox<WeakScope>, IError> scope, Box<IReadOnlyList<IOrType<IBox<WeakAssignOperation>, IError>>> assigns, Box<IOrType<IBox<WeakEntryPointDefinition>, IError>> EntryPoint)
+        public WeakRootScope(IOrType<HasMembersType, IError> returns, Box<IReadOnlyList<IOrType<IBox<WeakAssignOperation>, IError>>> assigns, Box<IOrType<IBox<WeakEntryPointDefinition>, IError>> EntryPoint)
         {
-            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
+
+            this.returns = returns ?? throw new ArgumentNullException(nameof(returns));
+            Scope = returns.TransformInner(x=>x.weakScope);
             this.EntryPoint = EntryPoint ?? throw new ArgumentNullException(nameof(EntryPoint));
             Assignments = assigns ?? throw new ArgumentNullException(nameof(assigns));
 
 
-            returns = new Lazy<IOrType<IFrontendType<IVerifiableType>, IError>>(() =>
-            {
-                return Scope.SwitchReturns(
-                      x => OrType.Make<IFrontendType<IVerifiableType>, IError>(new HasMembersType(x.GetValue())),
-                      x => OrType.Make<IFrontendType<IVerifiableType>, IError>(x));
-            });
         }
 
         public IBuildIntention<IRootScope> GetBuildIntention(IConversionContext context)
@@ -42,7 +38,7 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             return new BuildIntention<IRootScope>(toBuild, () =>
             {
                 maker.Build(
-                    Scope.Is1OrThrow().GetValue().Convert(context),
+                    Scope.Is1OrThrow().Convert(context),
                     Assignments.GetValue().Select(x => x.Is1OrThrow().GetValue().Convert(context)).ToArray(),
                     EntryPoint.GetValue().Is1OrThrow().GetValue().Convert(context)
                     );
@@ -57,7 +53,7 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             }
             else
             {
-                foreach (var item in Scope.Is1OrThrow().GetValue().Validate())
+                foreach (var item in Scope.Is1OrThrow().Validate())
                 {
                     yield return item;
                 }
@@ -75,11 +71,11 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
             }
         }
 
-        private readonly Lazy<IOrType<IFrontendType<IVerifiableType>, IError>> returns;
+        private readonly IOrType<HasMembersType, IError> returns;
 
         public IOrType<IFrontendType<IVerifiableType>, IError> Returns()
         {
-            return returns.Value;
+            return returns;
         }
     }
 
@@ -203,8 +199,8 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
 
             ranTypes.Select(x => x.TransformInner(y => y.Run(context))).ToArray();
             ranGenericTypes.Select(x => x.TransformInner(y => y.Run(context))).ToArray();
-            var objectOr = context.GetObject(myScope);
-            if (objectOr.GetValue().Is2(out var v2))
+            var objectOr = myScope.Converter.Convert(context,myScope);
+            if (objectOr.Is2(out var v2))
             {
                 return new Box<WeakRootScope>(v2);
             }

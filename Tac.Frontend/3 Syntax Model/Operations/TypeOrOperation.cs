@@ -45,33 +45,43 @@ namespace Tac.SemanticModel.CodeStuff
 namespace Tac.Frontend.SyntaxModel.Operations
 {
     // what even is the point of this? it just defers to the type
+    // really pointless
+    // the base class is also pointless I think
+    // and the call to base is forcing some very ugly code
     internal class WeakTypeOrOperation : BinaryTypeOperation<IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>, ITypeOr>, IFrontendCodeElement//, IIsType
     {
         //private readonly IBox<IOrType<IFrontendType<IVerifiableType>, IError>> left;
         //private readonly IBox<IOrType<IFrontendType<IVerifiableType>, IError>> right;
-        private readonly Lazy<FrontEndOrType> lazy;
+        private readonly IOrType<FrontEndOrType, IError> frontEndOr;
 
-        public WeakTypeOrOperation(IBox<IOrType<IFrontendType<IVerifiableType>, IError>> left, IBox<IOrType<IFrontendType<IVerifiableType>, IError>> right) : base(left, right)
+        public WeakTypeOrOperation(IOrType<FrontEndOrType, IError> frontEndOr) : base(
+            frontEndOr.SwitchReturns(
+                x=>x.left,
+                x=>new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(x))), 
+            frontEndOr.SwitchReturns(
+                x => x.right,
+                x => new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(x))))
         {
             //this.left = left ?? throw new ArgumentNullException(nameof(left));
             //this.right = right ?? throw new ArgumentNullException(nameof(right));
 
 
             // I think type solution should be the only thing creating FrontEndOrTypes 
-            lazy = new Lazy<FrontEndOrType>(()=> new FrontEndOrType(left.GetValue().TransformInner(x => x), right.GetValue().TransformInner(x => x)));
+            //lazy = new Lazy<FrontEndOrType>(()=> new FrontEndOrType(left.GetValue().TransformInner(x => x), right.GetValue().TransformInner(x => x)));
+            this.frontEndOr = frontEndOr ?? throw new ArgumentNullException(nameof(frontEndOr));
         }
 
-        private class DummyBuildIntention : IBuildIntention<ITypeOr>
-        {
-            public DummyBuildIntention(ITypeOr tobuild)
-            {
-                Tobuild = tobuild ?? throw new ArgumentNullException(nameof(tobuild));
-            }
+        //private class DummyBuildIntention : IBuildIntention<ITypeOr>
+        //{
+        //    public DummyBuildIntention(ITypeOr tobuild)
+        //    {
+        //        Tobuild = tobuild ?? throw new ArgumentNullException(nameof(tobuild));
+        //    }
 
-            public Action Build => () => { };
+        //    public Action Build => () => { };
 
-            public ITypeOr Tobuild { get; init; }
-        }
+        //    public ITypeOr Tobuild { get; init; }
+        //}
 
         // this doesn't actually build in to anything
         //public override IBuildIntention<ITypeOr> GetBuildIntention(IConversionContext context)
@@ -90,7 +100,7 @@ namespace Tac.Frontend.SyntaxModel.Operations
 
         public FrontEndOrType FrontendType()
         {
-            return lazy.Value;
+            return frontEndOr.Is1OrThrow();
         }
     }
 

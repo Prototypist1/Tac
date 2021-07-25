@@ -43,22 +43,18 @@ namespace Tac.SemanticModel
 
     internal class WeakTypeDefinition : IWeakTypeDefinition//, IIsType
     {
-        public WeakTypeDefinition(IOrType< IBox<WeakScope>,IError> scope)//, IIsPossibly<IKey> key
+        public WeakTypeDefinition(IOrType<HasMembersType, IError> type)//, IIsPossibly<IKey> key
         {
+            this.type = type;
             //Key = key ?? throw new ArgumentNullException(nameof(key));
-            Scope = scope ?? throw new ArgumentNullException(nameof(scope));
-            lazy = new Lazy<IOrType<IFrontendType<IInterfaceType>, IError>>(() => 
-                Scope.SwitchReturns(
-                    x => OrType.Make<IFrontendType<IInterfaceType>, IError>( new HasMembersType(x.GetValue())),
-                    x => OrType.Make<IFrontendType<IInterfaceType>, IError>(x)));
+
         }
 
         //public IIsPossibly<IKey> Key { get; }
         // I am not sure I agree with this
         // it is an ordered set of types, names and acccessablity modifiers
-        public IOrType<IBox<WeakScope>, IError> Scope { get; }
-
-        private readonly Lazy<IOrType<IFrontendType<IInterfaceType>, IError>> lazy;
+        public IOrType<WeakScope, IError> Scope => type.TransformInner(x => x.weakScope);
+        private readonly IOrType<HasMembersType, IError> type;
 
         private class DummyBuildIntention : IBuildIntention<IInterfaceType>
         {
@@ -74,15 +70,12 @@ namespace Tac.SemanticModel
         public IBuildIntention<IInterfaceType> GetBuildIntention(IConversionContext context)
         {
             // this and the HasMembersType type it holds both convert to the same IInterfaceType
-            return new DummyBuildIntention(lazy.Value.Is1OrThrow().Convert(context));
+            return new DummyBuildIntention(type.Is1OrThrow().Convert(context));
         }
 
-        public IOrType<IFrontendType<IVerifiableType>, IError> FrontendType()
-        {
-            return lazy.Value;
-        }
+        public IOrType<IFrontendType<IVerifiableType>, IError> FrontendType() => type;
 
-        public IEnumerable<IError> Validate() => Scope.SwitchReturns(x=>x.GetValue().Validate(),x=>new IError[] { x});
+        public IEnumerable<IError> Validate() => Scope.SwitchReturns(x=>x.Validate(),x=>new IError[] { x});
 
     }
 
