@@ -43,6 +43,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 internal IIsPossibly<IOrType<Yolo, IError>> right;
 
                 internal Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> type = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
+                
+                // sometimes thing have no member but really we know they are an object or a type
+                // if this is not set the yolo becomes an AnyType with it set the Yolo becomes a HasMembers with no members
+                internal bool hasMemebers = false;
             }
 
             public TypeSolution(
@@ -59,7 +63,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 foreach (var flowNode in flowNodes)
                 {
                     IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError> rep = flowNode.Value.GetValueAs(out IVirtualFlowNode _).ToRep();
-                    GetOrAdd(rep);
+                    var yolo = GetOrAdd(rep);
+
+                    if (yolo.Is1(out var realYolo) && flowNode.Key.Is1(out var typeProblemNode)) {
+                        realYolo.hasMemebers |= typeProblemNode.SafeIs<ITypeProblemNode, TypeProblem2.Object>();
+                        realYolo.hasMemebers |= typeProblemNode.SafeIs<ITypeProblemNode, TypeProblem2.Type>();
+                    }
                 }
 
                 IOrType < Yolo, IError> GetOrAdd(IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>  rep){
@@ -138,7 +147,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(error);
                     }
 
-                    if (prim.Is1OrThrow().Is(out var _) && flowNode.And.Single().CastTo<PrimitiveFlowNode>().Source.Is(out var source))
+                    if (prim.Is1OrThrow().Is(out var _) && flowNode.And.Single().Is2OrThrow().Source.Is(out var source))
                     {
                         // I'd like to not pass "this" here
                         // the primitive convert willn't use it
@@ -217,7 +226,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
 
                     // if it has members it must be a scope
-                    if (members.Any())
+                    if (members.Any() || yolo.hasMemebers)
                     {
                         return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
                             new HasMembersType(new WeakScope(members.Select(x => new WeakMemberDefinition(
