@@ -91,7 +91,12 @@ namespace Tac.Backend.Interpreted.Public
 
         public IAssembly<InterpetedAssemblyBacking> Convert(IInterfaceType interfaceType)
         {
-            var scope = new Scope();
+            var scope = Scope.CreateAndBuild(memberValues.Select(x=> {
+
+                var member = MemberDefinition.CreateAndBuild(x.Key, x.Value.Item2, Access.ReadOnly);
+
+                return new IsStatic(member, false);
+                }).ToList());
 
             return new Assembly(
                 key,
