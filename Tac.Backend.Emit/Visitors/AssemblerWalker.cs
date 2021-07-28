@@ -1627,6 +1627,17 @@ namespace Tac.Backend.Emit.Walkers
 
             tryAssignOperation.Left.Convert(this.Push(tryAssignOperation));
 
+            // box primitives if you need to
+            var returns = tryAssignOperation.Left.Returns();
+            if (returns.SafeIs(out INumberType _))
+            {
+                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Box, typeof(double));
+            }
+            if (returns.SafeIs(out IBooleanType _))
+            {
+                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Box, typeof(bool));
+            }
+
             var memberDef = tryAssignOperation.Right.SafeCastTo(out IMemberReference _).MemberDefinition;
 
             GetVerifyableType(typeTracker.ResolvePossiblyPrimitive(memberDef.Type));
@@ -1638,6 +1649,7 @@ namespace Tac.Backend.Emit.Walkers
             generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Call, typeof(AssemblyWalkerHelp).GetMethod(nameof(AssemblyWalkerHelp.TryAssignOperationHelper_Is)));
 
             generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
+
 
             generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, typeof(ValueTuple<object,bool>).GetField(nameof(ValueTuple<object, bool>.Item2)));
 
@@ -1657,6 +1669,7 @@ namespace Tac.Backend.Emit.Walkers
             else
             {
                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldtoken, typeTracker.ResolvePossiblyPrimitive(memberDef.Type));
+                generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Call, typeof(System.Type).GetMethod(nameof(System.Type.GetTypeFromHandle)));
 
                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldsfld, rootSelfField);
                 generatorHolder.GetGeneratorAndUpdateStack(0).Emit(OpCodes.Ldfld, typeof(TacCompilation).GetField(nameof(TacCompilation.runTimeTypeTracker)));

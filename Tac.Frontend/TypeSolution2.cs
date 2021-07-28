@@ -65,6 +65,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError> rep = flowNode.Value.GetValueAs(out IVirtualFlowNode _).ToRep();
                     var yolo = GetOrAdd(rep);
 
+                    // this feels a bit weird because it doesn't flow through the type problem
                     if (yolo.Is1(out var realYolo) && flowNode.Key.Is1(out var typeProblemNode)) {
                         realYolo.hasMemebers |= typeProblemNode.SafeIs<ITypeProblemNode, TypeProblem2.Object>();
                         realYolo.hasMemebers |= typeProblemNode.SafeIs<ITypeProblemNode, TypeProblem2.Type>();
@@ -82,10 +83,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                         if (current == myBox) {
 
 
-                            myBox.members = equalableHashSet.VirtualMembers().TransformInner(members => members.Select(virtualMember=>(virtualMember.Key, GetOrAdd(virtualMember.Value.Value))).ToArray());
-                            myBox.input = equalableHashSet.VirtualInput().TransformInner(input => GetOrAdd(input));
-                            myBox.output = equalableHashSet.VirtualOutput().TransformInner(output => GetOrAdd(output));
-
                             if (equalableHashSet.Count() > 1)
                             {
                                 myBox.left = Possibly.Is(GetOrAdd(OrType.Make<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>(new EqualibleHashSet<Tpn.CombinedTypesAnd>(equalableHashSet.Take(equalableHashSet.Count() - 1).ToHashSet()))));
@@ -95,6 +92,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 myBox.left = Possibly.IsNot<IOrType<Yolo, IError>>();
                                 myBox.right = Possibly.IsNot<IOrType<Yolo, IError>>();
                             }
+
+                            myBox.members = equalableHashSet.VirtualMembers().TransformInner(members => members.Select(virtualMember => (virtualMember.Key, GetOrAdd(virtualMember.Value.Value))).ToArray());
+                            myBox.input = equalableHashSet.VirtualInput().TransformInner(input => GetOrAdd(input));
+                            myBox.output = equalableHashSet.VirtualOutput().TransformInner(output => GetOrAdd(output));
                         }
                         return current;
                     });
@@ -1147,17 +1148,32 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return Possibly.IsNot<IOrType<NameKey, ImplicitKey>[]>();
             }
 
-            internal IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError> GetType(Tpn.ILookUpType from) =>
-               flowNodes[from.LooksUp.GetOrThrow().SwitchReturns(
-                   x=> OrType.Make<ITypeProblemNode, IError>(x),
-                   x => OrType.Make<ITypeProblemNode, IError>(x),
-                   x => OrType.Make<ITypeProblemNode, IError>(x),
-                   x => OrType.Make<ITypeProblemNode, IError>(x),
-                   x => OrType.Make<ITypeProblemNode, IError>(x),
-                   x => OrType.Make<ITypeProblemNode, IError>(x))].GetValueAs(out IVirtualFlowNode _).ToRep().SwitchReturns(
-                    x => cache[x].type.GetValue(),
-                    x => OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(x));
+            internal IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError> GetType(Tpn.ILookUpType from)
+            {
+                // this little block makes undefined type undefined
+                // at time of writing if you uncommented it
+                // undefined types are just infered types
+                // a tempting notion
+                if (from.LooksUp.Is(out var value))
+                {
+                    if (value.Is6(out var error)) { 
+                        return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(error);
+                    }
+                }
+                else {
+                    throw new Exception("it should be set by this point? right");
+                }
 
+                return flowNodes[from.LooksUp.GetOrThrow().SwitchReturns(
+                    x => OrType.Make<ITypeProblemNode, IError>(x),
+                    x => OrType.Make<ITypeProblemNode, IError>(x),
+                    x => OrType.Make<ITypeProblemNode, IError>(x),
+                    x => OrType.Make<ITypeProblemNode, IError>(x),
+                    x => OrType.Make<ITypeProblemNode, IError>(x),
+                    x => OrType.Make<ITypeProblemNode, IError>(x))].GetValueAs(out IVirtualFlowNode _).ToRep().SwitchReturns(
+                     x => cache[x].type.GetValue(),
+                     x => OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(x));
+            }
             internal IOrType<FrontEndOrType, IError> GetOrType(TypeProblem2.OrType from) =>
                flowNodes[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _).ToRep().SwitchReturns(
                     x => cache[x].type.GetValue().TransformInner(y => y.CastTo<FrontEndOrType>()),

@@ -111,6 +111,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             return OrType.Make<ICollection<KeyValuePair<IKey, Lazy<IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>>>>, IError>(
                     set.GroupBy(x => x.Key)
+                    .Where(x=> x.Count() == Or.backing.Count) // everyone in the or has to have it
                     .Select(x => new KeyValuePair<IKey, Lazy<IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>>>(x.Key, new Lazy<IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>>(() => {
                         var errors = x.SelectMany(y =>
                         {

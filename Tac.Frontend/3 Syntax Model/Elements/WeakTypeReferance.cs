@@ -228,6 +228,8 @@ namespace Tac.SemanticModel
 
         public IBox<IFrontendType<IVerifiableType>> Run(Tpn.TypeSolution context)
         {
+            // Is1OrThrow is wrong here! 
+            // this has to pass the or type onwards
             return new FuncBox<IFrontendType<IVerifiableType>>(()=> context.GetType(type).Is1OrThrow());
         }
     }

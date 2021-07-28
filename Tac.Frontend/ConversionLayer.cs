@@ -133,11 +133,12 @@ namespace Tac.Frontend
 
             var inputKey = from.PrivateMembers.Single(x => x.Value == from.Input.GetOrThrow());
             var innerInputKey = inner.GetValue().PrivateMembers.Single(x => x.Value == inner.GetValue().Input.GetOrThrow());
-            var scope = typeSolution.GetWeakScope(from);
+            var scope = typeSolution.GetWeakScope(from); 
+            var innerScope = typeSolution.GetWeakScope(inner.GetValue());
 
             return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition>(new WeakImplementationDefinition(
                 scope.membersList.Single(x => x.Key.Equals(inputKey.Key)),
-                scope.membersList.Single(x => x.Key.Equals(innerInputKey.Key)),
+                innerScope.membersList.Single(x => x.Key.Equals(innerInputKey.Key)),
                 typeSolution.GetType(inner.GetValue().Returns.GetOrThrow()),
                 body,
                 new Box<WeakScope>(scope),
