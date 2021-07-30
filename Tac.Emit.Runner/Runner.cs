@@ -52,7 +52,8 @@ namespace Tac.Emit.Runner
             // after you have created an obejct for the run
             //
 
-            return Compiler.BuildAndRun<Tin, Tout>(module, input);
+            var res = Compiler.BuildAndRun<Tin, Tout>(module, input);
+            return res;
         }
     }
 }

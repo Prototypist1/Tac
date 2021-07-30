@@ -4,4 +4,8 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Tac.Emit.Runner\Tac.Emit.Runner.csproj" />
+  </ItemGroup>
+
 </Project>
