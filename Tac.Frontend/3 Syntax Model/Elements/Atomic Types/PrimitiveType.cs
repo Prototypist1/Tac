@@ -249,21 +249,36 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         }
     }
 
-    internal class HasMembersType : IFrontendType<IInterfaceType>
+    // EXTERNAL TYPES | 6D97B5C3-BFB5-4F1F-AE91-8955AD8277AD
+    //
+    // the external types represent mebers or types created by another assembly
+    // they are disignishable from internal 
+    // but when they build instead of creating a new instance they return one provided from outside the compilation
+    internal class ExternalHasMembersType : HasMembersTypeAbstract
     {
+        private readonly IInterfaceType result;
+        private readonly IReadOnlyList<WeakExternslMemberDefinition> members;
 
-        private struct Yes { }
+        public ExternalHasMembersType(IInterfaceType result, IReadOnlyList<WeakExternslMemberDefinition> members)
+        {
+            this.result = result ?? throw new ArgumentNullException(nameof(result));
+            this.members = members ?? throw new ArgumentNullException(nameof(members));
+        }
 
-        public IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
+        public override IBuildIntention<IInterfaceType> GetBuildIntention(IConversionContext context)
+        {
+            return new BuildIntention<IInterfaceType>(result, () => { });
+        }
+
+        public override IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
         {
             return HasMembersLibrary.CanAssign(
                 they,
                 this,
-                weakScope.membersList.Select(x => (x.Key, x.Type.GetValue().TransformInner(y => (y, x.Access)))).ToList(),
+                members.Select(x => (x.Key, x.Type.GetValue().TransformInner(y => (y, x.Access)))).ToList(),
                 (target, key) =>
                 {
-
-                    //jesus these data 
+                    //jesus these data structures
                     return target.TryGetMember(key, assumeTrue).SwitchReturns(
                         x => x.SwitchReturns(
                             y => y.Type.GetValue().SwitchReturns(
@@ -279,16 +294,37 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                 );
         }
 
-        public IEnumerable<IError> Validate() => weakScope.membersList.Select(x => x.Type.GetValue().Possibly1()).OfType<IIsDefinately<IFrontendType<IVerifiableType>>>().SelectMany(x => x.Value.Validate());
+        public override IOrType<IOrType<WeakMemberDefinition, IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
+        {
+            return HasMembersLibrary.TryGetMember(key, members.Select(x => (
+                key: x.Key,
+                type: (IOrType<WeakMemberDefinition, IError>)OrType.Make<WeakMemberDefinition, IError>(x))).ToList());
+        }
 
-        public IOrType<IOrType<WeakMemberDefinition, IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
+        public override IEnumerable<IError> Validate() => Array.Empty<IError>();
+    }
+
+
+    internal abstract class HasMembersTypeAbstract : IFrontendType<IInterfaceType>
+    {
+        public abstract IBuildIntention<IInterfaceType> GetBuildIntention(IConversionContext context);
+        public abstract IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue);
+        public abstract IOrType<IOrType<WeakMemberDefinition, IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue);
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
+        public abstract IEnumerable<IError> Validate();
+    }
+
+    internal class HasMembersType : HasMembersTypeAbstract
+    {
+        public override IOrType<IOrType<WeakMemberDefinition, IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
         {
             return HasMembersLibrary.TryGetMember(key, weakScope.membersList.Select(x => (
                 key: x.Key,
                 type: (IOrType<WeakMemberDefinition, IError>)OrType.Make<WeakMemberDefinition, IError>(x))).ToList());
         }
 
-        public IBuildIntention<IInterfaceType> GetBuildIntention(IConversionContext context)
+        public override IBuildIntention<IInterfaceType> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = InterfaceType.Create();
             return new BuildIntention<IInterfaceType>(toBuild, () =>
@@ -297,12 +333,31 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             });
         }
 
-        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
-        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(new No());
+        public override IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
+        {
+            return HasMembersLibrary.CanAssign(
+                they,
+                this,
+                weakScope.membersList.Select(x => (x.Key, x.Type.GetValue().TransformInner(y => (y, x.Access)))).ToList(),
+                (target, key) =>
+                {
+                    //jesus these data structures
+                    return target.TryGetMember(key, assumeTrue).SwitchReturns(
+                        x => x.SwitchReturns(
+                            y => y.Type.GetValue().SwitchReturns(
+                                z => OrType.Make<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError>(OrType.Make<(IFrontendType<IVerifiableType>, Access), IError>((z, y.Access))),
+                                z => OrType.Make<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError>(z)),
+                            y => OrType.Make<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError>(y)),
+                        x => OrType.Make<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError>(x),
+                        x => OrType.Make<IOrType<(IFrontendType<IVerifiableType>, Access), IError>, No, IError>(x));
+                }
+                ,
+                (target, other, assumes) => target.TheyAreUs(other, assumes),
+                assumeTrue
+                );
+        }
 
-        //public IReadOnlyList<WeakMemberDefinition> GetMembers() => weakScope.membersList;
-
-        //public readonly IReadOnlyDictionary<IKey, IOrType<IFrontendType<IVerifiableType>, IError>> members;
+        public override IEnumerable<IError> Validate() => weakScope.membersList.Select(x => x.Type.GetValue().Possibly1()).OfType<IIsDefinately<IFrontendType<IVerifiableType>>>().SelectMany(x => x.Value.Validate());
 
         public readonly WeakScope weakScope;
 

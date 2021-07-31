@@ -136,12 +136,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                     IIsPossibly<IOrType<NameKey, ImplicitKey>> key,
                     IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> converter,
                     bool isPlaceHolder,
-                    IIsPossibly<Guid> primitiveId
+                    IIsPossibly<Guid> primitiveId,
+                    IIsPossibly<IInterfaceType>  external
                     ) : base(problem, debugName, converter)
                 {
-                    Key = key;
+                    Key = key ?? throw new ArgumentNullException(nameof(key));
                     IsPlaceHolder = isPlaceHolder;
-                    PrimitiveId = primitiveId;
+                    PrimitiveId = primitiveId ?? throw new ArgumentNullException(nameof(primitiveId));
+                    External = external ?? throw new ArgumentNullException(nameof(external));
                 }
 
                 public IIsPossibly<IStaticScope> Parent { get; set; } = Possibly.IsNot<IStaticScope>();
@@ -158,7 +160,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
                 public Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> GenericOverlays { get; } = new Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
                 public IIsPossibly<IOrType<NameKey, ImplicitKey>> Key { get; }
-
+                public IIsPossibly<IInterfaceType> External { get; }
                 public bool IsPlaceHolder { get; }
             }
 
@@ -1221,7 +1223,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 map[oldType] = newType;
                             }
 
-                            var @explicit = CopyTree(Prototypist.Toolbox.OrType.Make<MethodType, Type>(type), Prototypist.Toolbox.OrType.Make<MethodType, Type>(new Type(this.builder, $"generated-generic-{type.DebugName}", type.Key, type.Converter, type.IsPlaceHolder, Possibly.IsNot<Guid>())), map);
+                            var @explicit = CopyTree(Prototypist.Toolbox.OrType.Make<MethodType, Type>(type), Prototypist.Toolbox.OrType.Make<MethodType, Type>(new Type(this.builder, $"generated-generic-{type.DebugName}", type.Key, type.Converter, type.IsPlaceHolder, Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>())), map);
 
                             return @explicit.SwitchReturns(v1 =>
                             {
@@ -1568,7 +1570,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var type in innerFromStaticScope.Types)
                             {
-                                var newValue = Copy(type.Value, new Type(this.builder, $"copied from {((TypeProblemNode)type.Value).DebugName}", type.Value.Key, type.Value.Converter, type.Value.IsPlaceHolder, type.Value.PrimitiveId));
+                                if (type.Value.External.Is(out var _)) {
+                                    throw new Exception("I need to think about what this means");
+                                    // it's a real problem
+                                    // when I have a generic type in another assembly...
+                                    // list is going to be an external generic type
+                                    // how is that going to work?
+                                    // {762D2B2D-607D-4D66-AC01-3A309DDB851D}
+                                    // I think external generics have to be handled very differently
+                                    
+                                }
+
+                                var newValue = Copy(type.Value, new Type(this.builder, $"copied from {((TypeProblemNode)type.Value).DebugName}", type.Value.Key, type.Value.Converter, type.Value.IsPlaceHolder, type.Value.PrimitiveId, type.Value.External));
                                 Builder.HasType(innerStaticScopeTo, type.Key, newValue);
                             }
                         }
@@ -1836,6 +1849,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             public TypeProblem2(IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> rootConverter, RootScopePopulateScope rootScopePopulateScope, Action<TypeProblem2> initDependencyScope)
             {
                 builder = new Builder(this);
+
+                // primitives are probably really external types
+                // but they are going to have special logic however I handle them 
+
                 Primitive = new Scope(this.builder, "base", rootConverter);
                 builder.CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("block")), new PrimitiveTypeConverter(new BlockType()), Possibly.Is(Guid.NewGuid()));
                 builder.CreateType(Primitive, Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("number")), new PrimitiveTypeConverter(new NumberType()), Possibly.Is(Guid.NewGuid()));
@@ -1856,7 +1873,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 builder.HasMethodType(Primitive, key, res);
                 foreach (var placeholder in placeholders)
                 {
-                    var placeholderType = new Type(this.builder, $"generic-parameter-{placeholder.key}", Possibly.Is(placeholder.key), placeholder.converter, true, Possibly.IsNot<Guid>());
+                    var placeholderType = new Type(this.builder, $"generic-parameter-{placeholder.key}", Possibly.Is(placeholder.key), placeholder.converter, true, Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>());
                     builder.HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(res), placeholder.key.SwitchReturns<IKey>(x => x, x => x), Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(placeholderType));
                 }
 

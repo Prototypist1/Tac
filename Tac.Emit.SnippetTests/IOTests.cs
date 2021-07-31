@@ -156,7 +156,7 @@ entry-point [empty; empty;] input {
 
             Run.CompileAndRun<Empty, Empty>("test",
  @"
- entry-point [empty; empty;] input { new-empty return; };", new Empty(), Array.Empty<AsseblyPendingType>());
+ entry-point [empty; empty;] input { new-empty return; };", new Empty(), Array.Empty<Backend.Emit.Assembly>());
 
             verifyIntIn();
             verifyStringIn();
@@ -198,7 +198,7 @@ entry-point [empty; empty;] input {
  entry-point [empty; empty;] input {
     2 + 2;
     new-empty return;
- };", new Empty(), Array.Empty<AsseblyPendingType>());
+ };", new Empty(), Array.Empty<Backend.Emit.Assembly>());
 
             verifyIntIn();
             verifyStringIn();

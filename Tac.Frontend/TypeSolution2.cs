@@ -7,6 +7,7 @@ using System.Linq;
 using Tac.Frontend._3_Syntax_Model.Elements;
 using Tac.Frontend.SyntaxModel.Operations;
 using Tac.Model;
+using Tac.Model.Elements;
 using Tac.SemanticModel;
 using Tac.SyntaxModel.Elements.AtomicTypes;
 
@@ -28,7 +29,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             //readonly Dictionary<TypeProblem2.Method, Scope> methodScopeCache = new Dictionary<TypeProblem2.Method, Scope>();
             //readonly Dictionary<TypeProblem2.Scope, Scope> scopeScopeCache = new Dictionary<TypeProblem2.Scope, Scope>();
 
-            private ConcurrentIndexed<EqualibleHashSet<Tpn.CombinedTypesAnd>, Yolo> cache = new ConcurrentIndexed<EqualibleHashSet<CombinedTypesAnd>, Yolo>();
+            private readonly ConcurrentIndexed<EqualibleHashSet<Tpn.CombinedTypesAnd>, Yolo> cache = new ConcurrentIndexed<EqualibleHashSet<CombinedTypesAnd>, Yolo>();
             private Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodes;
 
             private class Yolo
@@ -42,11 +43,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                 internal IIsPossibly<IOrType<Yolo, IError>> left;
                 internal IIsPossibly<IOrType<Yolo, IError>> right;
 
-                internal Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> type = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
+                internal readonly Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>> type = new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>();
                 
                 // sometimes thing have no member but really we know they are an object or a type
                 // if this is not set the yolo becomes an AnyType with it set the Yolo becomes a HasMembers with no members
                 internal bool hasMemebers = false;
+
+                internal IIsPossibly<IInterfaceType> external = Possibly.IsNot<IInterfaceType>();
+
             }
 
             public TypeSolution(
@@ -68,14 +72,21 @@ namespace Tac.Frontend.New.CrzayNamespace
                     // this feels a bit weird because it doesn't flow through the type problem
                     if (yolo.Is1(out var realYolo) && flowNode.Key.Is1(out var typeProblemNode)) {
                         realYolo.hasMemebers |= typeProblemNode.SafeIs<ITypeProblemNode, TypeProblem2.Object>();
-                        realYolo.hasMemebers |= typeProblemNode.SafeIs<ITypeProblemNode, TypeProblem2.Type>();
+                        if (typeProblemNode.SafeIs(out TypeProblem2.Type x))
+                        {
+                            realYolo.hasMemebers = true;
+                            if (x.External.Is(out var _))
+                            {
+                                realYolo.external = x.External;
+                            }
+                        }
                     }
                 }
 
                 IOrType < Yolo, IError> GetOrAdd(IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>  rep){
 
                     return rep.TransformInner(equalableHashSet => {
-
+                        
                         var myBox = new Yolo();
                         var current = cache.GetOrAdd(equalableHashSet, myBox);
 
@@ -229,6 +240,28 @@ namespace Tac.Frontend.New.CrzayNamespace
                     // if it has members it must be a scope
                     if (members.Any() || yolo.hasMemebers)
                     {
+                        if (yolo.external.Is(out var interfaceType)) {
+
+                            // we have one member list from the type problem
+                            // and one member list from the external deffinition
+                            // we need to join them together
+
+                            if (members.Count != interfaceType.Members.Count)
+                            {
+                                throw new Exception("these should have the same number of members!");
+                            }
+
+                            var dict = members.ToDictionary(x => x.Item1, x => x);
+
+                            return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
+                               new ExternalHasMembersType(interfaceType, interfaceType.Members.Select(x => new WeakExternslMemberDefinition(
+                                   x,
+                                   dict[x.Key].Item2.SwitchReturns(
+                                       y => y.type,
+                                       y => (IBox<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>)new Box<IOrType<IFrontendType<Model.Elements.IVerifiableType>, IError>>(OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(y))))).ToList()));
+
+                        }
+
                         return OrType.Make<IFrontendType<Model.Elements.IVerifiableType>, IError>(
                             new HasMembersType(new WeakScope(members.Select(x => new WeakMemberDefinition(
                                 Model.Elements.Access.ReadWrite,

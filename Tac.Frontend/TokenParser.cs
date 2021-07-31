@@ -24,7 +24,7 @@ namespace Tac.Frontend
 
         private readonly Dictionary<IVerifiableType, Tpn.TypeProblem2.Type> typeCache = new Dictionary<IVerifiableType, Tpn.TypeProblem2.Type>();
 
-        public IProject<TAssembly, TBacking> Parse<TAssembly,TBacking>(string text, IReadOnlyList<IAsseblyPendingType<TAssembly, TBacking>> dependencies, string name)
+        public IProject<TAssembly, TBacking> Parse<TAssembly,TBacking>(string text, IReadOnlyList<TAssembly> dependencies, string name)
             where TAssembly: IAssembly<TBacking>
         {
 
@@ -37,25 +37,15 @@ namespace Tac.Frontend
 
             var dependencyConverter = new DependencyConverter();
 
-
-            List<Func<Tpn.TypeSolution, IConversionContext, TAssembly>> soonToBeAssemblies = new List<Func<Tpn.TypeSolution, IConversionContext, TAssembly>>();
-
-
             var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), scopePopulator, prob => {
 
 
-                // I don't think what I'm doing here is right
-                // I'm taking external types and recreating them in the type problem 
-                // I then use those internally
-                // and export those so the external types can confirm to my view of them
-                // really,
-                // the type problem should support external type
-                // TODO  {27F6D80F-0E67-498B-A2F2-191FCBEF1D18}
+
                 foreach (var dependency in dependencies)
                 {
-                    var type = prob.builder.CreateType(prob.Dependency, new WeakTypeDefinitionConverter());
+                    var type = prob.builder.CreateTypeExternalType(prob.Dependency, new WeakTypeDefinitionConverter(), dependency.Scope);
 
-                    foreach (var memberPair in dependency.Members)
+                    foreach (var memberPair in dependency.Scope.Members)
                     {
                         var innerType = ConvertType(prob.builder, type, OrType.Make<IVerifiableType, IError>(memberPair.Type));
                         innerType.Switch(x =>
@@ -68,16 +58,6 @@ namespace Tac.Frontend
                     }
                     prob.builder.CreatePrivateMember(prob.Dependency, dependency.Key, OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(type));
 
-                    soonToBeAssemblies.Add((solution, context) =>
-                    {
-                        
-                        var interfaceType = type.Converter.Convert(solution, type).SwitchReturns(
-                           x => x.Convert(context),
-                           x => throw new NotImplementedException("I don't think a dependency could be a generic type. If it happens for some reason I'll worry about it then"),
-                           x => throw new NotImplementedException("I don't think a dependency could be a primitive type."));
-
-                        return dependency.Convert(interfaceType);
-                    });
                 }
             });
 
@@ -94,7 +74,7 @@ namespace Tac.Frontend
 
             var context = TransformerExtensions.NewConversionContext();
 
-            return new Project<TAssembly, TBacking>(rootScope.Convert(context), soonToBeAssemblies.Select(x=>x(solution, context)).ToArray(), dependencyScope.Convert(context));
+            return new Project<TAssembly, TBacking>(rootScope.Convert(context), dependencies, dependencyScope.Convert(context));
         }
 
         private OrType<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>> ConvertType(
@@ -139,7 +119,7 @@ namespace Tac.Frontend
                     }
 
                     // we don't know the type key...
-                    var tpnType = problem.CreateType(scope, new WeakTypeDefinitionConverter());
+                    var tpnType = problem.CreateTypeExternalType(scope, new WeakTypeDefinitionConverter(), interfaceType);
                     typeCache[type] = tpnType;
                     var orType = OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(tpnType);
                     foreach (var memberPair in interfaceType.Members)

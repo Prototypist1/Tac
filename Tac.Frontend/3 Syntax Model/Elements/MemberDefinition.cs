@@ -82,9 +82,20 @@ namespace Tac.SemanticModel
     // up I don't think so
     // it is easier just to have simple value objects
     // it is certaianly true at somepoint we will need a flattened list 
+
+    //internal abstract class WeakMemberDefinition : IConvertable<IMemberDefinition>, IValidate, IReturn {
+    //    public abstract IBox<IOrType<IFrontendType<IVerifiableType>, IError>> Type { get; }
+    //    public abstract Access Access { get; }
+    //    public abstract IKey Key { get; }
+
+    //    public abstract IBuildIntention<IMemberDefinition> GetBuildIntention(IConversionContext context);
+    //    public abstract IOrType<IFrontendType<IVerifiableType>, IError> Returns();
+    //    public abstract IEnumerable<IError> Validate();
+    //}
+
     internal class WeakMemberDefinition : IConvertable<IMemberDefinition>, IValidate, IReturn
     {
-        public WeakMemberDefinition(Access access, IKey key,IBox< IOrType<IFrontendType<IVerifiableType>, IError>> type)
+        public WeakMemberDefinition(Access access, IKey key, IBox<IOrType<IFrontendType<IVerifiableType>, IError>> type)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             Access = access;
@@ -100,7 +111,7 @@ namespace Tac.SemanticModel
         //    return MemberDefinitionShared.Convert(Type, context, Access, Key);
         //}
 
-        public IBuildIntention<IMemberDefinition> GetBuildIntention(IConversionContext context)
+        public virtual IBuildIntention<IMemberDefinition> GetBuildIntention(IConversionContext context)
         {
             var (toBuild, maker) = MemberDefinition.Create();
             return new BuildIntention<IMemberDefinition>(toBuild, () =>
@@ -123,6 +134,23 @@ namespace Tac.SemanticModel
             {
                 yield return error;
             }
+        }
+    }
+
+    // see: EXTERNAL TYPES | 6D97B5C3-BFB5-4F1F-AE91-8955AD8277AD
+    internal class WeakExternslMemberDefinition: WeakMemberDefinition
+    {
+        private readonly IMemberDefinition backing;
+
+        public WeakExternslMemberDefinition(IMemberDefinition backing, IBox<IOrType<IFrontendType<IVerifiableType>, IError>> type)
+           : base(backing.Access, backing.Key, type)
+        {
+            this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
+        }
+
+        public override IBuildIntention<IMemberDefinition> GetBuildIntention(IConversionContext context)
+        {
+            return new BuildIntention<IMemberDefinition>(backing, () => {});
         }
     }
 

@@ -63,49 +63,52 @@ entry-point [empty; empty;] input {
                 InputValue,
                 null,
                 new[] {
-                 new AsseblyPendingType(
+                 new Tac.Backend.Emit.Assembly(
                     new NameKey("in"),
-                    new List<IMemberDefinition>() {
-                        MemberDefinition.CreateAndBuild(
-                            new NameKey("read-number"),
-                            MethodType.CreateAndBuild(
-                                new EmptyType(),
-                                new NumberType()),
-                            Access.ReadOnly),
-                        MemberDefinition.CreateAndBuild(
-                            new NameKey("read-string"),
-                            MethodType.CreateAndBuild(
-                                new EmptyType(),
-                                new StringType()),
-                            Access.ReadOnly),
-                        MemberDefinition.CreateAndBuild(
-                            new NameKey("read-bool"),
-                            MethodType.CreateAndBuild(
-                                new EmptyType(),
-                                new BooleanType()),
-                            Access.ReadOnly)
-                    },
+                    InterfaceType.CreateAndBuild(
+                        new List<IMemberDefinition>() {
+                            MemberDefinition.CreateAndBuild(
+                                new NameKey("read-number"),
+                                MethodType.CreateAndBuild(
+                                    new EmptyType(),
+                                    new NumberType()),
+                                Access.ReadOnly),
+                            MemberDefinition.CreateAndBuild(
+                                new NameKey("read-string"),
+                                MethodType.CreateAndBuild(
+                                    new EmptyType(),
+                                    new StringType()),
+                                Access.ReadOnly),
+                            MemberDefinition.CreateAndBuild(
+                                new NameKey("read-bool"),
+                                MethodType.CreateAndBuild(
+                                    new EmptyType(),
+                                    new BooleanType()),
+                                Access.ReadOnly)
+                        }),
                     new InputBacking()),
-                new AsseblyPendingType(new NameKey("out"),
-                    new List<IMemberDefinition>{
-                    MemberDefinition.CreateAndBuild(
-                        new NameKey("write-number"),
-                        MethodType.CreateAndBuild(
-                            new NumberType(),
-                            new EmptyType()),
-                        Access.ReadOnly),
-                    MemberDefinition.CreateAndBuild(
-                        new NameKey("write-string"),
-                        MethodType.CreateAndBuild(
-                            new StringType(),
-                            new EmptyType()),
-                        Access.ReadOnly),
-                    MemberDefinition.CreateAndBuild(
-                        new NameKey("write-bool"),
-                        MethodType.CreateAndBuild(
-                            new BooleanType(),
-                            new EmptyType()),
-                        Access.ReadOnly) },
+                new Tac.Backend.Emit.Assembly(
+                    new NameKey("out"),
+                    InterfaceType.CreateAndBuild(
+                        new List<IMemberDefinition>{
+                            MemberDefinition.CreateAndBuild(
+                                new NameKey("write-number"),
+                                MethodType.CreateAndBuild(
+                                    new NumberType(),
+                                    new EmptyType()),
+                                Access.ReadOnly),
+                            MemberDefinition.CreateAndBuild(
+                                new NameKey("write-string"),
+                                MethodType.CreateAndBuild(
+                                    new StringType(),
+                                    new EmptyType()),
+                                Access.ReadOnly),
+                            MemberDefinition.CreateAndBuild(
+                                new NameKey("write-bool"),
+                                MethodType.CreateAndBuild(
+                                    new BooleanType(),
+                                    new EmptyType()),
+                                Access.ReadOnly) }),
                 outputBacking)
             });
         }

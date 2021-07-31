@@ -267,7 +267,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public Type CreateType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> converter, IIsPossibly<Guid> primitive)
                 {
-                    var res = new Type(this, key.ToString()!, Possibly.Is(key), converter, false, primitive);
+                    var res = new Type(this, key.ToString()!, Possibly.Is(key), converter, false, primitive, Possibly.IsNot<IInterfaceType>());
                     IsChildOf(parent, res);
                     HasType(parent, key.SwitchReturns<IKey>(x => x, x => x), res);
                     return res;
@@ -276,13 +276,21 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Type CreateType(IStaticScope parent, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> converter)
                 {
                     var key = new ImplicitKey(Guid.NewGuid());
-                    var res = new Type(this, key.ToString()!, Possibly.IsNot<IOrType<NameKey, ImplicitKey>>(), converter, false, null);
+                    var res = new Type(this, key.ToString()!, Possibly.IsNot<IOrType<NameKey, ImplicitKey>>(), converter, false, Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>());
                     IsChildOf(parent, res);
                     // migiht need this, let's try without first
                     //HasType(parent, key, res);
                     return res;
                 }
-
+                public Type CreateTypeExternalType(IStaticScope parent, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> converter, IInterfaceType interfaceType)
+                {
+                    var key = new ImplicitKey(Guid.NewGuid());
+                    var res = new Type(this, key.ToString()!, Possibly.IsNot<IOrType<NameKey, ImplicitKey>>(), converter, false, Possibly.IsNot<Guid>(), Possibly.Is(interfaceType));
+                    IsChildOf(parent, res);
+                    // migiht need this, let's try without first
+                    //HasType(parent, key, res);
+                    return res;
+                }
 
                 public Type CreateGenericType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> converter)
                 {
@@ -292,7 +300,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                         Possibly.Is(key),
                         converter,
                         false,
-                        Possibly.IsNot<Guid>());
+                        Possibly.IsNot<Guid>(),
+                        Possibly.IsNot<IInterfaceType>());
                     IsChildOf(parent, res);
                     HasType(parent, key.SwitchReturns<IKey>(x => x, x => x), res);
                     foreach (var placeholder in placeholders)
@@ -303,7 +312,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                             Possibly.Is(placeholder.key),
                             placeholder.converter,
                             true,
-                            Possibly.IsNot<Guid>());
+                            Possibly.IsNot<Guid>(),
+                            Possibly.IsNot<IInterfaceType>());
                         HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(res), placeholder.key.SwitchReturns<IKey>(x => x, x => x), Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(placeholderType));
                     }
                     return res;

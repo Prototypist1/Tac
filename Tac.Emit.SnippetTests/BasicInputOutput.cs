@@ -52,7 +52,7 @@ namespace Tac.Emit.SnippetTests
             );
         }
 
-        public static AsseblyPendingType Input(Func<double> numberSource, Func<string> stringSource, Func<bool> boolSource)
+        public static Assembly Input(Func<double> numberSource, Func<string> stringSource, Func<bool> boolSource)
         {
             var input = new InputBacking
             {
@@ -89,11 +89,11 @@ namespace Tac.Emit.SnippetTests
             //scope.Build(members);
 
             ;
-
-            return new AsseblyPendingType(new NameKey("in"), members, input);
+            ;
+            return new Assembly(new NameKey("in"), InterfaceType.CreateAndBuild(members), input);
         }
 
-        public static AsseblyPendingType Output(Action<double> numberDestination, Action<string> stringDestination, Action<bool> boolDestination)
+        public static Assembly Output(Action<double> numberDestination, Action<string> stringDestination, Action<bool> boolDestination)
         {
             var output = new OutputBacking
             {
@@ -129,7 +129,7 @@ namespace Tac.Emit.SnippetTests
 
             //scope.Build(members);
 
-            return new AsseblyPendingType(new NameKey("out"), members, output);
+            return new Assembly(new NameKey("out"), InterfaceType.CreateAndBuild(members), output);
         }
     }
 }

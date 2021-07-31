@@ -16,9 +16,9 @@ namespace Tac.Interpreted.Runner
     public static class Runner
     {
 
-        public static void RunInterpeted(string name, IReadOnlyList<AssemblyBuilder> dependencies,string toRun)
+        public static void RunInterpeted(string name, IReadOnlyList<IAssembly<InterpetedAssemblyBacking>> dependencies,string toRun)
         {
-            var module = new TokenParser().Parse(toRun, dependencies, name);
+            var module = new TokenParser().Parse<IAssembly<InterpetedAssemblyBacking>, InterpetedAssemblyBacking>(toRun, dependencies, name);
             Interpeter.Run(module);
         }
     }

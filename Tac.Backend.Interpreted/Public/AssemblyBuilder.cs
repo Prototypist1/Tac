@@ -16,7 +16,7 @@ using static Tac.Backend.Interpreted.Public.AssemblyBuilder;
 
 namespace Tac.Backend.Interpreted.Public
 {
-    public class AssemblyBuilder: IAsseblyPendingType<IAssembly<InterpetedAssemblyBacking>, InterpetedAssemblyBacking>
+    public class AssemblyBuilder//: IAsseblyPendingType<IAssembly<InterpetedAssemblyBacking>, InterpetedAssemblyBacking>
     {
         private readonly NameKey key;
         private readonly Dictionary<IKey, (IInterpetedOperation,IVerifiableType)> memberValues = new Dictionary<IKey, (IInterpetedOperation, IVerifiableType)>();
@@ -89,7 +89,7 @@ namespace Tac.Backend.Interpreted.Public
 
         }
 
-        public IAssembly<InterpetedAssemblyBacking> Convert(IInterfaceType interfaceType)
+        public IAssembly<InterpetedAssemblyBacking> Build()
         {
             var scope = Scope.CreateAndBuild(memberValues.Select(x=> {
 
@@ -100,7 +100,7 @@ namespace Tac.Backend.Interpreted.Public
 
             return new Assembly(
                 key,
-                interfaceType,
+                InterfaceType.CreateAndBuild(scope.Members.Values.Select(x=>x.Value).ToArray()),
                 new InterpetedAssemblyBacking(memberValues, scope)
                 );
         }

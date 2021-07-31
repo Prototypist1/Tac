@@ -8,11 +8,27 @@ using Tac.SemanticModel;
 
 namespace Tac.Frontend
 {
+    // see: EXTERNAL TYPES | 6D97B5C3-BFB5-4F1F-AE91-8955AD8277AD
+    //internal class ExternalScope : WeakScope
+    //{
+    //    private readonly IFinalizedScope scope;
+
+    //    public ExternalScope(IFinalizedScope scope,IReadOnlyList<WeakExternslMemberDefinition> membersList): base(membersList)
+    //    {
+    //        this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+    //    }
+
+    //    public override IBuildIntention<IFinalizedScope> GetBuildIntention(IConversionContext context)
+    //    {
+    //        return new BuildIntention<IFinalizedScope>(scope, () => {});
+    //    }
+    //}
+
     internal class WeakScope : IConvertable<IFinalizedScope>
     {
-        public readonly List<WeakMemberDefinition> membersList;
+        public readonly IReadOnlyList<WeakMemberDefinition> membersList;
 
-        public WeakScope(List<WeakMemberDefinition> membersList)
+        public WeakScope(IReadOnlyList<WeakMemberDefinition> membersList)
         {
             this.membersList = membersList;
         }

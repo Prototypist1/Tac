@@ -11,38 +11,38 @@ using Tac.Model.Elements;
 namespace Tac.Emit.Runner
 {
 
-    public class AsseblyPendingType : IAsseblyPendingType<Assembly, object>
-    {
-        private readonly object obj;
+    //public class AsseblyPendingType : IAsseblyPendingType<Assembly, object>
+    //{
+    //    private readonly object obj;
 
-        public AsseblyPendingType(NameKey key, IReadOnlyList<IMemberDefinition> members, object obj)
-        {
-            this.obj = obj ?? throw new ArgumentNullException(nameof(obj));
-            Key = key ?? throw new ArgumentNullException(nameof(key));
-            Members = members ?? throw new ArgumentNullException(nameof(members));
-        }
+    //    public AsseblyPendingType(NameKey key, IReadOnlyList<IMemberDefinition> members, object obj)
+    //    {
+    //        this.obj = obj ?? throw new ArgumentNullException(nameof(obj));
+    //        Key = key ?? throw new ArgumentNullException(nameof(key));
+    //        Members = members ?? throw new ArgumentNullException(nameof(members));
+    //    }
 
-        public NameKey Key
-        {
-            get; init;
-        }
+    //    public NameKey Key
+    //    {
+    //        get; init;
+    //    }
 
-        public IReadOnlyList<IMemberDefinition> Members
-        {
-            get; init;
-        }
+    //    public IReadOnlyList<IMemberDefinition> Members
+    //    {
+    //        get; init;
+    //    }
 
-        public Assembly Convert(IInterfaceType interfaceType)
-        {
-            return new Assembly(Key, interfaceType, obj);
-        }
-    }
+    //    public Assembly Convert(IInterfaceType interfaceType)
+    //    {
+    //        return new Assembly(Key, interfaceType, obj);
+    //    }
+    //}
 
     public static  class Run
     {
 
 
-        public static Tout CompileAndRun<Tin,Tout>(string name, string toRun, Tin input, IReadOnlyList<AsseblyPendingType> assemblies)
+        public static Tout CompileAndRun<Tin,Tout>(string name, string toRun, Tin input, IReadOnlyList<Assembly> assemblies)
         {
             var module = new TokenParser().Parse<Assembly, object>(toRun, assemblies, name);
 
