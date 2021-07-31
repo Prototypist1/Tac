@@ -154,6 +154,10 @@ namespace Tac.Backend.Emit
 
             dependenciesField.SetValue(complitation, dependencies);
 
+            // A502902A-8EC8-4F5F-A55F-32E36F146762 this is a bit weird
+            // it would be great if these didn't have to be wraped
+            // the MSIL type could flow into the front end 
+            // and be picked up again on the backend
             foreach (var reference in project.References)
             {
                 var field = dependenciesType.GetField(TypeTracker.ConvertName(reference.Key.Name)) ?? throw new NullReferenceException();

@@ -236,6 +236,9 @@ namespace Tac.Parser
         // looks like x := ...
         // maybe just special init symbol :
         // 
+        // is that even valid code?
+        // maybe something to make it clear to look up a context
+        // object {x =: that.x; 2 =: y;}
 
         private readonly IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] typeLineMakers = new IMaker<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>[] {
 

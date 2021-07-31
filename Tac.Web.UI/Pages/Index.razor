@@ -5,14 +5,17 @@
 @using Tac.Model.Elements;
 @using Tac.Model.Instantiated;
 
-<h1>Tac!</h1>
-
-<textarea @bind="Model.InputValue" style="width:1000px" />
-
-<input type="button" @onclick="Model.Execute" value="Run" />
-
-<p>@Model.Output</p>
-
+<div id="flex">
+    <textarea @bind="Model.InputValue" id="code">
+    </textarea>
+    <input type="button" @onclick="Model.Execute" value="run" id="run" />
+    <div id="console">
+        @foreach (var item in Model.Output)
+        {
+            <div>@item</div>
+        }
+    </div>
+</div>
 @functions {
     Test Model = new Test();
 }

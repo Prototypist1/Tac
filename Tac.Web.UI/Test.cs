@@ -23,7 +23,7 @@ entry-point [empty; empty;] input {
 
         private OutputBacking outputBacking  = new OutputBacking();
 
-        public string Output => String.Join(Environment.NewLine, outputBacking.consoleLines);
+        public IEnumerable<string> Output => outputBacking.consoleLines;
 
         public class InputBacking
         {
@@ -57,6 +57,7 @@ entry-point [empty; empty;] input {
 
         public void Execute()
         {
+            outputBacking.consoleLines.Clear();
 
             Run.CompileAndRun<Empty, Empty>(
                 "test",

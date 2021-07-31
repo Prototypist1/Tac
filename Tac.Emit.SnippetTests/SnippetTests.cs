@@ -35,6 +35,22 @@ namespace Tac.Emit.SnippetTests
             Assert.Equal(2.0, res);
         }
 
+        // {48146F3A-6D75-4F24-B857-BED24CE846EA}
+        // this is probably 
+//        [Fact]
+//        public void DoesItResolveTheRightX()
+//        {
+//            var res = Run.CompileAndRun<Empty, double>(
+//                "test", @"
+//entry-point [empty; number;] input { 
+//    1 =: x;
+//    object { x =: x; 2 =: y }.x return; 
+//}", 
+//                null, 
+//                Array.Empty<Tac.Backend.Emit.Assembly>());
+//            Assert.Equal(1.0, res);
+//        }
+
         [Fact]
         public void Fac()
         {
