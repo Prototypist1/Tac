@@ -24,7 +24,7 @@ namespace Tac.Frontend
 
         private readonly Dictionary<IVerifiableType, Tpn.TypeProblem2.Type> typeCache = new Dictionary<IVerifiableType, Tpn.TypeProblem2.Type>();
 
-        public IProject<TAssembly, TBacking> Parse<TAssembly,TBacking>(string text, IReadOnlyList<TAssembly> dependencies, string name)
+        public IOrType< IProject<TAssembly, TBacking>, IReadOnlyList<IError>> Parse<TAssembly,TBacking>(string text, IReadOnlyList<TAssembly> dependencies, string name)
             where TAssembly: IAssembly<TBacking>
         {
 
@@ -38,8 +38,6 @@ namespace Tac.Frontend
             var dependencyConverter = new DependencyConverter();
 
             var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), scopePopulator, prob => {
-
-
 
                 foreach (var dependency in dependencies)
                 {
@@ -69,12 +67,18 @@ namespace Tac.Frontend
 
             var rootScope = referanceResolver.Run(solution).GetValue();
 
+            var errors = rootScope.Validate().ToArray();
+
+            if (errors.Any()) {
+                return OrType.Make<IProject<TAssembly, TBacking>, IReadOnlyList<IError>>(errors);
+            }
+
             var dependencyScope = problem.Dependency.Converter.Convert(solution, problem.Dependency).Is2OrThrow();
 
 
             var context = TransformerExtensions.NewConversionContext();
 
-            return new Project<TAssembly, TBacking>(rootScope.Convert(context), dependencies, dependencyScope.Convert(context));
+            return OrType.Make<IProject<TAssembly, TBacking>, IReadOnlyList<IError>>(new Project<TAssembly, TBacking>(rootScope.Convert(context), dependencies, dependencyScope.Convert(context)));
         }
 
         private OrType<IKey, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>> ConvertType(

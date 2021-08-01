@@ -175,7 +175,6 @@ entry-point [empty; empty;] input {
             verifyBoolIn();
         }
 
-        // good evidence that in/out are breaking it 
         [Fact]
         public void SimplistAdd()
         {

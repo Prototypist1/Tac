@@ -59,7 +59,7 @@ entry-point [empty; empty;] input {
         {
             outputBacking.consoleLines.Clear();
 
-            Run.CompileAndRun<Empty, Empty>(
+            var result = Run.CompileAndRun<Empty, Empty>(
                 "test",
                 InputValue,
                 null,
@@ -112,6 +112,20 @@ entry-point [empty; empty;] input {
                                 Access.ReadOnly) }),
                 outputBacking)
             });
+
+            result.Switch(
+                val =>
+                {
+                    outputBacking.consoleLines.Add("");
+                    outputBacking.consoleLines.Add("returned: " + val);
+                },
+                errors =>
+                {
+                    foreach (var error in errors)
+                    {
+                        outputBacking.consoleLines.Add("error: " + error); 
+                    }
+                });
         }
     }
 }

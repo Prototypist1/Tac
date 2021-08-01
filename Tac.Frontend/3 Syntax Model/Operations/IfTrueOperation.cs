@@ -72,7 +72,7 @@ namespace Tac.SemanticModel.Operations
                 yield return error;
             }
 
-            if (!Right.Possibly1().AsEnumerable().OfType<WeakBlockDefinition>().Any())
+            if (!Right.Possibly1().AsEnumerable().Select(x=>x.GetValue()).OfType<WeakBlockDefinition>().Any())
             {
                 yield return Error.Other($"right hand side must be a block");
             }

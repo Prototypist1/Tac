@@ -63,7 +63,7 @@ namespace Tac.SemanticModel.Operations
         {
             return Right.TransformAndFlatten(x =>
             {
-                if (x is IReturn @return) {
+                if (x.GetValue() is IReturn @return) {
                     return @return.Returns();
                 }
                 return OrType.Make<IFrontendType<IVerifiableType>, IError>(Error.Other($"{Right} should return"));

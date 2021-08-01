@@ -1,6 +1,7 @@
 ﻿using Prototypist.Toolbox;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Tac.Model
@@ -76,6 +77,23 @@ namespace Tac.Model
         public static IError AssignmentMustBePossible(string message) => new Error(ErrorCodes.AssignmentMustBePossible, message);
         public static IError Cascaded(string message,IError inner) => new Error(ErrorCodes.Cascaded, message, inner);
         public static IError Cascaded(string message, IError[] inner) => new Error(ErrorCodes.Cascaded, message, inner);
+
+        public override string? ToString()
+        {
+            if (rightResult != null) {
+                return string.Join(", ", rightResult.Select(x=>x.ToString()));
+            }
+
+            if (Message != null) {
+                return Message;
+            }
+
+            if (Code != default) {
+                return Code.ToString();
+            }
+
+            return base.ToString();
+        }
 
         private readonly IError[] rightResult;
 

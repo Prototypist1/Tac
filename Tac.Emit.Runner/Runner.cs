@@ -7,6 +7,7 @@ using Tac.Model.Operations;
 using Tac.Model;
 using Tac.Backend.Emit;
 using Tac.Model.Elements;
+using Prototypist.Toolbox;
 
 namespace Tac.Emit.Runner
 {
@@ -42,9 +43,9 @@ namespace Tac.Emit.Runner
     {
 
 
-        public static Tout CompileAndRun<Tin,Tout>(string name, string toRun, Tin input, IReadOnlyList<Assembly> assemblies)
+        public static IOrType<Tout,IReadOnlyList<IError>> CompileAndRun<Tin,Tout>(string name, string toRun, Tin input, IReadOnlyList<Assembly> assemblies)
         {
-            var module = new TokenParser().Parse<Assembly, object>(toRun, assemblies, name);
+            var moduleOrErrors = new TokenParser().Parse<Assembly, object>(toRun, assemblies, name);
 
             // ok so you are definately not done.
             // we need to assign the object in Backing of the assemblies
@@ -52,8 +53,15 @@ namespace Tac.Emit.Runner
             // after you have created an obejct for the run
             //
 
-            var res = Compiler.BuildAndRun<Tin, Tout>(module, input);
-            return res;
+            return moduleOrErrors.SwitchReturns(
+                module =>
+                {
+
+                    var res = Compiler.BuildAndRun<Tin, Tout>(module, input);
+                    return OrType.Make<Tout, IReadOnlyList<IError>>(res);
+                }, 
+                errors => OrType.Make<Tout, IReadOnlyList<IError>>(errors));
+
         }
     }
 }

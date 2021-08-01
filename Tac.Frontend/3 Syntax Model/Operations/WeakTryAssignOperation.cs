@@ -84,8 +84,14 @@ namespace Tac.SemanticModel.Operations
             // mostly they are both HasMembersType but they could both be methods
             // they could as be the same primitive but that would not be very interesting
             if (Left.ReturnsTypeOrErrors().Is1(out var leftType) && Right.ReturnsTypeOrErrors().Is1(out var rightType)){
-                if (leftType.GetType() != rightType.GetType()) {
+                var canAssign = leftType.TheyAreUs(rightType, new List<(IFrontendType<Model.Elements.IVerifiableType>, IFrontendType<Model.Elements.IVerifiableType>)>());
+                
+                if (canAssign.Is1(out var v1) && !v1) {
                     yield return Error.AssignmentMustBePossible("it must be possible for the left to be the right");
+                }
+
+                if (canAssign.Is2(out var v2)) {
+                    yield return v2;
                 }
             }
 

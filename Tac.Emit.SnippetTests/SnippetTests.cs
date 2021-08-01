@@ -25,13 +25,13 @@ namespace Tac.Emit.SnippetTests
         [Fact]
         public void PassThrough()
         {
-            var res = Run.CompileAndRun<double, double>("test", "entry-point [number; number;] input { input return; }", 1.0, Array.Empty<Tac.Backend.Emit.Assembly>());
+            var res = Run.CompileAndRun<double, double>("test", "entry-point [number; number;] input { input return; }", 1.0, Array.Empty<Tac.Backend.Emit.Assembly>()).Is1OrThrow();
             Assert.Equal(1.0, res);
         }
 
         [Fact]
         public void TwoMemberReferences() {
-            var res = Run.CompileAndRun<double, double>("test", "entry-point [number; number;] input { input + input return; }", 1.0, Array.Empty<Tac.Backend.Emit.Assembly>());
+            var res = Run.CompileAndRun<double, double>("test", "entry-point [number; number;] input { input + input return; }", 1.0, Array.Empty<Tac.Backend.Emit.Assembly>()).Is1OrThrow();
             Assert.Equal(2.0, res);
         }
 
@@ -65,7 +65,7 @@ method [ number ; number ; ] input {
     }
 } =: fac ;
 
-entry-point [number; number;] input { input > fac return; }", 3.0, Array.Empty<Tac.Backend.Emit.Assembly>());
+entry-point [number; number;] input { input > fac return; }", 3.0, Array.Empty<Tac.Backend.Emit.Assembly>()).Is1OrThrow();
             Assert.Equal(6.0, res);
         }
     }
