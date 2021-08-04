@@ -13,21 +13,24 @@ namespace Tac.Web.UI
     public class Test
     {
 
-        public string InputValue { get; set; } = @"
-entry-point [empty; empty;] input {
-    ""hello world"" > (out.write-string);
-    
+        public string InputValue { get; set; } =
+@"entry-point [empty; empty;] input {
+    "" hello world"" > (out.write-string);
+    1 + 1 > (out.write-number);
+    true > (out.write-bool);
     new-empty return;
-};";
+}";
 
+        private OutputBacking outputBacking = new OutputBacking();
 
-        private OutputBacking outputBacking  = new OutputBacking();
-
+        private Task task = null;
         public IEnumerable<string> Output => outputBacking.consoleLines;
+        public bool Running => task?.IsCompleted ??false;
 
         public class InputBacking
         {
-            public InputBacking(){
+            public InputBacking()
+            {
                 read_number = (Empty _) => 0;
                 read_string = (Empty _) => "";
                 read_bool = (Empty _) => false;
@@ -54,16 +57,24 @@ entry-point [empty; empty;] input {
             public Func<string, Empty> write_string { get; set; }
             public Func<bool, Empty> write_bool { get; set; }
         }
-
-        public void Execute()
+        
+        public async Task Execute()
         {
-            outputBacking.consoleLines.Clear();
+            if (Running)
+            {
+                return;
+            }
 
-            var result = Run.CompileAndRun<Empty, Empty>(
-                "test",
-                InputValue,
-                null,
-                new[] {
+            outputBacking.consoleLines.Clear();
+            var task = Task.Run(() =>
+            {
+                try
+                {
+                    var result = Run.CompileAndRun<Empty, Empty>(
+                        "test",
+                        InputValue,
+                        null,
+                        new[] {
                  new Tac.Backend.Emit.Assembly(
                     new NameKey("in"),
                     InterfaceType.CreateAndBuild(
@@ -111,21 +122,29 @@ entry-point [empty; empty;] input {
                                     new EmptyType()),
                                 Access.ReadOnly) }),
                 outputBacking)
-            });
+                    });
 
-            result.Switch(
-                val =>
+                    result.Switch(
+                        val =>
+                        {
+                            outputBacking.consoleLines.Add("");
+                            outputBacking.consoleLines.Add("returned: " + val);
+                        },
+                        errors =>
+                        {
+                            foreach (var error in errors)
+                            {
+                                outputBacking.consoleLines.Add("error: " + error);
+                            }
+                        });
+                }
+                catch (Exception e)
                 {
-                    outputBacking.consoleLines.Add("");
-                    outputBacking.consoleLines.Add("returned: " + val);
-                },
-                errors =>
-                {
-                    foreach (var error in errors)
-                    {
-                        outputBacking.consoleLines.Add("error: " + error); 
-                    }
-                });
+                    outputBacking.consoleLines.Add(e.Message);
+                }
+
+            });
+            await task;
         }
     }
 }

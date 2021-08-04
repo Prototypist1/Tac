@@ -419,11 +419,15 @@ it is the new way to do main
 
 []                                              quick thing type inferred (object, type, generics-parameters object)
 object {}                                       object
+method i o input {}                             method
 method [i,o] input {}                           method
+method [typeParameter] [i,o] input {}           method
+method [typeParameter] i input, o {}            generic method
 inline {}                                       inline -- what is an inline? method without a new scope?
 type name {}                                    type
 type [typeParameter] name {}                    generic type
 implementation [c,i,o] context input {}         implementation
+implementation c context, i input, o {}         implementation
 {}                                              block               
 ()                                              do thing code first!
 meta {}                                     ?   Meta -- what is a meta??
@@ -499,6 +503,15 @@ the metaphone is a method call
 generic types are "build time" methods that take some number of parameters a create a type 
 
 is it even like a method call? methods take one parameter
+
+it works if I have some way to specify parameters:
+
+implementation context-type:context input-type:input output-type   {} 
+
+or if I use commas, commas are great.
+
+implementation context-type context, input-type input, output-type {} 
+implementation context-type, input-type, output-type, {} 
 
 ==================== do OR type require ()??
 
@@ -625,7 +638,6 @@ list where method[number, bool] input { input < 10 return; } select method[numbe
 // I need to let people makes these!
 // and not special syntax. you can just call a method this way. 
 list > where of method[number, bool] input { input < 10 return; } > select of method[number, number] input { input * input return; } to-array
-
 
 // to make it easier to pares I could add a special character
 list | where method[number, bool] input { input < 10 return; } | select method[number, number] input { input * input return; } to-array
