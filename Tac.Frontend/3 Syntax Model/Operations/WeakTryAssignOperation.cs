@@ -175,14 +175,14 @@ namespace Tac.SemanticModel.Operations
 
             if (nextLeft.Is1(out var nextLeft1) && nextLeft1.SetUpSideNode.Is1(out var node1) && nextRight.Is1(out var nextRight1) && nextRight1.SetUpSideNode.Is1(out var node2))
             {
-                if (!(node1 is Tpn.ICanAssignFromMe canAssignFromMe))
+                if (node1 is not Tpn.ICanAssignFromMe canAssignFromMe)
                 {
                     // todo I need real error handling
                     // probably I need somewhere to stuff additional errors
                     throw new NotImplementedException($"can not assign from {nextLeft1.SetUpSideNode}");
                 }
 
-                if (!(node2 is Tpn.ICanBeAssignedTo canBeAssignedTo))
+                if (node2 is not Tpn.ICanBeAssignedTo canBeAssignedTo)
                 {
                     // todo I need real error handling
                     throw new NotImplementedException($"can not assign to {nextRight1.SetUpSideNode}");
@@ -252,11 +252,9 @@ namespace Tac.Parser
     internal partial class MakerRegistry
     {
         private static readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> StaticTryAssignMaker = AddOperationMatcher(() => new TryAssignOperationMaker());
-#pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> TryAssignMaker = StaticTryAssignMaker;
 #pragma warning restore IDE0052 // Remove unread private members
-#pragma warning restore CA1823
     }
 }
 

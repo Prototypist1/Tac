@@ -10,14 +10,13 @@ namespace Tac.Model.Instantiated
     // but a little different
     // maybe they should be one thing
     // but atleast they are close together so it is hard to change one without changing the other 
-
     public class EntryPointDefinition: IEntryPointDefinition,IEntryPointDefinitionBuilder
     {
-        private readonly Buildable<IReadOnlyList<ICodeElement>> buildableStaticInitailizers = new Buildable<IReadOnlyList<ICodeElement>>();
-        private readonly Buildable<IReadOnlyList<ICodeElement>> buildableBody = new Buildable<IReadOnlyList<ICodeElement>>();
-        private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
-        private readonly Buildable<IVerifiableType> buildableOutputType = new Buildable<IVerifiableType>();
-        private readonly Buildable<IMemberDefinition> buildableParameterDefinition = new Buildable<IMemberDefinition>();
+        private readonly Buildable<IReadOnlyList<ICodeElement>> buildableStaticInitailizers = new();
+        private readonly Buildable<IReadOnlyList<ICodeElement>> buildableBody = new();
+        private readonly Buildable<IFinalizedScope> buildableScope = new();
+        private readonly Buildable<IVerifiableType> buildableOutputType = new();
+        private readonly Buildable<IMemberDefinition> buildableParameterDefinition = new();
 
 
         private EntryPointDefinition() { }
@@ -88,13 +87,12 @@ namespace Tac.Model.Instantiated
     public class MethodDefinition : IInternalMethodDefinition,
         IMethodDefinitionBuilder
     {
-        private readonly Buildable<IReadOnlyList<ICodeElement>> buildableStaticInitailizers = new Buildable<IReadOnlyList<ICodeElement>>();
-        private readonly Buildable<IReadOnlyList<ICodeElement>> buildableBody = new Buildable<IReadOnlyList<ICodeElement>>();
-        private readonly Buildable<IFinalizedScope> buildableScope = new Buildable<IFinalizedScope>();
-        private readonly Buildable<IVerifiableType> buildableInputType = new Buildable<IVerifiableType>();
-        private readonly Buildable<IVerifiableType> buildableOutputType = new Buildable<IVerifiableType>();
-        private readonly Buildable<IMemberDefinition> buildableParameterDefinition = new Buildable<IMemberDefinition>();
-        private IVerifiableType type;
+        private readonly Buildable<IReadOnlyList<ICodeElement>> buildableStaticInitailizers = new();
+        private readonly Buildable<IReadOnlyList<ICodeElement>> buildableBody = new();
+        private readonly Buildable<IFinalizedScope> buildableScope = new();
+        private readonly Buildable<IVerifiableType> buildableOutputType = new();
+        private readonly Buildable<IMemberDefinition> buildableParameterDefinition = new();
+        private readonly Buildable<IVerifiableType> type = new();
 
         private MethodDefinition() { }
 
@@ -115,7 +113,7 @@ namespace Tac.Model.Instantiated
 
         public IVerifiableType Returns()
         {
-            return type;
+            return type.Get();
         }
         
         #endregion
@@ -132,7 +130,7 @@ namespace Tac.Model.Instantiated
             buildableScope.Set(scope);
             buildableBody.Set(body);
             buildableStaticInitailizers.Set(staticInitailizers);
-            type = MethodType.CreateAndBuild(InputType, OutputType);
+            type.Set(MethodType.CreateAndBuild(InputType, OutputType));
         }
 
         public static (IInternalMethodDefinition, IMethodDefinitionBuilder) Create()

@@ -39,12 +39,10 @@ namespace Tac.Parser
         private static readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> StaticLastCallMaker = AddOperationMatcher(() => new LastCallOperationMaker());
 
         private static readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> StaticNextCallMaker = AddOperationMatcher(() => new NextCallOperationMaker());
-#pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> LastCallMaker = StaticLastCallMaker;
         private readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> NextCallMaker = StaticNextCallMaker;
 #pragma warning restore IDE0052 // Remove unread private members
-#pragma warning restore CA1823
     }
 }
 

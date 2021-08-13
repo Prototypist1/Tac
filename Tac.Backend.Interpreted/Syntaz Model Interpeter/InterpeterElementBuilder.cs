@@ -30,7 +30,7 @@ namespace Tac.Backend.Interpreted.SyntazModelInterpeter
 
         internal bool TryAddMember(IKey key, IInterpetedMember member)
         {
-            return Scopes.First().TryAddMember(key, member);
+            return Scopes[0].TryAddMember(key, member);
         }
 
         internal IInterpetedMember GetMember(IKey key)

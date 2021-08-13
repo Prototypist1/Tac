@@ -623,7 +623,7 @@ right now I don't have a keyword for 'this' or 'that' and things will walk up th
 list > (method[number, bool] input { input < 10 return; } > where) > (method[number, number] input { input * input return; } > select) > to-array
 method[number, bool] input { input < 10 return; } > where < list
  
-// with extensions methods
+// with extensions methods or with the method defined directly on the set types
 list
 . where <  method[number, bool] input { input < 10 return; }
 . select < method[number, number] input { input * input return; } 
@@ -641,3 +641,46 @@ list > where of method[number, bool] input { input < 10 return; } > select of me
 
 // to make it easier to pares I could add a special character
 list | where method[number, bool] input { input < 10 return; } | select method[number, number] input { input * input return; } to-array
+
+===================================== how do you define a generic method?
+
+method [T] [T, Type[T]] input {} // probably this... ?
+
+how do I call them? 
+
+2 > add[number]  // how do I index?
+2 > add of number
+2 > add as method[number,number]
+
+maybe these are always inferred, with a way to cast
+
+z as number > add  -- casting input
+2 > add as number --- casting output
+
+that doesn't work... not all type parameters are tired to I/O... but maybe they should be?? 
+plus, it's not really an operation, it's just more information on the call, call the number version
+
+do I really need generics? 
+I think... even if you can almost always infer you still want to be able to be explicit
+
+generic-method [T1, T2, ... ,in, out] input { }
+
+we need a generic reference.. it's not really an operation but we consider it one
+
+x of [number, number]
+x using [number, number]
+x with [number, number]
+x having [number, number]
+x subsitute [number, number]
+x realized-with [number, number]
+x viewed-with [number, number]
+x accessed-with [number, number]
+x concretely [number, number]
+
+but how do I implement generic methods in emit? I use Func<in, out> for methods
+what happens when you call a generic method in C#??
+well, any call would be to a 
+
+I think I need to understand what's wrong with type-eraceure and probably remove it to be a better CIL citizen
+
+

@@ -282,7 +282,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             // basic stuff
-            private readonly HashSet<ITypeProblemNode> typeProblemNodes = new HashSet<ITypeProblemNode>();
+            private readonly HashSet<ITypeProblemNode> typeProblemNodes = new();
 
             private Scope Primitive { get; }
             public Scope Dependency { get; }
@@ -291,7 +291,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             public readonly Builder builder;
 
             // these are pretty much the same
-            private readonly List<(ILookUpType, ILookUpType)> assignments = new List<(ILookUpType, ILookUpType)>();
+            private readonly List<(ILookUpType, ILookUpType)> assignments = new();
 
             // I am interested in rewriting large parts of thi
             // instead of merging I can have the defering node flow in to the dominate node

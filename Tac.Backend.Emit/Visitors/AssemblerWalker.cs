@@ -78,9 +78,9 @@ namespace Tac.Backend.Emit.Walkers
     public class DebuggableILGenerator
     {
         public int EvaluationStackDepth { get; set; } = 0;
-        List<IOrType<Guid, IMemberDefinition>> locals = new List<IOrType<Guid, IMemberDefinition>>();
+        readonly List<IOrType<Guid, IMemberDefinition>> locals = new();
 
-        ILGenerator backing;
+        readonly ILGenerator backing;
         string debugString = "";
 
         public DebuggableILGenerator(ILGenerator backing, string name)
@@ -243,7 +243,7 @@ namespace Tac.Backend.Emit.Walkers
 
 
         public int EvaluationStackDepth => generator.GetOrThrow().EvaluationStackDepth;
-        private IIsPossibly<DebuggableILGenerator> generator;
+        private readonly IIsPossibly<DebuggableILGenerator> generator;
 
         public GeneratorHolder(IIsPossibly<DebuggableILGenerator> generator)
         {
@@ -304,8 +304,8 @@ namespace Tac.Backend.Emit.Walkers
 
         public readonly GeneratorHolder generatorHolder;
 
-        private IReadOnlyList<ICodeElement> stack;
-        private readonly Stack<LocalVariableInfo> thisStack = new Stack<LocalVariableInfo>();
+        private readonly IReadOnlyList<ICodeElement> stack;
+        private readonly Stack<LocalVariableInfo> thisStack = new();
 
 
 
@@ -545,7 +545,7 @@ namespace Tac.Backend.Emit.Walkers
             // be careful this does not leave anything on the stack
             // =: in tac returns returns the value just saved
             // we need it not to do that if nothing is going to consume that
-            var leaveOnStack = this.stack.Any() && this.stack.Last().SafeIs(out IOperation _);
+            var leaveOnStack = this.stack.Any() && this.stack[stack.Count - 1].SafeIs(out IOperation _);
 
 
             // {870866D9-D3EC-47B1-B7D3-6966EE651F5F}
@@ -855,7 +855,7 @@ namespace Tac.Backend.Emit.Walkers
             generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Ldnull);
             return new Nothing();
         }
-        public Nothing TypeDefinition(IInterfaceType codeElement) => new Nothing();
+        public Nothing TypeDefinition(IInterfaceType codeElement) => new();
 
 
         public Nothing ElseOperation(IElseOperation co)
@@ -870,7 +870,7 @@ namespace Tac.Backend.Emit.Walkers
                 var topOfElseLabel = generatorHolder.GetGeneratorAndUpdateStack(0).DefineLabel();
                 myIf.Operands[0].Convert(nextNext);
                 // duplicate code {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
-                if (this.stack.Any() && this.stack.Last().SafeIs(out IOperation _))
+                if (this.stack.Any() && this.stack[stack.Count - 1].SafeIs(out IOperation _))
                 {
                     // we dup so that we return
                     // else in tac returns false if it ran, true otherwise
@@ -910,7 +910,7 @@ namespace Tac.Backend.Emit.Walkers
             {
                 co.Left.Convert(next);
                 // duplicate code {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
-                if (this.stack.Any() && this.stack.Last().SafeIs(out IOperation _))
+                if (this.stack.Any() && this.stack[stack.Count - 1].SafeIs(out IOperation _))
                 {
                     generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
                 }
@@ -935,15 +935,15 @@ namespace Tac.Backend.Emit.Walkers
                 }
                 if (item is IInternalMethodDefinition method)
                 {
-                    return method.Body.Last() == co;
+                    return method.Body[method.Body.Count - 1] == co;
                 }
                 if (item is IEntryPointDefinition entry)
                 {
-                    return entry.Body.Last() == co;
+                    return entry.Body[entry.Body.Count - 1] == co;
                 }
                 if (item is IBlockDefinition block)
                 {
-                    if (block.Body.Last() == co)
+                    if (block.Body[block.Body.Count - 1] == co)
                     {
                         co = block;
                     }
@@ -1045,7 +1045,7 @@ namespace Tac.Backend.Emit.Walkers
             var label = generatorHolder.GetGeneratorAndUpdateStack(0).DefineLabel();
             co.Operands[0].Convert(next);
             // duplicate code {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
-            if (this.stack.Any() && this.stack.Last().SafeIs(out IOperation _))
+            if (this.stack.Any() && this.stack[stack.Count - 1].SafeIs(out IOperation _))
             {
                 // we dup so that we return
                 // if in tac returns true if it ran, false otherwise
@@ -1086,22 +1086,22 @@ namespace Tac.Backend.Emit.Walkers
             return new Nothing();
         }
 
-        private IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition> ConvertToMethodlike(ICodeElement frame)
-        {
-            if (frame.SafeIs(out IInternalMethodDefinition method))
-            {
-                return OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(method);
-            }
-            if (frame.SafeIs(out IImplementationDefinition imp))
-            {
-                return OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(imp);
-            }
-            if (frame.SafeIs(out IEntryPointDefinition entry))
-            {
-                return OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(entry);
-            }
-            throw new Exception("should have been one of those");
-        }
+        //private static IOrType<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition> ConvertToMethodlike(ICodeElement frame)
+        //{
+        //    if (frame.SafeIs(out IInternalMethodDefinition method))
+        //    {
+        //        return OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(method);
+        //    }
+        //    if (frame.SafeIs(out IImplementationDefinition imp))
+        //    {
+        //        return OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(imp);
+        //    }
+        //    if (frame.SafeIs(out IEntryPointDefinition entry))
+        //    {
+        //        return OrType.Make<IInternalMethodDefinition, IImplementationDefinition, IEntryPointDefinition>(entry);
+        //    }
+        //    throw new Exception("should have been one of those");
+        //}
 
 
         // TODO
@@ -1431,7 +1431,7 @@ namespace Tac.Backend.Emit.Walkers
 
 
         // {4E963BB1-1C86-4F75-BD4C-3F9BE16386A9}
-        private static readonly Random random = new Random();
+        private static readonly Random random = new();
         public static string GenerateName()
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -1473,7 +1473,7 @@ namespace Tac.Backend.Emit.Walkers
             AssemblyWalkerHelp.LoadLocal(generatorHolder, loc.LocalIndex);
 
             // similar idea {9EAD95C4-6FAD-4911-94EE-106528B7A3B2}
-            var leaveOnStack = this.stack.Any() && this.stack.Last().SafeIs(out IOperation _);
+            var leaveOnStack = this.stack.Any() && this.stack[stack.Count - 1].SafeIs(out IOperation _);
 
             generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Callvirt, typeof(Func<,>).MakeGenericType(inType, outType).GetMethod("Invoke"));
             if (!leaveOnStack)
@@ -1528,7 +1528,7 @@ namespace Tac.Backend.Emit.Walkers
 
         public Nothing ObjectDefinition(IObjectDefiniton @object)
         {
-            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Newobj, typeTracker.ResolveObject(@object).GetConstructor(new System.Type[] { }));
+            generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Newobj, typeTracker.ResolveObject(@object).GetConstructor(Array.Empty<System.Type>()));
 
             // init members
             var next = this.Push(@object);
@@ -1542,7 +1542,7 @@ namespace Tac.Backend.Emit.Walkers
             // TODO
             // this is a little ugly 
             // it would be better to dup one less time instead of poping
-            var leaveOnStack = this.stack.Any() && this.stack.Last().SafeIs(out IOperation _);
+            var leaveOnStack = this.stack.Any() && this.stack[stack.Count - 1].SafeIs(out IOperation _);
             if (!leaveOnStack)
             {
                 generatorHolder.GetGeneratorAndUpdateStack(-1).Emit(OpCodes.Pop);
@@ -1899,9 +1899,9 @@ namespace Tac.Backend.Emit.Walkers
                 var loc = generatorHolder.GetGeneratorAndUpdateStack(0).DeclareLocal(fromCSharpeType, Guid.NewGuid());
                 StoreLocal(generatorHolder, loc.LocalIndex);
 
-                var type = EmitTypeThatWrapsAndImplementsCompileTime(fromCSharpeType, toCSharpeType, typeTracker, generatorHolder, moduleBuilder, typeTracker.conversionCache, addGen);
+                var type = EmitTypeThatWrapsAndImplementsCompileTime(fromCSharpeType, toCSharpeType, typeTracker, moduleBuilder, typeTracker.conversionCache, addGen);
 
-                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Newobj, type.GetConstructor(new System.Type[] { }));
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Newobj, type.GetConstructor(Array.Empty<System.Type>()));
                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
                 LoadLocal(generatorHolder, loc.LocalIndex);
                 generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, type.GetField(AssemblyWalkerHelp.backingName));
@@ -1912,7 +1912,6 @@ namespace Tac.Backend.Emit.Walkers
             System.Type wrapped,
             System.Type implements,
             AssemblerTypeTracker typeTracker,
-            GeneratorHolder generatorHolder,
             ModuleBuilder moduleBuilder,
             ConcurrentIndexed<(System.Type, System.Type), TypeBuilder> wrapsAndImplementsCache,
             Action<DebuggableILGenerator> addGen)
@@ -2129,7 +2128,7 @@ namespace Tac.Backend.Emit.Walkers
 
                 var type = EmitTypeThatWrapsAndImplementsRunTime(fromCSharpeType, toCSharpeType, moduleBuilder, typeTracker);
 
-                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Newobj, type.GetConstructor(new System.Type[] { }));
+                generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Newobj, type.GetConstructor(Array.Empty<System.Type>()));
                 generatorHolder.GetGeneratorAndUpdateStack(1).Emit(OpCodes.Dup);
                 LoadLocal(generatorHolder, loc.LocalIndex);
                 generatorHolder.GetGeneratorAndUpdateStack(-2).Emit(OpCodes.Stfld, type.GetField(AssemblyWalkerHelp.backingName));
@@ -2171,8 +2170,10 @@ namespace Tac.Backend.Emit.Walkers
                 from = field.GetValue(from);
             }
 
-            var assemblyName = new AssemblyName();
-            assemblyName.Name = Compiler.GenerateName();
+            var assemblyName = new AssemblyName
+            {
+                Name = Compiler.GenerateName()
+            };
             var assembly = System.Reflection.Emit.AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndCollect);
             var moduleBuilder = assembly.DefineDynamicModule(Compiler.GenerateName());
 
@@ -2318,7 +2319,7 @@ namespace Tac.Backend.Emit.Walkers
             PropertyInfo propertyInfo,
             Action<DebuggableILGenerator> addGen)
         {
-            var property = fillOut.DefineProperty(propertyInfo.Name, PropertyAttributes.None, propertyInfo.PropertyType, new System.Type[0]);
+            var property = fillOut.DefineProperty(propertyInfo.Name, PropertyAttributes.None, propertyInfo.PropertyType, Array.Empty<System.Type>());
             //var backingFeild = wrapped.GetMethod("get_" + propertyInfo.Name.ToLower());
 
             var wrappedProperty = wrapped.GetProperty(propertyInfo.Name);
@@ -2328,7 +2329,7 @@ namespace Tac.Backend.Emit.Walkers
 
             if (propertyInfo.CanRead)
             {
-                var getter = fillOut.DefineMethod("get_" + propertyInfo.Name, MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot, propertyInfo.PropertyType, new System.Type[0]);
+                var getter = fillOut.DefineMethod("get_" + propertyInfo.Name, MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot, propertyInfo.PropertyType, Array.Empty<System.Type>());
                 var getGenerator = new DebuggableILGenerator(getter.GetILGenerator(), "get_" + propertyInfo.Name + " of " + propertyInfo.DeclaringType.Name + " on " + fillOut.Name);
                 addGen(getGenerator);
                 var holder = new GeneratorHolder(Possibly.Is(getGenerator));

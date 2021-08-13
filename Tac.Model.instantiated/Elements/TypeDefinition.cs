@@ -33,7 +33,7 @@ namespace Tac.Model.Instantiated
     public class InterfaceType : IInterfaceType, IModuleType, IInterfaceTypeBuilder
     {
 
-        private readonly Buildable<IReadOnlyList<IMemberDefinition>> buildableMembers = new Buildable<IReadOnlyList<IMemberDefinition>>();
+        private readonly Buildable<IReadOnlyList<IMemberDefinition>> buildableMembers = new();
         public IReadOnlyList<IMemberDefinition> Members => buildableMembers.Get();
 
         private InterfaceType() { }
@@ -111,11 +111,11 @@ namespace Tac.Model.Instantiated
         {
         }
 
-        private readonly Buildable<IVerifiableType> left = new Buildable<IVerifiableType>();
-        private readonly Buildable<IVerifiableType> right = new Buildable<IVerifiableType>();
-        private readonly Buildable<IReadOnlyList<IMemberDefinition>> members = new Buildable<IReadOnlyList< IMemberDefinition>>();
-        private readonly Buildable<IIsPossibly< IVerifiableType>> input = new Buildable<IIsPossibly<IVerifiableType>>();
-        private readonly Buildable<IIsPossibly<IVerifiableType>> output = new Buildable<IIsPossibly<IVerifiableType>>();
+        private readonly Buildable<IVerifiableType> left = new();
+        private readonly Buildable<IVerifiableType> right = new();
+        private readonly Buildable<IReadOnlyList<IMemberDefinition>> members = new();
+        private readonly Buildable<IIsPossibly< IVerifiableType>> input = new();
+        private readonly Buildable<IIsPossibly<IVerifiableType>> output = new();
 
 
         public IVerifiableType Left => left.Get();

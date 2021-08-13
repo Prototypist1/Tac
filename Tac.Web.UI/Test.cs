@@ -23,9 +23,9 @@ namespace Tac.Web.UI
 
         private OutputBacking outputBacking = new OutputBacking();
 
-        private Task task = null;
+        private Task? task = null;
         public IEnumerable<string> Output => outputBacking.consoleLines;
-        public bool Running => task?.IsCompleted ??false;
+        public bool Running => !task?.IsCompleted ??false;
 
         public class InputBacking
         {
@@ -66,7 +66,7 @@ namespace Tac.Web.UI
             }
 
             outputBacking.consoleLines.Clear();
-            var task = Task.Run(() =>
+            task = Task.Run(() =>
             {
                 try
                 {

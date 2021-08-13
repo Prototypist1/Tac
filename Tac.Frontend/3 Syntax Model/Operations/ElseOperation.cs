@@ -33,11 +33,9 @@ namespace Tac.Parser
     internal partial class MakerRegistry
     {
         private static readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> StaticElseMaker = AddOperationMatcher(() => new ElseOperationMaker());
-#pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> ElseMaker = StaticElseMaker;
 #pragma warning restore IDE0052 // Remove unread private members
-#pragma warning restore CA1823
     }
 }
 
@@ -84,7 +82,7 @@ namespace Tac.SemanticModel.Operations
     {
         public ElseOperationMaker() : base(SymbolsRegistry.StaticElseSymbol, (l,r)=>new Box<WeakElseOperation>(new WeakElseOperation(l,r)), (s, c, l, r) => {
 
-            if (!(s is Tpn.IScope runtimeScope))
+            if (s is not Tpn.IScope runtimeScope)
             {
                 throw new NotImplementedException("this should be an IError");
             }

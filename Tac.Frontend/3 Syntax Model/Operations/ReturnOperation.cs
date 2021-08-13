@@ -35,11 +35,9 @@ namespace Tac.Parser
     internal partial class MakerRegistry
     {
         private static readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> StaticReturnMaker = AddOperationMatcher(() => new ReturnOperationMaker());
-#pragma warning disable CA1823
 #pragma warning disable IDE0052 // Remove unread private members
         private readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> ReturnMaker = StaticReturnMaker;
 #pragma warning restore IDE0052 // Remove unread private members
-#pragma warning restore CA1823
     }
 }
 
@@ -199,7 +197,7 @@ namespace Tac.SemanticModel.Operations
     {
         public ReturnOperationMaker() : base(SymbolsRegistry.StaticReturnSymbol, x=>new Box<WeakReturnOperation>(new WeakReturnOperation(x)),(s,c,x)=> {
 
-            if (!(s is Tpn.IScope runtimeScope))
+            if (s is not Tpn.IScope runtimeScope)
             {
                 throw new NotImplementedException("this should be an IError");
             }
@@ -222,7 +220,7 @@ namespace Tac.SemanticModel.Operations
 
             var val1node= val1.SetUpSideNode.Is1OrThrow();
 
-            if (!(val1node is Tpn.IValue finalVal))
+            if (val1node is not Tpn.IValue finalVal)
             {
                 return OrType.Make<Tpn.IValue, IError>(Error.Other($"can not return {val1node}"));
             }

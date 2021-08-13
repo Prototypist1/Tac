@@ -138,19 +138,19 @@ namespace Tac.SemanticModel
     internal class GenericTypeDefinitionResolveReferance : IResolve<IBox<WeakGenericTypeDefinition>>
     {
         private readonly Tpn.TypeProblem2.Type myScope;
-        private readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextLines;
+        private readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] lines;
 
-        public GenericTypeDefinitionResolveReferance(Tpn.TypeProblem2.Type myScope, IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextLines)
+        public GenericTypeDefinitionResolveReferance(Tpn.TypeProblem2.Type myScope, IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] lines)
         {
             this.myScope = myScope;
-            this.nextLines = nextLines;
+            this.lines = lines;
         }
 
 
         public IBox<WeakGenericTypeDefinition> Run(Tpn.TypeSolution context)
         {
             // uhhh it is werid that I have to do this
-            nextLines.Select(x => x.TransformInner(y => y.Run(context))).ToArray();
+            lines.Select(x => x.TransformInner(y => y.Run(context))).ToArray();
 
             return new Box<WeakGenericTypeDefinition>(myScope.Converter.Convert(context, myScope).Is2OrThrow());
         }
