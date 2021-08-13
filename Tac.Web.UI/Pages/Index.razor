@@ -8,7 +8,7 @@
 <div id="flex">
     <textarea @bind="Model.InputValue" id="code">
     </textarea>
-    <input type="button" @onclick="Model.Execute" disabled="@Model.Running" value="run" id="run" />
+    <input type="button" @onclick="Model.Execute" disabled="@Model.Running" value="Run" id="run" />
     <div id="console">
         @foreach (var item in Model.Output)
         {

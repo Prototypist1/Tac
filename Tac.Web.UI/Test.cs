@@ -15,9 +15,7 @@ namespace Tac.Web.UI
 
         public string InputValue { get; set; } =
 @"entry-point [empty; empty;] input {
-    "" hello world"" > (out.write-string);
-    1 + 1 > (out.write-number);
-    true > (out.write-bool);
+    ""hello world!"" > (out.write-string);
     new-empty return;
 }";
 
@@ -127,8 +125,7 @@ namespace Tac.Web.UI
                     result.Switch(
                         val =>
                         {
-                            outputBacking.consoleLines.Add("");
-                            outputBacking.consoleLines.Add("returned: " + val);
+                            // it has to return empty otherwise we crash
                         },
                         errors =>
                         {

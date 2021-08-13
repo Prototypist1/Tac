@@ -13,12 +13,6 @@ html, body, .main, .page, .content, #flex {
     max-height: 100%;
 }
 
-#code {
-    height: calc(100% - 200px);
-    max-height: calc(100% - 80px);
-    text-shadow: 0 0 10px rgba(255,255,255,1);
-}
-
 body, .main, .page, .content, #flex {
     display: flex;
     align-items: stretch;
@@ -34,11 +28,15 @@ body, .main, .page, .content, #flex {
 }
 
 #code {
+    height: calc(100% - 200px);
+    max-height: calc(100% - 80px);
+    text-shadow: 0 0 10px rgba(255,255,255,1);
+    font-size: large;
     padding: 1em;
     flex: 0 0 auto;
     border: 0px;
-    background: rgb(235,235,235);
-    background: linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(245,245,245,1) 10%, rgba(240,240,240,1) 35%, rgba(235,235,235,1) 100%);
+    background: rgb(245,245,245);
+    background: linear-gradient(0deg, rgba(255,255,245,1) 0%, rgba(250,250,245,1) 10%, rgba(247,247,245,1) 35%, rgba(245,245,245,1) 100%);
 }
 
     #code:focus-visible {
@@ -50,39 +48,46 @@ body, .main, .page, .content, #flex {
     box-shadow: 0 0 20px 0 rgba(0, 0, 0, .3), 0 0 40px 0 rgba(255, 255, 255, 1);
     margin-top: -60px;
     margin-bottom: 30px;
+    font-size: larger;
     z-index: 1;
     width: 100px;
     height: 30px;
     align-self: flex-end;
     margin-right: 30px;
     border-radius: 15px;
-    background-color: rgba(155,205,155,1);
-    text-shadow: 0 0 10px rgba(255,255,255,.5);
-    transition: opacity linear 1s;
+    color: white;
+    background-color: rgba(135,135,185,1);
+    text-shadow: 0 0 10px rgba(0,0,0,.5);
+    transition: opacity ease-in 100ms,transform ease-in 100ms;
     opacity: 1;
+    transform: scale(1);
 }
 
     #run:hover {
-        background-color: rgba(145,195,145,1);
+        background-color: rgba(125,125,175,1);
     }
 
     #run:active {
-        background-color: rgba(135,185,135,1);
+        background-color: rgba(115,115,165,1);
     }
 
     #run:disabled {
         /*background-color: rgba(165,215,165,1);*/
-        transition: margin-right ease-in 200ms;
-        margin-right: -200px;
-        opacity: .1;
+        /*transition: margin-right ease-out 1000ms;*/
+        /*margin-right: -200px;*/
+        /*transform: inherit;*/
+        /*transition: opacity linear 1s;*/
+        opacity: 0;
+        transform: scale(2);
     }
 
 #console {
     text-shadow: 0 0 10px rgba(255,255,255,.5);
     padding: 1em;
+    font-size: large;
     flex: 1 1 auto;
     overflow-x: scroll;
     background: rgb(200,200,200);
-    background: linear-gradient(180deg, rgba(200,200,200,1) 0%, rgba(210,210,210,1) 10%, rgba(215,215,215,1) 35%, rgba(220,220,220,1) 100%);
+    background: linear-gradient(180deg, rgba(220,220,240,1) 0%, rgba(230,230,240,1) 10%, rgba(235,235,240,1) 35%, rgba(240,240,240,1) 100%);
 }
 
