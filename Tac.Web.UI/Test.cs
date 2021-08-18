@@ -24,6 +24,7 @@ namespace Tac.Web.UI
         private Task? task = null;
         public IEnumerable<string> Output => outputBacking.consoleLines;
         public bool Running => !task?.IsCompleted ??false;
+        public string Text => !task?.IsCompleted ?? false ? "...": "run";
 
         public class InputBacking
         {

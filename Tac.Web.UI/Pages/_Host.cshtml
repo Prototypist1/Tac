@@ -30,6 +30,32 @@
         <a class="dismiss">🗙</a>
     </div>*@
 
+    <script> 
+        
+        var updateDots = 
+        function(){
+            const btn = document.getElementById("run");
+
+            console.log("called")
+            if (btn.disabled){
+                var d = new Date();
+                var n = d.getSeconds();
+                var mod = n % 3;
+                btn.value = 
+                    mod == 0 ? " .." :
+                    mod == 1 ? ". ." : 
+                    ".. ";
+            } 
+            else 
+            {
+                btn.value = "run"
+            }
+            setTimeout(updateDots,1000);
+        }
+
+        updateDots();
+
+    </script>
     <script src="_framework/blazor.server.js"></script>
 </body>
 </html>

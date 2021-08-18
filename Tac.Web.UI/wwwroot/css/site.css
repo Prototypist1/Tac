@@ -1,5 +1,13 @@
 @import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 
+
+:root {
+}
+
+html * {
+    font-family: "Lucida Console", "Courier New", monospace;
+}
+
 /* fill the height */
 html, body {
     height: 100%;
@@ -36,7 +44,7 @@ body, .main, .page, .content, #flex {
     flex: 0 0 auto;
     border: 0px;
     background: rgb(245,245,245);
-    background: linear-gradient(0deg, rgba(255,255,245,1) 0%, rgba(250,250,245,1) 10%, rgba(247,247,245,1) 35%, rgba(245,245,245,1) 100%);
+    background: linear-gradient(0deg, rgba(255,255,245,1) 0%, rgba(250,250,245,1) 25%, rgba(247,247,245,1) 50%, rgba(245,245,245,1) 100%);
 }
 
     #code:focus-visible {
@@ -58,9 +66,9 @@ body, .main, .page, .content, #flex {
     color: white;
     background-color: rgba(135,135,185,1);
     text-shadow: 0 0 10px rgba(0,0,0,.5);
-    transition: opacity ease-in 100ms,transform ease-in 100ms;
+/*    transition: opacity ease-in 100ms,transform ease-in 100ms;
     opacity: 1;
-    transform: scale(1);
+    transform: scale(1);*/
 }
 
     #run:hover {
@@ -72,13 +80,13 @@ body, .main, .page, .content, #flex {
     }
 
     #run:disabled {
-        /*background-color: rgba(165,215,165,1);*/
+        background-color: rgba(195,195,245,1);
         /*transition: margin-right ease-out 1000ms;*/
         /*margin-right: -200px;*/
         /*transform: inherit;*/
         /*transition: opacity linear 1s;*/
-        opacity: 0;
-        transform: scale(2);
+        /*        opacity: 0;*/
+        /*transform: scale(2);*/
     }
 
 #console {
@@ -88,6 +96,6 @@ body, .main, .page, .content, #flex {
     flex: 1 1 auto;
     overflow-x: scroll;
     background: rgb(200,200,200);
-    background: linear-gradient(180deg, rgba(220,220,240,1) 0%, rgba(230,230,240,1) 10%, rgba(235,235,240,1) 35%, rgba(240,240,240,1) 100%);
+    background: linear-gradient(180deg, rgba(220,220,240,1) 0%, rgba(230,230,240,1) 25%, rgba(235,235,240,1) 50%, rgba(240,240,240,1) 100%);
 }
 
