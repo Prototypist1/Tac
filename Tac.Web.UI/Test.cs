@@ -23,8 +23,8 @@ namespace Tac.Web.UI
 
         private Task? task = null;
         public IEnumerable<string> Output => outputBacking.consoleLines;
-        public bool Running => !task?.IsCompleted ??false;
-        public string Text => !task?.IsCompleted ?? false ? "...": "run";
+        public bool Running => !task?.IsCompleted ?? false;
+        public string Text => !task?.IsCompleted ?? false ? "..." : "run";
 
         public class InputBacking
         {
@@ -56,7 +56,7 @@ namespace Tac.Web.UI
             public Func<string, Empty> write_string { get; set; }
             public Func<bool, Empty> write_bool { get; set; }
         }
-        
+
         public async Task Execute()
         {
             if (Running)
@@ -65,7 +65,9 @@ namespace Tac.Web.UI
             }
 
             outputBacking.consoleLines.Clear();
-            task = Task.Run(() =>
+            task = Task.WhenAll(
+                Task.Delay(1000),
+                Task.Run(() =>
             {
                 try
                 {
@@ -141,7 +143,7 @@ namespace Tac.Web.UI
                     outputBacking.consoleLines.Add(e.Message);
                 }
 
-            });
+            }));
             await task;
         }
     }

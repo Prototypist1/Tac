@@ -33,14 +33,11 @@
     <script> 
         
         var updateDots = 
-        function(){
+        function(at){
             const btn = document.getElementById("run");
 
-            console.log("called")
             if (btn.disabled){
-                var d = new Date();
-                var n = d.getSeconds();
-                var mod = n % 3;
+                var mod = at++ % 3;
                 btn.value = 
                     mod == 0 ? " .." :
                     mod == 1 ? ". ." : 
@@ -50,10 +47,10 @@
             {
                 btn.value = "run"
             }
-            setTimeout(updateDots,1000);
+            setTimeout(function(){updateDots(at);},300);
         }
 
-        updateDots();
+        updateDots(0);
 
     </script>
     <script src="_framework/blazor.server.js"></script>
