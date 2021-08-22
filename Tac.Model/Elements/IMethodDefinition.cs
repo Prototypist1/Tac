@@ -1,5 +1,6 @@
 ﻿using Prototypist.Toolbox;
 using System;
+using System.Collections.Generic;
 using Tac.Model.Operations;
 
 namespace Tac.Model.Elements
@@ -13,5 +14,16 @@ namespace Tac.Model.Elements
         IVerifiableType InputType { get; }
         IVerifiableType OutputType { get; }
         IMemberDefinition ParameterDefinition { get; }
+    }
+
+    public interface IGenericMethodDefinition : IBlockDefinition
+    {
+        IVerifiableType InputType { get; }
+        IVerifiableType OutputType { get; }
+        IMemberDefinition ParameterDefinition { get; }
+        // TODO you are here
+        // TypeParameters should not be of type IVerifiableType
+        // these aren't full type yet..
+        IReadOnlyList<IVerifiableType> TypeParameters { get; }
     }
 }

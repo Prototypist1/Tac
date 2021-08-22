@@ -40,6 +40,7 @@ namespace Tac.Model
         T SubtractOperation(ISubtractOperation co);
         T ReturnOperation(IReturnOperation co);
         T MethodDefinition(IInternalMethodDefinition co);
+        T GenericMethodDefinition(IGenericMethodDefinition co);
         T ConstantString(IConstantString co);
         T ConstantBool(IConstantBool constantBool);
         T EmptyInstance(IEmptyInstance co);

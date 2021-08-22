@@ -1,5 +1,4 @@
-﻿
-using Prototypist.Toolbox;
+﻿using Prototypist.Toolbox;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1154,6 +1154,34 @@ namespace Tac.Frontend.New.CrzayNamespace
             //}
 
 
+            public static IIsPossibly<IOrType<NameKey, ImplicitKey>[]> HasPlacholders(TypeProblem2.Method type)
+            {
+                var res = new List<IOrType<NameKey, ImplicitKey>>();
+                foreach (var value in type.GenericOverlays.Values.Select(x => x.Possibly2()))
+                {
+                    value.If(definite =>
+                    {
+                        if (definite.IsPlaceHolder)
+                        {
+                            definite.Key.If(x =>
+                            {
+                                res.Add(x);
+                                return 1; // todo I need a version of this api that takes an action
+                            });
+                        }
+                        return 1; // todo I need a version of this api that takes an action
+                    });
+                }
+
+                if (res.Any())
+                {
+                    return Possibly.Is(res.ToArray());
+                }
+
+                return Possibly.IsNot<IOrType<NameKey, ImplicitKey>[]>();
+            }
+
+
             public static IIsPossibly<IOrType<NameKey, ImplicitKey>[]> HasPlacholders(TypeProblem2.Type type)
             {
                 var res = new List<IOrType<NameKey, ImplicitKey>>();

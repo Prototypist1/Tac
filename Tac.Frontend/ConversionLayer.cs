@@ -90,7 +90,7 @@ namespace Tac.Frontend
         }
     }
 
-    internal class WeakMethodDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition>>
+    internal class WeakMethodDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition, WeakGenericMethodDefinition>>
     {
         private readonly IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> body;
 
@@ -99,23 +99,63 @@ namespace Tac.Frontend
             this.body = body ?? throw new ArgumentNullException(nameof(body));
         }
 
-        public IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from)
+        public IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from)
         {
+
+            var placeHolders = Tpn.TypeSolution.HasPlacholders(from);
 
             var inputKey = from.PrivateMembers.Single(x => x.Value == from.Input.GetOrThrow());
 
             var scope = typeSolution.GetWeakScope(from);
 
-            return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>( new WeakMethodDefinition(
-                typeSolution.GetType(from.Returns.GetOrThrow()),
-                scope.membersList.Single(x => x.Key.Equals(inputKey.Key)), 
-                body,
-                OrType.Make<WeakScope, IError>(scope), 
-                Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>()));
+            return placeHolders.IfElseReturn(x =>
+            {
+            return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>(new WeakGenericMethodDefinition(
+                                typeSolution.GetType(from.Returns.GetOrThrow()),
+                                scope.membersList.Single(x => x.Key.Equals(inputKey.Key)),
+                                body,
+                                OrType.Make<WeakScope, IError>(scope),
+                                Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>(),
+                                x.Select(x => Possibly.Is<IGenericTypeParameterPlacholder>(new GenericTypeParameterPlacholder(x))).ToArray()));//, key
+            },
+            () =>
+            {
+                return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>(new WeakMethodDefinition(
+                    typeSolution.GetType(from.Returns.GetOrThrow()),
+                    scope.membersList.Single(x => x.Key.Equals(inputKey.Key)),
+                    body,
+                    OrType.Make<WeakScope, IError>(scope),
+                    Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>()));
+            });
         }
     }
 
-    internal class WeakImplementationDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>>
+    //internal class WeakGenericMethodDefinitionConvert : Tpn.IConvertTo<Tpn.TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>>
+    //{
+    //    private readonly IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> body;
+
+    //    public WeakGenericMethodDefinitionConvert(IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> body)
+    //    {
+    //        this.body = body ?? throw new ArgumentNullException(nameof(body));
+    //    }
+
+    //    public IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from)
+    //    {
+
+    //        var inputKey = from.PrivateMembers.Single(x => x.Value == from.Input.GetOrThrow());
+
+    //        var scope = typeSolution.GetWeakScope(from);
+
+    //        return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>(new WeakGenericMethodDefinition(
+    //            typeSolution.GetType(from.Returns.GetOrThrow()),
+    //            scope.membersList.Single(x => x.Key.Equals(inputKey.Key)),
+    //            body,
+    //            OrType.Make<WeakScope, IError>(scope),
+    //            Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>()));
+    //    }
+    //}
+
+    internal class WeakImplementationDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>>
     {
 
         private readonly IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> body;
@@ -127,7 +167,7 @@ namespace Tac.Frontend
             this.inner = inner ?? throw new ArgumentNullException(nameof(inner));
         }
 
-        public IOrType<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from)
+        public IOrType<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition, WeakGenericMethodDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from)
         {
             //
 
@@ -136,7 +176,7 @@ namespace Tac.Frontend
             var scope = typeSolution.GetWeakScope(from); 
             var innerScope = typeSolution.GetWeakScope(inner.GetValue());
 
-            return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition>(new WeakImplementationDefinition(
+            return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition, WeakGenericMethodDefinition>(new WeakImplementationDefinition(
                 scope.membersList.Single(x => x.Key.Equals(inputKey.Key)),
                 innerScope.membersList.Single(x => x.Key.Equals(innerInputKey.Key)),
                 typeSolution.GetType(inner.GetValue().Returns.GetOrThrow()),
@@ -213,7 +253,10 @@ namespace Tac.Frontend
         }
     }
 
-    internal class WeakEntryPointConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>>
+    // we really know what type a lot of these converters return
+    // maybe they could be more explict?
+    // and wraped in something more generic where needed
+    internal class WeakEntryPointConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>>
     {
         private readonly IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> body;
 
@@ -222,14 +265,14 @@ namespace Tac.Frontend
             this.body = body ?? throw new ArgumentNullException(nameof(body));
         }
 
-        public IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from)
+        public IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from)
         {
 
             var inputKey = from.PrivateMembers.Single(x => x.Value == from.Input.GetOrThrow());
 
             var scope = typeSolution.GetWeakScope(from);
 
-            return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>(new WeakEntryPointDefinition(
+            return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>(new WeakEntryPointDefinition(
                 typeSolution.GetType(from.Returns.GetOrThrow()),
                 scope.membersList.Single(x => x.Key.Equals(inputKey.Key)), 
                 body,

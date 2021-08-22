@@ -1,121 +1,197 @@
-﻿//using Prototypist.Toolbox;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
-//using Tac.Frontend.New.CrzayNamespace;
-//using Tac.Frontend.Parser;
-//using Tac.Infastructure;
-//using Tac.Model;
-//using Tac.Model.Elements;
-//using Tac.Parser;
-//using Tac.SemanticModel;
-//using Tac.SemanticModel.CodeStuff;
-//using Tac.SyntaxModel.Elements.AtomicTypes;
+﻿using Prototypist.Toolbox;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Tac.Frontend;
+using Tac.Frontend.New.CrzayNamespace;
+using Tac.Frontend.Parser;
+using Tac.Model;
+using Tac.Model.Elements;
+using Tac.Model.Instantiated;
+using Tac.Infastructure;
+using Tac.Parser;
+using Tac.SemanticModel;
+using Tac.SemanticModel.CodeStuff;
+using Tac.SyntaxModel.Elements.AtomicTypes;
 
-//namespace Tac.Frontend._3_Syntax_Model.Elements
-//{
+namespace Tac.SemanticModel
+{
 
-//    internal class WeakGenericMethodDefinition { 
-    
-//    }
+    internal class WeakGenericMethodDefinition :
+        WeakAbstractBlockDefinition<IGenericMethodDefinition>, IReturn
+    {
+        private readonly IOrType<SyntaxModel.Elements.AtomicTypes.MethodType, IError> type;
 
-//    internal class GenericMethodDefinitionMaker
-//    {
+        public WeakGenericMethodDefinition(
+            IOrType<IFrontendType<IVerifiableType>, IError> outputType,
+            WeakMemberDefinition parameterDefinition,
+            IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> body,
+            IOrType<WeakScope, IError> scope,
+            IReadOnlyList<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers,
+            IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
+        {
+            OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
+            ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
+            type = OrType.Make<SyntaxModel.Elements.AtomicTypes.MethodType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.MethodType(
+                InputType,
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OutputType)
+                ));
+            this.TypeParameterDefinitions = TypeParameterDefinitions ?? throw new ArgumentNullException(nameof(TypeParameterDefinitions));
+        }
 
-//        public ITokenMatching<ISetUp<IBox<WeakGenericMethodDefinition>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
-//        {
-//#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-//            ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> inputType = null, outputType = null;
-//#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+        public IBox<IOrType<IFrontendType<IVerifiableType>, IError>> InputType => ParameterDefinition.Type;
+        public IOrType<IFrontendType<IVerifiableType>, IError> OutputType { get; }
+        public WeakMemberDefinition ParameterDefinition { get; }
+        public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
 
-//            var matching = tokenMatching
-//                .Has(new KeyWordMaker("method"), out var _)
-//                .Has(new DefineGenericNMaker(), out var generics)
-//                .HasSquare(x => x
-//                    .HasLine(y => y
-//                        .Has(new TypeMaker(), out inputType)
-//                        .Has(new DoneMaker()))
-//                    .HasLine(y => y
-//                        .Has(new TypeMaker(), out outputType)
-//                        .Has(new DoneMaker()))
-//                    .Has(new DoneMaker()))
-//                .OptionalHas(new NameMaker(), out var parameterName)
-//                .Has(new BodyMaker(), out var body);
+        public override IBuildIntention<IGenericMethodDefinition> GetBuildIntention(IConversionContext context)
+        {
+            var (toBuild, maker) = GenericMethodDefinition.Create();
+            return new BuildIntention<IGenericMethodDefinition>(toBuild, () =>
+            {
+                maker.Build(
+                    OutputType.Is1OrThrow().Convert(context),
+                    ParameterDefinition.Convert(context),
+                    Scope.Is1OrThrow().Convert(context),
+                    Body.GetValue().Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
+                    StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray(),
+                    TypeParameterDefinitions.Select(x=>x.GetOrThrow());
+            });
+        }
 
-//            if (matching
-//                 is IMatchedTokenMatching matched)
-//            {
-//                var elements = matching.Context.ParseBlock(body);
+        public IOrType<IFrontendType<IVerifiableType>, IError> Returns()
+        {
+            return type;
+            // TODO
+            // are there really frontend types that arn't convertable?
+            //return OrType.Make<IFrontendType<IVerifiableType>, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.MethodType(
+            //    InputType,
+            //    OutputType
+            //    ));
+        }
+    }
 
-//                return TokenMatching<ISetUp<IBox<WeakGenericMethodDefinition>, Tpn.IValue>>.MakeMatch(
-//                    tokenMatching,
-//                    new GenericMethodDefinitionPopulateScope(
-//                        inputType!,
-//                        elements,
-//                        outputType!,
-//                        parameterName!.Item,
-//                        generics.Select(x =>
-//                            new GenericTypeParameterPlacholder(OrType.Make<NameKey, ImplicitKey>(new NameKey(x))) as IGenericTypeParameterPlacholder).ToArray()),
-//                    matched.EndIndex
-//                    );
-//            }
+    internal class GenericMethodDefinitionMaker
+    {
 
-//            return TokenMatching<ISetUp<IBox<WeakGenericMethodDefinition>, Tpn.IValue>>.MakeNotMatch(
-//                    matching.Context);
-//        }
-//    }
+        public ITokenMatching<ISetUp<IBox<WeakGenericMethodDefinition>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        {
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+            ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> inputType = null, outputType = null;
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+
+            var matching = tokenMatching
+                .Has(new KeyWordMaker("method"), out var _)
+                .Has(new DefineGenericNMaker(), out var generics)
+                .HasSquare(x => x
+                    .HasLine(y => y
+                        .Has(new TypeMaker(), out inputType)
+                        .Has(new DoneMaker()))
+                    .HasLine(y => y
+                        .Has(new TypeMaker(), out outputType)
+                        .Has(new DoneMaker()))
+                    .Has(new DoneMaker()))
+                .OptionalHas(new NameMaker(), out var parameterName)
+                .Has(new BodyMaker(), out var body);
+
+            if (matching
+                 is IMatchedTokenMatching matched)
+            {
+                var elements = matching.Context.ParseBlock(body);
+
+                return TokenMatching<ISetUp<IBox<WeakGenericMethodDefinition>, Tpn.IValue>>.MakeMatch(
+                    tokenMatching,
+                    new GenericMethodDefinitionPopulateScope(
+                        inputType!,
+                        elements,
+                        outputType!,
+                        parameterName!.Item,
+                        generics.Select(x =>
+                            new GenericTypeParameterPlacholder(OrType.Make<NameKey, ImplicitKey>(new NameKey(x))) as IGenericTypeParameterPlacholder).ToArray()),
+                    matched.EndIndex
+                    );
+            }
+
+            return TokenMatching<ISetUp<IBox<WeakGenericMethodDefinition>, Tpn.IValue>>.MakeNotMatch(
+                    matching.Context);
+        }
+    }
 
 
-//    internal class GenericMethodDefinitionPopulateScope : ISetUp<IBox<WeakGenericMethodDefinition>, Tpn.IValue>
-//    {
-//        private readonly ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> parameterDefinition;
-//        private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
-//        private readonly ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> output;
-//        private readonly string parameterName;
-//        private readonly IGenericTypeParameterPlacholder[] genericParameters;
+    internal class GenericMethodDefinitionPopulateScope : ISetUp<IBox<WeakGenericMethodDefinition>, Tpn.IValue>
+    {
+        private readonly ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> parameterDefinition;
+        private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
+        private readonly ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> output;
+        private readonly string parameterName;
+        private readonly IGenericTypeParameterPlacholder[] genericParameters;
 
-//        public GenericMethodDefinitionPopulateScope(
-//            ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> parameterDefinition,
-//            IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements,
-//            ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> output,
-//            string parameterName,
-//            IGenericTypeParameterPlacholder[] genericParameters
-//            )
-//        {
-//            this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
-//            this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
-//            this.output = output ?? throw new ArgumentNullException(nameof(output));
-//            this.parameterName = parameterName ?? throw new ArgumentNullException(nameof(parameterName));
-//            this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
-//        }
+        public GenericMethodDefinitionPopulateScope(
+            ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> parameterDefinition,
+            IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements,
+            ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> output,
+            string parameterName,
+            IGenericTypeParameterPlacholder[] genericParameters
+            )
+        {
+            this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
+            this.elements = elements ?? throw new ArgumentNullException(nameof(elements));
+            this.output = output ?? throw new ArgumentNullException(nameof(output));
+            this.parameterName = parameterName ?? throw new ArgumentNullException(nameof(parameterName));
+            this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
+        }
 
-//        public ISetUpResult<IBox<WeakGenericMethodDefinition>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
-//        {
+        public ISetUpResult<IBox<WeakGenericMethodDefinition>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
+        {
 
-//            scope = scope.EnterInitizaionScopeIfNessisary();
-//            if (!(scope is Tpn.IScope runtimeScope))
-//            {
-//                throw new NotImplementedException("this should be an IError");
-//            }
+            scope = scope.EnterInitizaionScopeIfNessisary();
+            if (!(scope is Tpn.IScope runtimeScope))
+            {
+                throw new NotImplementedException("this should be an IError");
+            }
 
-//            var realizedInput = parameterDefinition.Run(scope, context.CreateChildContext(this));
-//            var realizedOutput = output.Run(scope, context.CreateChildContext(this));
+            var realizedInput = parameterDefinition.Run(scope, context.CreateChildContext(this));
+            var realizedOutput = output.Run(scope, context.CreateChildContext(this));
 
-//            var box = new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>();
-//            var converter = new WeakMethodDefinitionConverter(box);
-//            var method = context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter);
+            var box = new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>();
+            var converter = new WeakMethodDefinitionConverter(box);
+            var method = context.TypeProblem.CreateGenericMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, genericParameters.Select(x => new Tpn.TypeAndConverter(x.Key, new WeakTypeDefinitionConverter())).ToArray());
 
-//            var nextElements = elements.Select(x => x.TransformInner(y => y.Run(method, context.CreateChildContext(this)).Resolve)).ToArray();
+            var nextElements = elements.Select(x => x.TransformInner(y => y.Run(method, context.CreateChildContext(this)).Resolve)).ToArray();
 
-//            var value = context.TypeProblem.CreateValue(runtimeScope, new GenericNameKey(new NameKey("method"), new IOrType<IKey, IError>[] {
-//                    realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
-//                    realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
-//                }), new PlaceholderValueConverter());
+            var value = context.TypeProblem.CreateValue(runtimeScope, new GenericNameKey(new NameKey("method"), new IOrType<IKey, IError>[] {
+                    realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
+                    realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
+                }), new PlaceholderValueConverter());
 
-//            return new SetUpResult<IBox<WeakMethodDefinition>, Tpn.IValue>(new MethodDefinitionResolveReferance(method, nextElements, box), OrType.Make<Tpn.IValue, IError>(value));
-//        }
-//    }
+            return new SetUpResult<IBox<WeakGenericMethodDefinition>, Tpn.IValue>(new GenericMethodDefinitionResolveReferance(method, nextElements, box), OrType.Make<Tpn.IValue, IError>(value));
+        }
+    }
 
-//}
+
+    internal class GenericMethodDefinitionResolveReferance : IResolve<IBox<WeakGenericMethodDefinition>>
+    {
+        private readonly Tpn.TypeProblem2.Method method;
+        private readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextElements;
+        private readonly Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> box;
+
+        public GenericMethodDefinitionResolveReferance(Tpn.TypeProblem2.Method method, IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextElements, Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> box)
+        {
+            this.method = method ?? throw new ArgumentNullException(nameof(method));
+            this.nextElements = nextElements ?? throw new ArgumentNullException(nameof(nextElements));
+            this.box = box ?? throw new ArgumentNullException(nameof(box));
+        }
+
+        public IBox<WeakGenericMethodDefinition> Run(Tpn.TypeSolution context)
+        {
+            box.Fill(nextElements.Select(x => x.TransformInner(y => y.Run(context))).ToArray());
+            var res = method.Converter.Convert(context, method);
+            if (res.Is4(out var v4))
+            {
+                return new Box<WeakGenericMethodDefinition>(v4);
+            }
+            throw new Exception("wrong!");
+        }
+    }
+
+}

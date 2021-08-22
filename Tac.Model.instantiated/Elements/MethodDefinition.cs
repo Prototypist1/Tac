@@ -161,4 +161,88 @@ namespace Tac.Model.Instantiated
             IReadOnlyList<ICodeElement> body,
             IReadOnlyList<ICodeElement> staticInitailizers);
     }
+
+
+    public class GenericMethodDefinition : IGenericMethodDefinition,
+        IGenericMethodDefinitionBuilder
+    {
+        private readonly Buildable<IReadOnlyList<ICodeElement>> buildableStaticInitailizers = new();
+        private readonly Buildable<IReadOnlyList<ICodeElement>> buildableBody = new();
+        private readonly Buildable<IFinalizedScope> buildableScope = new();
+        private readonly Buildable<IVerifiableType> buildableOutputType = new();
+        private readonly Buildable<IMemberDefinition> buildableParameterDefinition = new();
+        private readonly Buildable<IVerifiableType> type = new();
+        private readonly Buildable<IReadOnlyList<IVerifiableType>> buildableTypeParameters = new();
+
+        private GenericMethodDefinition() { }
+
+        #region IMethodDefinition
+
+        public IVerifiableType InputType => buildableParameterDefinition.Get().Type;
+        public IVerifiableType OutputType => buildableOutputType.Get();
+        public IMemberDefinition ParameterDefinition => buildableParameterDefinition.Get();
+        public IFinalizedScope Scope => buildableScope.Get(); 
+        public IReadOnlyList<ICodeElement> Body => buildableBody.Get();
+        public IReadOnlyList<ICodeElement> StaticInitailizers => buildableStaticInitailizers.Get();
+        public IReadOnlyList<IVerifiableType> TypeParameters => buildableTypeParameters.Get();
+
+        public T Convert<T>(IOpenBoxesContext<T> context)
+        {
+            return context.GenericMethodDefinition(this);
+        }
+
+        public IVerifiableType Returns()
+        {
+            return type.Get();
+        }
+
+        #endregion
+
+        public void Build(
+            IVerifiableType outputType,
+            IMemberDefinition parameterDefinition,
+            IFinalizedScope scope,
+            IReadOnlyList<ICodeElement> body,
+            IReadOnlyList<ICodeElement> staticInitailizers,
+            IReadOnlyList<IVerifiableType> typeParameters)
+        {
+            buildableOutputType.Set(outputType);
+            buildableParameterDefinition.Set(parameterDefinition);
+            buildableScope.Set(scope);
+            buildableBody.Set(body);
+            buildableStaticInitailizers.Set(staticInitailizers);
+            buildableTypeParameters.Set(typeParameters);
+            type.Set(MethodType.CreateAndBuild(InputType, OutputType));
+        }
+
+        public static (IGenericMethodDefinition, IGenericMethodDefinitionBuilder) Create()
+        {
+            var res = new GenericMethodDefinition();
+            return (res, res);
+        }
+
+        public static IGenericMethodDefinition CreateAndBuild(
+            IVerifiableType outputType,
+            IMemberDefinition parameterDefinition,
+            IFinalizedScope scope,
+            IReadOnlyList<ICodeElement> body,
+            IReadOnlyList<ICodeElement> staticInitailizers,
+            IReadOnlyList<IVerifiableType> typeParameters)
+        {
+            var (x, y) = Create();
+            y.Build(outputType, parameterDefinition, scope, body, staticInitailizers, typeParameters);
+            return x;
+        }
+    }
+
+    public interface IGenericMethodDefinitionBuilder
+    {
+        void Build(
+            IVerifiableType outputType,
+            IMemberDefinition parameterDefinition,
+            IFinalizedScope scope,
+            IReadOnlyList<ICodeElement> body,
+            IReadOnlyList<ICodeElement> staticInitailizers,
+            IReadOnlyList<IVerifiableType> typeParameters);
+    }
 }

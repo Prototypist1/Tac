@@ -62,9 +62,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                     parent.Objects.Add(key, @object);
                 }
 
-                public void HasPlaceholderType(IOrType<MethodType, Type> parent, IKey key, IOrType<MethodType, Type, Object, OrType, InferredType, IError> type)
+                public void HasPlaceholderType(IOrType<MethodType, Type, Method> parent, IKey key, IOrType<MethodType, Type, Object, OrType, InferredType, IError> type)
                 {
-                    parent.Switch(x => x.GenericOverlays.Add(key, type), x => x.GenericOverlays.Add(key, type));
+                    parent.Switch(x => x.GenericOverlays.Add(key, type), x => x.GenericOverlays.Add(key, type), x => x.GenericOverlays.Add(key, type));
                 }
                 public static void HasPrivateMember(IHavePrivateMembers parent, IKey key, Member member)
                 {
@@ -314,7 +314,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             true,
                             Possibly.IsNot<Guid>(),
                             Possibly.IsNot<IInterfaceType>());
-                        HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type>(res), placeholder.key.SwitchReturns<IKey>(x => x, x => x), Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(placeholderType));
+                        HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(res), placeholder.key.SwitchReturns<IKey>(x => x, x => x), Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(placeholderType));
                     }
                     return res;
                 }
@@ -329,7 +329,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return res;
                 }
 
-                public Method CreateMethod(IStaticScope parent, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition>> converter)
+                public Method CreateMethod(IStaticScope parent, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition, WeakGenericMethodDefinition>> converter)
                 {
                     var res = new Method(this, $"method{{inputName:{inputName}}}", converter);
                     IsChildOf(parent, res);
@@ -342,8 +342,26 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return res;
                 }
 
+                public Method CreateGenericMethod(IStaticScope parent, IOrType<TypeReference, IError> inputType, IOrType<TypeReference, IError> outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>> converter, IReadOnlyList<TypeAndConverter> placeholders)
+                {
+                    var method = CreateMethod(parent, inputType, outputType,  inputName, converter);
+                    foreach (var placeholder in placeholders)
+                    {
+                        var placeholderType = new Type(
+                            this,
+                            $"generic-parameter-{placeholder.key}",
+                            Possibly.Is(placeholder.key),
+                            placeholder.converter,
+                            true,
+                            Possibly.IsNot<Guid>(),
+                            Possibly.IsNot<IInterfaceType>());
+                        HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(method), placeholder.key.SwitchReturns<IKey>(x => x, x => x), Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(placeholderType));
+                    }
+                    return method;
+                }
 
-                public Method CreateMethod(IStaticScope parent, IOrType<TypeReference, IError> inputType, IOrType<TypeReference, IError> outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>> converter)
+
+                public Method CreateMethod(IStaticScope parent, IOrType<TypeReference, IError> inputType, IOrType<TypeReference, IError> outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>> converter)
                 {
                     if (!inputType.Is1(out var inputTypeValue))
                     {
@@ -479,7 +497,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // it is just something of type method
                 // it is really just a type
                 //
-                public Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition>> converter)
+                public Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>> converter)
                 {
                     var thing = CreateTransientMember(parent, $"is method for {target.DebugName}");
                     var method = CreateMethod(parent, "input", converter);

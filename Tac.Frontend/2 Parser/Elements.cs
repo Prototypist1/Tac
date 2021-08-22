@@ -284,7 +284,7 @@ namespace Tac.Parser
             }
 
             if (myList.Count > 1) {
-                return OrType.Make<ISetUp<IBox<T>, Tpn.ITypeProblemNode>, IError>(Error.Other("expected to parse down to one element"));
+                return OrType.Make<ISetUp<IBox<T>, Tpn.ITypeProblemNode>, IError>(Error.Other("expected to parse down to one element (this can mean your as missing a ;)"));
             }
 
             var single = myList.Single();
