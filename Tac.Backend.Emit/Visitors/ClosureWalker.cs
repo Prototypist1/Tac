@@ -242,5 +242,10 @@ namespace Tac.Backend.Emit.Walkers
             // this can't have a closure 
             return Array.Empty<IMemberDefinition>();
         }
+
+        public IReadOnlyList<IMemberDefinition> GenericMethodDefinition(IGenericMethodDefinition co)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

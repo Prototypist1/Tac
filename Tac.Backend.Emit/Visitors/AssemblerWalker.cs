@@ -1747,6 +1747,11 @@ namespace Tac.Backend.Emit.Walkers
         {
             AssemblyWalkerHelp.EmitConvertIfNeededCompileTime(typeTracker.ResolvePossiblyPrimitive(fromType), typeTracker.ResolvePossiblyPrimitive(toType), typeTracker, generatorHolder, moduleBuilder, x => gens.Add(x));
         }
+
+        public Nothing GenericMethodDefinition(IGenericMethodDefinition co)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public static class AssemblyWalkerHelp

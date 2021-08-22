@@ -36,6 +36,52 @@ namespace Tac.Tests
 
 
         [Fact]
+        public void NoEntryPoint()
+        {
+            var res = TestSupport.Tokenize(
+@"
+2 =: x;
+");
+            var converted = TestSupport.ConvertToWeak(res);
+
+            var errors = converted.Validate().ToArray();
+
+            Assert.Empty(errors);
+
+        }
+
+        [Fact]
+        public void ReturnFromRootScope()
+        {
+            var res = TestSupport.Tokenize(
+@"
+2 =: x;
+entry-point [empty;number;] unused {
+       x return;
+    }
+");
+            var converted = TestSupport.ConvertToWeak(res);
+
+            var errors = converted.Validate().ToArray();
+
+            Assert.Empty(errors);
+
+        }
+
+        [Fact]
+        public void GenericMethod() {
+            var res = TestSupport.Tokenize(
+@"
+method [T] [T;T;] t { t return; } =: x;
+");
+            var converted = TestSupport.ConvertToWeak(res);
+
+            var errors = converted.Validate().ToArray();
+
+            Assert.Empty(errors);
+        }
+
+        [Fact]
         public void ComplexMethod()
         {
             var res = TestSupport.Tokenize(

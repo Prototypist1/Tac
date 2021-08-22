@@ -167,6 +167,7 @@ namespace Tac.Parser
             new EntryPointDefinitionMaker(),
             new GenericTypeDefinitionMaker(),
             new MethodDefinitionMaker(),
+            new GenericMethodDefinitionMaker(),
             new ImplementationDefinitionMaker(),
 
             // object likes

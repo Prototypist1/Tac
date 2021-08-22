@@ -464,6 +464,11 @@ namespace Tac.Backend.Interpreted.SyntazModelInterpeter
             }
         }
 
+        public IInterpetedOperation GenericMethodDefinition(IGenericMethodDefinition co)
+        {
+            throw new NotImplementedException();
+        }
+
 
         #region Help
 

@@ -14,6 +14,24 @@ using Tac.SemanticModel;
 using Tac.SemanticModel.CodeStuff;
 using Tac.SyntaxModel.Elements.AtomicTypes;
 
+
+namespace Tac.Parser
+{
+
+    internal partial class MakerRegistry
+    {
+        private static readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> StaticGenericMethodDefinitionMaker = AddElementMakers(
+            () => new GenericMethodDefinitionMaker(),
+            MustBeBefore<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>>(typeof(MemberMaker)));
+#pragma warning disable CA1823
+#pragma warning disable IDE0052 // Remove unread private members
+        private readonly WithConditions<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>> GenericMethodDefinitionMaker = StaticGenericMethodDefinitionMaker;
+#pragma warning restore IDE0052 // Remove unread private members
+#pragma warning restore CA1823
+
+    }
+}
+
 namespace Tac.SemanticModel
 {
 
@@ -55,7 +73,7 @@ namespace Tac.SemanticModel
                     Scope.Is1OrThrow().Convert(context),
                     Body.GetValue().Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray(),
-                    TypeParameterDefinitions.Select(x=>x.GetOrThrow());
+                    TypeParameterDefinitions.Select(x=> (IGenericParameter)new GenericParameter( x.GetOrThrow().Key.SwitchReturns(y=>(IKey)y,y=>y))).ToArray());
             });
         }
 
@@ -71,7 +89,7 @@ namespace Tac.SemanticModel
         }
     }
 
-    internal class GenericMethodDefinitionMaker
+    internal class GenericMethodDefinitionMaker : IMaker<ISetUp<IBox<WeakGenericMethodDefinition>, Tpn.IValue>>
     {
 
         public ITokenMatching<ISetUp<IBox<WeakGenericMethodDefinition>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)

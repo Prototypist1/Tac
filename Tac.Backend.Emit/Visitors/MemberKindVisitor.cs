@@ -32,7 +32,7 @@ namespace Tac.Backend.Emit.Visitors
 
             MemberKindLookup lookup = new MemberKindLookup();
             // 
-            // TODO you are here
+            // TODO 
             // we can add project.DependencyScope directly to the lookups
             // this doesn't really need to happen in here, the MemberKindVisitor isn't involved at all
             // but it is a nessisray part of the flow
@@ -359,6 +359,11 @@ namespace Tac.Backend.Emit.Visitors
             co.EntryPoint.Convert(next);
 
             return new Nothing();
+        }
+
+        public Nothing GenericMethodDefinition(IGenericMethodDefinition co)
+        {
+            throw new NotImplementedException();
         }
     }
 }

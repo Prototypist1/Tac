@@ -21,9 +21,10 @@ namespace Tac.Model.Elements
         IVerifiableType InputType { get; }
         IVerifiableType OutputType { get; }
         IMemberDefinition ParameterDefinition { get; }
-        // TODO you are here
-        // TypeParameters should not be of type IVerifiableType
-        // these aren't full type yet..
-        IReadOnlyList<IVerifiableType> TypeParameters { get; }
+        IReadOnlyList<IGenericParameter> TypeParameters { get; }
+    }
+
+    public interface IGenericParameter { 
+        IKey Key { get; }
     }
 }

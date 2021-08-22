@@ -200,7 +200,7 @@ namespace Tac.SemanticModel.Operations
                     x => OrType.Make<IBox<IFrontendCodeElement>, IError>(new FuncBox<IFrontendCodeElement>(()=> {
 
 
-                        // TODO you are here
+                        // TODO 
                         // I don't I should need to ask the solution for the member def, the left's return type should give me that
 
                         // why doesn't TryGetMember return a member definition!

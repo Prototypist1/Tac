@@ -1392,7 +1392,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             //            //        ()=> HandleHopefulMember(key, hopeful, GetType(x))),
             //            //    () => orType.Right.If(x => HandleHopefulMember(key, hopeful, GetType(x))));
 
-            //            // you are here!
             //            // after the first one merges it might not be a infered type
             //            // so it can't merge
 

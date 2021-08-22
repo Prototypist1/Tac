@@ -683,4 +683,46 @@ well, any call would be to a
 
 I think I need to understand what's wrong with type-eraceure and probably remove it to be a better CIL citizen
 
+Actually, I think it is fair to call this an operation. This is implemented as a generic method that returns a func<,>. the operation calls the generic method.
 
+===============================
+
+maybe you can use prefix/suffix/center notation for order of operations? 
+
+5 > (a.b)
+
+could be:
+
+5 > . a b
+
+5 > (a.b.c)
+
+5 > . . a b c
+
+that's not very readable
+
+how is it with a more complex example?
+
+list > (method [number;number;] x { x * x return} > (linq.select))
+
+list > > method [number;number;] x { x * x return} . linq select 
+
+maybe just a prefix:
+
+list > first method [number;number;] x { x * x return} > first linq . select
+
+you can do it now, it's just a bit backwords:
+
+linq . select < method [number;number;] x { x * x return} < list
+
+but it is worse if you try to call two linq methods. I don't think I can write this without ()
+
+linq . select < method [number;number;] x { x * x return} < list > (linq . where < method [number;bool;] x { x % 2 == 0 return;})
+
+but I can with the new notation
+
+list > > method [number;number;] x { x * x return} . linq select > > method [number;bool;] x { x % 2 == 0 return;} . linq where 
+
+it gets a little messey with () but it will do for now
+
+list > (method [number;number;] x { x * x return} >  (linq . select)) > (method [number;bool;] x { x % 2 == 0 return;} >  (linq . where)) 

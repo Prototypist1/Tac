@@ -331,5 +331,10 @@ namespace Tac.Backend.Emit.Visitors
             co.EntryPoint.Convert(this);
             return new Nothing();
         }
+
+        public Nothing GenericMethodDefinition(IGenericMethodDefinition co)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

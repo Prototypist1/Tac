@@ -660,5 +660,10 @@ namespace Tac.Backend.Emit.Walkers
             typeTracker.HandleDependencies(project);
 
         }
+
+        public Nothing GenericMethodDefinition(IGenericMethodDefinition co)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

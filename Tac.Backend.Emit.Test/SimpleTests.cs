@@ -1407,9 +1407,6 @@ namespace Tac.Backend.Emit.Test
                                     object1,
                                     Model.Instantiated.MemberReference.CreateAndBuild(a_or_ab)),
                                 // TODO 
-                                // TODO
-                                // TODO
-                                // YOU ARE HERE
                                 // if I comment this out, then it works
                                 // I think it is trying to call the wrong set_a
                                 // like the one on the object instead of the one on the interface 
@@ -1479,10 +1476,7 @@ namespace Tac.Backend.Emit.Test
                                 AssignOperation.CreateAndBuild(
                                     object1,
                                     Model.Instantiated.MemberReference.CreateAndBuild(aMember)),
-                                // TODO 
                                 // TODO
-                                // TODO
-                                // YOU ARE HERE
                                 // if I comment this out, then it works
                                 // I think it is trying to call the wrong set_a
                                 // like the one on the object instead of the one on the interface 
