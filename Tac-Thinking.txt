@@ -467,6 +467,11 @@ shift-left                                      bit-shift
 shift-right                                     bit-shift right
 
 
+short hand:
+{}                                              quick object/ qucik type -- I don't think these can ever be used in the same spot.. this does collide with a block though 
+
+
+
 ================================= NumberType vs double 
 
 I think probably I need to wrap all my doubles in numberType
@@ -726,3 +731,16 @@ list > > method [number;number;] x { x * x return} . linq select > > method [num
 it gets a little messey with () but it will do for now
 
 list > (method [number;number;] x { x * x return} >  (linq . select)) > (method [number;bool;] x { x % 2 == 0 return;} >  (linq . where)) 
+
+=========================== scope return?
+
+sometimes I want a little return inside a function 
+
+"you number is " concat
+{
+    a % 2 ==0 then {
+        'even' scope-retrun;
+    } else {
+        'odd' scope-retrun;
+    }
+}  return;
