@@ -177,15 +177,17 @@ namespace Tac.SemanticModel
 
             var nextElements = elements.Select(x => x.TransformInner(y => y.Run(method, context.CreateChildContext(this)).Resolve)).ToArray();
 
-            var value = context.TypeProblem.CreateValue(runtimeScope, new GenericNameKey(new NameKey("method"), new IOrType<IKey, IError>[] {
+            var value = context.TypeProblem.CreateValue(runtimeScope, new DoubleGenericNameKey(
+                new NameKey("generic-method"),
+                genericParameters.Select(x => OrType.Make<IKey, IError>(x.Key.GetValueAs(out IKey _))).ToArray(),
+                new IOrType<IKey, IError>[] {
                     realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
                     realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
-                }), new PlaceholderValueConverter());
+                }), new PlaceholderValueConverter()); ;
 
             return new SetUpResult<IBox<WeakGenericMethodDefinition>, Tpn.IValue>(new GenericMethodDefinitionResolveReferance(method, nextElements, box), OrType.Make<Tpn.IValue, IError>(value));
         }
     }
-
 
     internal class GenericMethodDefinitionResolveReferance : IResolve<IBox<WeakGenericMethodDefinition>>
     {

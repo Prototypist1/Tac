@@ -132,18 +132,31 @@ namespace Tac.Frontend.Parser
                 IsNotKeyWord(first.Item))
             {
 
-                var at = TokenMatching<NameKey>.MakeStart(self.AllTokens, self.Context, index+1);
+                var at = TokenMatching<NameKey>.MakeStart(self.AllTokens, self.Context, index + 1);
                 var match = new GenericNMaker().TryMake(at);
                 if (match.SafeIs(out IMatchedTokenMatching<IKey[]> mathced))
                 {
+                    var at2 = TokenMatching<NameKey>.MakeStart(self.AllTokens, self.Context, index + 2);
+                    var match2 = new GenericNMaker().TryMake(at);
+
+                    if (match.SafeIs(out IMatchedTokenMatching<IKey[]> mathced2))
+                    {
+                        return TokenMatching<IKey>.MakeMatch(
+                            self,
+                            new DoubleGenericNameKey(
+                                new NameKey(first.Item),
+                                mathced.Value.Select(x => OrType.Make<IKey, IError>(x)).ToArray(), 
+                                mathced2.Value.Select(x => OrType.Make<IKey, IError>(x)).ToArray()),
+                            mathced2.EndIndex);
+                    }
 
                     return TokenMatching<IKey>.MakeMatch(
-                        self,
-                        new GenericNameKey(new NameKey(first.Item), mathced.Value.Select(x=>OrType.Make<IKey,IError>(x)).ToArray()),
-                        mathced.EndIndex);
+                    self,
+                    new GenericNameKey(new NameKey(first.Item), mathced.Value.Select(x => OrType.Make<IKey, IError>(x)).ToArray()),
+                    mathced.EndIndex);
                 }
 
-                return TokenMatching<IKey>.MakeMatch(self, new NameKey(first.Item),  index+1);
+                return TokenMatching<IKey>.MakeMatch(self, new NameKey(first.Item), index + 1);
             }
 
             return TokenMatching<IKey>.MakeNotMatch(self.Context);
@@ -165,7 +178,7 @@ namespace Tac.Frontend.Parser
                 self.AllTokens[index].Is1(out var v1) && v1.SafeIs(out AtomicToken first) &&
                 double.TryParse(first.Item, out var res))
             {
-                return TokenMatching<double>.MakeMatch(self, res, index +1);
+                return TokenMatching<double>.MakeMatch(self, res, index + 1);
             }
 
             return TokenMatching<double>.MakeNotMatch(self.Context);
@@ -176,7 +189,7 @@ namespace Tac.Frontend.Parser
     {
         public ITokenMatching TryMake(ITokenMatching self)
         {
-            if (self.SafeIs(out IMatchedTokenMatching matched) && matched.AllTokens.Count >= matched.EndIndex )
+            if (self.SafeIs(out IMatchedTokenMatching matched) && matched.AllTokens.Count >= matched.EndIndex)
             {
                 return self;
             }
@@ -215,8 +228,8 @@ namespace Tac.Frontend.Parser
                                    line.Tokens.ElementAt(0).SafeIs(out AtomicToken _)))
             {
                 return TokenMatching<string[]>.MakeMatch(self,
-                    typeParameters.Tokens.Select(x => x.CastTo<LineToken>().Tokens.Single().CastTo<AtomicToken>().Item).ToArray(), 
-                    index+1);
+                    typeParameters.Tokens.Select(x => x.CastTo<LineToken>().Tokens.Single().CastTo<AtomicToken>().Item).ToArray(),
+                    index + 1);
             }
 
             return TokenMatching<string[]>.MakeNotMatch(self.Context);
@@ -234,7 +247,7 @@ namespace Tac.Frontend.Parser
             if (self.AllTokens.Count > index &&
                 self.AllTokens[index].Is1(out var v1) && v1.SafeIs(out SquareBacketToken typeParameters) &&
                 typeParameters.Tokens.All(x => x.SafeIs(out LineToken lt) && lt.Tokens.First().SafeIs(out AtomicToken _)) &&
-                TryToToken(out var res))
+                TryToToken(self.Context, typeParameters, out var res))
             {
                 return TokenMatching<IKey[]>.MakeMatch(
                     self,
@@ -244,28 +257,29 @@ namespace Tac.Frontend.Parser
 
             return TokenMatching<IKey[]>.MakeNotMatch(self.Context);
 
-            bool TryToToken(out IKey[]? typeSourcesInner)
+        }
+
+        public static bool TryToToken(ElementMatchingContext context, SquareBacketToken typeParameters, out IKey[]? typeSourcesInner)
+        {
+            var typeSourcesBuilding = new List<IKey>();
+            foreach (var elementToken in typeParameters.Tokens.OfType<LineToken>())
             {
-                var typeSourcesBuilding = new List<IKey>();
-                foreach (var elementToken in typeParameters.Tokens.OfType<LineToken>())
+                var matcher = TokenMatching<object>.MakeStart(elementToken.Tokens.Select(x => OrType.Make<IToken, ISetUp>(x)).ToArray(), context, 0);
+                IKey? typeSource = null;
+                if (matcher
+                        .Has(new TypeNameMaker(), out typeSource)
+                        .Has(new DoneMaker()).SafeIs(out IMatchedTokenMatching<IKey?> _))
                 {
-                    var matcher = TokenMatching<object>.MakeStart(elementToken.Tokens.Select(x=> OrType.Make<IToken,ISetUp>(x)).ToArray(), self.Context,0);
-                    IKey? typeSource = null;
-                    if (matcher
-                            .Has(new TypeNameMaker(), out typeSource)
-                            .Has(new DoneMaker()).SafeIs(out IMatchedTokenMatching<IKey?> _))
-                    {
-                        typeSourcesBuilding.Add(typeSource!);
-                    }
-                    else
-                    {
-                        typeSourcesInner = default;
-                        return false;
-                    }
+                    typeSourcesBuilding.Add(typeSource!);
                 }
-                typeSourcesInner = typeSourcesBuilding.ToArray();
-                return true;
+                else
+                {
+                    typeSourcesInner = default;
+                    return false;
+                }
             }
+            typeSourcesInner = typeSourcesBuilding.ToArray();
+            return true;
         }
     }
 
@@ -283,14 +297,14 @@ namespace Tac.Frontend.Parser
             var index = self.EndIndex;
 
             if (self.AllTokens.Count - 2 > index &&
-                    self.AllTokens[index+1].Is1(out var v1) &&  v1.SafeIs(out AtomicToken op) &&
+                    self.AllTokens[index + 1].Is1(out var v1) && v1.SafeIs(out AtomicToken op) &&
                     op.Item == s &&
                     self.AllTokens[index].Is2(out var lhs) &&
-                    self.AllTokens[index+2].Is2(out var rhs))
+                    self.AllTokens[index + 2].Is2(out var rhs))
             {
                 return TokenMatching<(ISetUp, ISetUp)>.MakeMatch(
                     self,
-                    (lhs,  rhs),
+                    (lhs, rhs),
                     index + 3);
             }
 
@@ -338,8 +352,8 @@ namespace Tac.Frontend.Parser
         {
             var index = self.EndIndex;
 
-            if (self.AllTokens.Count -1 > index &&
-                    self.AllTokens[index+1].Is1(out var v1) && 
+            if (self.AllTokens.Count - 1 > index &&
+                    self.AllTokens[index + 1].Is1(out var v1) &&
                     v1.SafeIs(out AtomicToken op) &&
                     op.Item == s &&
                     self.AllTokens[index].Is2(out var setUp))

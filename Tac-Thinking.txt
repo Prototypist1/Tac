@@ -744,3 +744,15 @@ sometimes I want a little return inside a function
         'odd' scope-retrun;
     }
 }  return;
+
+====================== partial realize??
+
+generic-method [T1,T2] [T1, pair[T1,T2]] x
+
+y := x partial-realiz [T] [T,T] 
+
+would return generic-method [T] [T, pair[T,T]]
+
+naw... just wrap the method
+
+y := generic-method [T] [T, pair[T,T]] input { x realize [T,T] < input return }

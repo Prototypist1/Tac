@@ -27,3 +27,32 @@ maybe with shorter aliases
 you should be able to explicitly declare something to be a inferred type
 
 int | inferred x;
+
+---------------------
+
+what even type is a generic method?
+
+is it method [T, T, T]
+
+its really
+
+class generic-method{
+	
+	func<T1, T1> Test<T1>()
+}
+
+i mean you define it like generic-method [t] [t, t]
+
+but that's not a valid type, I mean I really really support type[t1,t2,t3,...]
+
+how you even use a generic method in a type
+type{
+	Func<T,Func<T,T>> x; 
+}
+but func doesn't even take a T, it takes a type...
+
+type{
+	generic-method [T] [T,T]
+}
+
+it's double generic, let's prey I don't get tripple generic...

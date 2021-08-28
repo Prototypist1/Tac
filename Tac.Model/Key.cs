@@ -1,6 +1,7 @@
 ﻿using Prototypist.Toolbox;
 using Prototypist.Toolbox.Object;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Tac.Model
@@ -61,6 +62,48 @@ namespace Tac.Model
         public override string ToString()
         {
             return $"{nameof(GenericNameKey)}-{Name.ToString()}-{Types.Aggregate("",(x,y)=> x +""+ y.ToString())}";
+        }
+    }
+
+    // double generic names keys exist for generic methods
+    //
+    // generic-method [T] [T,T] y := generic-method [T] [T,T] input { input return; }
+    // x realize [number] < 5 
+    // 
+    // "generic-method [T] [T,T]" is our double generic key
+    //
+    // conceptually this is something that might need a bit more proving out
+    // the second set of generics depend of the first
+    // 
+    public class DoubleGenericNameKey : IKey
+    {
+        public NameKey Name { get; }
+        public DoubleGenericNameKey(NameKey name, IOrType<IKey, IError>[] types, IOrType<IKey, IError>[] dependentTypes)
+        {
+            this.Name = name ?? throw new System.ArgumentNullException(nameof(name));
+            Types = types ?? throw new System.ArgumentNullException(nameof(types));
+            DependentTypes = dependentTypes ?? throw new ArgumentNullException(nameof(dependentTypes));
+        }
+
+        public IOrType<IKey, IError>[] Types { get; }
+        public IOrType<IKey, IError>[] DependentTypes { get; }
+
+        public override string ToString()
+        {
+            return $"{nameof(DoubleGenericNameKey)}-{Name.ToString()}-{Types.Aggregate("", (x, y) => x + "" + y.ToString())}-{DependentTypes.Aggregate("", (x, y) => x + "" + y.ToString())}";
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is DoubleGenericNameKey key &&
+                   EqualityComparer<NameKey>.Default.Equals(Name, key.Name) &&
+                   EqualityComparer<IOrType<IKey, IError>[]>.Default.Equals(Types, key.Types) &&
+                   EqualityComparer<IOrType<IKey, IError>[]>.Default.Equals(DependentTypes, key.DependentTypes);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Name, Types, DependentTypes);
         }
     }
 }

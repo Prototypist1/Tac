@@ -36,91 +36,113 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
     // also
     // [a[a1,a2],b[b1,b2], c[c1,c2]]
     // but 
-    internal class ContextDependentSquareListMaker : IMaker<ISetUp<IBox<WeakTypeCollection>, Tpn.IValue>>
+    internal class ContextDependentSquareListMaker : IMaker<IKey[]>
     {
-        public ITokenMatching<ISetUp<IBox<WeakTypeCollection>, Tpn.IValue>> TryMake(IMatchedTokenMatching elementToken)
+        public ITokenMatching<IKey[]> TryMake(IMatchedTokenMatching elementToken)
         {
             if (elementToken.Has(new GenericNMaker(), out var collection).SafeIs(out IMatchedTokenMatching<IKey[]> matched))
             {
 
-                return TokenMatching<ISetUp<IBox<WeakTypeCollection>, Tpn.IValue>>.MakeMatch(
+                return TokenMatching<IKey[]>.MakeMatch(
                     elementToken,
-                    new ContextDependentSquareListPopulateScope(collection),
+                    collection!,
                     matched.EndIndex);
             }
 
-            return TokenMatching<ISetUp<IBox<WeakTypeCollection>, Tpn.IValue>>.MakeNotMatch(elementToken.Context);
+            return TokenMatching<IKey[]>.MakeNotMatch(elementToken.Context);
         }
 
     }
 
 
-    internal class ContextDependentSquareListPopulateScope : ISetUp<IBox<WeakTypeCollection>, Tpn.IValue>
+    //internal class ContextDependentSquareListPopulateScope : ISetUp<IBox<WeakTypeCollection>, Tpn.IValue>
+    //{
+    //    private IKey[] collection;
+
+    //    public ContextDependentSquareListPopulateScope(IKey[] collection)
+    //    {
+    //        this.collection = collection ?? throw new ArgumentNullException(nameof(collection));
+    //    }
+
+    //    public ISetUpResult<IBox<WeakTypeCollection>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
+    //    {
+    //        throw new NotImplementedException();
+    //        //return new SetUpResult<IBox<WeakTypeCollection>, Tpn.IValue>(
+    //        //    new ContextDependentSquareListResolveReferance(),
+    //        //    getReturnedValue(scope, context, nextLeft));
+    //    }
+    //}
+
+    //internal class ContextDependentSquareListResolveReferance : IResolve<IBox<WeakTypeCollection>>
+    //{
+    //    public IBox<WeakTypeCollection> Run(Tpn.TypeSolution context)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
+
+    //internal class WeakTypeCollection
+    //{
+
+    //}
+
+    internal class RealizeMethodOperationMaker : IMaker<ISetUp<IBox<WeakRealizeMethodOperation>, Tpn.IValue>>
     {
-        private IKey[] collection;
-
-        public ContextDependentSquareListPopulateScope(IKey[] collection)
+        public ITokenMatching<ISetUp<IBox<WeakRealizeMethodOperation>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
         {
-            this.collection = collection ?? throw new ArgumentNullException(nameof(collection));
-        }
 
-        public ISetUpResult<IBox<WeakTypeCollection>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
-        {
-            return new SetUpResult<IBox<WeakTypeCollection>, Tpn.IValue>(
-                new ContextDependentSquareListResolveReferance(),
-                getReturnedValue(scope, context, nextLeft));
+            var index = tokenMatching.EndIndex;
+
+            if (tokenMatching.AllTokens.Count - 2 > index &&
+                    tokenMatching.AllTokens[index + 1].Is1(out var token) && token.SafeIs(out AtomicToken op) &&
+                    op.Item == SymbolsRegistry.TryAssignSymbol &&
+                    tokenMatching.AllTokens[index].Is2(out var lhs) &&
+                    tokenMatching.AllTokens[index + 2].Is1(out var rhs) && rhs.SafeIs(out SquareBacketToken square) && GenericNMaker.TryToToken(tokenMatching.Context, square, out var types) )
+            {
+                
+
+                return TokenMatching<ISetUp<IBox<WeakRealizeMethodOperation>, Tpn.IValue>>.MakeMatch(
+                    tokenMatching,
+                    new RealizeMethodOperationPopulateScope(
+                        lhs, 
+                        types!.Select(key => new TypeReferancePopulateScope(key)).ToArray()),
+                    tokenMatching.EndIndex + 3);
+            }
+
+            return TokenMatching<ISetUp<IBox<WeakRealizeMethodOperation>, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
         }
     }
 
-    internal class ContextDependentSquareListResolveReferance : IResolve<IBox<WeakTypeCollection>>
+    internal class RealizeMethodOperationPopulateScope : ISetUp<IBox<WeakRealizeMethodOperation>, Tpn.IValue>
     {
-        public IBox<WeakTypeCollection> Run(Tpn.TypeSolution context)
+        private ISetUp lhs;
+        private TypeReferancePopulateScope[] typeReferancePopulateScopes;
+
+        public RealizeMethodOperationPopulateScope(ISetUp lhs, TypeReferancePopulateScope[] typeReferancePopulateScopes)
+        {
+            this.lhs = lhs ?? throw new ArgumentNullException(nameof(lhs));
+            this.typeReferancePopulateScopes = typeReferancePopulateScopes ?? throw new ArgumentNullException(nameof(typeReferancePopulateScopes));
+        }
+
+        public ISetUpResult<IBox<WeakRealizeMethodOperation>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
+        {
+ 
+
+
+            throw new NotImplementedException();
+            //return new SetUpResult<IBox<WeakRealizeMethodOperation>, Tpn.IValue>(
+            //    new RealizeMethodOperationResolveReferance(),
+            //    getReturnedValue(scope, context, nextLeft));
+        }
+    }
+
+    internal class RealizeMethodOperationResolveReferance : IResolve<IBox<WeakRealizeMethodOperation>>
+    {
+        public IBox<WeakRealizeMethodOperation> Run(Tpn.TypeSolution context)
         {
             throw new NotImplementedException();
         }
     }
-}
-
-
-internal class WeakTypeCollection
-{
-
-}
-
-internal class RealizeMethodOperationMaker : IMaker<ISetUp<IBox<WeakRealizeMethodOperation>, Tpn.IValue>>
-{
-    public ITokenMatching<ISetUp<IBox<WeakRealizeMethodOperation>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
-    {
-        if (tokenMatching.Has(new BinaryOperationMatcher(SymbolsRegistry.RealizeSymbol), out (ISetUp lhs, ISetUp rhs) _).SafeIs(out IMatchedTokenMatching<(ISetUp lhs, ISetUp rhs)> matched))
-        {
-
-            return TokenMatching<ISetUp<IBox<WeakRealizeMethodOperation>, Tpn.IValue>>.MakeMatch(
-                tokenMatching,
-                new RealizeMethodOperationPopulateScope(),
-                matched.EndIndex);
-        }
-
-        return TokenMatching<ISetUp<IBox<WeakRealizeMethodOperation>, Tpn.IValue>>.MakeNotMatch(tokenMatching.Context);
-    }
-}
-
-internal class RealizeMethodOperationPopulateScope : ISetUp<IBox<WeakRealizeMethodOperation>, Tpn.IValue>
-{
-    public ISetUpResult<IBox<WeakRealizeMethodOperation>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
-    {
-        return new SetUpResult<IBox<WeakRealizeMethodOperation>, Tpn.IValue>(
-            new RealizeMethodOperationResolveReferance(),
-            getReturnedValue(scope, context, nextLeft));
-    }
-}
-
-internal class RealizeMethodOperationResolveReferance : IResolve<IBox<WeakRealizeMethodOperation>>
-{
-    public IBox<WeakRealizeMethodOperation> Run(Tpn.TypeSolution context)
-    {
-        throw new NotImplementedException();
-    }
-}
 }
 
 
