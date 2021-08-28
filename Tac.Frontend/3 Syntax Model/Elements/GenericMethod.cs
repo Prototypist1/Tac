@@ -177,6 +177,18 @@ namespace Tac.SemanticModel
 
             var nextElements = elements.Select(x => x.TransformInner(y => y.Run(method, context.CreateChildContext(this)).Resolve)).ToArray();
 
+            // I think for the type I return a method type
+            // they already have generic parameters 
+
+            // the question is how does look up work?
+            // we aren't looking up something with a fix number of generic parameters...
+            // I can't throw a bunch of stuff in the primitive scope
+            // it's not just about how many parameters they have but also how those parameters turn into output
+            // so we have to end up with a factory behind a cache
+            
+            // there is also a problem with how you name our type parameters
+            // generic-method [T] [T,T] is the same as generic-method [T1] [T1,T1]
+
             var value = context.TypeProblem.CreateValue(runtimeScope, new DoubleGenericNameKey(
                 new NameKey("generic-method"),
                 genericParameters.Select(x => OrType.Make<IKey, IError>(x.Key.GetValueAs(out IKey _))).ToArray(),
