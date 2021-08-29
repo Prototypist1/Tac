@@ -31,6 +31,18 @@ namespace Tac.Model
         {
             return HashCode.Combine(guid);
         }
+
+        //public IKey Replace((IKey, IKey)[] replacements)
+        //{
+        //    foreach (var (from, to) in replacements)
+        //    {
+        //        if (from.Equals(this)) {
+        //            return to;
+        //        }
+        //    }
+
+        //    return this;
+        //}
     }
 
     public class GenericNameKey : IKey
@@ -63,6 +75,11 @@ namespace Tac.Model
         {
             return $"{nameof(GenericNameKey)}-{Name.ToString()}-{Types.Aggregate("",(x,y)=> x +""+ y.ToString())}";
         }
+
+        //public IKey Replace((IKey, IKey)[] replacements)
+        //{
+        //    return new GenericNameKey(Name, types.Select(x => ));
+        //}
     }
 
     // double generic names keys exist for generic methods
@@ -75,16 +92,23 @@ namespace Tac.Model
     // conceptually this is something that might need a bit more proving out
     // the second set of generics depend of the first
     // 
+    // 
     public class DoubleGenericNameKey : IKey
     {
         public NameKey Name { get; }
         public DoubleGenericNameKey(NameKey name, IOrType<IKey, IError>[] types, IOrType<IKey, IError>[] dependentTypes)
         {
             this.Name = name ?? throw new System.ArgumentNullException(nameof(name));
-            Types = types ?? throw new System.ArgumentNullException(nameof(types));
+            Types = types ?? throw new ArgumentNullException(nameof(types));
+            // int index = 0;
+            //Types = types
+            //    ?.Select(x=> x.SwitchReturns( key => OrType.Make< DoubleGenericTemplateKye, IError >( new DoubleGenericTemplateKye(index++, 0)), error => OrType.Make < DoubleGenericTemplateKye, IError >(error)))
+            //    ?.ToArray() 
+            //    ?? throw new System.ArgumentNullException(nameof(types));
             DependentTypes = dependentTypes ?? throw new ArgumentNullException(nameof(dependentTypes));
         }
 
+        //public IOrType<DoubleGenericTemplateKye, IError>[] Types { get; }
         public IOrType<IKey, IError>[] Types { get; }
         public IOrType<IKey, IError>[] DependentTypes { get; }
 
@@ -105,5 +129,53 @@ namespace Tac.Model
         {
             return HashCode.Combine(Name, Types, DependentTypes);
         }
+
+        // this needs to handle this nicely: 
+        // genenic-method [T] [T, generic-mthod [T1] [T1, T]]
+        // DoubleGenericTemplateKye has a level
+        // T is a level 0 key and T1 is a level 1 key
+        //public IKey Replace((IKey, IKey)[] replacements)
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
+
+    //public class DoubleGenericTemplateKye : IKey {
+    //    // 0 indexed
+    //    public readonly int index, level;
+
+    //    public DoubleGenericTemplateKye(int index, int level)
+    //    {
+    //        this.index = index;
+    //        this.level = level;
+    //    }
+
+    //    public override bool Equals(object? obj)
+    //    {
+    //        return base.Equals(obj);
+    //    }
+
+    //    public override int GetHashCode()
+    //    {
+    //        return base.GetHashCode();
+    //    }
+
+    //    public IKey Replace((IKey, IKey)[] replacements)
+    //    {
+    //        foreach (var (from, to) in replacements)
+    //        {
+    //            if (from.Equals(this))
+    //            {
+    //                return to;
+    //            }
+    //        }
+
+    //        return this;
+    //    }
+
+    //    public override string? ToString()
+    //    {
+    //        return $"{nameof(DoubleGenericTemplateKye)}-{level}-{index}";
+    //    }
+    //}
 }

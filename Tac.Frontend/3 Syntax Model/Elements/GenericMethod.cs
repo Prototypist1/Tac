@@ -185,9 +185,20 @@ namespace Tac.SemanticModel
             // I can't throw a bunch of stuff in the primitive scope
             // it's not just about how many parameters they have but also how those parameters turn into output
             // so we have to end up with a factory behind a cache
-            
+
             // there is also a problem with how you name our type parameters
             // generic-method [T] [T,T] is the same as generic-method [T1] [T1,T1]
+            // stituations like: generic-method [T1] [T1,generic-method [T] [T1,T]] make this makes this more complex
+            // type combining is common is tac
+            // generic types can do it type [T1] X {T1 t} and type [T] X{T t} are the same
+            // types can do it too type X {int a} and type Y {int a}
+            // for types, they just end up being assignable to each other
+            // I don't think generic types really work... in the example above those would both be registered under NameKey("X") and the second one you try to add would throw
+            
+            // if I can count on them to combine later maybe I should just make the type here
+            // there will still be look up tho, members
+
+
 
             var value = context.TypeProblem.CreateValue(runtimeScope, new DoubleGenericNameKey(
                 new NameKey("generic-method"),

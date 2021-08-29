@@ -233,6 +233,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
 
             }
+
+            //public class PrimitiveScope : Scope
+            //{
+            //    public PrimitiveScope(Builder problem, string debugName, IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> converter) : base(problem, debugName, converter)
+            //    {
+            //    }
+
+
+            //}
             public class Object : TypeProblemNode<Object, IOrType<WeakObjectDefinition, WeakRootScope>>, IExplicitType, IHavePossibleMembers
             {
                 public Object(Builder problem, string debugName, IConvertTo<Object, IOrType<WeakObjectDefinition, WeakRootScope>> converter, IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> innerConverter) : base(problem, debugName, converter)
@@ -287,6 +296,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             // basic stuff
             private readonly HashSet<ITypeProblemNode> typeProblemNodes = new();
 
+  
             private Scope Primitive { get; }
             public Scope Dependency { get; }
             public Object ModuleRoot { get; }
@@ -706,6 +716,63 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             IOrType<MethodType, Type, Object, OrType, InferredType, IError> TryLookUpOrOverlay(IStaticScope from, IKey key, Dictionary<GenericTypeKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> realizedGeneric)
             {
+                if (key.SafeIs(out DoubleGenericNameKey doubleGenericNameKey)) {
+
+
+                    // do I need to cache locally?
+                    // that is, on the from.
+
+                    // two generic-method [T] [T, Builder]
+                    // could be different if defined in scopes with different Builder types
+                    // but they could also be the same
+
+                    // I am not sure what I currently do with generics handles this very nicely... 
+                    // realizedGeneric is global 
+                    // yeah, actually it does
+                    // because it resolves all the types so the two builders would be different
+
+
+                    // I think I can just overlay MethodType with GenericTypeKey and have some of the types be Types that are
+                    // GenericOverlays from a new MethodType built here
+
+
+                    // 1. create new methodType with the right type overlays
+                    // 2. create the GenericTypeKey to overlay the generic methodType with the second set from the DoubleGenericNameKey
+
+                    // but the GenericTypeKey is going use the generic type parameters from the new methodType so it will never match anything
+                    // so I need a new key type
+
+                    // it needs to use real looked up types when possible
+                    // but some sort of dummy types for the generics
+                    // the type is a set of trees made from visiting DoubleGenericNameKey.DependentTypes
+
+                    // how does it handle genenic-method [T] [T, generic-mthod [T1] [T1, T]]?
+                    // it would try to look up the inner generic-mthod and end up here
+                    // and that would try to look up T  ...and would it find it? it better.
+
+                    // I think maybe these method types should be added in "populate scope"
+                    // no because you can't look all the type up...
+
+                    // the inner one has to be looking up from inside the outer method definition
+                    // after all the real type defintions have gone, these have to go
+
+                    // and they have to understand where they are in the scope stack
+                    // in this case:
+                    // genenic-method [T] [T, generic-mthod [T1] [T1, T]]
+                    // the outer need to go first
+                    // and it need to look stuff up but not try to look up the inner
+                    // once the outer has made a methodType (ut just need to have GenericOverlays it can't have input/output yet) the inner can look up "T" off it
+
+                    // 1. build types for the tree
+                    //      start outer
+                    //          start inner
+                    //          complete inner
+                    //      complete outer
+                    // 2. build key for inner
+                    //      build key for outer
+
+
+                }
 
                 if (key is GenericNameKey genericNameKey)
                 {
@@ -1454,6 +1521,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             }
 
+            // key the sense this as used as a key for a dictionary
+            // describes an overlayed generic type
             private class GenericTypeKey
             {
                 private readonly IOrType<MethodType, Type, Method> primary;

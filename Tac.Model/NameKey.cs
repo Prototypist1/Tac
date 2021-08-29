@@ -27,6 +27,19 @@ namespace Tac.Model
         {
             return $"{nameof(NameKey)}-{Name}";
         }
+
+        //public IKey Replace((IKey, IKey)[] replacements)
+        //{
+        //    foreach (var (from, to) in replacements)
+        //    {
+        //        if (from.Equals(this))
+        //        {
+        //            return to;
+        //        }
+        //    }
+
+        //    return this;
+        //}
     }
 
 }
