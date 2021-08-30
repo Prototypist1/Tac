@@ -58,31 +58,31 @@ namespace Tac.Model
         public bool Static { get; }
     }
 
-    public class GenericKeyDefinition : IKey
-    {
-        public GenericKeyDefinition(NameKey name, IReadOnlyList<IKey> parameters)
-        {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-            Parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
-        }
+    //public class GenericKeyDefinition : IKey
+    //{
+    //    public GenericKeyDefinition(NameKey name, IReadOnlyList<IKey> parameters)
+    //    {
+    //        Name = name ?? throw new ArgumentNullException(nameof(name));
+    //        Parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
+    //    }
 
-        public NameKey Name { get; }
-        public IReadOnlyList<IKey> Parameters { get; }
+    //    public NameKey Name { get; }
+    //    public IReadOnlyList<IKey> Parameters { get; }
 
-        public override bool Equals(object obj)
-        {
-            return obj is GenericKeyDefinition definition &&
-                   EqualityComparer<NameKey>.Default.Equals(Name, definition.Name) &&
-                   Parameters.SequenceEqual(definition.Parameters);
-        }
+    //    public override bool Equals(object obj)
+    //    {
+    //        return obj is GenericKeyDefinition definition &&
+    //               EqualityComparer<NameKey>.Default.Equals(Name, definition.Name) &&
+    //               Parameters.SequenceEqual(definition.Parameters);
+    //    }
 
-        public override int GetHashCode()
-        {
-            var hashCode = 497090031;
-            hashCode = (hashCode * -1521134295) + EqualityComparer<NameKey>.Default.GetHashCode(Name);
-            hashCode = (hashCode * -1521134295) + Parameters.Sum(x=>x.GetHashCode());
-            return hashCode;
-        }
-    }
+    //    public override int GetHashCode()
+    //    {
+    //        var hashCode = 497090031;
+    //        hashCode = (hashCode * -1521134295) + EqualityComparer<NameKey>.Default.GetHashCode(Name);
+    //        hashCode = (hashCode * -1521134295) + Parameters.Sum(x=>x.GetHashCode());
+    //        return hashCode;
+    //    }
+    //}
 
 }

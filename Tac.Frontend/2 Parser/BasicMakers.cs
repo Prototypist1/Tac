@@ -132,28 +132,42 @@ namespace Tac.Frontend.Parser
                 IsNotKeyWord(first.Item))
             {
 
-                var at = TokenMatching<NameKey>.MakeStart(self.AllTokens, self.Context, index + 1);
-                var match = new GenericNMaker().TryMake(at);
-                if (match.SafeIs(out IMatchedTokenMatching<IKey[]> mathced))
                 {
-                    var at2 = TokenMatching<NameKey>.MakeStart(self.AllTokens, self.Context, index + 2);
-                    var match2 = new GenericNMaker().TryMake(at);
-
-                    if (match.SafeIs(out IMatchedTokenMatching<IKey[]> mathced2))
+                    var at = TokenMatching<NameKey>.MakeStart(self.AllTokens, self.Context, index + 1);
+                    var match = new DefineGenericNMaker().TryMake(at);
+                    if (match.SafeIs(out IMatchedTokenMatching<string[]> mathced))
                     {
+                        var at2 = TokenMatching<NameKey>.MakeStart(self.AllTokens, self.Context, index + 2);
+                        var match2 = new GenericNMaker().TryMake(at);
+
+                        if (match2.SafeIs(out IMatchedTokenMatching<IKey[]> mathced2))
+                        {
+                            return TokenMatching<IKey>.MakeMatch(
+                                self,
+                                new DoubleGenericNameKey(
+                                    new NameKey(first.Item),
+                                    mathced.Value.Select(x => new NameKey(x)).ToArray(),
+                                    mathced2.Value.Select(x => OrType.Make<IKey, IError>(x)).ToArray()),
+                                mathced2.EndIndex);
+                        }
+
+
+                    }
+                }
+
+                {
+                    var at = TokenMatching<NameKey>.MakeStart(self.AllTokens, self.Context, index + 1);
+                    var match = new GenericNMaker().TryMake(at);
+                    if (match.SafeIs(out IMatchedTokenMatching<IKey[]> mathced))
+                    {
+
                         return TokenMatching<IKey>.MakeMatch(
                             self,
-                            new DoubleGenericNameKey(
-                                new NameKey(first.Item),
-                                mathced.Value.Select(x => OrType.Make<IKey, IError>(x)).ToArray(), 
-                                mathced2.Value.Select(x => OrType.Make<IKey, IError>(x)).ToArray()),
-                            mathced2.EndIndex);
+                            new GenericNameKey(
+                                new NameKey(first.Item), 
+                                mathced.Value.Select(x => OrType.Make<IKey, IError>(x)).ToArray()),
+                            mathced.EndIndex);
                     }
-
-                    return TokenMatching<IKey>.MakeMatch(
-                    self,
-                    new GenericNameKey(new NameKey(first.Item), mathced.Value.Select(x => OrType.Make<IKey, IError>(x)).ToArray()),
-                    mathced.EndIndex);
                 }
 
                 return TokenMatching<IKey>.MakeMatch(self, new NameKey(first.Item), index + 1);

@@ -771,6 +771,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                     // 2. build key for inner
                     //      build key for outer
 
+                    // what happen when we have generic inside a double generic
+                    // double generic inside generic inside double generic?
+
+                    
+
+
+
 
                 }
 
@@ -945,10 +952,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                     else
                     {
-
-
-
-
                         result = null;
                         return false;
                     }
@@ -1521,14 +1524,17 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             }
 
-            // key the sense this as used as a key for a dictionary
+            // "key" in the sense this as used as a key for a dictionary
             // describes an overlayed generic type
             private class GenericTypeKey
             {
                 private readonly IOrType<MethodType, Type, Method> primary;
-                private readonly IOrType<MethodType, Type, Object, OrType, InferredType, IError>[] parameters;
+                // I kind of feel like parameters
+                // should not be all of this stuff
+                // just Type, IError, TypeParameter and GenericTypeKey
+                private readonly IOrType<Type, Object, OrType, InferredType, IError, TypeParameter, GenericTypeKey>[] parameters;
 
-                public GenericTypeKey(IOrType<MethodType, Type, Method> primary, IOrType<MethodType, Type, Object, OrType, InferredType, IError>[] parameters)
+                public GenericTypeKey(IOrType<MethodType, Type, Method> primary, IOrType<MethodType, Type, Object, OrType, InferredType, IError, TypeParameter, GenericTypeKey>[] parameters)
                 {
                     this.primary = primary ?? throw new ArgumentNullException(nameof(primary));
                     this.parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
@@ -1550,6 +1556,103 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public override int GetHashCode()
                 {
                     return unchecked(primary.GetHashCode() + parameters.Aggregate(0, (y, x) => unchecked(y + x.GetHashCode())));
+                }
+
+                public class TypeParameter
+                {
+                    public readonly int index, level;
+
+                    public TypeParameter(int index, int level)
+                    {
+                        this.index = index;
+                        this.level = level;
+                    }
+
+                    public override bool Equals(object? obj)
+                    {
+                        return obj is TypeParameter parameter &&
+                               index == parameter.index &&
+                               level == parameter.level;
+                    }
+
+                    public override int GetHashCode()
+                    {
+                        return HashCode.Combine(index, level);
+                    }
+                }
+            }
+
+
+            //private class DoubleGenericTypeKey
+            //{
+            //    private readonly IOrType<MethodType, Type, Method> primary;
+            //    private readonly IOrType<MethodType, Type, Object, OrType, InferredType, IError, TypeParameter, DoubleGenericTypeKey, GenericTypeKey>[] parameters;
+
+            //    public DoubleGenericTypeKey(IOrType<MethodType, Type, Method> primary, IOrType<MethodType, Type, Object, OrType, InferredType, IError, TypeParameter, DoubleGenericTypeKey, GenericTypeKey>[] parameters)
+            //    {
+            //        this.primary = primary ?? throw new ArgumentNullException(nameof(primary));
+            //        this.parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
+            //    }
+
+               
+
+            //}
+
+            // we only handle control back for simple look ups, for generics we build the GenericTypeKey
+            // if I do that GenericTypeKey is going to need to be able to hold  DoubleGenericTypeKey.TypeParameter and DoubleGenericTypeKey
+            // maybe I can combine GenericTypeKey and DoubleGenericTypeKey
+            private class KeyVisitor : IKeyVisitor<IOrType<MethodType, Type, Object, OrType, InferredType, IError, DoubleGenericTypeKey.TypeParameter, DoubleGenericTypeKey, GenericTypeKey>>
+            {
+                private readonly Func<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> loopup;
+                private readonly Dictionary<NameKey, DoubleGenericTypeKey.TypeParameter> generics;
+                private readonly int level;
+
+                public KeyVisitor(Func<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> loopup, NameKey[] generics, int level)
+                {
+                    this.loopup = loopup ?? throw new ArgumentNullException(nameof(loopup));
+                    this.level = level;
+                    int i = 0;
+                    this.generics = generics?.ToDictionary(x => x, x => new DoubleGenericTypeKey.TypeParameter(i++, level)) ?? throw new ArgumentNullException(nameof(generics));
+
+                }
+
+                public IOrType<MethodType, Type, Object, OrType, InferredType, IError, DoubleGenericTypeKey.TypeParameter, DoubleGenericTypeKey> DoubleGenericNameKey(DoubleGenericNameKey doubleGenericNameKey)
+                {
+                    if (doubleGenericNameKey.Name.Name != "generic-method") {
+                        throw new Exception("we really only suppory methods");
+                    }
+
+                    var context =
+                    new KeyVisitor(key => {
+                        if (key.SafeIs(out NameKey nameKey) && generics.TryGetValue(nameKey, out var foundIt)) {
+                            return Prototypist.Toolbox.OrType.Make< MethodType, Type, Object, OrType, InferredType, IError >(foundIt);
+                        }
+                        return loopup(key);
+                    }, doubleGenericNameKey.Types, level + 1);
+
+
+
+                    return
+                        Prototypist.Toolbox.OrType.Make < MethodType, Type, Object, OrType, InferredType, IError, DoubleGenericTypeKey.TypeParameter, DoubleGenericTypeKey >(
+                          new DoubleGenericTypeKey(,
+                        doubleGenericNameKey.DependentTypes.Select(dependentType => dependentType.SwitchReturns(
+                            x => x.Visit(context),
+                            x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, DoubleGenericTypeKey.TypeParameter, DoubleGenericTypeKey>(x))).ToArray()));
+                }
+
+                public IOrType<MethodType, Type, Object, OrType, InferredType, IError, DoubleGenericTypeKey.TypeParameter, DoubleGenericTypeKey> GenericNameKey(GenericNameKey genericNameKey)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public IOrType<MethodType, Type, Object, OrType, InferredType, IError, DoubleGenericTypeKey.TypeParameter, DoubleGenericTypeKey> ImplicitKey(ImplicitKey implicitKey)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public IOrType<MethodType, Type, Object, OrType, InferredType, IError, DoubleGenericTypeKey.TypeParameter, DoubleGenericTypeKey> NameKey(NameKey nameKey)
+                {
+                    throw new NotImplementedException();
                 }
             }
         }

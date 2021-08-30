@@ -28,6 +28,13 @@ namespace Tac.Model
             return $"{nameof(NameKey)}-{Name}";
         }
 
+
+        public T Visit<T>(IKeyVisitor<T> keyVisitor)
+        {
+            return keyVisitor.NameKey(this);
+        }
+
+
         //public IKey Replace((IKey, IKey)[] replacements)
         //{
         //    foreach (var (from, to) in replacements)

@@ -202,7 +202,7 @@ namespace Tac.SemanticModel
 
             var value = context.TypeProblem.CreateValue(runtimeScope, new DoubleGenericNameKey(
                 new NameKey("generic-method"),
-                genericParameters.Select(x => OrType.Make<IKey, IError>(x.Key.GetValueAs(out IKey _))).ToArray(),
+                genericParameters.Select(x => x.Key.GetValueAs(out IKey _)).ToArray(),
                 new IOrType<IKey, IError>[] {
                     realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
                     realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),

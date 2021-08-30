@@ -7,6 +7,8 @@ using System.Linq;
 namespace Tac.Model
 {
 
+
+
     public class ImplicitKey : IKey, IEquatable<ImplicitKey>
     {
         private readonly Guid guid;
@@ -30,6 +32,11 @@ namespace Tac.Model
         public override int GetHashCode()
         {
             return HashCode.Combine(guid);
+        }
+
+        public T Visit<T>(IKeyVisitor<T> keyVisitor)
+        {
+            return keyVisitor.ImplicitKey(this);
         }
 
         //public IKey Replace((IKey, IKey)[] replacements)
@@ -73,7 +80,13 @@ namespace Tac.Model
 
         public override string ToString()
         {
-            return $"{nameof(GenericNameKey)}-{Name.ToString()}-{Types.Aggregate("",(x,y)=> x +""+ y.ToString())}";
+            return $"{nameof(GenericNameKey)}-{Name}-{Types.Aggregate("",(x,y)=> x +""+ y.ToString())}";
+        }
+
+
+        public T Visit<T>(IKeyVisitor<T> keyVisitor)
+        {
+            return keyVisitor.GenericNameKey(this);
         }
 
         //public IKey Replace((IKey, IKey)[] replacements)
@@ -96,9 +109,9 @@ namespace Tac.Model
     public class DoubleGenericNameKey : IKey
     {
         public NameKey Name { get; }
-        public DoubleGenericNameKey(NameKey name, IOrType<IKey, IError>[] types, IOrType<IKey, IError>[] dependentTypes)
+        public DoubleGenericNameKey(NameKey name, NameKey[] types, IOrType<IKey, IError>[] dependentTypes)
         {
-            this.Name = name ?? throw new System.ArgumentNullException(nameof(name));
+            this.Name = name ?? throw new ArgumentNullException(nameof(name));
             Types = types ?? throw new ArgumentNullException(nameof(types));
             // int index = 0;
             //Types = types
@@ -109,19 +122,19 @@ namespace Tac.Model
         }
 
         //public IOrType<DoubleGenericTemplateKye, IError>[] Types { get; }
-        public IOrType<IKey, IError>[] Types { get; }
+        public NameKey[] Types { get; }
         public IOrType<IKey, IError>[] DependentTypes { get; }
 
         public override string ToString()
         {
-            return $"{nameof(DoubleGenericNameKey)}-{Name.ToString()}-{Types.Aggregate("", (x, y) => x + "" + y.ToString())}-{DependentTypes.Aggregate("", (x, y) => x + "" + y.ToString())}";
+            return $"{nameof(DoubleGenericNameKey)}-{Name}-{Types.Aggregate("", (x, y) => x + "" + y.ToString())}-{DependentTypes.Aggregate("", (x, y) => x + "" + y.ToString())}";
         }
 
         public override bool Equals(object? obj)
         {
             return obj is DoubleGenericNameKey key &&
                    EqualityComparer<NameKey>.Default.Equals(Name, key.Name) &&
-                   EqualityComparer<IOrType<IKey, IError>[]>.Default.Equals(Types, key.Types) &&
+                   EqualityComparer<IKey[]>.Default.Equals(Types, key.Types) &&
                    EqualityComparer<IOrType<IKey, IError>[]>.Default.Equals(DependentTypes, key.DependentTypes);
         }
 
@@ -129,6 +142,13 @@ namespace Tac.Model
         {
             return HashCode.Combine(Name, Types, DependentTypes);
         }
+
+
+        public T Visit<T>(IKeyVisitor<T> keyVisitor)
+        {
+            return keyVisitor.DoubleGenericNameKey(this);
+        }
+
 
         // this needs to handle this nicely: 
         // genenic-method [T] [T, generic-mthod [T1] [T1, T]]
