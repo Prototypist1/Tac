@@ -305,6 +305,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             // these are pretty much the same
             private readonly List<(ILookUpType, ILookUpType)> assignments = new();
+            private readonly MethodType rootMethod;
 
             // I am interested in rewriting large parts of thi
             // instead of merging I can have the defering node flow in to the dominate node
@@ -333,18 +334,53 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // generics register themsleves 
                 var realizedGeneric = new Dictionary<GenericTypeKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
 
-                foreach (var methodType in typeProblemNodes.OfType<MethodType>().Where(x => x.GenericOverlays.Any()))
+                //foreach (var methodType in typeProblemNodes.OfType<MethodType>().Where(x => x.GenericOverlays.Any()))
+                //{
+                //    var key = new GenericTypeKey(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(methodType), methodType.GenericOverlays.Values.ToArray());
+                //    realizedGeneric.Add(key, Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(methodType));
+                //}
+                //foreach (var type in typeProblemNodes.OfType<Type>().Where(x => x.GenericOverlays.Any()))
+                //{
+                //    var key = new GenericTypeKey(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(type), type.GenericOverlays.Values.ToArray());
+                //    realizedGeneric.Add(key, Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(type));
+                //}
+                //foreach (var method in typeProblemNodes.OfType<Method>().Where(x => x.GenericOverlays.Any()))
+                //{
+                //    var key = new GenericTypeKey(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(method), method.GenericOverlays.Values.ToArray());
+                //    realizedGeneric.Add(key, Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(method));
+                //}
+
+
+                var lookupsAndTarget = typeProblemNodes.OfType<ILookUpType>()
+                   .Where(x => !(x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>))
+                   .Select(x => (x, x.TypeKey.Is1OrThrow().Visit(KeyVisitor.Base(y => LookUpOrError(x.Context.GetOrThrow(), y), rootMethod))))
+                   .ToList();
+
+                lookupsAndTarget
+                    .Select(x=>x.Item2)
+                    .Distinct()
+
+
+                // 1. make all the new types for the GenericTypeKeys
+                // 2. put them in a dict
+                // 3. look up
+                //      normal stuff looks up in th normal way with look up or throw
+                //      GenericTypeKeys look up in the dict from step 2 
+                //      what about GenericTypeKeys.TypeParameter
+                //          seems like they need know their "source"
+                //              even if they did, their source wouldn't have any generics to look up yet. Those are created in copy tree.
+                //                  so, just create the generics a bit earlier
+                // 4. copy tree 
+
+
+
+                foreach (var lookingUp in)
                 {
-                    var key = new GenericTypeKey(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(methodType), methodType.GenericOverlays.Values.ToArray());
+                    var key = lookingUp.TypeKey.Is1OrThrow();// if LooksUp is not set we better have a key
+                    
+
                 }
-                foreach (var type in typeProblemNodes.OfType<Type>().Where(x => x.GenericOverlays.Any()))
-                {
-                    var key = new GenericTypeKey(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(type), type.GenericOverlays.Values.ToArray());
-                }
-                foreach (var method in typeProblemNodes.OfType<Method>().Where(x => x.GenericOverlays.Any()))
-                {
-                    var key = new GenericTypeKey(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(method), method.GenericOverlays.Values.ToArray());
-                }
+
 
                 toLookUp = typeProblemNodes.OfType<ILookUpType>().Where(x => !(x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>)).ToArray();
 
@@ -790,7 +826,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     ).ToArray();
 
 
-                    var outerLookedUp = TryLookUpOrOverlay(from, genericNameKey.Name, realizedGeneric);
+                    var outerLookedUp = LookUpOrError(from, genericNameKey.Name);
 
                     return outerLookedUp.SwitchReturns(
                         methodType =>
@@ -869,6 +905,22 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
+            static OrType<MethodType, Type, Object, OrType, InferredType, IError> LookUpOrError(IStaticScope haveTypes, IKey key) {
+                if (TryLookUp(haveTypes, key, out var res2))
+                {
+                    //:'(
+                    // I am sad about the !
+                    return res2!;
+                }
+                else
+                {
+                    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(Error.TypeNotFound($"could not find type for {key} in {haveTypes}"));
+                }
+            }
+
+            // TODO
+            // why do I even have this
+            // nothing ever really uses the return, I just shove an erro in the out...
             // [MaybeNullWhen(false)] grumble
             static bool TryLookUp(IStaticScope haveTypes, IKey key, out OrType<MethodType, Type, Object, OrType, InferredType, IError>? result)
             {
@@ -1499,23 +1551,23 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var key = new NameKey("method");
                 var placeholders = new TypeAndConverter[] { new TypeAndConverter(Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("T1")), new WeakTypeDefinitionConverter()), new TypeAndConverter(Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("T2")), new WeakTypeDefinitionConverter()) };
 
-                var res = new MethodType(
+                rootMethod = new MethodType(
                     this.builder,
                     $"generic-{key}-{placeholders.Aggregate("", (x, y) => x + "-" + y.key.ToString())}",
                     new MethodTypeConverter());
 
-                builder.HasMethodType(Primitive, key, res);
+                builder.HasMethodType(Primitive, key, rootMethod);
                 foreach (var placeholder in placeholders)
                 {
                     var placeholderType = new Type(this.builder, $"generic-parameter-{placeholder.key}", Possibly.Is(placeholder.key), placeholder.converter, true, Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>());
-                    builder.HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(res), placeholder.key.SwitchReturns<IKey>(x => x, x => x), Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(placeholderType));
+                    builder.HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(rootMethod), placeholder.key.SwitchReturns<IKey>(x => x, x => x), Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(placeholderType));
                 }
 
                 var methodInputKey = new NameKey("method type input" + Guid.NewGuid());
                 // here it is ok for these to be members because we are using a method type
-                res.Input = Possibly.Is(builder.CreatePrivateMember(res, res, methodInputKey, Prototypist.Toolbox.OrType.Make<IKey, IError>(new NameKey("T1"))));
-                res.Returns = Possibly.Is(builder.CreateTransientMember(res, new NameKey("T2"), $"return of {res.DebugName} "));
-                builder.IsChildOf(Primitive, res);
+                rootMethod.Input = Possibly.Is(builder.CreatePrivateMember(rootMethod, rootMethod, methodInputKey, Prototypist.Toolbox.OrType.Make<IKey, IError>(new NameKey("T1"))));
+                rootMethod.Returns = Possibly.Is(builder.CreateTransientMember(rootMethod, new NameKey("T2"), $"return of {rootMethod.DebugName} "));
+                builder.IsChildOf(Primitive, rootMethod);
 
                 Dependency = builder.CreateScope(Primitive, rootConverter);
                 initDependencyScope(this);
@@ -1532,7 +1584,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // I kind of feel like parameters
                 // should not be all of this stuff
                 // just Type, IError, TypeParameter and GenericTypeKey
-                private readonly IOrType<Type, Object, OrType, InferredType, IError, TypeParameter, GenericTypeKey>[] parameters;
+                private readonly IOrType<MethodType,Type, Object, OrType, InferredType, IError, TypeParameter, GenericTypeKey>[] parameters;
 
                 public GenericTypeKey(IOrType<MethodType, Type, Method> primary, IOrType<MethodType, Type, Object, OrType, InferredType, IError, TypeParameter, GenericTypeKey>[] parameters)
                 {
@@ -1601,58 +1653,117 @@ namespace Tac.Frontend.New.CrzayNamespace
             // we only handle control back for simple look ups, for generics we build the GenericTypeKey
             // if I do that GenericTypeKey is going to need to be able to hold  DoubleGenericTypeKey.TypeParameter and DoubleGenericTypeKey
             // maybe I can combine GenericTypeKey and DoubleGenericTypeKey
-            private class KeyVisitor : IKeyVisitor<IOrType<MethodType, Type, Object, OrType, InferredType, IError, DoubleGenericTypeKey.TypeParameter, DoubleGenericTypeKey, GenericTypeKey>>
+            private class KeyVisitor : IKeyVisitor<IOrType<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>>
             {
-                private readonly Func<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> loopup;
-                private readonly Dictionary<NameKey, DoubleGenericTypeKey.TypeParameter> generics;
+                private readonly Func<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>> lookup;
+                private readonly Dictionary<NameKey, GenericTypeKey.TypeParameter> generics;
                 private readonly int level;
+                private readonly MethodType rootMethod;
 
-                public KeyVisitor(Func<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> loopup, NameKey[] generics, int level)
+                private KeyVisitor(
+                    Func<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>> lookup, 
+                    Dictionary<NameKey, GenericTypeKey.TypeParameter> generics, 
+                    int level,
+                    MethodType rootMethod)
                 {
-                    this.loopup = loopup ?? throw new ArgumentNullException(nameof(loopup));
+                    this.lookup = lookup ?? throw new ArgumentNullException(nameof(lookup));
                     this.level = level;
-                    int i = 0;
-                    this.generics = generics?.ToDictionary(x => x, x => new DoubleGenericTypeKey.TypeParameter(i++, level)) ?? throw new ArgumentNullException(nameof(generics));
-
+                    this.rootMethod = rootMethod ?? throw new ArgumentNullException(nameof(rootMethod));
+                    this.generics = generics ?? throw new ArgumentNullException(nameof(generics));
                 }
 
-                public IOrType<MethodType, Type, Object, OrType, InferredType, IError, DoubleGenericTypeKey.TypeParameter, DoubleGenericTypeKey> DoubleGenericNameKey(DoubleGenericNameKey doubleGenericNameKey)
+                public static KeyVisitor Base(Func<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> lookup, MethodType rootMethod) {
+                    return new KeyVisitor(
+                        key => lookup(key).SwitchReturns(
+                            x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(x),
+                            x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(x),
+                            x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(x),
+                            x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(x),
+                            x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(x),
+                            x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(x)), 
+                        new (),
+                        0, 
+                        rootMethod);
+                }
+
+                private KeyVisitor Next(NameKey[] genericTypes)
                 {
-                    if (doubleGenericNameKey.Name.Name != "generic-method") {
+                    int i = 0;
+                    var nextLevel = level + 1;
+                    var context = new KeyVisitor(
+                        key =>
+                        {
+                            if (key.SafeIs(out NameKey nameKey) && generics.TryGetValue(nameKey, out var foundIt))
+                            {
+                                return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(foundIt);
+                            }
+                            return lookup(key);
+                        },
+                        genericTypes.ToDictionary(x => x, x => new GenericTypeKey.TypeParameter(i++, nextLevel)), nextLevel, rootMethod);
+                    return context;
+                }
+
+                public IOrType<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey> DoubleGenericNameKey(DoubleGenericNameKey doubleGenericNameKey)
+                {
+                    if (doubleGenericNameKey.Name.Name != "generic-method")
+                    {
                         throw new Exception("we really only suppory methods");
                     }
 
-                    var context =
-                    new KeyVisitor(key => {
-                        if (key.SafeIs(out NameKey nameKey) && generics.TryGetValue(nameKey, out var foundIt)) {
-                            return Prototypist.Toolbox.OrType.Make< MethodType, Type, Object, OrType, InferredType, IError >(foundIt);
-                        }
-                        return loopup(key);
-                    }, doubleGenericNameKey.Types, level + 1);
-
-
+                    var context = Next(doubleGenericNameKey.Types);
 
                     return
-                        Prototypist.Toolbox.OrType.Make < MethodType, Type, Object, OrType, InferredType, IError, DoubleGenericTypeKey.TypeParameter, DoubleGenericTypeKey >(
-                          new DoubleGenericTypeKey(,
-                        doubleGenericNameKey.DependentTypes.Select(dependentType => dependentType.SwitchReturns(
-                            x => x.Visit(context),
-                            x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, DoubleGenericTypeKey.TypeParameter, DoubleGenericTypeKey>(x))).ToArray()));
+                        Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(
+                          new GenericTypeKey(
+                              Prototypist.Toolbox.OrType.Make < MethodType, Type, Method>(rootMethod),
+                            doubleGenericNameKey.DependentTypes.Select(dependentType => dependentType.SwitchReturns(
+                                x => x.Visit(context),
+                                x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(x))).ToArray()));
                 }
 
-                public IOrType<MethodType, Type, Object, OrType, InferredType, IError, DoubleGenericTypeKey.TypeParameter, DoubleGenericTypeKey> GenericNameKey(GenericNameKey genericNameKey)
+
+                public IOrType<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey> GenericNameKey(GenericNameKey genericNameKey)
                 {
-                    throw new NotImplementedException();
+                    var context = Next(new Model.NameKey[] { });
+
+                    return
+                        Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(
+                          new GenericTypeKey(
+                            lookup(genericNameKey.Name).SwitchReturns(
+                                x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(x),
+                                x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(x),
+                                x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
+                                x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
+                                x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
+                                x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
+                                x => throw new Exception("only methodType, Type, and Method can have generic parameters")),
+                            genericNameKey.Types.Select(dependentType => dependentType.SwitchReturns(
+                                x => x.Visit(context),
+                                x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(x))).ToArray()));
                 }
 
-                public IOrType<MethodType, Type, Object, OrType, InferredType, IError, DoubleGenericTypeKey.TypeParameter, DoubleGenericTypeKey> ImplicitKey(ImplicitKey implicitKey)
+                public IOrType<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey> ImplicitKey(ImplicitKey implicitKey)
                 {
-                    throw new NotImplementedException();
+                    return lookup(implicitKey).SwitchReturns(
+                        x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(x),
+                        x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(x),
+                        x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(x),
+                        x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(x),
+                        x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(x),
+                        x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(x),
+                        x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(x));
                 }
 
-                public IOrType<MethodType, Type, Object, OrType, InferredType, IError, DoubleGenericTypeKey.TypeParameter, DoubleGenericTypeKey> NameKey(NameKey nameKey)
+                public IOrType<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey> NameKey(NameKey nameKey)
                 {
-                    throw new NotImplementedException();
+                    return lookup(nameKey).SwitchReturns(
+                        x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(x),
+                        x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(x),
+                        x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(x),
+                        x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(x),
+                        x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(x),
+                        x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(x),
+                        x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(x));
                 }
             }
         }
