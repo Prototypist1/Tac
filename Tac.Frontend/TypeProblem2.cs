@@ -5,6 +5,7 @@ using Prototypist.Toolbox.IEnumerable;
 using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Tac.Frontend._3_Syntax_Model.Elements;
 using Tac.Frontend.SyntaxModel.Operations;
@@ -357,21 +358,17 @@ namespace Tac.Frontend.New.CrzayNamespace
                    .ToList();
 
                 lookupsAndTarget
-                    .Select(x=>x.Item2)
-                    .Distinct()
-
+                    .Select(x => x.Item2)
+                    .Distinct();
 
                 // 1. make all the new types for the GenericTypeKeys
+                // 2. make their GenericOverlays from GenericTypeKey.sourceTypes
                 // 2. put them in a dict
                 // 3. look up
                 //      normal stuff looks up in th normal way with look up or throw
                 //      GenericTypeKeys look up in the dict from step 2 
-                //      what about GenericTypeKeys.TypeParameter
-                //          seems like they need know their "source"
-                //              even if they did, their source wouldn't have any generics to look up yet. Those are created in copy tree.
-                //                  so, just create the generics a bit earlier
+                //      GenericTypeKeys.TypeParameter looks up the parent and then the type
                 // 4. copy tree 
-
 
 
                 foreach (var lookingUp in)
@@ -1580,16 +1577,70 @@ namespace Tac.Frontend.New.CrzayNamespace
             // describes an overlayed generic type
             private class GenericTypeKey
             {
-                private readonly IOrType<MethodType, Type, Method> primary;
+                // eqaulity for these get a big complex
+                // we have a bit of a circle equality situtation
+                // say we have GenericTypeKey's G1 and G2
+                // with TypeParameter G1T and G2T respectively
+                // G1<G1T> is G2<G2T> 
+                // to there we check G1 and G2 are the same if their type parameters are equal
+                // and G1T and G2T are the same if thier GenericTYpeKey's are equal
+                // 
+                // we solve this by first comparing G1 and G2 if they are equal 
+                // we complere G1T and G2T and tell them to do the comparision assume G1 equals G2
+                //
+                // things can of cource get pretty complex with generic in generic in generic
+                // maybe unit test this?
+                public class GenericTypeKeyEqualityComparer : EqualityComparer<GenericTypeKey>
+                {
+                    public bool Equals(GenericTypeKey? x, GenericTypeKey? y, List<(GenericTypeKey, GenericTypeKey)> assumeTrue)
+                    {
+                        if (x == y) {
+                            return true;
+                        }
+
+                        if ((x == null) != (y == null)) {
+                            return false;
+                        }
+
+                        if (assumeTrue.Contains((x, y)) || assumeTrue.Contains((y, x))) {
+                            return true;
+                        }
+                        assumeTrue.Add((x, y));
+
+
+                        return 
+                           x.primary.Equals(y.primary) &&
+                           x.parameters.Length == x.parameters.Length &&
+                           x.parameters.Zip(y.parameters, (innerX, innerY) => {
+
+                               if (innerX.Is7(out var x7) && innerY.Is7(out var y7))
+                               {
+                                   return x7.Equals(y7, (nextX,nextY) => this.Equals(nextX, nextY, assumeTrue));
+                               }
+
+                               return innerX.Equals(innerY);
+                           }).All(x => x);
+                    }
+
+                    public override bool Equals(GenericTypeKey? x, GenericTypeKey? y) => Equals(x, y, new List<(GenericTypeKey, GenericTypeKey)>());
+
+                    public override int GetHashCode([DisallowNull] GenericTypeKey obj)
+                    {
+                        return HashCode.Combine(obj.primary, obj.parameters.Length);
+                    }
+                }
+
+                public IOrType<MethodType, Type, Method> primary;
                 // I kind of feel like parameters
                 // should not be all of this stuff
                 // just Type, IError, TypeParameter and GenericTypeKey
-                private readonly IOrType<MethodType,Type, Object, OrType, InferredType, IError, TypeParameter, GenericTypeKey>[] parameters;
+                public IOrType<MethodType,Type, Object, OrType, InferredType, IError, TypeParameter, GenericTypeKey>[] parameters;
+                public Dictionary<NameKey,GenericTypeKey.TypeParameter> sourceTypes;
 
-                public GenericTypeKey(IOrType<MethodType, Type, Method> primary, IOrType<MethodType, Type, Object, OrType, InferredType, IError, TypeParameter, GenericTypeKey>[] parameters)
+                public GenericTypeKey(NameKey[] types)
                 {
-                    this.primary = primary ?? throw new ArgumentNullException(nameof(primary));
-                    this.parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
+                    int i = 0;
+                    this.sourceTypes = types?.ToDictionary(x=>x, x => new GenericTypeKey.TypeParameter(i++, this)) ?? throw new ArgumentNullException(nameof(types));
                 }
 
                 public override bool Equals(object? obj)
@@ -1599,10 +1650,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public bool Equals(GenericTypeKey? other)
                 {
-                    return other != null &&
-                        primary.Equals(other.primary) &&
-                        parameters.Length == other.parameters.Length &&
-                        parameters.Zip(other.parameters, (x, y) => x.Equals(y)).All(x => x);
+                    return new GenericTypeKeyEqualityComparer().Equals(this, other);
                 }
 
                 public override int GetHashCode()
@@ -1612,24 +1660,29 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public class TypeParameter
                 {
-                    public readonly int index, level;
+                    public readonly int index;
+                    public GenericTypeKey owner;
 
-                    public TypeParameter(int index, int level)
+                    public TypeParameter(int index, GenericTypeKey owner)
                     {
                         this.index = index;
-                        this.level = level;
+                        this.owner = owner ?? throw new ArgumentNullException(nameof(owner));
+                    }
+
+                    public bool Equals(TypeParameter typeParameter, Func<GenericTypeKey, GenericTypeKey, bool> equal) {
+                        return index == typeParameter.index && equal(this.owner, typeParameter.owner);
                     }
 
                     public override bool Equals(object? obj)
                     {
-                        return obj is TypeParameter parameter &&
-                               index == parameter.index &&
-                               level == parameter.level;
+                        return obj is TypeParameter other &&  
+                            index == other.index &&  
+                            new GenericTypeKeyEqualityComparer().Equals(this.owner, other.owner);
                     }
 
                     public override int GetHashCode()
                     {
-                        return HashCode.Combine(index, level);
+                        return HashCode.Combine(index, owner);
                     }
                 }
             }
@@ -1646,13 +1699,22 @@ namespace Tac.Frontend.New.CrzayNamespace
             //        this.parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
             //    }
 
-               
+
 
             //}
 
             // we only handle control back for simple look ups, for generics we build the GenericTypeKey
             // if I do that GenericTypeKey is going to need to be able to hold  DoubleGenericTypeKey.TypeParameter and DoubleGenericTypeKey
             // maybe I can combine GenericTypeKey and DoubleGenericTypeKey
+
+            // why does this exist?
+            // ultimate we want to determine equality of complex generics
+            // is generic-method [t1,ta] [t1, generic-method [t2,tb] [Pair[t1,t2], Pair[ta,tb]]] the same as generic-method [t11,ta1] [t11, generic-method [t21,tb1] [Pair[t11,t21], Pair[ta1,tb1]]]? (yes, names don't matter, provided Pair resolves to the same type in the contexts where both are used)
+            // so the goal is to better representation of these things with the simple types resolved and the names replaced by indexes
+            // this creates those representations
+            // we couldn't ask the keys to do that themselves
+            // because sometimes your rep depends on the rep of the key you were defined in
+            // for example: generic-method [T1,T2] [T1, Pair[T2]], Pair need to look up T2 from the generic-method that contains it
             private class KeyVisitor : IKeyVisitor<IOrType<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>>
             {
                 private readonly Func<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>> lookup;
@@ -1661,7 +1723,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 private readonly MethodType rootMethod;
 
                 private KeyVisitor(
-                    Func<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>> lookup, 
+                    Func<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>> lookup,
                     Dictionary<NameKey, GenericTypeKey.TypeParameter> generics, 
                     int level,
                     MethodType rootMethod)
@@ -1681,12 +1743,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                             x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(x),
                             x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(x),
                             x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(x)), 
-                        new (),
+                        new Dictionary<NameKey, GenericTypeKey.TypeParameter>(),
                         0, 
                         rootMethod);
                 }
 
-                private KeyVisitor Next(NameKey[] genericTypes)
+                private KeyVisitor Next(GenericTypeKey genericTypes)
                 {
                     int i = 0;
                     var nextLevel = level + 1;
@@ -1699,7 +1761,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                             return lookup(key);
                         },
-                        genericTypes.ToDictionary(x => x, x => new GenericTypeKey.TypeParameter(i++, nextLevel)), nextLevel, rootMethod);
+                        genericTypes.sourceTypes,
+                        nextLevel,
+                        rootMethod);
                     return context;
                 }
 
@@ -1709,37 +1773,39 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         throw new Exception("we really only suppory methods");
                     }
+                    var res = new GenericTypeKey(doubleGenericNameKey.Types);
 
-                    var context = Next(doubleGenericNameKey.Types);
+                    var context = Next(res);
 
-                    return
-                        Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(
-                          new GenericTypeKey(
-                              Prototypist.Toolbox.OrType.Make < MethodType, Type, Method>(rootMethod),
-                            doubleGenericNameKey.DependentTypes.Select(dependentType => dependentType.SwitchReturns(
+                    res.parameters = doubleGenericNameKey.DependentTypes.Select(dependentType => dependentType.SwitchReturns(
                                 x => x.Visit(context),
-                                x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(x))).ToArray()));
+                                x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(x))).ToArray();
+                    res.primary = Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(rootMethod);
+
+                    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(res);
                 }
 
 
                 public IOrType<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey> GenericNameKey(GenericNameKey genericNameKey)
                 {
-                    var context = Next(new Model.NameKey[] { });
+                    var res = new GenericTypeKey(Array.Empty<Model.NameKey>());
+                    var context = Next(res);
+
+                    res.parameters = genericNameKey.Types.Select(dependentType => dependentType.SwitchReturns(
+                               x => x.Visit(context),
+                               x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(x))).ToArray();
+
+                    res.primary = lookup(genericNameKey.Name).SwitchReturns(
+                                x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(x),
+                                x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(x),
+                                x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
+                                x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
+                                x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
+                                x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
+                                x => throw new Exception("only methodType, Type, and Method can have generic parameters"));
 
                     return
-                        Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(
-                          new GenericTypeKey(
-                            lookup(genericNameKey.Name).SwitchReturns(
-                                x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(x),
-                                x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(x),
-                                x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
-                                x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
-                                x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
-                                x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
-                                x => throw new Exception("only methodType, Type, and Method can have generic parameters")),
-                            genericNameKey.Types.Select(dependentType => dependentType.SwitchReturns(
-                                x => x.Visit(context),
-                                x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(x))).ToArray()));
+                        Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey>(res);
                 }
 
                 public IOrType<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey> ImplicitKey(ImplicitKey implicitKey)
