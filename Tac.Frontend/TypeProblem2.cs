@@ -332,7 +332,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 #region Handle generics
 
 
-                var keyAndTypes = new Dictionary<GenericTypeKey, Prototypist.Toolbox.OrType<MethodType, Type>>();
+                var keyAndTypes = new Dictionary<GenericTypeKey, OrType<MethodType, Type>>();
                 // two way map.. probably need a TwoWayDictonary type, that wraps a pair of dictionaries 
                 var typeParametersAndTypes = new Dictionary<GenericTypeKey.TypeParameter, Type>();
                 var overlaysToTypeParameters = new Dictionary<Type, GenericTypeKey.TypeParameter>();
@@ -396,7 +396,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // 
 
                 var completeLookUps = typeProblemNodes.OfType<ILookUpType>()
-                       .Where(x => x.LooksUp.Is(out var _)) // why do somethings already know what they look up? and is that ok with overlaying generics? 
+                       .Where(x => x.LooksUp.Is(out var _)) // why do somethings already know what they look up? yeah, inferred types (type test {x;})
                        .ToList();
 
                 //if (typeProblemNodes.OfType<ILookUpType>()
