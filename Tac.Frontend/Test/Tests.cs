@@ -320,9 +320,16 @@ namespace Tac.Frontend.TypeProblem.Test
             HasMember(x2t, new NameKey("x3"));
         }
 
+        // given:
+        // type[T] pair {T x}
+        // type chicken { eggs }
+        // piar[chicken] x;
+        //
+        // x.x.eggs should exist.
         [Fact]
         public void Generic()
         {
+
 
             var x = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope(), _ => { });
 

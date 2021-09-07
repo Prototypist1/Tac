@@ -110,13 +110,13 @@ namespace Tac.Frontend
 
             return placeHolders.IfElseReturn(x =>
             {
-            return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>(new WeakGenericMethodDefinition(
-                                typeSolution.GetType(from.Returns.GetOrThrow()),
-                                scope.membersList.Single(x => x.Key.Equals(inputKey.Key)),
-                                body,
-                                OrType.Make<WeakScope, IError>(scope),
-                                Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>(),
-                                x.Select(x => Possibly.Is<IGenericTypeParameterPlacholder>(new GenericTypeParameterPlacholder(x))).ToArray()));//, key
+                return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>(new WeakGenericMethodDefinition(
+                    typeSolution.GetType(from.Returns.GetOrThrow()),
+                    scope.membersList.Single(x => x.Key.Equals(inputKey.Key)),
+                    body,
+                    OrType.Make<WeakScope, IError>(scope),
+                    Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>(),
+                    x.Select(x => Possibly.Is<IGenericTypeParameterPlacholder>(new GenericTypeParameterPlacholder(x))).ToArray()));//, key
             },
             () =>
             {

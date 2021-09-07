@@ -1156,26 +1156,24 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public static IIsPossibly<IOrType<NameKey, ImplicitKey>[]> HasPlacholders(TypeProblem2.Method type)
             {
-                var res = new List<IOrType<NameKey, ImplicitKey>>();
-                foreach (var value in type.GenericOverlays.Values.Select(x => x.Possibly2()))
-                {
-                    value.If(definite =>
+                var res = type.Generics.Select(x => {
+                    if (x.Key.SafeIs(out NameKey nameKey)) {
+                        return OrType.Make<NameKey, ImplicitKey>(nameKey);
+                    }
+                    if (x.Key.SafeIs(out ImplicitKey implicitKey))
                     {
-                        if (definite.IsPlaceHolder)
-                        {
-                            definite.Key.If(x =>
-                            {
-                                res.Add(x);
-                                return 1; // todo I need a version of this api that takes an action
-                            });
-                        }
-                        return 1; // todo I need a version of this api that takes an action
-                    });
-                }
+                        return OrType.Make<NameKey, ImplicitKey>(nameKey);
+                    }
 
-                if (res.Any())
+                    // it's weird that I have x.Key and x.Value.Key
+                    // and they have different types...
+                    throw new Exception("this might or might not happen, let's work it work when it does");
+
+                }).ToArray();
+
+                if (res.Length != 0 )
                 {
-                    return Possibly.Is(res.ToArray());
+                    return Possibly.Is(res);
                 }
 
                 return Possibly.IsNot<IOrType<NameKey, ImplicitKey>[]>();
@@ -1184,26 +1182,25 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public static IIsPossibly<IOrType<NameKey, ImplicitKey>[]> HasPlacholders(TypeProblem2.Type type)
             {
-                var res = new List<IOrType<NameKey, ImplicitKey>>();
-                foreach (var value in type.GenericOverlays.Values.Select(x => x.Possibly2()))
-                {
-                    value.If(definite =>
+                var res = type.Generics.Select(x => {
+                    if (x.Key.SafeIs(out NameKey nameKey))
                     {
-                        if (definite.IsPlaceHolder)
-                        {
-                            definite.Key.If(x =>
-                            {
-                                res.Add(x);
-                                return 1; // todo I need a version of this api that takes an action
-                            });
-                        }
-                        return 1; // todo I need a version of this api that takes an action
-                    });
-                }
+                        return OrType.Make<NameKey, ImplicitKey>(nameKey);
+                    }
+                    if (x.Key.SafeIs(out ImplicitKey implicitKey))
+                    {
+                        return OrType.Make<NameKey, ImplicitKey>(nameKey);
+                    }
 
-                if (res.Any())
+                    // it's weird that I have x.Key and x.Value.Key
+                    // and they have different types...
+                    throw new Exception("this might or might not happen, let's work it work when it does");
+
+                }).ToArray();
+
+                if (res.Length != 0)
                 {
-                    return Possibly.Is(res.ToArray());
+                    return Possibly.Is(res);
                 }
 
                 return Possibly.IsNot<IOrType<NameKey, ImplicitKey>[]>();

@@ -62,7 +62,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                     parent.Objects.Add(key, @object);
                 }
 
-                public void HasPlaceholderType(IOrType<MethodType, Type, Method> parent, IKey key, IOrType<MethodType, Type, Object, OrType, InferredType, IError> type)
+                public void HasGenericType(IOrType<MethodType, Type, Method> parent, IKey key,  Type type)
+                {
+                    parent.Switch(x => x.Generics.Add(key, type), x => x.Generics.Add(key, type), x => x.Generics.Add(key, type));
+                }
+                public void HasOverlayedGeneric(IOrType<MethodType, Type, Method> parent, IKey key, IOrType<MethodType, Type, Object, OrType, InferredType, IError> type)
                 {
                     parent.Switch(x => x.GenericOverlays.Add(key, type), x => x.GenericOverlays.Add(key, type), x => x.GenericOverlays.Add(key, type));
                 }
@@ -267,7 +271,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public Type CreateType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> converter, IIsPossibly<Guid> primitive)
                 {
-                    var res = new Type(this, key.ToString()!, Possibly.Is(key), converter, false, primitive, Possibly.IsNot<IInterfaceType>());
+                    var res = new Type(this, key.ToString()!, Possibly.Is(key), converter,  primitive, Possibly.IsNot<IInterfaceType>());
                     IsChildOf(parent, res);
                     HasType(parent, key.SwitchReturns<IKey>(x => x, x => x), res);
                     return res;
@@ -276,7 +280,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Type CreateType(IStaticScope parent, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> converter)
                 {
                     var key = new ImplicitKey(Guid.NewGuid());
-                    var res = new Type(this, key.ToString()!, Possibly.IsNot<IOrType<NameKey, ImplicitKey>>(), converter, false, Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>());
+                    var res = new Type(this, key.ToString()!, Possibly.IsNot<IOrType<NameKey, ImplicitKey>>(), converter,  Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>());
                     IsChildOf(parent, res);
                     // migiht need this, let's try without first
                     //HasType(parent, key, res);
@@ -285,7 +289,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Type CreateTypeExternalType(IStaticScope parent, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> converter, IInterfaceType interfaceType)
                 {
                     var key = new ImplicitKey(Guid.NewGuid());
-                    var res = new Type(this, key.ToString()!, Possibly.IsNot<IOrType<NameKey, ImplicitKey>>(), converter, false, Possibly.IsNot<Guid>(), Possibly.Is(interfaceType));
+                    var res = new Type(this, key.ToString()!, Possibly.IsNot<IOrType<NameKey, ImplicitKey>>(), converter,  Possibly.IsNot<Guid>(), Possibly.Is(interfaceType));
                     IsChildOf(parent, res);
                     // migiht need this, let's try without first
                     //HasType(parent, key, res);
@@ -299,7 +303,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                         $"generic-{key}-{placeholders.Aggregate("", (x, y) => x + "-" + y)}",
                         Possibly.Is(key),
                         converter,
-                        false,
                         Possibly.IsNot<Guid>(),
                         Possibly.IsNot<IInterfaceType>());
                     IsChildOf(parent, res);
@@ -311,10 +314,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                             $"generic-parameter-{placeholder.key}",
                             Possibly.Is(placeholder.key),
                             placeholder.converter,
-                            true,
                             Possibly.IsNot<Guid>(),
                             Possibly.IsNot<IInterfaceType>());
-                        HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(res), placeholder.key.SwitchReturns<IKey>(x => x, x => x), Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(placeholderType));
+                        HasGenericType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(res), placeholder.key.SwitchReturns<IKey>(x => x, x => x), placeholderType);
                     }
                     return res;
                 }
@@ -352,10 +354,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                             $"generic-parameter-{placeholder.key}",
                             Possibly.Is(placeholder.key),
                             placeholder.converter,
-                            true,
                             Possibly.IsNot<Guid>(),
                             Possibly.IsNot<IInterfaceType>());
-                        HasPlaceholderType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(method), placeholder.key.SwitchReturns<IKey>(x => x, x => x), Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(placeholderType));
+                        HasGenericType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(method), placeholder.key.SwitchReturns<IKey>(x => x, x => x), placeholderType);
                     }
                     return method;
                 }
