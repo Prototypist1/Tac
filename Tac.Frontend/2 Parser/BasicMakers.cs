@@ -138,7 +138,7 @@ namespace Tac.Frontend.Parser
                     if (match.SafeIs(out IMatchedTokenMatching<string[]> mathced))
                     {
                         var at2 = TokenMatching<NameKey>.MakeStart(self.AllTokens, self.Context, index + 2);
-                        var match2 = new GenericNMaker().TryMake(at);
+                        var match2 = new GenericNMaker().TryMake(at2);
 
                         if (match2.SafeIs(out IMatchedTokenMatching<IKey[]> mathced2))
                         {

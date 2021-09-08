@@ -538,10 +538,16 @@ namespace Tac.Frontend.TypeProblem.Test
             Equal(rightResultType, leftThingType);
         }
 
-
+        // given:
+        // type pair [T] {T x}
+        // type chicken { eggs; }
+        // pair [pair[chicken]] x
+        // then:
+        // x.x.eggs should 
         [Fact]
         public void NestedGeneric()
         {
+
 
             var x = new Tpn.TypeProblem2(
                 new WeakScopeConverter(),
@@ -570,7 +576,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var xMemberResult = obj.membersList.Single(x => x.Key.Equals(new NameKey("x")));
             var xMemberResultType = MemberToType(xMemberResult);
-            //HasCount(1, xMemberResultType);
+            //HasCount(1, xMemberResultType);s
             var xMemberResultX = HasMember(xMemberResultType, new NameKey("x"));
             //var xMemberResultXType = MemberToType(xMemberResultX);
             //HasCount(1, xMemberResultXType);

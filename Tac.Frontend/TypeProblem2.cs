@@ -429,14 +429,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     // create types for realized and double generics
                     // 2. make their GenericOverlays from GenericTypeKey.sourceTypes + put them in a dict 
                     var distintTargets = lookupsAndTarget
-                        .SelectMany(x =>
-                        {
-                            if (x.Item2.Is8(out var genericTypeKey))
-                            {
-                                return new[] { genericTypeKey };
-                            }
-                            return Array.Empty<GenericTypeKey>();
-                        })
+                        .SelectMany(x => Walk(x.Item2)) // we have to "walk" for pair[pair[chicken]] we want to resolve pair[pair[chicken]] and pair[chicken]
                         .Except(keyAndTypes.Keys)
                         .Distinct().ToArray();
 
@@ -530,9 +523,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                             typeParameter => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(typeParametersAndTypes[typeParameter])); },
                             genericTypeKey =>
                             {
-                                lookup.LooksUp = keyAndTypes[genericTypeKey].SwitchReturns(
-                                    methodType => Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(methodType)),
-                                    type => Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(type)));
+                                if (!keyAndTypes.ContainsKey(genericTypeKey)) {
+                                    lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(Error.Other("type not found")));
+                                }
+                                else {
+                                    lookup.LooksUp = keyAndTypes[genericTypeKey].SwitchReturns(
+                                        methodType => Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(methodType)),
+                                        type => Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(type)));
+                                }
                             });
                     }
                 }
@@ -884,6 +882,30 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 res = default;
                 return false;
+            }
+
+            private static HashSet<GenericTypeKey> Walk(IOrType<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey> toWalk) {
+                var res = new HashSet<GenericTypeKey>();
+                Walk(toWalk, res);
+                return res;
+            }
+
+            private static void Walk(IOrType<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey> toWalk, HashSet<GenericTypeKey> set)
+            {
+
+                if (toWalk.Is8(out var genericTypeKey))
+                {
+                    if (set.Contains(genericTypeKey))
+                    {
+                        return;
+                    }
+                    set.Add(genericTypeKey);
+
+                    foreach (var item in genericTypeKey.parameters)
+                    {
+                        Walk(item, set);
+                    }
+                }
             }
 
             //IOrType<MethodType, Type, Object, OrType, InferredType, IError> LookUpOrOverlayOrThrow(ILookUpType node, Dictionary<GenericTypeKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> realizedGeneric)
