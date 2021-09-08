@@ -347,7 +347,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // the mechinism here is overlaysToTypeParameters
                 foreach (var item in typeProblemNodes.OfType<Type>().Where(x => x.Generics.Any()).OrderBy(x => Height(x)))
                 {
-                    var visitor = KeyVisitor.Base(y => LookUpOrError(item, y), rootMethod, overlaysToTypeParameters);
+                    var visitor = KeyVisitor.Base(y => LookUpOrError(item, y), overlaysToTypeParameters);
                     var key = new DoubleGenericNameKey(item.Key.GetOrThrow().Is1OrThrow(), item.Generics.Keys.Select(x => x.SafeCastTo(out NameKey _)).ToArray(), item.Generics.Keys.Select(x => Prototypist.Toolbox.OrType.Make<IKey, IError>(x)).ToArray());
                     var genericNameKey = visitor.DuobleGenericNameKey_BetterType_PassInPrimary(key, Prototypist.Toolbox.OrType.Make<MethodType, Type>( item));
 
@@ -361,7 +361,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 foreach (var item in typeProblemNodes.OfType<MethodType>().Where(x => x.Generics.Any()).OrderBy(x => Height(x)))
                 {
-                    var visitor = KeyVisitor.Base(y => LookUpOrError(item, y), rootMethod, overlaysToTypeParameters);
+                    var visitor = KeyVisitor.Base(y => LookUpOrError(item, y), overlaysToTypeParameters);
                     var key = new DoubleGenericNameKey(new NameKey("method"), item.Generics.Keys.Select(x=>x.SafeCastTo(out NameKey _)).ToArray() , item.Generics.Keys.Select(x => Prototypist.Toolbox.OrType.Make<IKey, IError>(x)).ToArray());
                     var genericNameKey = visitor.DuobleGenericNameKey_BetterType_PassInPrimary(key, Prototypist.Toolbox.OrType.Make<MethodType, Type >(item));
 
@@ -410,14 +410,20 @@ namespace Tac.Frontend.New.CrzayNamespace
                        .Except(completeLookUps)
                        .ToArray();
 
+                var steam = 0;
+                
                 // this while is where because copy tree creates new looks
                 while (incompleteLookups.Length != 0)
                 {
+                    steam++;
+                    if (steam > 1000) {
+                        throw new Exception("in a loop!");
+                    }
 
                     // convert all keys to a consistant format
                     // 1. make all the new types for the GenericTypeKeys 
                     var lookupsAndTarget = incompleteLookups
-                       .Select(x => (x, x.TypeKey.Is1OrThrow()/*if we don't have a look up we should have a typeKey*/.Visit(KeyVisitor.Base(y => LookUpOrError(x.Context.GetOrThrow(), y), rootMethod, overlaysToTypeParameters))))
+                       .Select(x => (x, x.TypeKey.Is1OrThrow()/*if we don't have a look up we should have a typeKey*/.Visit(KeyVisitor.Base(y => LookUpOrError(x.Context.GetOrThrow(), y), overlaysToTypeParameters))))
                        .ToList();
 
                     // create types for realized and double generics
@@ -504,7 +510,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     var lookupsAndTarget = typeProblemNodes.OfType<ILookUpType>()
                        .Where(x => x.LooksUp.IsNot())
-                       .Select(x => (x, x.TypeKey.Is1OrThrow()/*if we don't have a look up we should have a typeKey*/.Visit(KeyVisitor.Base(y => LookUpOrError(x.Context.GetOrThrow(), y), rootMethod, overlaysToTypeParameters))))
+                       .Select(x => (x, x.TypeKey.Is1OrThrow()/*if we don't have a look up we should have a typeKey*/.Visit(KeyVisitor.Base(y => LookUpOrError(x.Context.GetOrThrow(), y),  overlaysToTypeParameters))))
                        .ToList();
 
                     // resolve lookups
@@ -1823,7 +1829,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                             return false;
                         }
 
-                        if (assumeTrue.Contains((x, y)) || assumeTrue.Contains((y, x)))
+                        // this is just "contains"
+                        // we use any and reference equals to avoid calls to "Equals" which was causing a stack overflow
+                        if (assumeTrue.Any(pair => (ReferenceEquals( pair.Item1, x) && ReferenceEquals(pair.Item2, y)) || (ReferenceEquals(pair.Item1, y) && ReferenceEquals(pair.Item2, x))))
                         {
                             return true;
                         }
@@ -1952,12 +1960,11 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 private readonly Func<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>> lookup;
                 private readonly Dictionary<NameKey, GenericTypeKey.TypeParameter> generics;
-                private readonly MethodType rootMethod;
+                //private readonly MethodType rootMethod;
 
                 private KeyVisitor(
                     Func<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>> lookup,
-                    Dictionary<NameKey, GenericTypeKey.TypeParameter> sourceGenerics,
-                    MethodType rootMethod)
+                    Dictionary<NameKey, GenericTypeKey.TypeParameter> sourceGenerics)
                 {
                     this.generics = sourceGenerics ?? throw new ArgumentNullException(nameof(sourceGenerics));
                     this.lookup = key =>
@@ -1968,10 +1975,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                         return lookup(key);
                     };
-                    this.rootMethod = rootMethod ?? throw new ArgumentNullException(nameof(rootMethod));
+                    //this.rootMethod = rootMethod ?? throw new ArgumentNullException(nameof(rootMethod));
                 }
 
-                public static KeyVisitor Base(Func<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> lookup, MethodType rootMethod, Dictionary<Type, GenericTypeKey.TypeParameter> overlaysToTypeParameters)
+                public static KeyVisitor Base(Func<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> lookup, Dictionary<Type, GenericTypeKey.TypeParameter> overlaysToTypeParameters)
                 {
                     return new KeyVisitor(
                         key => lookup(key).SwitchReturns(
@@ -1986,16 +1993,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                             x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(x),
                             x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(x),
                             x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(x)),
-                        new Dictionary<NameKey, GenericTypeKey.TypeParameter>(),
-                        rootMethod);
+                        new Dictionary<NameKey, GenericTypeKey.TypeParameter>());
                 }
 
                 private KeyVisitor Next(GenericTypeKey genericType)
                 {
                     var context = new KeyVisitor(
                         lookup,
-                        genericType.sourceTypes,
-                        rootMethod);
+                        genericType.sourceTypes);
                     return context;
                 }
 
@@ -2007,11 +2012,21 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public GenericTypeKey DoubleGenericNameKey_BetterType(DoubleGenericNameKey doubleGenericNameKey)
                 {
-                    if (doubleGenericNameKey.Name.Name != "generic-method")
-                    {
-                        throw new Exception("we really only suppory methods");
-                    }
-                    return DuobleGenericNameKey_BetterType_PassInPrimary(doubleGenericNameKey, Prototypist.Toolbox.OrType.Make<MethodType, Type>(rootMethod));
+                    //if (doubleGenericNameKey.Name.Name != "generic-method")
+                    //{
+                    //    throw new Exception("we really only suppory methods");
+                    //}
+
+                    var primary = lookup(doubleGenericNameKey.Name).SwitchReturns(
+                        x => Prototypist.Toolbox.OrType.Make<MethodType, Type>(x),
+                        x => Prototypist.Toolbox.OrType.Make<MethodType, Type>(x),
+                        x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
+                            x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
+                            x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
+                            x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
+                            x => throw new Exception("only methodType, Type, and Method can have generic parameters"));
+
+                    return DuobleGenericNameKey_BetterType_PassInPrimary(doubleGenericNameKey, primary);
                 }
 
                 public GenericTypeKey DuobleGenericNameKey_BetterType_PassInPrimary(DoubleGenericNameKey doubleGenericNameKey, IOrType<MethodType, Type> primary)

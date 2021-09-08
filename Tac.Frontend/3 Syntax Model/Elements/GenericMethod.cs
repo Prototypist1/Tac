@@ -201,7 +201,7 @@ namespace Tac.SemanticModel
 
 
             var value = context.TypeProblem.CreateValue(runtimeScope, new DoubleGenericNameKey(
-                new NameKey("generic-method"),
+                new NameKey("method"),
                 genericParameters.Select(x => x.Key.Is1OrThrow()/*TODO I don't this is always a name key, if I need to I will flow it along. if it is never a Implicit type I can simplify the type*/).ToArray(),
                 new IOrType<IKey, IError>[] {
                     realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
