@@ -118,6 +118,19 @@ namespace Tac.Model.Elements
         IVerifiableType OutputType { get; }
     }
 
+    public interface IGenericMethodType : IVerifiableType
+    {
+        IGenericTypeParameter[] Parameters { get; }
+        IVerifiableType InputType { get; }
+        IVerifiableType OutputType { get; }
+    }
+
+    public interface IGenericTypeParameter : IVerifiableType
+    { 
+    
+    }
+
+
     // what is this??
     // 
     // so Method is system generic type

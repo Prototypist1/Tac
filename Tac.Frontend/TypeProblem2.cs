@@ -1839,6 +1839,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // maybe unit test this?
                 public class GenericTypeKeyEqualityComparer : EqualityComparer<GenericTypeKey>
                 {
+                    // this equality pattern matches the TheyAreUs of type GenericMethodType
+                    // {A1078BB9-DF91-48C0-998A-95673AD1272B}
                     public bool Equals(GenericTypeKey? x, GenericTypeKey? y, List<(GenericTypeKey, GenericTypeKey)> assumeTrue)
                     {
                         if (x == y)

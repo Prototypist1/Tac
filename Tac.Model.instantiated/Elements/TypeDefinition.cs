@@ -176,7 +176,7 @@ namespace Tac.Model.Instantiated
                 this,
                 OrType.Make<IVerifiableType, IError>(this.Left),
                 OrType.Make<IVerifiableType, IError>(this.Right),
-                (target, input, assumeTrue) => OrType.Make<bool, IError>(target.TheyAreUs(input, assumeTrue)),
+                (target, input, innerAssumeTrue) => OrType.Make<bool, IError>(target.TheyAreUs(input, innerAssumeTrue)),
                 assumeTrue).Is1OrThrow();
         }
 
@@ -390,10 +390,6 @@ namespace Tac.Model.Instantiated
         IOrType<NameKey, ImplicitKey> Key { get; }
     }
 
-    public interface IGenericMethodTypeBuilder {
-        void Build(IVerifiableType inputType, IVerifiableType ouputType);
-    }
-
     public class MethodType : IMethodType, IMethodTypeBuilder
     {
         private MethodType() { }
@@ -468,6 +464,151 @@ namespace Tac.Model.Instantiated
     public interface IImplementationTypeBuilder
     {
         void Build(IVerifiableType inputType, IVerifiableType outputType, IVerifiableType contextType);
+    }
+
+    public class GenericMethodType : IGenericMethodType, IGenericMethodTypeBuilder
+    {
+
+        private Buildable<IGenericTypeParameter[]> buildableParameters = new Buildable<IGenericTypeParameter[]>();
+        private Buildable<IVerifiableType> buildableOutputType = new Buildable<IVerifiableType>();
+        private Buildable<IVerifiableType> buildableInputType = new Buildable<IVerifiableType>();
+        public IGenericTypeParameter[] Parameters => buildableParameters.Get();
+        public IVerifiableType OutputType => buildableOutputType.Get();
+        public IVerifiableType InputType => buildableInputType.Get();
+
+        public void Build(IVerifiableType inputType, IVerifiableType ouputType, IGenericTypeParameter[] parameters)
+        {
+            buildableParameters.Set(parameters);
+            buildableOutputType.Set(ouputType);
+            buildableInputType.Set(inputType);
+        }
+
+        private GenericMethodType() { }
+
+        public static (IGenericMethodType, IGenericMethodTypeBuilder) Create()
+        {
+            var res = new GenericMethodType();
+            return (res, res);
+        }
+
+        public static IGenericMethodType CreateAndBuild(IVerifiableType inputType, IVerifiableType ouputType, IGenericTypeParameter[] parameters)
+        {
+            var (x, y) = Create();
+            y.Build(inputType, ouputType, parameters);
+            return x;
+        }
+
+
+        public IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue) => Possibly.IsNot<(IVerifiableType, Access)>();
+
+        // this matches equality of GenericTypeKey which represents this in the type problem
+        // {A1078BB9-DF91-48C0-998A-95673AD1272B}
+        public bool TheyAreUs(IVerifiableType they, List<(IVerifiableType, IVerifiableType)> assumeTrue)
+        {
+            if (!they.SafeIs(out GenericMethodType genericMethod)) {
+                return false;
+            }
+
+            if (Parameters.Length != genericMethod.Parameters.Length) {
+                return false;
+            }
+
+            return MethodLibrary.CanAssign(
+                they,
+                this,
+                OrType.Make<IVerifiableType, IError>(InputType),
+                OrType.Make<IVerifiableType, IError>(OutputType),
+                x => x.TryGetInput().IfElseReturn(
+                    x => OrType.Make<IOrType<IVerifiableType, IError>, No, IError>(OrType.Make<IVerifiableType, IError>(x)),
+                    () => OrType.Make<IOrType<IVerifiableType, IError>, No, IError>(new No())),
+                x => x.TryGetReturn().IfElseReturn(
+                    x => OrType.Make<IOrType<IVerifiableType, IError>, No, IError>(OrType.Make<IVerifiableType, IError>(x)),
+                    () => OrType.Make<IOrType<IVerifiableType, IError>, No, IError>(new No())),
+                (target, input, innerAssumeTrue) => OrType.Make<bool, IError>(target.TheyAreUs(input, innerAssumeTrue)),
+                assumeTrue
+                ).Is1OrThrow();
+        }
+
+        public IIsPossibly<IVerifiableType> TryGetReturn()
+        {
+            return Possibly.Is(OutputType);
+        }
+
+        public IIsPossibly<IVerifiableType> TryGetInput()
+        {
+            return Possibly.Is(InputType);
+        }
+
+    }
+
+    public interface IGenericMethodTypeBuilder
+    {
+        void Build(IVerifiableType inputType, IVerifiableType ouputType, IGenericTypeParameter[] parameters);
+    }
+
+
+    public class GenericTypeParameter : IGenericTypeParameter, IGenericTypeParameterBuilder
+    {
+        private Buildable<GenericMethodType> buildableParent = new Buildable<GenericMethodType>();
+        private BuildableValue<int> buildableIndex = new BuildableValue<int>();
+
+        public void Build(GenericMethodType parent, int index)
+        {
+            buildableParent.Set(parent);
+            buildableIndex.Set(index);
+        }
+
+        
+        private GenericTypeParameter() { }
+
+        public static (IGenericTypeParameter, IGenericTypeParameterBuilder) Create()
+        {
+            var res = new GenericTypeParameter();
+            return (res, res);
+        }
+
+        public static IGenericTypeParameter CreateAndBuild(GenericMethodType parent, int index)
+        {
+            var (x, y) = Create();
+            y.Build(parent, index);
+            return x;
+        }
+
+
+        public bool TheyAreUs(IVerifiableType they, List<(IVerifiableType, IVerifiableType)> assumeTrue)
+        {
+            if (assumeTrue.Contains((this, they)))
+            {
+                return true;
+            }
+            assumeTrue.Add((this, they));
+
+            if (this.SafeIs(out GenericTypeParameter genericTypeParameter)) {
+                return buildableIndex.Get() == genericTypeParameter.buildableIndex.Get()
+                    && buildableParent.Get().TheyAreUs(genericTypeParameter.buildableParent.Get(), assumeTrue);
+            }
+            return false;
+        }
+
+        public IIsPossibly<IVerifiableType> TryGetInput()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IIsPossibly<(IVerifiableType type, Access access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IIsPossibly<IVerifiableType> TryGetReturn()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public interface IGenericTypeParameterBuilder
+    {
+        void Build(GenericMethodType parent, int index);
     }
 
 }
