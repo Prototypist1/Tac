@@ -116,7 +116,7 @@ namespace Tac.Frontend
                     body,
                     OrType.Make<WeakScope, IError>(scope),
                     Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>(),
-                    x.Select(x => Possibly.Is<IGenericTypeParameterPlacholder>(new GenericTypeParameterPlacholder(x))).ToArray()));//, key
+                    x.Select(x => (IGenericTypeParameterPlacholder)new GenericTypeParameterPlacholder(x)).ToArray()));//, key
             },
             () =>
             {

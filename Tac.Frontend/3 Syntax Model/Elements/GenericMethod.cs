@@ -38,7 +38,7 @@ namespace Tac.SemanticModel
     internal class WeakGenericMethodDefinition :
         WeakAbstractBlockDefinition<IGenericMethodDefinition>, IReturn
     {
-        private readonly IOrType<SyntaxModel.Elements.AtomicTypes.MethodType, IError> type;
+        private readonly IOrType<SyntaxModel.Elements.AtomicTypes.GenericMethodType, IError> type;
 
         public WeakGenericMethodDefinition(
             IOrType<IFrontendType<IVerifiableType>, IError> outputType,
@@ -46,13 +46,14 @@ namespace Tac.SemanticModel
             IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> body,
             IOrType<WeakScope, IError> scope,
             IReadOnlyList<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers,
-            IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
+            IGenericTypeParameterPlacholder[] TypeParameterDefinitions) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
-            type = OrType.Make<SyntaxModel.Elements.AtomicTypes.MethodType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.MethodType(
+            type = OrType.Make<SyntaxModel.Elements.AtomicTypes.GenericMethodType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType(
                 InputType,
-                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OutputType)
+                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OutputType),
+                TypeParameterDefinitions
                 ));
             this.TypeParameterDefinitions = TypeParameterDefinitions ?? throw new ArgumentNullException(nameof(TypeParameterDefinitions));
         }
@@ -60,7 +61,7 @@ namespace Tac.SemanticModel
         public IBox<IOrType<IFrontendType<IVerifiableType>, IError>> InputType => ParameterDefinition.Type;
         public IOrType<IFrontendType<IVerifiableType>, IError> OutputType { get; }
         public WeakMemberDefinition ParameterDefinition { get; }
-        public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
+        public IGenericTypeParameterPlacholder[] TypeParameterDefinitions { get; }
 
         public override IBuildIntention<IGenericMethodDefinition> GetBuildIntention(IConversionContext context)
         {
@@ -73,7 +74,7 @@ namespace Tac.SemanticModel
                     Scope.Is1OrThrow().Convert(context),
                     Body.GetValue().Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray(),
-                    TypeParameterDefinitions.Select(x=> (IGenericParameter)new GenericParameter( x.GetOrThrow().Key.SwitchReturns(y=>(IKey)y,y=>y))).ToArray());
+                    TypeParameterDefinitions.Select(x=> (IGenericParameter)new GenericParameter( x.Key.SwitchReturns(y=>(IKey)y,y=>y))).ToArray());
             });
         }
 

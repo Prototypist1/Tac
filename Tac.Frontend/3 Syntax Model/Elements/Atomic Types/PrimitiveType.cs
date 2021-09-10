@@ -659,5 +659,80 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         //public IReadOnlyList<WeakMemberDefinition> GetMembers() => Array.Empty<WeakMemberDefinition>();
     }
 
-    internal interface IGenericMethodType : IFrontendType<IVerifiableType>, IFrontendGenericType { }
+    internal class GenericMethodType : IFrontendType<IVerifiableType> //,IFrontendGenericType
+    {
+        private IBox<IOrType<IFrontendType<IVerifiableType>, IError>> inputType;
+        private Box<IOrType<IFrontendType<IVerifiableType>, IError>> outputType;
+        private IGenericTypeParameterPlacholder[] typeParameterDefinitions;
+
+        public GenericMethodType(IBox<IOrType<IFrontendType<IVerifiableType>, IError>> inputType, Box<IOrType<IFrontendType<IVerifiableType>, IError>> outputType, IGenericTypeParameterPlacholder[] typeParameterDefinitions)
+        {
+            this.inputType = inputType;
+            this.outputType = outputType;
+            this.typeParameterDefinitions = typeParameterDefinitions;
+        }
+
+        public IEnumerable<IError> Validate()
+        {
+            foreach (var error in inputType.GetValue().SwitchReturns(x => x.Validate(), x => new[] { x }))
+            {
+                yield return error;
+            }
+            foreach (var error in outputType.GetValue().SwitchReturns(x => x.Validate(), x => new[] { x }))
+            {
+                yield return error;
+            }
+        }
+
+        // this matches a few places
+        // {A1078BB9-DF91-48C0-998A-95673AD1272B}
+        public IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
+        {
+            if (!they.SafeIs(out GenericMethodType genericMethod))
+            {
+                return OrType.Make<bool, IError>(false);
+            }
+
+            if (typeParameterDefinitions.Length != genericMethod.typeParameterDefinitions.Length)
+            {
+                return OrType.Make<bool, IError>(false); ;
+            }
+
+            return MethodLibrary.CanAssign(
+                they,
+                this,
+                inputType.GetValue(),
+                outputType.GetValue(),
+                x => x.TryGetInput(),
+                x => x.TryGetReturn(),
+                (target, other, list) => target.TheyAreUs(other, list),
+                assumeTrue);
+        }
+        public IOrType<IOrType<WeakMemberDefinition, IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue) => OrType.Make<IOrType<WeakMemberDefinition, IError>, No, IError>(new No());
+
+
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(outputType.GetValue());
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput() => OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(inputType.GetValue());
+
+        public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
+        {
+            var (res, builder) = Tac.Model.Instantiated.GenericMethodType.Create();
+
+            // this is stack allocated and might be GC'ed so we need to create locals
+            // to feed to the lambda
+            var inputType = this.inputType;
+            var outputType = this.outputType;
+            return new BuildIntention<IGenericMethodType>(res
+                , () =>
+                {
+                    var i = 0;
+                    builder.Build(
+                        inputType.GetValue().Is1OrThrow().SafeCastTo<IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>>().Convert(context),
+                        outputType.GetValue().Is1OrThrow().SafeCastTo<IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>>().Convert(context),
+                        typeParameterDefinitions
+                            .Select(x=> GenericTypeParameter.CreateAndBuild(res.SafeCastTo(out Tac.Model.Instantiated.GenericMethodType _)/*this is bad, I should remove my Tac.Model, just use instantiated and keep it dumb*/,i++))
+                            .ToArray());
+                });
+        }
+    }
 }
