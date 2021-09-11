@@ -13,7 +13,7 @@ using Tac.Parser;
 using Tac.SemanticModel;
 using Tac.SemanticModel.CodeStuff;
 using Tac.SyntaxModel.Elements.AtomicTypes;
-
+using Prototypist.Toolbox.Object;
 
 namespace Tac.Parser
 {
@@ -53,7 +53,10 @@ namespace Tac.SemanticModel
             type = OrType.Make<SyntaxModel.Elements.AtomicTypes.GenericMethodType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType(
                 InputType,
                 new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OutputType),
-                TypeParameterDefinitions
+                TypeParameterDefinitions.Select(x=> {
+                    IBox<IOrType<IFrontendType<IVerifiableType>, IError>> y = new Box<IOrType<IGenericTypeParameterPlacholder, IError>>(OrType.Make<IGenericTypeParameterPlacholder, IError>(x));
+                    return y;
+                }).ToArray()
                 ));
             this.TypeParameterDefinitions = TypeParameterDefinitions ?? throw new ArgumentNullException(nameof(TypeParameterDefinitions));
         }
@@ -74,7 +77,7 @@ namespace Tac.SemanticModel
                     Scope.Is1OrThrow().Convert(context),
                     Body.GetValue().Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray(),
-                    TypeParameterDefinitions.Select(x=> (IGenericParameter)new GenericParameter( x.Key.SwitchReturns(y=>(IKey)y,y=>y))).ToArray());
+                    TypeParameterDefinitions.Select(x=> x.Convert(context).SafeCastTo(out IGenericTypeParameter _)).ToArray());
             });
         }
 
@@ -125,8 +128,7 @@ namespace Tac.SemanticModel
                         elements,
                         outputType!,
                         parameterName!.Item,
-                        generics.Select(x =>
-                            new GenericTypeParameterPlacholder(OrType.Make<NameKey, ImplicitKey>(new NameKey(x))) as IGenericTypeParameterPlacholder).ToArray()),
+                        generics.Select(x =>new NameKey(x)).ToArray()),
                     matched.EndIndex
                     );
             }
@@ -143,14 +145,14 @@ namespace Tac.SemanticModel
         private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
         private readonly ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> output;
         private readonly string parameterName;
-        private readonly IGenericTypeParameterPlacholder[] genericParameters;
+        private readonly NameKey[] genericParameters;
 
         public GenericMethodDefinitionPopulateScope(
             ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> parameterDefinition,
             IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements,
             ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> output,
             string parameterName,
-            IGenericTypeParameterPlacholder[] genericParameters
+            NameKey[] genericParameters
             )
         {
             this.parameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -174,7 +176,7 @@ namespace Tac.SemanticModel
 
             var box = new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>();
             var converter = new WeakMethodDefinitionConverter(box);
-            var method = context.TypeProblem.CreateGenericMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, genericParameters.Select(x => new Tpn.TypeAndConverter(x.Key, new WeakTypeDefinitionConverter())).ToArray());
+            var method = context.TypeProblem.CreateGenericMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, genericParameters.Select(x => new Tpn.TypeAndConverter(OrType.Make<NameKey,ImplicitKey>(x), new WeakTypeDefinitionConverter())).ToArray());
 
             var nextElements = elements.Select(x => x.TransformInner(y => y.Run(method, context.CreateChildContext(this)).Resolve)).ToArray();
 
@@ -203,7 +205,7 @@ namespace Tac.SemanticModel
 
             var value = context.TypeProblem.CreateValue(runtimeScope, new DoubleGenericNameKey(
                 new NameKey("method"),
-                genericParameters.Select(x => x.Key.Is1OrThrow()/*TODO I don't this is always a name key, if I need to I will flow it along. if it is never a Implicit type I can simplify the type*/).ToArray(),
+                genericParameters,
                 new IOrType<IKey, IError>[] {
                     realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
                     realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),

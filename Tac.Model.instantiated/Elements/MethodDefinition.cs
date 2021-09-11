@@ -172,7 +172,7 @@ namespace Tac.Model.Instantiated
         private readonly Buildable<IVerifiableType> buildableOutputType = new();
         private readonly Buildable<IMemberDefinition> buildableParameterDefinition = new();
         private readonly Buildable<IVerifiableType> type = new();
-        private readonly Buildable<IReadOnlyList<IGenericParameter>> buildableTypeParameters = new();
+        private readonly Buildable<IReadOnlyList<IGenericTypeParameter>> buildableTypeParameters = new();
 
         private GenericMethodDefinition() { }
 
@@ -184,7 +184,7 @@ namespace Tac.Model.Instantiated
         public IFinalizedScope Scope => buildableScope.Get(); 
         public IReadOnlyList<ICodeElement> Body => buildableBody.Get();
         public IReadOnlyList<ICodeElement> StaticInitailizers => buildableStaticInitailizers.Get();
-        public IReadOnlyList<IGenericParameter> TypeParameters => buildableTypeParameters.Get();
+        public IReadOnlyList<IGenericTypeParameter> TypeParameters => buildableTypeParameters.Get();
 
         public T Convert<T>(IOpenBoxesContext<T> context)
         {
@@ -204,7 +204,7 @@ namespace Tac.Model.Instantiated
             IFinalizedScope scope,
             IReadOnlyList<ICodeElement> body,
             IReadOnlyList<ICodeElement> staticInitailizers,
-            IReadOnlyList<IGenericParameter> typeParameters)
+            IReadOnlyList<IGenericTypeParameter> typeParameters)
         {
             buildableOutputType.Set(outputType);
             buildableParameterDefinition.Set(parameterDefinition);
@@ -227,7 +227,7 @@ namespace Tac.Model.Instantiated
             IFinalizedScope scope,
             IReadOnlyList<ICodeElement> body,
             IReadOnlyList<ICodeElement> staticInitailizers,
-            IReadOnlyList<IGenericParameter> typeParameters)
+            IReadOnlyList<IGenericTypeParameter> typeParameters)
         {
             var (x, y) = Create();
             y.Build(outputType, parameterDefinition, scope, body, staticInitailizers, typeParameters);
@@ -243,16 +243,16 @@ namespace Tac.Model.Instantiated
             IFinalizedScope scope,
             IReadOnlyList<ICodeElement> body,
             IReadOnlyList<ICodeElement> staticInitailizers,
-            IReadOnlyList<IGenericParameter> typeParameters);
+            IReadOnlyList<IGenericTypeParameter> typeParameters);
     }
 
-    public class GenericParameter : IGenericParameter
-    {
-        public GenericParameter(IKey key)
-        {
-            Key = key ?? throw new ArgumentNullException(nameof(key));
-        }
+    //public class GenericParameter : IGenericParameter
+    //{
+    //    public GenericParameter(IKey key)
+    //    {
+    //        Key = key ?? throw new ArgumentNullException(nameof(key));
+    //    }
 
-        public IKey Key { get; init; }
-    }
+    //    public IKey Key { get; init; }
+    //}
 }

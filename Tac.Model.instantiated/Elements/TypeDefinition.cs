@@ -336,52 +336,52 @@ namespace Tac.Model.Instantiated
         }
     }
 
-    public class GemericTypeParameterPlacholder : IVerifiableType, IGemericTypeParameterPlacholderBuilder
-    {
-        private GemericTypeParameterPlacholder() { }
+    //public class GemericTypeParameterPlacholder : IVerifiableType, IGemericTypeParameterPlacholderBuilder
+    //{
+    //    private GemericTypeParameterPlacholder() { }
 
-        public static (IVerifiableType, IGemericTypeParameterPlacholderBuilder) Create()
-        {
-            var res = new GemericTypeParameterPlacholder();
-            return (res, res);
-        }
+    //    public static (IVerifiableType, IGemericTypeParameterPlacholderBuilder) Create()
+    //    {
+    //        var res = new GemericTypeParameterPlacholder();
+    //        return (res, res);
+    //    }
 
-        public static IVerifiableType CreateAndBuild(IOrType<NameKey,ImplicitKey> key) {
-            var (x, y) = Create();
-            y.Build(key);
-            return x;
-        }
+    //    public static IVerifiableType CreateAndBuild(IOrType<NameKey,ImplicitKey> key) {
+    //        var (x, y) = Create();
+    //        y.Build(key);
+    //        return x;
+    //    }
 
-        public void Build(IOrType<NameKey, ImplicitKey> key)
-        {
-            this.key = key ?? throw new ArgumentNullException(nameof(key));
-        }
+    //    public void Build(IOrType<NameKey, ImplicitKey> key)
+    //    {
+    //        this.key = key ?? throw new ArgumentNullException(nameof(key));
+    //    }
 
-        private IOrType<NameKey, ImplicitKey>? key = null;
-        public IOrType<NameKey, ImplicitKey> Key { get=> key ?? throw new NullReferenceException(nameof(key)); private set => key = value; }
+    //    private IOrType<NameKey, ImplicitKey>? key = null;
+    //    public IOrType<NameKey, ImplicitKey> Key { get=> key ?? throw new NullReferenceException(nameof(key)); private set => key = value; }
 
-        public override bool Equals(object obj)
-        {
-            return obj is GemericTypeParameterPlacholder placholder &&
-                   EqualityComparer<IOrType<NameKey, ImplicitKey>>.Default.Equals(Key, placholder.Key);
-        }
+    //    public override bool Equals(object obj)
+    //    {
+    //        return obj is GemericTypeParameterPlacholder placholder &&
+    //               EqualityComparer<IOrType<NameKey, ImplicitKey>>.Default.Equals(Key, placholder.Key);
+    //    }
 
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Key);
-        }
+    //    public override int GetHashCode()
+    //    {
+    //        return HashCode.Combine(Key);
+    //    }
 
 
-        public IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue) => Possibly.IsNot<(IVerifiableType, Access)>();
-        public IIsPossibly<IVerifiableType> TryGetReturn() => Possibly.IsNot<IVerifiableType>();
-        public IIsPossibly<IVerifiableType> TryGetInput() => Possibly.IsNot<IVerifiableType>();
+    //    public IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue) => Possibly.IsNot<(IVerifiableType, Access)>();
+    //    public IIsPossibly<IVerifiableType> TryGetReturn() => Possibly.IsNot<IVerifiableType>();
+    //    public IIsPossibly<IVerifiableType> TryGetInput() => Possibly.IsNot<IVerifiableType>();
 
-        public bool TheyAreUs(IVerifiableType they, List<(IVerifiableType, IVerifiableType)> assumeTrue)
-        {
-            // 🤷‍ who knows
-            return ReferenceEquals(this, they);
-        }
-    }
+    //    public bool TheyAreUs(IVerifiableType they, List<(IVerifiableType, IVerifiableType)> assumeTrue)
+    //    {
+    //        // 🤷‍ who knows
+    //        return ReferenceEquals(this, they);
+    //    }
+    //}
     
     public interface IGemericTypeParameterPlacholderBuilder
     {
@@ -548,12 +548,24 @@ namespace Tac.Model.Instantiated
 
     public class GenericTypeParameter : IGenericTypeParameter, IGenericTypeParameterBuilder
     {
-        private Buildable<GenericMethodType> buildableParent = new Buildable<GenericMethodType>();
+        //private Buildable<IVerifiableType> buildableParent = new Buildable<IVerifiableType>();
+        private Buildable<IVerifiableType> buildableConstraint = new Buildable<IVerifiableType>();
         private BuildableValue<int> buildableIndex = new BuildableValue<int>();
 
-        public void Build(GenericMethodType parent, int index)
+        public void Build(/*IVerifiableType parent,*/ int index, IVerifiableType constraint)
         {
-            buildableParent.Set(parent);
+            //if (parent is null)
+            //{
+            //    throw new ArgumentNullException(nameof(parent));
+            //}
+
+            if (constraint is null)
+            {
+                throw new ArgumentNullException(nameof(constraint));
+            }
+
+            //buildableParent.Set(parent);
+            buildableConstraint.Set(constraint);
             buildableIndex.Set(index);
         }
 
@@ -566,10 +578,10 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public static IGenericTypeParameter CreateAndBuild(GenericMethodType parent, int index)
+        public static IGenericTypeParameter CreateAndBuild(/*IVerifiableType parent,*/ int index, IVerifiableType constraint)
         {
             var (x, y) = Create();
-            y.Build(parent, index);
+            y.Build(/*parent,*/ index, constraint);
             return x;
         }
 
@@ -582,32 +594,16 @@ namespace Tac.Model.Instantiated
             }
             assumeTrue.Add((this, they));
 
-            if (this.SafeIs(out GenericTypeParameter genericTypeParameter)) {
-                return buildableIndex.Get() == genericTypeParameter.buildableIndex.Get()
-                    && buildableParent.Get().TheyAreUs(genericTypeParameter.buildableParent.Get(), assumeTrue);
-            }
-            return false;
+            return buildableConstraint.Get().TheyAreUs(they, assumeTrue);
         }
-
-        public IIsPossibly<IVerifiableType> TryGetInput()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IIsPossibly<(IVerifiableType type, Access access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IIsPossibly<IVerifiableType> TryGetReturn()
-        {
-            throw new NotImplementedException();
-        }
+        public IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue) => buildableConstraint.Get().TryGetMember(key, assumeTrue);
+        public IIsPossibly<IVerifiableType> TryGetReturn() => buildableConstraint.Get().TryGetReturn();
+        public IIsPossibly<IVerifiableType> TryGetInput() => buildableConstraint.Get().TryGetInput();
     }
 
     public interface IGenericTypeParameterBuilder
     {
-        void Build(GenericMethodType parent, int index);
+        void Build(/*IVerifiableType parent,*/ int index, IVerifiableType constraint);
     }
 
 }

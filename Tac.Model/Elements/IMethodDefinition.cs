@@ -21,10 +21,10 @@ namespace Tac.Model.Elements
         IVerifiableType InputType { get; }
         IVerifiableType OutputType { get; }
         IMemberDefinition ParameterDefinition { get; }
-        IReadOnlyList<IGenericParameter> TypeParameters { get; }
+        IReadOnlyList<IGenericTypeParameter> TypeParameters { get; }
     }
 
-    public interface IGenericParameter { 
-        IKey Key { get; }
-    }
+    //public interface IGenericParameter : IVerifiableType { 
+    //    IKey Key { get; }
+    //}
 }

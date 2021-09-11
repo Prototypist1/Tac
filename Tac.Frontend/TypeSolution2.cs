@@ -203,6 +203,48 @@ namespace Tac.Frontend.New.CrzayNamespace
                         throw new Exception("so... this is a type and a method?!");
                     }
 
+                    if (flowNode.VirtualGenerics().Is1(out var generics) && generics.Any()) {
+
+                        var realizedGenerics = generics.Select(x => x.Value).ToArray();
+
+                        if (input != default && output != default)
+                        {
+                            // I don't think this is safe see:
+                            //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
+                            return
+                                 OrType.Make<IFrontendType<IVerifiableType>, IError>(
+                                new GenericMethodType(
+                                    cache[input].type,
+                                    cache[output].type,
+                                    generics.Select(x=> x.Value.SwitchReturns(y=> cache[y].type, error => { //*this is a poor mans safe cast, safe cast doesn't go this way (to a super class), but I need to communicate the type to C#
+                                        IBox<IOrType<IFrontendType<IVerifiableType>, IError>> y = new Box<IOrType<IGenericTypeParameterPlacholder, IError>>(OrType.Make<IGenericTypeParameterPlacholder, IError>(error)); return y; })).ToArray()
+                                    ));
+                        }
+
+
+                        if (input != default)
+                        {
+                            // I don't think this is safe see:
+                            //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
+                            return
+                                 OrType.Make<IFrontendType<IVerifiableType>, IError>(
+                                new MethodType(
+                                    cache[input].type,
+                                    new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType()))));
+                        }
+
+                        if (output != default)
+                        {
+                            // I don't think this is safe see:
+                            //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
+                            return
+                                 OrType.Make<IFrontendType<IVerifiableType>, IError>(
+                                new MethodType(
+                                    new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
+                                    cache[output].type));
+                        }
+                    }
+
                     if (input != default && output != default)
                     {
                         // I don't think this is safe see:
@@ -276,57 +318,57 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public static IIsPossibly<IOrType<NameKey, ImplicitKey>[]> HasPlacholders(TypeProblem2.Method type)
-            {
-                var res = type.Generics.Select(x => {
-                    if (x.Key.SafeIs(out NameKey nameKey)) {
-                        return OrType.Make<NameKey, ImplicitKey>(nameKey);
-                    }
-                    if (x.Key.SafeIs(out ImplicitKey implicitKey))
-                    {
-                        return OrType.Make<NameKey, ImplicitKey>(nameKey);
-                    }
+            //public static IIsPossibly<IOrType<NameKey, ImplicitKey>[]> HasPlacholders(TypeProblem2.Method type)
+            //{
+            //    var res = type.Generics.Select(x => {
+            //        if (x.Key.SafeIs(out NameKey nameKey)) {
+            //            return OrType.Make<NameKey, ImplicitKey>(nameKey);
+            //        }
+            //        if (x.Key.SafeIs(out ImplicitKey implicitKey))
+            //        {
+            //            return OrType.Make<NameKey, ImplicitKey>(nameKey);
+            //        }
 
-                    // it's weird that I have x.Key and x.Value.Key
-                    // and they have different types...
-                    throw new Exception("this might or might not happen, let's work it work when it does");
+            //        // it's weird that I have x.Key and x.Value.Key
+            //        // and they have different types...
+            //        throw new Exception("this might or might not happen, let's work it work when it does");
 
-                }).ToArray();
+            //    }).ToArray();
 
-                if (res.Length != 0 )
-                {
-                    return Possibly.Is(res);
-                }
+            //    if (res.Length != 0 )
+            //    {
+            //        return Possibly.Is(res);
+            //    }
 
-                return Possibly.IsNot<IOrType<NameKey, ImplicitKey>[]>();
-            }
+            //    return Possibly.IsNot<IOrType<NameKey, ImplicitKey>[]>();
+            //}
 
 
-            public static IIsPossibly<IOrType<NameKey, ImplicitKey>[]> HasPlacholders(TypeProblem2.Type type)
-            {
-                var res = type.Generics.Select(x => {
-                    if (x.Key.SafeIs(out NameKey nameKey))
-                    {
-                        return OrType.Make<NameKey, ImplicitKey>(nameKey);
-                    }
-                    if (x.Key.SafeIs(out ImplicitKey implicitKey))
-                    {
-                        return OrType.Make<NameKey, ImplicitKey>(nameKey);
-                    }
+            //public static IIsPossibly<IOrType<NameKey, ImplicitKey>[]> HasPlacholders(TypeProblem2.Type type)
+            //{
+            //    var res = type.Generics.Select(x => {
+            //        if (x.Key.SafeIs(out NameKey nameKey))
+            //        {
+            //            return OrType.Make<NameKey, ImplicitKey>(nameKey);
+            //        }
+            //        if (x.Key.SafeIs(out ImplicitKey implicitKey))
+            //        {
+            //            return OrType.Make<NameKey, ImplicitKey>(nameKey);
+            //        }
 
-                    // it's weird that I have x.Key and x.Value.Key
-                    // and they have different types...
-                    throw new Exception("this might or might not happen, let's work it work when it does");
+            //        // it's weird that I have x.Key and x.Value.Key
+            //        // and they have different types...
+            //        throw new Exception("this might or might not happen, let's work it work when it does");
 
-                }).ToArray();
+            //    }).ToArray();
 
-                if (res.Length != 0)
-                {
-                    return Possibly.Is(res);
-                }
+            //    if (res.Length != 0)
+            //    {
+            //        return Possibly.Is(res);
+            //    }
 
-                return Possibly.IsNot<IOrType<NameKey, ImplicitKey>[]>();
-            }
+            //    return Possibly.IsNot<IOrType<NameKey, ImplicitKey>[]>();
+            //}
 
             internal IOrType<IFrontendType<IVerifiableType>, IError> GetType(Tpn.ILookUpType from)
             {

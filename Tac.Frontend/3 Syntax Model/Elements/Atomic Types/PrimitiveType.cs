@@ -508,44 +508,76 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
     // I don't think this is a type....
     // placeholders are effectively defined by constraints really just metadata
-    internal interface IGenericTypeParameterPlacholder //: IFrontendType<IVerifiableType>
-    {
-        IOrType<NameKey, ImplicitKey> Key { get; }
+    internal interface IGenericTypeParameterPlacholder : IFrontendType<IVerifiableType>
+    { 
+        int Index { get; }
+        //IFrontendType<IVerifiableType> Parent { get; }
+        IFrontendType<IVerifiableType> Constraint { get; }
+        //IOrType<NameKey, ImplicitKey> Key { get; }
     }
 
-    internal struct GenericTypeParameterPlacholder : IGenericTypeParameterPlacholder, IEquatable<GenericTypeParameterPlacholder>
+    internal struct GenericTypeParameterPlacholder : IGenericTypeParameterPlacholder
     {
-        public GenericTypeParameterPlacholder(IOrType<NameKey, ImplicitKey> key)
+        public GenericTypeParameterPlacholder(int index, /*IFrontendType<IVerifiableType> parent,*/ IFrontendType<IVerifiableType> constraint)
         {
-            Key = key ?? throw new ArgumentNullException(nameof(key));
+            this.Index = index;
+            //this.Parent = parent ?? throw new ArgumentNullException(nameof(parent));
+            Constraint = constraint ?? throw new ArgumentNullException(nameof(constraint));
         }
 
-        public IOrType<NameKey, ImplicitKey> Key { get; }
+        //public IOrType<NameKey, ImplicitKey> Key { get; }
+        public int Index { get; }
+        //public IFrontendType<IVerifiableType> Parent { get; }
+        public IFrontendType<IVerifiableType> Constraint { get; }
 
-        public override bool Equals(object? obj)
+        //public override bool Equals(object? obj)
+        //{
+        //    return obj is GenericTypeParameterPlacholder placholder && Equals(placholder);
+        //}
+
+        //public override int GetHashCode()
+        //{
+        //    return Index;
+        //}
+
+        public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
-            return obj is GenericTypeParameterPlacholder placholder && Equals(placholder);
+            var res = GenericTypeParameter.CreateAndBuild(/*Parent.Convert(context),*/Index, Constraint.Convert(context));
+
+            return new BuildIntention<IVerifiableType>(res, () => { });
         }
 
-        public override int GetHashCode()
+        public IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
         {
-            return HashCode.Combine(Key);
+            if (assumeTrue.Contains((this, they)))
+            {
+                return OrType.Make<bool, IError>(true);
+            }
+            assumeTrue.Add((this, they));
+
+            return Constraint.TheyAreUs(they, assumeTrue);
+
+            //if (!they.SafeIs(out GenericTypeParameterPlacholder other)) {
+            //    return OrType.Make<bool, IError>(false);
+            //}
+
+            //if (Index != other.Index)
+            //{
+            //    return OrType.Make<bool, IError>(false);
+            //}
+
+            //return Parent.TheyAreUs(other.Parent, assumeTrue);
         }
 
-        public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext _)
-        {
-            var (res, maker) = Model.Instantiated.GemericTypeParameterPlacholder.Create();
+        public IOrType<IOrType<WeakMemberDefinition, IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue) => Constraint.TryGetMember(key, assumeTrue);
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn() => Constraint.TryGetReturn();
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput() => Constraint.TryGetInput();
 
-            // this is stack allocated and might be GC'ed so we need to create locals
-            // to feed to the lambda
-            var key = Key;
-            return new BuildIntention<IVerifiableType>(res, () => { maker.Build(key); });
-        }
 
-        public bool Equals(GenericTypeParameterPlacholder placholder)
-        {
-            return EqualityComparer<IOrType<NameKey, ImplicitKey>>.Default.Equals(Key, placholder.Key);
-        }
+        //public bool Equals(GenericTypeParameterPlacholder placholder)
+        //{
+        //    return EqualityComparer<IOrType<NameKey, ImplicitKey>>.Default.Equals(Key, placholder.Key);
+        //}
 
 #pragma warning disable CA1822 // Mark members as static
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
@@ -663,9 +695,9 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
     {
         private IBox<IOrType<IFrontendType<IVerifiableType>, IError>> inputType;
         private Box<IOrType<IFrontendType<IVerifiableType>, IError>> outputType;
-        private IGenericTypeParameterPlacholder[] typeParameterDefinitions;
+        private IBox<IOrType<IFrontendType<IVerifiableType>, IError>>[] typeParameterDefinitions;
 
-        public GenericMethodType(IBox<IOrType<IFrontendType<IVerifiableType>, IError>> inputType, Box<IOrType<IFrontendType<IVerifiableType>, IError>> outputType, IGenericTypeParameterPlacholder[] typeParameterDefinitions)
+        public GenericMethodType(IBox<IOrType<IFrontendType<IVerifiableType>, IError>> inputType, Box<IOrType<IFrontendType<IVerifiableType>, IError>> outputType, IBox<IOrType<IFrontendType<IVerifiableType>, IError>>[] typeParameterDefinitions)
         {
             this.inputType = inputType;
             this.outputType = outputType;
@@ -724,15 +756,12 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             var outputType = this.outputType;
             return new BuildIntention<IGenericMethodType>(res
                 , () =>
-                {
-                    var i = 0;
                     builder.Build(
                         inputType.GetValue().Is1OrThrow().SafeCastTo<IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>>().Convert(context),
                         outputType.GetValue().Is1OrThrow().SafeCastTo<IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>>().Convert(context),
                         typeParameterDefinitions
-                            .Select(x=> GenericTypeParameter.CreateAndBuild(res.SafeCastTo(out Tac.Model.Instantiated.GenericMethodType _)/*this is bad, I should remove my Tac.Model, just use instantiated and keep it dumb*/,i++))
-                            .ToArray());
-                });
+                            .Select(x=> x.GetValue().Is1OrThrow().Convert(context).SafeCastTo(out GenericTypeParameter _)/* can I push this earlier? it would be nice to cast earlier. it's a little painful becuase of the unwrapping, I don't know if I was careful with the types the whole way */)
+                            .ToArray()));
         }
     }
 }
