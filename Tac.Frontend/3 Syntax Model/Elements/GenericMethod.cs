@@ -176,7 +176,7 @@ namespace Tac.SemanticModel
 
             var box = new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>();
             var converter = new WeakMethodDefinitionConverter(box);
-            var method = context.TypeProblem.CreateGenericMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, genericParameters.Select(x => new Tpn.TypeAndConverter(OrType.Make<NameKey,ImplicitKey>(x), new WeakTypeDefinitionConverter())).ToArray());
+            var method = context.TypeProblem.CreateGenericMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, genericParameters.Select(x => new Tpn.TypeAndConverter(x, new WeakTypeDefinitionConverter())).ToArray());
 
             var nextElements = elements.Select(x => x.TransformInner(y => y.Run(method, context.CreateChildContext(this)).Resolve)).ToArray();
 

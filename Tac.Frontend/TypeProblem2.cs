@@ -61,7 +61,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public IOrType<IKey, IError, Unset> TypeKey { get; set; } = Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(new Unset());
                 public IIsPossibly<IStaticScope> Context { get; set; } = Possibly.IsNot<IStaticScope>();
-                public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType, IError>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
+                public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>();
 
                 //public IReadOnlyDictionary<IKey, Member> GetPublicMembers()
                 //{
@@ -77,7 +77,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public IOrType<IKey, IError, Unset> TypeKey { get; set; } = Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(new Unset());
                 public IIsPossibly<IStaticScope> Context { get; set; } = Possibly.IsNot<IStaticScope>();
-                public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType, IError>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
+                public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>();
 
                 public IIsPossibly<InferredType> Hopeful { get; set; } = Possibly.IsNot<InferredType>();
 
@@ -94,7 +94,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public IOrType<IKey, IError, Unset> TypeKey { get; set; } = Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(new Unset());
                 public IIsPossibly<IStaticScope> Context { get; set; } = Possibly.IsNot<IStaticScope>();
-                public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType, IError>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
+                public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>();
                 public IIsPossibly<InferredType> Hopeful { get; set; } = Possibly.IsNot<InferredType>();
 
                 //public IReadOnlyDictionary<IKey, Member> GetPublicMembers()
@@ -111,7 +111,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public IOrType<IKey, IError, Unset> TypeKey { get; set; } = Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(new Unset());
                 public IIsPossibly<IStaticScope> Context { get; set; } = Possibly.IsNot<IStaticScope>();
-                public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType, IError>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
+                public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>();
                 public IIsPossibly<InferredType> Hopeful { get; set; } = Possibly.IsNot<InferredType>();
 
                 //public IReadOnlyDictionary<IKey, Member> GetPublicMembers()
@@ -129,13 +129,13 @@ namespace Tac.Frontend.New.CrzayNamespace
             // you are making members
             // right now this will fail
             // if the parent has a member of this name
-            public class Type : TypeProblemNode<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType, GenericTypeParameterPlacholder>>, IExplicitType, IHavePossibleMembers
+            public class Type : TypeProblemNode<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>>, IExplicitType, IHavePossibleMembers
             {
                 public Type(
                     Builder problem,
                     string debugName,
                     IIsPossibly<IOrType<NameKey, ImplicitKey>> key,
-                    IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType, GenericTypeParameterPlacholder>> converter,
+                    IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> converter,
                     IIsPossibly<Guid> primitiveId,
                     IIsPossibly<IInterfaceType> external
                     ) : base(problem, debugName, converter)
@@ -157,8 +157,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<IKey, MethodType> MethodTypes { get; } = new Dictionary<IKey, MethodType>();
                 public Dictionary<IKey, Object> Objects { get; } = new Dictionary<IKey, Object>();
                 public Dictionary<IKey, Member> PossibleMembers { get; } = new Dictionary<IKey, Member>();
-                public Dictionary<IKey, IOrType<Type, InferredType>> Generics { get; } = new Dictionary<IKey, IOrType<Type, InferredType>>();
-                public Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> GenericOverlays { get; } = new Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
+                public Dictionary<NameKey, GenericTypeParameter> Generics { get; } = new Dictionary<NameKey, GenericTypeParameter>();
+                public Dictionary<NameKey, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> GenericOverlays { get; } = new Dictionary<NameKey, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>();
                 public IIsPossibly<IOrType<NameKey, ImplicitKey>> Key { get; }
                 public IIsPossibly<IInterfaceType> External { get; }
             }
@@ -190,8 +190,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IIsPossibly<Member> Input { get; set; } = Possibly.IsNot<Member>();
                 public IIsPossibly<TransientMember> Returns { get; set; } = Possibly.IsNot<TransientMember>();
 
-                public Dictionary<IKey, IOrType< Type, InferredType>> Generics { get; } = new Dictionary<IKey, IOrType<Type, InferredType>>();
-                public Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> GenericOverlays { get; } = new Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
+                public Dictionary<NameKey, GenericTypeParameter> Generics { get; } = new Dictionary<NameKey, GenericTypeParameter>();
+                public Dictionary<NameKey, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> GenericOverlays { get; } = new Dictionary<NameKey, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>();
             }
 
             public class InferredType : TypeProblemNode, IHaveInputAndOutput, IHavePublicMembers //, IScope
@@ -287,9 +287,21 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public IIsPossibly<Member> Input { get; set; } = Possibly.IsNot<Member>();
                 public IIsPossibly<TransientMember> Returns { get; set; } = Possibly.IsNot<TransientMember>();
-                public Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> GenericOverlays { get; } = new Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
-                public Dictionary<IKey, IOrType<Type, InferredType>> Generics { get; } = new Dictionary<IKey, IOrType<Type, InferredType>>();
+                public Dictionary<NameKey, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> GenericOverlays { get; } = new Dictionary<NameKey, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>();
+                public Dictionary<NameKey, GenericTypeParameter> Generics { get; } = new Dictionary<NameKey, GenericTypeParameter>();
 
+            }
+
+            public class GenericTypeParameter: TypeProblemNode<GenericTypeParameter,GenericTypeParameterPlacholder>
+            {
+                public GenericTypeParameter(Builder problem, string debugName, IConvertTo<GenericTypeParameter, GenericTypeParameterPlacholder> converter, int index) : base(problem, debugName, converter)
+                {
+                    constraint = new InferredType(problem, "constraint-for-"+debugName);
+                    this.index = index;
+                }
+
+                public readonly InferredType constraint;
+                public readonly int index;
             }
 
             // basic stuff
@@ -317,14 +329,14 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 // create types for everything 
                 var toLookUp = typeProblemNodes.OfType<ILookUpType>().ToArray();
-                foreach (var node in toLookUp.Where(x => !(x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>) && x.TypeKey.Is3(out var _)))
+                foreach (var node in toLookUp.Where(x => !(x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>) && x.TypeKey.Is3(out var _)))
                 {
                     var type = new InferredType(this.builder, $"for {((TypeProblemNode)node).DebugName}");
-                    node.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(type));
+                    node.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(type));
                 }
 
                 // what happens here if x.TypeKey.Is2??
-                if (toLookUp.Any(x => !(x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>) && x.TypeKey.Is2(out var _)))
+                if (toLookUp.Any(x => !(x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>) && x.TypeKey.Is2(out var _)))
                 {
                     throw new NotImplementedException();
                 }
@@ -334,8 +346,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 var keyAndTypes = new Dictionary<GenericTypeKey, OrType<MethodType, Type>>();
                 // two way map.. probably need a TwoWayDictonary type, that wraps a pair of dictionaries 
-                var typeParametersAndTypes = new Dictionary<GenericTypeKey.TypeParameter, IOrType<Type, InferredType>>();
-                var overlaysToTypeParameters = new Dictionary<IOrType<Type, InferredType>, GenericTypeKey.TypeParameter>();
+                var typeParametersAndTypes = new Dictionary<GenericTypeKey.TypeParameter, GenericTypeParameter>();
+                var overlaysToTypeParameters = new Dictionary<GenericTypeParameter, GenericTypeKey.TypeParameter>();
 
                 // why do I order by height?
                 // we register types top down
@@ -442,16 +454,18 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                             // do I really need to make place holders?
                             // yeah, for a reference like generic-method [t1] [t1, t1] 
+                            var i =0;
                             foreach (var placeholder in genericTypeKey.sourceTypes)
                             {
-                                var key = new ImplicitKey(Guid.NewGuid());
-                                var placeholderType = new Type(this.builder, placeholder.ToString(), Possibly.Is(Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(key)), new WeakTypeDefinitionConverter(),  Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>());
+                                //var key = new ImplicitKey(Guid.NewGuid());
+                                var placeholderType = new TypeProblem2.GenericTypeParameter(this.builder, placeholder.ToString(), new GernericPlaceHolderConverter(), i++);
+                                //var placeholderType = new Type(this.builder, placeholder.ToString(), Possibly.Is(Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(key)), new WeakTypeDefinitionConverter(),  Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>());
                                 typeParametersAndTypes.Add(placeholder.Value, placeholderType);
                                 builder.HasGenericType(
                                     newType.SwitchReturns(
                                         x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(x),
                                         x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(x)),
-                                    key,
+                                    placeholder.Key,
                                     placeholderType);
                                 overlaysToTypeParameters.Add(placeholderType, placeholder.Value);
                             }
@@ -476,16 +490,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                         var map = key.primary.SwitchReturns(x => x.Generics.Values, x => x.Generics.Values)
                             .Zip(
                                 key.parameters.Select(parameter => parameter.SwitchReturns(
-                                    methodType => (IOrType<MethodType, Type, Object, OrType, InferredType, IError>)Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(methodType),
-                                    type => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(type),
-                                    @object => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(@object),
-                                    orType => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(orType),
-                                    inferredType => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(inferredType),
-                                    ierror => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(ierror),
-                                    typeParameter => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(typeParametersAndTypes[typeParameter]),
+                                    methodType => (IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>)Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(methodType),
+                                    type => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(type),
+                                    @object => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(@object),
+                                    orType => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(orType),
+                                    inferredType => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(inferredType),
+                                    ierror => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(ierror),
+                                    typeParameter => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(typeParametersAndTypes[typeParameter]),
                                     genericTypeKey => keyAndTypes[genericTypeKey].SwitchReturns(
-                                        methodType => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(methodType),
-                                        type => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(type)))),
+                                        methodType => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(methodType),
+                                        type => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(type)))),
                                 (from, to) => (from, to))
                             .ToDictionary(pair => pair.from, pair => pair.to);
 
@@ -514,22 +528,22 @@ namespace Tac.Frontend.New.CrzayNamespace
                     foreach (var (lookup, target) in lookupsAndTarget)
                     {
                         target.Switch(
-                            methodType => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(methodType)); },
-                            type => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(type)); },
-                            @object => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(@object)); },
-                            orType => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(orType)); },
-                            inferredType => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(inferredType)); },
-                            ierror => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(ierror)); },
-                            typeParameter => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(typeParametersAndTypes[typeParameter])); },
+                            methodType => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(methodType)); },
+                            type => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(type)); },
+                            @object => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(@object)); },
+                            orType => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(orType)); },
+                            inferredType => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(inferredType)); },
+                            ierror => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(ierror)); },
+                            typeParameter => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(typeParametersAndTypes[typeParameter])); },
                             genericTypeKey =>
                             {
                                 if (!keyAndTypes.ContainsKey(genericTypeKey)) {
-                                    lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(Error.Other("type not found")));
+                                    lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(Error.Other("type not found")));
                                 }
                                 else {
                                     lookup.LooksUp = keyAndTypes[genericTypeKey].SwitchReturns(
-                                        methodType => Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(methodType)),
-                                        type => Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(type)));
+                                        methodType => Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(methodType)),
+                                        type => Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(type)));
                                 }
                             });
                     }
@@ -554,6 +568,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                 x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                 x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.constraint),
                                 x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x));
                     var fromType = from.LooksUp.GetOrThrow().SwitchReturns(
                                 x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -561,6 +576,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                 x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                 x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.constraint),
                                 x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x));
 
 
@@ -595,9 +611,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                                         x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                         x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                         x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                        x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                         x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x));
 
                                 var assignedFrom = member.LooksUp.GetOrThrow().SwitchReturns(
+                                        x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                         x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                         x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                         x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -656,6 +674,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         var flowTo = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hopeful);
                         var flowFrom = node.LooksUp.GetOrThrow().SwitchReturns(
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -780,6 +799,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))]);
                     }
                 }
@@ -797,12 +817,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))]);
                     }
                     if (hasInputAndOutput.Returns.Is(out var output))
                     {
                         orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasInputAndOutput)].Is1OrThrow().Output = Possibly.Is(
                                 orsToFlowNodesLookup[output.LooksUp.GetOrThrow().SwitchReturns(
+                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -815,7 +837,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // we just do generics for method types
                 foreach (var methodType in ors.Select(x => (x.Is1(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
-                    orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(methodType)].Is1OrThrow().Generics = methodType.Generics.Select(x => orsToFlowNodesLookup[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.GetValueAs(out ITypeProblemNode _))]).ToArray();
+                    orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(methodType)].Is1OrThrow().Generics = methodType.Generics.Select(x => orsToFlowNodesLookup[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value)]).ToArray();
                 }
 
                 excapeValve = 0;
@@ -874,8 +896,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x)), out var left) &&
                            orsToFlowNodes.TryGetValue(GetType(or.Right.GetOrThrow()).SwitchReturns(
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -1084,38 +1108,38 @@ namespace Tac.Frontend.New.CrzayNamespace
             //    }
             //}
 
-            static OrType<MethodType, Type, Object, OrType, InferredType, IError> LookUpOrError(IStaticScope haveTypes, IKey key)
+            static OrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> LookUpOrError(IStaticScope haveTypes, IKey key)
             {
                 while (true)
                 {
                     {
                         if (haveTypes.Types.TryGetValue(key, out var res))
                         {
-                            return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(res);
+                            return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(res);
                         }
                     }
                     {
                         if (haveTypes is IStaticScope scope && scope.Objects.TryGetValue(key, out var res))
                         {
-                            return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(res);
+                            return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(res);
                         }
                     }
                     {
                         if (haveTypes.OrTypes.TryGetValue(key, out var res))
                         {
-                            return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(res);
+                            return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(res);
                         }
                     }
                     {
                         if (haveTypes.MethodTypes.TryGetValue(key, out var res))
                         {
-                            return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(res);
+                            return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(res);
                         }
                     }
-                    if (haveTypes.SafeIs(out Type _) || haveTypes.SafeIs(out MethodType _) || haveTypes.SafeIs(out Method _))
+                    if (key.SafeIs(out NameKey nameKey) && haveTypes.SafeIs(out Type _) || haveTypes.SafeIs(out MethodType _) || haveTypes.SafeIs(out Method _))
                     {
                         {
-                            Dictionary<IKey, IOrType<Type, InferredType>> generics;
+                            Dictionary<NameKey, GenericTypeParameter> generics;
                             if (haveTypes.SafeIs(out Type type))
                             {
                                 generics = type.Generics;
@@ -1133,13 +1157,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 throw new Exception("💩💩💩💩💩");
                             }
 
-                            if (generics.TryGetValue(key, out var res))
+                            if (generics.TryGetValue(nameKey, out var res))
                             {
-                                return res.SwitchReturns(x=>Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(x), x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(x));
+                                return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(res);
                             }
                         }
                         {
-                            Dictionary<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> genericOverlays;
+                            Dictionary<NameKey, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> genericOverlays;
                             if (haveTypes.SafeIs(out Type type))
                             {
                                 genericOverlays = type.GenericOverlays;
@@ -1157,19 +1181,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 throw new Exception("💩💩💩💩💩");
                             }
 
-                            if (genericOverlays.TryGetValue(key, out var res))
+                            if (genericOverlays.TryGetValue(nameKey, out var res))
                             {
                                 if (res.Is1(out var methodType))
                                 {
-                                    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(methodType);
+                                    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(methodType);
                                 }
                                 else if (res.Is2(out var innerType))
                                 {
-                                    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(innerType);
+                                    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(innerType);
                                 }
                                 else if (res.Is6(out var error))
                                 {
-                                    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(error); ;
+                                    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(error); ;
                                 }
                                 else
                                 {
@@ -1185,7 +1209,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                     else
                     {
-                        return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(Error.TypeNotFound($"could not find type for {key} in {haveTypes}"));
+                        return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(Error.TypeNotFound($"could not find type for {key} in {haveTypes}"));
                     }
                 }
             }
@@ -1277,7 +1301,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             //}
 
             // should take IOrType<(MethodType from ,MethodType to),  (Type from , Type to)> pair 
-            IOrType<MethodType, Type> CopyTree(IOrType<MethodType, Type> from, IOrType<MethodType, Type> to, IReadOnlyDictionary<Type, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> overlayed)
+            IOrType<MethodType, Type> CopyTree(IOrType<MethodType, Type> from, IOrType<MethodType, Type> to, IReadOnlyDictionary<GenericTypeParameter, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> overlayed)
             {
 
                 var map = new Dictionary<ITypeProblemNode, ITypeProblemNode>();
@@ -1546,7 +1570,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var or in innerFromType.GenericOverlays)
                             {
-                                if (or.Value.Is2(out var type) && overlayed.TryGetValue(type, out var toType))
+                                if (or.Value.Is6(out var genericType) && overlayed.TryGetValue(genericType, out var toType))
                                 {
                                     builder.HasOverlayedGeneric(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(innerTypeTo), or.Key, toType);
                                 }
@@ -1576,7 +1600,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var or in innerFromMethodType.GenericOverlays)
                             {
-                                if (or.Value.Is2(out var type) && overlayed.TryGetValue(type, out var toType))
+                                if (or.Value.Is6(out var genericType) && overlayed.TryGetValue(genericType, out var toType))
                                 {
                                     builder.HasOverlayedGeneric(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(innerMethodTypeTo), or.Key, toType);
                                 }
@@ -1606,7 +1630,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var or in innerFromMethod.GenericOverlays)
                             {
-                                if (or.Value.Is2(out var type) && overlayed.TryGetValue(type, out var toType))
+                                if (or.Value.Is6(out var genericType) && overlayed.TryGetValue(genericType, out var toType))
                                 {
                                     builder.HasOverlayedGeneric(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(innerMethodTo), or.Key, toType);
                                 }
@@ -1732,7 +1756,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             #endregion
 
-            static IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType, IError>> TryGetType(ITypeProblemNode value)
+            static IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> TryGetType(ITypeProblemNode value)
             {
                 if (value.SafeIs(out ILookUpType lookup))
                 {
@@ -1741,29 +1765,29 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 if (value.SafeIs(out MethodType methodType))
                 {
-                    return Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(methodType));
+                    return Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError >(methodType));
                 }
                 if (value.SafeIs(out Type type))
                 {
-                    return Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(type));
+                    return Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError >(type));
 
                 }
                 if (value.SafeIs(out Object @object))
                 {
-                    return Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(@object));
+                    return Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError >(@object));
                 }
                 if (value.SafeIs(out OrType orType))
                 {
-                    return Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(orType));
+                    return Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError >(orType));
                 }
                 if (value.SafeIs(out InferredType inferred))
                 {
-                    return Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(inferred));
+                    return Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError >(inferred));
                 }
-                return Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
+                return Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType,GenericTypeParameter, IError>>();
             }
 
-            static IOrType<MethodType, Type, Object, OrType, InferredType, IError> GetType(ITypeProblemNode value)
+            static IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> GetType(ITypeProblemNode value)
             {
                 return TryGetType(value).IfElseReturn(
                     x => x,
@@ -1797,12 +1821,12 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 // we have to define the generic form of method
                 IGenericTypeParameterPlacholder[] genericParameters = new IGenericTypeParameterPlacholder[] { 
-                    new GenericTypeParameterPlacholder(0, new AnyType()), 
-                    new GenericTypeParameterPlacholder(1, new AnyType()) };
+                    new GenericTypeParameterPlacholder(0,  Prototypist.Toolbox.OrType.Make<IFrontendType<IVerifiableType>, IError>(new AnyType())), 
+                    new GenericTypeParameterPlacholder(1, Prototypist.Toolbox.OrType.Make<IFrontendType<IVerifiableType>, IError>(new AnyType())) };
                 var key = new NameKey("method");
                 var placeholders = new TypeAndConverter[] {
-                    new TypeAndConverter(Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("T1")), new WeakTypeDefinitionConverter()),
-                    new TypeAndConverter(Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(new NameKey("T2")), new WeakTypeDefinitionConverter()) };
+                    new TypeAndConverter(new NameKey("T1"), new WeakTypeDefinitionConverter()),
+                    new TypeAndConverter(new NameKey("T2"), new WeakTypeDefinitionConverter()) };
 
                 rootMethod = new MethodType(
                     this.builder,
@@ -1810,10 +1834,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                     new MethodTypeConverter());
 
                 builder.HasMethodType(Primitive, key, rootMethod);
+                var i = 0;
                 foreach (var placeholder in placeholders)
                 {
-                    var placeholderType = new Type(this.builder, $"generic-parameter-{placeholder.key}", Possibly.Is(placeholder.key), placeholder.converter, Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>());
-                    builder.HasGenericType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(rootMethod), placeholder.key.SwitchReturns<IKey>(x => x, x => x), placeholderType);
+                    var placeholderType = new TypeProblem2.GenericTypeParameter(this.builder, $"generic-parameter-{placeholder.key}", new GernericPlaceHolderConverter(), i++);
+                    //var placeholderType = new Type(this.builder, $"generic-parameter-{placeholder.key}", Possibly.Is(placeholder.key), placeholder.converter, Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>());
+                    builder.HasGenericType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(rootMethod), placeholder.key, placeholderType);
                 }
 
                 var methodInputKey = new NameKey("method type input" + Guid.NewGuid());
@@ -2011,26 +2037,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                     //this.rootMethod = rootMethod ?? throw new ArgumentNullException(nameof(rootMethod));
                 }
 
-                public static KeyVisitor Base(Func<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> lookup, Dictionary<IOrType<Type, InferredType>, GenericTypeKey.TypeParameter> overlaysToTypeParameters)
+                public static KeyVisitor Base(Func<IKey, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> lookup, Dictionary<GenericTypeParameter, GenericTypeKey.TypeParameter> overlaysToTypeParameters)
                 {
                     return new KeyVisitor(
                         key => lookup(key).SwitchReturns(
                             x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(x),
-                            type => {
-                                if (overlaysToTypeParameters.TryGetValue(Prototypist.Toolbox.OrType.Make <Type, InferredType>(type), out var typeParameter)) {
-                                    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(typeParameter);
-                                }
-                                return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(type);
-                            },
                             x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(x),
                             x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(x),
-                            inferred => {
-                                if (overlaysToTypeParameters.TryGetValue(Prototypist.Toolbox.OrType.Make<Type, InferredType>(inferred), out var typeParameter))
-                                {
-                                    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(typeParameter);
-                                }
-                                return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(inferred);
-                            },
+                            x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(x),
+                            x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(x),
+                            generic => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(overlaysToTypeParameters[generic]),
                             x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter>(x)),
                         new Dictionary<NameKey, GenericTypeKey.TypeParameter>());
                 }
@@ -2060,10 +2076,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                         x => Prototypist.Toolbox.OrType.Make<MethodType, Type>(x),
                         x => Prototypist.Toolbox.OrType.Make<MethodType, Type>(x),
                         x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
-                            x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
-                            x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
-                            x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
-                            x => throw new Exception("only methodType, Type, and Method can have generic parameters"));
+                        x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
+                        x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
+                        x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
+                        x => throw new Exception("only methodType, Type, and Method can have generic parameters"));
 
                     return DuobleGenericNameKey_BetterType_PassInPrimary(doubleGenericNameKey, primary);
                 }
@@ -2100,10 +2116,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                         x => Prototypist.Toolbox.OrType.Make<MethodType, Type>(x),
                         x => Prototypist.Toolbox.OrType.Make<MethodType, Type>(x),
                         x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
-                            x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
-                            x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
-                            x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
-                            x => throw new Exception("only methodType, Type, and Method can have generic parameters"));
+                        x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
+                        x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
+                        x => throw new Exception("only methodType, Type, and Method can have generic parameters"),
+                        x => throw new Exception("only methodType, Type, and Method can have generic parameters"));
 
                     return res;
                 }

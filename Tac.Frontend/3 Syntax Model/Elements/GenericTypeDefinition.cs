@@ -82,24 +82,25 @@ namespace Tac.SemanticModel
                 .Has(new DefineGenericNMaker())
                 .Has(new NameMaker())
                 .Has(new BodyMaker())
-                .ConvertIfMatched((_,generics, name, lines) =>
-                    new GenericTypeDefinitionPopulateScope(
+                .ConvertIfMatched((_,generics, name, lines) => {
+                    var i = 0; 
+                    return new GenericTypeDefinitionPopulateScope(
                         new NameKey(name.Item),
                         tokenMatching.Context.ParseBlock(lines),
-                        generics.Select(x =>
-                            new GenericTypeParameterPlacholder(OrType.Make<NameKey, ImplicitKey>(new NameKey(x))) as IGenericTypeParameterPlacholder).ToArray()), tokenMatching);
+                        generics.Select(x => new NameKey(x)).ToArray());
+                }, tokenMatching);
         }
 
-        public static ISetUp<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType> PopulateScope(
-                NameKey nameKey,
-                IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> lines,
-                IGenericTypeParameterPlacholder[] genericParameters)
-        {
-            return new GenericTypeDefinitionPopulateScope(
-                nameKey,
-                lines,
-                genericParameters);
-        }
+        //public static ISetUp<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType> PopulateScope(
+        //        NameKey nameKey,
+        //        IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> lines,
+        //        IGenericTypeParameterPlacholder[] genericParameters)
+        //{
+        //    return new GenericTypeDefinitionPopulateScope(
+        //        nameKey,
+        //        lines,
+        //        genericParameters);
+        //}
 
         
     }
@@ -108,12 +109,12 @@ namespace Tac.SemanticModel
     {
         private readonly NameKey nameKey;
         private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> lines;
-        private readonly IGenericTypeParameterPlacholder[] genericParameters;
+        private readonly NameKey[] genericParameters;
 
         public GenericTypeDefinitionPopulateScope(
             NameKey nameKey,
             IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> lines,
-            IGenericTypeParameterPlacholder[] genericParameters)
+            NameKey[] genericParameters)
         {
             this.nameKey = nameKey ?? throw new ArgumentNullException(nameof(nameKey));
             this.lines = lines ?? throw new ArgumentNullException(nameof(lines));
@@ -128,7 +129,7 @@ namespace Tac.SemanticModel
             var myScope = context.TypeProblem.CreateGenericType(
                 scope,
                 OrType.Make<NameKey, ImplicitKey>(nameKey),
-                genericParameters.Select(x => new Tpn.TypeAndConverter(x.Key, new WeakTypeDefinitionConverter())).ToArray(),
+                genericParameters.Select(x => new Tpn.TypeAndConverter(x, new WeakTypeDefinitionConverter())).ToArray(),
                 new WeakTypeDefinitionConverter());
             var nextLines = lines.Select(x => x.TransformInner(y => y.Run(myScope, context.CreateChildContext(this)).Resolve)).ToArray();
             return new SetUpResult<IBox<WeakGenericTypeDefinition>, Tpn.IExplicitType>(new GenericTypeDefinitionResolveReferance(myScope, nextLines), OrType.Make<Tpn.IExplicitType, IError>(myScope));

@@ -21,10 +21,10 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         internal class TypeAndConverter
         {
-            public readonly IOrType<NameKey, ImplicitKey> key;
-            public readonly IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, GenericTypeParameterPlacholder>> converter;
+            public readonly NameKey key;
+            public readonly IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter;
 
-            public TypeAndConverter(IOrType<NameKey, ImplicitKey> key, IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType, GenericTypeParameterPlacholder>> converter)
+            public TypeAndConverter(NameKey key, IConvertTo<TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, IPrimitiveType>> converter)
             {
                 this.key = key ?? throw new ArgumentNullException(nameof(key));
                 this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
@@ -79,7 +79,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         {
             public IOrType<IKey, IError, Unset> TypeKey { get; set; }
             public IIsPossibly<IStaticScope> Context { get; set; }
-            public IIsPossibly<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, IError>> LooksUp { get; set; }
+            public IIsPossibly<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, TypeProblem2.GenericTypeParameter, IError>> LooksUp { get; set; }
         }
 
         internal interface ICanAssignFromMe : ITypeProblemNode, ILookUpType { }

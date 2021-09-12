@@ -30,7 +30,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             //readonly Dictionary<TypeProblem2.Scope, Scope> scopeScopeCache = new Dictionary<TypeProblem2.Scope, Scope>();
 
             private readonly ConcurrentIndexed<EqualibleHashSet<Tpn.CombinedTypesAnd>, Yolo> cache = new ConcurrentIndexed<EqualibleHashSet<CombinedTypesAnd>, Yolo>();
-            private Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodes;
+            private readonly Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodes;
 
             private class Yolo
             {
@@ -56,6 +56,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             public TypeSolution(
                 IReadOnlyList<IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>> things,
                 Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodes) {
+
                 if (things is null)
                 {
                     throw new ArgumentNullException(nameof(things));
@@ -217,8 +218,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     cache[input].type,
                                     cache[output].type,
                                     generics.Select(x=> x.Value.SwitchReturns(y=> cache[y].type, error => { //*this is a poor mans safe cast, safe cast doesn't go this way (to a super class), but I need to communicate the type to C#
-                                        IBox<IOrType<IFrontendType<IVerifiableType>, IError>> y = new Box<IOrType<IGenericTypeParameterPlacholder, IError>>(OrType.Make<IGenericTypeParameterPlacholder, IError>(error)); return y; })).ToArray()
-                                    ));
+                                        IBox<IOrType<IFrontendType<IVerifiableType>, IError>> y = new Box<IOrType<IGenericTypeParameterPlacholder, IError>>(OrType.Make<IGenericTypeParameterPlacholder, IError>(error)); return y; })).ToArray()));
                         }
 
 
@@ -227,10 +227,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                             // I don't think this is safe see:
                             //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                             return
-                                 OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                                new MethodType(
-                                    cache[input].type,
-                                    new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType()))));
+                                OrType.Make<IFrontendType<IVerifiableType>, IError>(
+                                    new GenericMethodType(
+                                        cache[input].type,
+                                        new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
+                                        generics.Select(x => x.Value.SwitchReturns(y => cache[y].type, error => { //*this is a poor mans safe cast, safe cast doesn't go this way (to a super class), but I need to communicate the type to C#
+                                            IBox<IOrType<IFrontendType<IVerifiableType>, IError>> y = new Box<IOrType<IGenericTypeParameterPlacholder, IError>>(OrType.Make<IGenericTypeParameterPlacholder, IError>(error)); return y;
+                                        })).ToArray()));
                         }
 
                         if (output != default)
@@ -238,11 +241,23 @@ namespace Tac.Frontend.New.CrzayNamespace
                             // I don't think this is safe see:
                             //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                             return
-                                 OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                                new MethodType(
-                                    new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                    cache[output].type));
+                                OrType.Make<IFrontendType<IVerifiableType>, IError>(
+                                    new GenericMethodType(
+                                        new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
+                                        cache[output].type,
+                                        generics.Select(x => x.Value.SwitchReturns(y => cache[y].type, error => { //*this is a poor mans safe cast, safe cast doesn't go this way (to a super class), but I need to communicate the type to C#
+                                            IBox<IOrType<IFrontendType<IVerifiableType>, IError>> y = new Box<IOrType<IGenericTypeParameterPlacholder, IError>>(OrType.Make<IGenericTypeParameterPlacholder, IError>(error)); return y;
+                                        })).ToArray()));
                         }
+
+                        return
+                            OrType.Make<IFrontendType<IVerifiableType>, IError>(
+                                new GenericMethodType(
+                                    new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
+                                    new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
+                                    generics.Select(x => x.Value.SwitchReturns(y => cache[y].type, error => { //*this is a poor mans safe cast, safe cast doesn't go this way (to a super class), but I need to communicate the type to C#
+                                                                    IBox<IOrType<IFrontendType<IVerifiableType>, IError>> y = new Box<IOrType<IGenericTypeParameterPlacholder, IError>>(OrType.Make<IGenericTypeParameterPlacholder, IError>(error)); return y;
+                                    })).ToArray()));
                     }
 
                     if (input != default && output != default)
@@ -378,7 +393,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // a tempting notion
                 if (from.LooksUp.Is(out var value))
                 {
-                    if (value.Is6(out var error)) { 
+                    if (value.Is7(out var error)) { 
                         return OrType.Make<IFrontendType<IVerifiableType>, IError>(error);
                     }
                 }
@@ -387,6 +402,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 return flowNodes[from.LooksUp.GetOrThrow().SwitchReturns(
+                    x => OrType.Make<ITypeProblemNode, IError>(x),
                     x => OrType.Make<ITypeProblemNode, IError>(x),
                     x => OrType.Make<ITypeProblemNode, IError>(x),
                     x => OrType.Make<ITypeProblemNode, IError>(x),
@@ -415,6 +431,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                flowNodes[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _).ToRep().SwitchReturns(
                     x => cache[x].type.GetValue().TransformInner(y=>y.CastTo<HasMembersType>()),
                     x => OrType.Make<HasMembersType, IError>(x));
+
+            internal IOrType<IFrontendType<IVerifiableType>, IError> GetInferredType(TypeProblem2.InferredType from) =>
+               flowNodes[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _).ToRep().SwitchReturns(
+                    x => cache[x].type.GetValue(),
+                    x => OrType.Make<IFrontendType<IVerifiableType>, IError>(x));
 
 
             // this also ends up managing weak scopes that aren't types

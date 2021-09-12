@@ -29,42 +29,48 @@ namespace Tac.Frontend
         }
     }
 
-    internal class WeakTypeDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType, GenericTypeParameterPlacholder>>
+    internal class WeakTypeDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>>
     {
-        private readonly IIsPossibly<int> typeParmereIndex;
+        //private readonly IIsPossibly<int> typeParmereIndex;
 
-        public WeakTypeDefinitionConverter(IIsPossibly<int> typeParmereIndex)
+        public WeakTypeDefinitionConverter(/*IIsPossibly<int> typeParmereIndex*/)
         {
-            this.typeParmereIndex = typeParmereIndex ?? throw new ArgumentNullException(nameof(typeParmereIndex));
+            //this.typeParmereIndex = typeParmereIndex ?? throw new ArgumentNullException(nameof(typeParmereIndex));
         }
 
-        public IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType, GenericTypeParameterPlacholder> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Type from)
+        public IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Type from)
         {
-            // TODO this needs to sometimes actually make GenericTypeParameterPlacholder
-            int error = null;
-
-            if (typeParmereIndex.Is(out var index)) {
-                new GenericTypeParameterPlacholder(index, typeSolution.);
-            }
+            //if (typeParmereIndex.Is(out var index)) {
+            //    new GenericTypeParameterPlacholder(index, typeSolution.);
+            //}
 
             //var placeHolders = Tpn.TypeSolution.HasPlacholders(from);
 
             if (from.Generics.Any()) {
-                return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType, GenericTypeParameterPlacholder>(
+                return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>(
                     new WeakGenericTypeDefinition(
                         from.Key,
                         typeSolution.GetHasMemberType(from), // wrapping in a box here is weird 
-                        from.Generics.Select<KeyValuePair<IKey, Tpn.TypeProblem2.Type>,IIsPossibly<IGenericTypeParameterPlacholder>>(x =>  Possibly.Is<IGenericTypeParameterPlacholder>( x.Value.Converter.Convert(typeSolution, x.Value).Is4OrThrow())).ToArray()));
+                        from.Generics.Select(x=>Possibly.Is< IGenericTypeParameterPlacholder>(x.Value.Converter.Convert(typeSolution,x.Value))).ToArray()));
             }
 
-            return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType, GenericTypeParameterPlacholder>(
+            return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>(
                     new WeakTypeDefinition(typeSolution.GetHasMemberType(from)));//, key ?
 
         }
     }
 
+    internal class GernericPlaceHolderConverter : Tpn.IConvertTo<Tpn.TypeProblem2.GenericTypeParameter, GenericTypeParameterPlacholder>
+    {
 
-    internal class PrimitiveTypeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType, GenericTypeParameterPlacholder>>
+        public GenericTypeParameterPlacholder Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.GenericTypeParameter from)
+        {
+            return new GenericTypeParameterPlacholder(from.index, typeSolution.GetInferredType(from.constraint));
+        }
+    }
+
+
+    internal class PrimitiveTypeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>>
     {
         public PrimitiveTypeConverter(Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType primitiveType)
         {
@@ -73,9 +79,9 @@ namespace Tac.Frontend
 
         public Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType PrimitiveType { get; }
 
-        public IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType, GenericTypeParameterPlacholder> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Type from)
+        public IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Type from)
         {
-            return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType, GenericTypeParameterPlacholder>(PrimitiveType);
+            return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>(PrimitiveType);
         }
     }
 
@@ -108,8 +114,6 @@ namespace Tac.Frontend
 
         public IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from)
         {
-
-            
             var inputKey = from.PrivateMembers.Single(x => x.Value == from.Input.GetOrThrow());
 
             var scope = typeSolution.GetWeakScope(from);
@@ -121,7 +125,7 @@ namespace Tac.Frontend
                         body,
                         OrType.Make<WeakScope, IError>(scope),
                         Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>(),
-                        from.Generics.Select(x => { IGenericTypeParameterPlacholder y = x.Value.Converter.Convert(typeSolution, x.Value).Is4OrThrow(); return y; }).ToArray()));//, key
+                        from.Generics.Select(x => { IGenericTypeParameterPlacholder y = x.Value.Converter.Convert(typeSolution, x.Value); return y; }).ToArray()));//, key
             }
 
             return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>(new WeakMethodDefinition(

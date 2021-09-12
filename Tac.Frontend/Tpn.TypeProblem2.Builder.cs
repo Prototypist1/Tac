@@ -62,11 +62,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                     parent.Objects.Add(key, @object);
                 }
 
-                public void HasGenericType(IOrType<MethodType, Type, Method> parent, IKey key,  Type type)
+                public void HasGenericType(IOrType<MethodType, Type, Method> parent, NameKey key, GenericTypeParameter type)
                 {
                     parent.Switch(x => x.Generics.Add(key, type), x => x.Generics.Add(key, type), x => x.Generics.Add(key, type));
                 }
-                public void HasOverlayedGeneric(IOrType<MethodType, Type, Method> parent, IKey key, IOrType<MethodType, Type, Object, OrType, InferredType, IError> type)
+                public void HasOverlayedGeneric(IOrType<MethodType, Type, Method> parent, NameKey key, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> type)
                 {
                     parent.Switch(x => x.GenericOverlays.Add(key, type), x => x.GenericOverlays.Add(key, type), x => x.GenericOverlays.Add(key, type));
                 }
@@ -186,7 +186,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Member CreatePublicMember(
                     IHavePublicMembers scope,
                     IKey key,
-                    IOrType<MethodType, Type, Object, OrType, InferredType, IError> type)
+                    IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> type)
                 {
                     var res = new Member(this, key.ToString()!);
                     HasPublicMember(scope, key, res);
@@ -221,7 +221,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Member CreatePrivateMember(
                     IHavePrivateMembers scope,
                     IKey key,
-                    IOrType<MethodType, Type, Object, OrType, InferredType, IError> type)
+                    IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> type)
                 {
                     var res = new Member(this, key.ToString()!);
                     HasPrivateMember(scope, key, res);
@@ -264,12 +264,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return res;
                 }
 
-                public Type CreateType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType, GenericTypeParameterPlacholder>> converter)
+                public Type CreateType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> converter)
                 {
                     return CreateType(parent, key, converter, Possibly.IsNot<Guid>());
                 }
 
-                public Type CreateType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType, GenericTypeParameterPlacholder>> converter, IIsPossibly<Guid> primitive)
+                public Type CreateType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> converter, IIsPossibly<Guid> primitive)
                 {
                     var res = new Type(this, key.ToString()!, Possibly.Is(key), converter,  primitive, Possibly.IsNot<IInterfaceType>());
                     IsChildOf(parent, res);
@@ -277,7 +277,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return res;
                 }
 
-                public Type CreateType(IStaticScope parent, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType, GenericTypeParameterPlacholder>> converter)
+                public Type CreateType(IStaticScope parent, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> converter)
                 {
                     var key = new ImplicitKey(Guid.NewGuid());
                     var res = new Type(this, key.ToString()!, Possibly.IsNot<IOrType<NameKey, ImplicitKey>>(), converter,  Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>());
@@ -286,7 +286,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     //HasType(parent, key, res);
                     return res;
                 }
-                public Type CreateTypeExternalType(IStaticScope parent, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType, GenericTypeParameterPlacholder>> converter, IInterfaceType interfaceType)
+                public Type CreateTypeExternalType(IStaticScope parent, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> converter, IInterfaceType interfaceType)
                 {
                     var key = new ImplicitKey(Guid.NewGuid());
                     var res = new Type(this, key.ToString()!, Possibly.IsNot<IOrType<NameKey, ImplicitKey>>(), converter,  Possibly.IsNot<Guid>(), Possibly.Is(interfaceType));
@@ -296,7 +296,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return res;
                 }
 
-                public Type CreateGenericType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType, GenericTypeParameterPlacholder>> converter)
+                public Type CreateGenericType(IStaticScope parent, IOrType<NameKey, ImplicitKey> key, IReadOnlyList<TypeAndConverter> placeholders, IConvertTo<Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>> converter)
                 {
                     var res = new Type(
                         this,
@@ -307,16 +307,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                         Possibly.IsNot<IInterfaceType>());
                     IsChildOf(parent, res);
                     HasType(parent, key.SwitchReturns<IKey>(x => x, x => x), res);
+                    var i = 0;
                     foreach (var placeholder in placeholders)
                     {
-                        var placeholderType = new Type(
-                            this,
-                            $"generic-parameter-{placeholder.key}",
-                            Possibly.Is(placeholder.key),
-                            placeholder.converter,
-                            Possibly.IsNot<Guid>(),
-                            Possibly.IsNot<IInterfaceType>());
-                        HasGenericType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(res), placeholder.key.SwitchReturns<IKey>(x => x, x => x), placeholderType);
+                        var placeholderType = new TypeProblem2.GenericTypeParameter(this, $"generic-parameter-{placeholder.key}", new GernericPlaceHolderConverter(), i++);
+                        //var placeholderType = new Type(
+                        //    this,
+                        //    $"generic-parameter-{placeholder.key}",
+                        //    Possibly.Is(placeholder.key),
+                        //    placeholder.converter,
+                        //    Possibly.IsNot<Guid>(),
+                        //    Possibly.IsNot<IInterfaceType>());
+                        HasGenericType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(res), placeholder.key, placeholderType);
                     }
                     return res;
                 }
@@ -347,16 +349,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Method CreateGenericMethod(IStaticScope parent, IOrType<TypeReference, IError> inputType, IOrType<TypeReference, IError> outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>> converter, IReadOnlyList<TypeAndConverter> placeholders)
                 {
                     var method = CreateMethod(parent, inputType, outputType,  inputName, converter);
+                    var i = 0;
                     foreach (var placeholder in placeholders)
                     {
-                        var placeholderType = new Type(
-                            this,
-                            $"generic-parameter-{placeholder.key}",
-                            Possibly.Is(placeholder.key),
-                            placeholder.converter,
-                            Possibly.IsNot<Guid>(),
-                            Possibly.IsNot<IInterfaceType>());
-                        HasGenericType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(method), placeholder.key.SwitchReturns<IKey>(x => x, x => x), placeholderType);
+                        var placeholderType = new TypeProblem2.GenericTypeParameter(this, $"generic-parameter-{placeholder.key}", new GernericPlaceHolderConverter(), i++);
+
+                        //var placeholderType = new Type(
+                        //    this,
+                        //    $"generic-parameter-{placeholder.key}",
+                        //    Possibly.Is(placeholder.key),
+                        //    placeholder.converter,
+                        //    Possibly.IsNot<Guid>(),
+                        //    Possibly.IsNot<IInterfaceType>());
+                        HasGenericType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(method), placeholder.key, placeholderType);
                     }
                     return method;
                 }
@@ -423,7 +428,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return res;
 
                 }
-                public MethodType GetMethod(IOrType<MethodType, Type, Object, OrType, InferredType, IError> input, IOrType<MethodType, Type, Object, OrType, InferredType, IError> output)
+                public MethodType GetMethod(IOrType<MethodType, Type, Object, OrType, InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError> input, IOrType<MethodType, Type, Object, OrType, InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError> output)
                 {
                     throw new NotImplementedException();
                 }
@@ -524,11 +529,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                         // and infered to do not have private members
                         var methodInputKey = new NameKey("generated infered method input - " + Guid.NewGuid());
                         var inputMember = new Member(this, methodInputKey.ToString()!);
-                        inputMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")));
+                        inputMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter,  IError>(new InferredType(this, "implicit input")));
                         inferredMethodType.Input = Possibly.Is(inputMember);
 
                         var returnMember = new TransientMember(this, "generated infered method return -" + Guid.NewGuid());
-                        returnMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit return")));
+                        returnMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(new InferredType(this, "implicit return")));
                         inferredMethodType.Returns = Possibly.Is(returnMember);
 
                         return inputMember;
@@ -583,11 +588,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                         // and infered to do not have private members
                         var methodInputKey = new NameKey("generated infered method input - " + Guid.NewGuid());
                         var inputMember = new Member(this, methodInputKey.ToString()!);
-                        inputMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit input")));
+                        inputMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError >(new InferredType(this, "implicit input")));
                         inferredMethodType.Input = Possibly.Is(inputMember);
 
                         var returnMember = new TransientMember(this, "generated infered method return -" + Guid.NewGuid());
-                        returnMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(new InferredType(this, "implicit return")));
+                        returnMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError >(new InferredType(this, "implicit return")));
                         inferredMethodType.Returns = Possibly.Is(returnMember);
 
                         return returnMember;

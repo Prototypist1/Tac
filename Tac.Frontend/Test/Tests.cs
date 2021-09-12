@@ -338,7 +338,7 @@ namespace Tac.Frontend.TypeProblem.Test
                 OrType.Make<NameKey, ImplicitKey>(new NameKey("pair")),
                 new[]{
                     new Tpn.TypeAndConverter(
-                        OrType.Make<NameKey, ImplicitKey>(new NameKey("T")),
+                        new NameKey("T"),
                         new WeakTypeDefinitionConverter())},
                 new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...?  {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
                 );
@@ -383,7 +383,7 @@ namespace Tac.Frontend.TypeProblem.Test
                 x.ModuleRoot,
                 OrType.Make<NameKey, ImplicitKey>(new NameKey("node")),
                 new[]{
-                    new Tpn.TypeAndConverter(OrType.Make<NameKey, ImplicitKey>(new NameKey("node-t")), new WeakTypeDefinitionConverter())
+                    new Tpn.TypeAndConverter(new NameKey("node-t"), new WeakTypeDefinitionConverter())
                 },
                 new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...?  {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
             );
@@ -430,7 +430,7 @@ namespace Tac.Frontend.TypeProblem.Test
                 x.ModuleRoot,
                 OrType.Make<NameKey, ImplicitKey>(new NameKey("node")),
                 new[]{
-                    new Tpn.TypeAndConverter(OrType.Make<NameKey, ImplicitKey>(new NameKey("node-t")), new WeakTypeDefinitionConverter())
+                    new Tpn.TypeAndConverter(new NameKey("node-t"), new WeakTypeDefinitionConverter())
                 },
                 new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...?  {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
             );
@@ -485,7 +485,7 @@ namespace Tac.Frontend.TypeProblem.Test
                 x.ModuleRoot,
                 OrType.Make<NameKey, ImplicitKey>(new NameKey("left")),
                 new[]{
-                    new Tpn.TypeAndConverter(OrType.Make<NameKey, ImplicitKey>(new NameKey("left-t")), new WeakTypeDefinitionConverter())
+                    new Tpn.TypeAndConverter(new NameKey("left-t"), new WeakTypeDefinitionConverter())
                 },
                 new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...? {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
                 );
@@ -497,7 +497,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var right = x.builder.CreateGenericType(
                 x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("right")),
                 new[]{
-                    new Tpn.TypeAndConverter(OrType.Make<NameKey, ImplicitKey>(new NameKey("right-t")), new WeakTypeDefinitionConverter())
+                    new Tpn.TypeAndConverter(new NameKey("right-t"), new WeakTypeDefinitionConverter())
                 },
                 new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...? {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
                 );
@@ -557,7 +557,7 @@ namespace Tac.Frontend.TypeProblem.Test
                 x.ModuleRoot,
                 OrType.Make<NameKey, ImplicitKey>(new NameKey("pair")),
                 new[]{
-                    new Tpn.TypeAndConverter(OrType.Make<NameKey, ImplicitKey>(new NameKey("T")), new WeakTypeDefinitionConverter())
+                    new Tpn.TypeAndConverter(new NameKey("T"), new WeakTypeDefinitionConverter())
                 },
                 new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...?  {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
                 );
@@ -621,10 +621,10 @@ namespace Tac.Frontend.TypeProblem.Test
             var ab = x.builder.CreatePublicMember(
                 x.ModuleRoot,
                 new NameKey("ab"),
-                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(orType));
+                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType,Tpn.TypeProblem2.GenericTypeParameter, IError >(orType));
 
             var c = x.builder.CreatePublicMember(x.ModuleRoot, new NameKey("c"),
-                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(cType));
+                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError>(cType));
 
             x.builder.IsAssignedTo(ab, c);
 
@@ -671,7 +671,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var ab = x.builder.CreatePublicMember(
                 x.ModuleRoot,
                 new NameKey("ab"),
-                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(orType));
+                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError>(orType));
 
             var c = x.builder.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("c"));
 
@@ -705,7 +705,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var b = x.builder.CreatePublicMember(
                 x.ModuleRoot,
                 new NameKey("b"),
-                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(orType));
+                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError>(orType));
 
             var c = x.builder.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("c"));
 
@@ -746,7 +746,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var b = x.builder.CreatePublicMember(
                 x.ModuleRoot,
                 new NameKey("b"),
-                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(orType));
+                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError>(orType));
 
             var c = x.builder.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("c"));
 
@@ -817,12 +817,12 @@ namespace Tac.Frontend.TypeProblem.Test
             var a = x.builder.CreatePublicMember(
                 x.ModuleRoot,
                 new NameKey("a"),
-                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(orType1));
+                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError>(orType1));
 
             var b = x.builder.CreatePublicMember(
                 x.ModuleRoot,
                 new NameKey("b"),
-                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(orType2));
+                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError>(orType2));
 
             var c = x.builder.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("c"));
 
@@ -911,12 +911,12 @@ namespace Tac.Frontend.TypeProblem.Test
             var a = x.builder.CreatePublicMember(
                 x.ModuleRoot,
                 new NameKey("a"),
-                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(orType1));
+                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError>(orType1));
 
             var b = x.builder.CreatePublicMember(
                 x.ModuleRoot,
                 new NameKey("b"),
-                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(bType));
+                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError>(bType));
 
             var c = x.builder.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("c"));
 
@@ -978,10 +978,10 @@ namespace Tac.Frontend.TypeProblem.Test
             var a = x.builder.CreatePublicMember(
                 x.ModuleRoot,
                 new NameKey("a"),
-                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(orType));
+                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError>(orType));
 
             var b = x.builder.CreatePublicMember(x.ModuleRoot, new NameKey("b"),
-                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(bType));
+                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError>(bType));
 
             x.builder.IsAssignedTo(a, b);
 
@@ -1018,7 +1018,7 @@ namespace Tac.Frontend.TypeProblem.Test
             problem.builder.CreatePublicMember(
                 yType,
                 new NameKey("member"),
-                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(yType));
+                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError>(yType));
 
             var xType = problem.builder.CreateType(
                 problem.ModuleRoot,
@@ -1035,7 +1035,7 @@ namespace Tac.Frontend.TypeProblem.Test
             problem.builder.CreatePublicMember(
                 xType,
                 new NameKey("member"),
-                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(orType));
+                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError>(orType));
 
             var a = problem.builder.CreatePublicMember(
                     problem.ModuleRoot,
@@ -1116,12 +1116,12 @@ namespace Tac.Frontend.TypeProblem.Test
             var b = x.builder.CreatePublicMember(
                     x.ModuleRoot,
                     new NameKey("b"),
-                    OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(bType));
+                    OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError>(bType));
 
             var n = x.builder.CreatePublicMember(
                     x.ModuleRoot,
                     new NameKey("n"),
-                    OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(nType));
+                    OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError>(nType));
 
             x.builder.IsAssignedTo(a, n);
             x.builder.IsAssignedTo(c, a);
@@ -1161,7 +1161,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var d = x.builder.CreatePublicMember(
                 x.ModuleRoot,
                 new NameKey("d"),
-                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(dType));
+                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError>(dType));
 
 
             x.builder.IsAssignedTo(a_x, d);
@@ -1363,7 +1363,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var d = typeProblem.builder.CreatePublicMember(
                 typeProblem.ModuleRoot,
                 new NameKey("d"),
-                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(dType));
+                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError>(dType));
 
             var n = typeProblem.builder.CreatePublicMember(typeProblem.ModuleRoot, typeProblem.ModuleRoot, new NameKey("n"), OrType.Make<IKey, IError>(new NameKey("number")));
 
@@ -1414,7 +1414,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var ab = typeProblem.builder.CreatePublicMember(
                 typeProblem.ModuleRoot,
                 new NameKey("ab"),
-                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, IError>(orType));
+                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError>(orType));
 
             typeProblem.builder.IsAssignedTo(x, ab);
 
