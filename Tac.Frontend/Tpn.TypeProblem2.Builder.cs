@@ -352,7 +352,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var i = 0;
                     foreach (var placeholder in placeholders)
                     {
-                        var placeholderType = new TypeProblem2.GenericTypeParameter(this, $"generic-parameter-{placeholder.key}", new GernericPlaceHolderConverter(), i++);
+                        var placeholderType = new GenericTypeParameter(this, $"generic-parameter-{placeholder.key}", new GernericPlaceHolderConverter(), i++);
 
                         //var placeholderType = new Type(
                         //    this,
@@ -363,6 +363,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                         //    Possibly.IsNot<IInterfaceType>());
                         HasGenericType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(method), placeholder.key, placeholderType);
                     }
+
+                    // TODO you are here!
+                    // this has generic overlays!
+                    // but they probably maybe do look ups 
+                    // I don't think I suppert overlays that are lookups
+
                     return method;
                 }
 

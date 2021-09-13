@@ -341,8 +341,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     throw new NotImplementedException();
                 }
 
-                #region Handle generics
 
+                #region Handle generics
 
                 var keyAndTypes = new Dictionary<GenericTypeKey, OrType<MethodType, Type>>();
                 // two way map.. probably need a TwoWayDictonary type, that wraps a pair of dictionaries 
@@ -360,7 +360,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 foreach (var item in typeProblemNodes.OfType<Type>().Where(x => x.Generics.Any()).OrderBy(x => Height(x)))
                 {
                     var visitor = KeyVisitor.Base(y => LookUpOrError(item, y), overlaysToTypeParameters);
-                    var key = new DoubleGenericNameKey(item.Key.GetOrThrow().Is1OrThrow(), item.Generics.Keys.Select(x => x.SafeCastTo(out NameKey _)).ToArray(), item.Generics.Keys.Select(x => Prototypist.Toolbox.OrType.Make<IKey, IError>(x)).ToArray());
+                    var key = new DoubleGenericNameKey(item.Key.GetOrThrow().Is1OrThrow(), item.Generics.Keys.Select(x => x).ToArray(), item.Generics.Keys.Select(x => Prototypist.Toolbox.OrType.Make<IKey, IError>(x)).ToArray());
                     var genericNameKey = visitor.DuobleGenericNameKey_BetterType_PassInPrimary(key, Prototypist.Toolbox.OrType.Make<MethodType, Type>( item));
 
                     foreach (var (overlay, typeParameter) in item.Generics.Join(genericNameKey.sourceTypes,x=>x.Key, x=>x.Key, (x,y)=>(x.Value,y.Value)))
@@ -371,11 +371,12 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     keyAndTypes.TryAdd(genericNameKey, Prototypist.Toolbox.OrType.Make<MethodType, Type>(item));
                 }
+
                 foreach (var item in typeProblemNodes.OfType<MethodType>().Where(x => x.Generics.Any()).OrderBy(x => Height(x)))
                 {
                     var visitor = KeyVisitor.Base(y => LookUpOrError(item, y), overlaysToTypeParameters);
-                    var key = new DoubleGenericNameKey(new NameKey("method"), item.Generics.Keys.Select(x=>x.SafeCastTo(out NameKey _)).ToArray() , item.Generics.Keys.Select(x => Prototypist.Toolbox.OrType.Make<IKey, IError>(x)).ToArray());
-                    var genericNameKey = visitor.DuobleGenericNameKey_BetterType_PassInPrimary(key, Prototypist.Toolbox.OrType.Make<MethodType, Type >(item));
+                    var key = new DoubleGenericNameKey(new NameKey("method"), item.Generics.Keys.Select(x=>x).ToArray() , item.Generics.Keys.Select(x => Prototypist.Toolbox.OrType.Make<IKey, IError>(x)).ToArray());
+                    var genericNameKey = visitor.DuobleGenericNameKey_BetterType_PassInPrimary(key, Prototypist.Toolbox.OrType.Make<MethodType, Type>(rootMethod));
 
                     foreach (var (overlay, typeParameter) in item.Generics.Join(genericNameKey.sourceTypes, x => x.Key, x => x.Key, (x, y) => (x.Value, y.Value)))
                     {
@@ -385,6 +386,22 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     keyAndTypes.TryAdd(genericNameKey, Prototypist.Toolbox.OrType.Make<MethodType, Type>(item));
                 }
+                //foreach (var method in typeProblemNodes.OfType<Method>().Where(x => x.Generics.Any()).OrderBy(x => Height(x)))
+                //{
+                //    // foreach method we make a double generic name key that resolves to it 
+                //    //var visitor = KeyVisitor.Base(y => LookUpOrError(method, y), overlaysToTypeParameters);
+                //    var key = new DoubleGenericNameKey(new NameKey("method"), method.Generics.Keys.Select(x => x).ToArray(), method.Generics.Keys.Select(x => Prototypist.Toolbox.OrType.Make<IKey, IError>(x)).ToArray());
+                //    //var genericNameKey = visitor.DuobleGenericNameKey_BetterType_PassInPrimary(key, Prototypist.Toolbox.OrType.Make<MethodType, Type>(rootMethod));
+
+                //    foreach (var (overlay, typeParameter) in method.Generics.Join(genericNameKey.sourceTypes, x => x.Key, x => x.Key, (x, y) => (x.Value, y.Value)))
+                //    {
+                //        overlaysToTypeParameters.Add(overlay, typeParameter);
+                //        typeParametersAndTypes.Add(typeParameter, overlay);
+                //    }
+
+                //    //keyAndTypes.TryAdd(genericNameKey, Prototypist.Toolbox.OrType.Make<MethodType, Type>(item));
+
+                //}
 
                 // if type [t1] node {}
                 // node [t1] [t1]
@@ -410,13 +427,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var completeLookUps = typeProblemNodes.OfType<ILookUpType>()
                        .Where(x => x.LooksUp.Is(out var _)) // why do somethings already know what they look up? yeah, inferred types (type test {x;})
                        .ToList();
-
-                //if (typeProblemNodes.OfType<ILookUpType>()
-                //       .Where(x => (x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>)).Any()) {
-                //    throw new Exception("does this happen at this point?");
-
-                //    completeLookUps.AddRange();
-                //}
 
                 var incompleteLookups = typeProblemNodes.OfType<ILookUpType>()
                        .Except(completeLookUps)
@@ -458,16 +468,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                             foreach (var placeholder in genericTypeKey.sourceTypes)
                             {
                                 //var key = new ImplicitKey(Guid.NewGuid());
-                                var placeholderType = new TypeProblem2.GenericTypeParameter(this.builder, placeholder.ToString(), new GernericPlaceHolderConverter(), i++);
+                                var placeholderType = new GenericTypeParameter(this.builder, placeholder.ToString(), new GernericPlaceHolderConverter(), i++);
                                 //var placeholderType = new Type(this.builder, placeholder.ToString(), Possibly.Is(Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(key)), new WeakTypeDefinitionConverter(),  Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>());
-                                typeParametersAndTypes.Add(placeholder.Value, placeholderType);
+
                                 builder.HasGenericType(
                                     newType.SwitchReturns(
                                         x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(x),
                                         x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(x)),
                                     placeholder.Key,
                                     placeholderType);
+
                                 overlaysToTypeParameters.Add(placeholderType, placeholder.Value);
+                                typeParametersAndTypes.Add(placeholder.Value, placeholderType);
                             }
 
                             return (genericTypeKey, newType);
@@ -697,11 +709,11 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 var ors = typeProblemNodes
                     .Select(node => TryGetType(node))
-                    .OfType<IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>>>()
-                    .Select(x => x.Value)
+                    .SelectMany(x=> { if (x.Is(out var res)){ return new[] { res }; } else { return new IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>[] { }; } })
                     .Distinct()
                     .ToArray();
 
+                // TODO (or atleast document), do I need both of these?
                 var orsToFlowNodesBuild = new Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
                 var orsToFlowNodesLookup = new Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
 
@@ -742,15 +754,25 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 foreach (var inferred in ors.Select(x => (x.Is5(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
+                    // duplicate {DCDB88BC-5843-448D-8E6B-673ECD445250}
                     var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(inferred);
-
                     var concrete = new ConcreteFlowNode<Tpn.TypeProblem2.InferredType>(inferred);
+
                     orsToFlowNodesBuild.Add(key, ToOr(concrete));
+
                     var inferredFlowNode = new InferredFlowNode(Possibly.Is(inferred));
                     inferredFlowNode.ReturnedSources.Add(new SourcePath(Prototypist.Toolbox.OrType.Make<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>(concrete), new List<IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>>()));
                     orsToFlowNodesLookup.Add(key, ToOr(inferredFlowNode));
                 }
-                foreach (var error in ors.Select(x => (x.Is6(out var v), v)).Where(x => x.Item1).Select(x => x.v))
+                foreach (var generic in ors.Select(x => (x.Is6(out var v), v)).Where(x => x.Item1).Select(x => x.v))
+                {
+                    var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(generic);
+                    var value = ToOr(new ConcreteFlowNode<GenericTypeParameter>(generic));
+
+                    orsToFlowNodesBuild.Add(key, value);
+                    orsToFlowNodesLookup.Add(key, value);
+                }
+                foreach (var error in ors.Select(x => (x.Is7(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
                     var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(error);
                     var value = ToOr(new ConcreteFlowNode<IError>(error));
@@ -1136,7 +1158,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(res);
                         }
                     }
-                    if (key.SafeIs(out NameKey nameKey) && haveTypes.SafeIs(out Type _) || haveTypes.SafeIs(out MethodType _) || haveTypes.SafeIs(out Method _))
+                    if (key.SafeIs(out NameKey nameKey) && (haveTypes.SafeIs(out Type _) || haveTypes.SafeIs(out MethodType _) || haveTypes.SafeIs(out Method _)))
                     {
                         {
                             Dictionary<NameKey, GenericTypeParameter> generics;
