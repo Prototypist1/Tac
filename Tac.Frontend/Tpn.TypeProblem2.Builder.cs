@@ -368,6 +368,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                     // this has generic overlays!
                     // but they probably maybe do look ups 
                     // I don't think I suppert overlays that are lookups
+                    // naw...
+                    // the overlays are t1 and t2 of the base method "method [t1,t2]"
+                    // they are never references anywhere so we don't care to overlay them
+                    // we build the right DoubleNameKey
 
                     return method;
                 }

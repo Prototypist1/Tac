@@ -371,7 +371,43 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     keyAndTypes.TryAdd(genericNameKey, Prototypist.Toolbox.OrType.Make<MethodType, Type>(item));
                 }
+                foreach (var method in typeProblemNodes.OfType<Method>().Where(x => x.Generics.Any()).OrderBy(x => Height(x)))
+                {
+                    var methodType = new MethodType(this.builder, "method-type-for-" + method.DebugName, new MethodTypeConverter());
 
+                    foreach (var generic in method.Generics)
+                    {
+                        this.builder.HasGenericType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(methodType), generic.Key, generic.Value/* TODO do I need to copy this?!*/);
+                    }
+
+                    var inputKey = method.PrivateMembers.Single(x => x.Value == method.Input.GetOrThrow()).Key;
+
+                    methodType.Input = Possibly.Is(builder.CreatePrivateMember(methodType, rootMethod, inputKey, Prototypist.Toolbox.OrType.Make<IKey, IError>(method.Input.GetOrThrow().TypeKey.Is1OrThrow())));
+                    methodType.Returns = Possibly.Is(builder.CreateTransientMember(methodType, method.Returns.GetOrThrow().TypeKey.Is1OrThrow(), $"return of {rootMethod.DebugName} "));
+
+                    // foreach method we make a double generic name key that resolves to it 
+                    //var visitor = KeyVisitor.Base(y => LookUpOrError(method, y), overlaysToTypeParameters);
+                    //var key = new DoubleGenericNameKey(
+                    //    new NameKey("method"), 
+                    //    method.Generics.Keys.Select(x => x).ToArray(), 
+                    //    new[] {
+                    //        /*I don't know about alld this OrThrows, just kind of put those in optimisically */
+                    //        Prototypist.Toolbox.OrType.Make<IKey, IError>(method.Input.GetOrThrow().TypeKey.Is1OrThrow()) ,
+                    //        Prototypist.Toolbox.OrType.Make<IKey, IError>(method.Returns.GetOrThrow().TypeKey.Is1OrThrow())
+                    //    });
+                    //var genericNameKey = visitor.DuobleGenericNameKey_BetterType_PassInPrimary(key, Prototypist.Toolbox.OrType.Make<MethodType, Type>(rootMethod));
+
+                    //foreach (var (overlay, typeParameter) in method.Generics.Join(genericNameKey.sourceTypes, x => x.Key, x => x.Key, (x, y) => (x.Value, y.Value)))
+                    //{
+                    //    overlaysToTypeParameters.Add(overlay, typeParameter);
+                    //    typeParametersAndTypes.Add(typeParameter, overlay);
+                    //}
+
+                    // we don't do this for methods
+                    // if anyting looks up this type it will create MethodType
+                    //keyAndTypes.TryAdd(genericNameKey, Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(method));
+
+                }
                 foreach (var item in typeProblemNodes.OfType<MethodType>().Where(x => x.Generics.Any()).OrderBy(x => Height(x)))
                 {
                     var visitor = KeyVisitor.Base(y => LookUpOrError(item, y), overlaysToTypeParameters);
@@ -386,22 +422,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     keyAndTypes.TryAdd(genericNameKey, Prototypist.Toolbox.OrType.Make<MethodType, Type>(item));
                 }
-                //foreach (var method in typeProblemNodes.OfType<Method>().Where(x => x.Generics.Any()).OrderBy(x => Height(x)))
-                //{
-                //    // foreach method we make a double generic name key that resolves to it 
-                //    //var visitor = KeyVisitor.Base(y => LookUpOrError(method, y), overlaysToTypeParameters);
-                //    var key = new DoubleGenericNameKey(new NameKey("method"), method.Generics.Keys.Select(x => x).ToArray(), method.Generics.Keys.Select(x => Prototypist.Toolbox.OrType.Make<IKey, IError>(x)).ToArray());
-                //    //var genericNameKey = visitor.DuobleGenericNameKey_BetterType_PassInPrimary(key, Prototypist.Toolbox.OrType.Make<MethodType, Type>(rootMethod));
 
-                //    foreach (var (overlay, typeParameter) in method.Generics.Join(genericNameKey.sourceTypes, x => x.Key, x => x.Key, (x, y) => (x.Value, y.Value)))
-                //    {
-                //        overlaysToTypeParameters.Add(overlay, typeParameter);
-                //        typeParametersAndTypes.Add(typeParameter, overlay);
-                //    }
-
-                //    //keyAndTypes.TryAdd(genericNameKey, Prototypist.Toolbox.OrType.Make<MethodType, Type>(item));
-
-                //}
 
                 // if type [t1] node {}
                 // node [t1] [t1]
@@ -459,7 +480,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                         .Select(genericTypeKey =>
                         {
                             var newType = genericTypeKey.primary.SwitchReturns(
-                                methodType => Prototypist.Toolbox.OrType.Make<MethodType, Type>(new MethodType(this.builder, genericTypeKey.ToString(), methodType.Converter)),
+                               
+                                methodType => {
+                                    // TODO! I need to set the input and output of mye new methodType
+                                    return Prototypist.Toolbox.OrType.Make<MethodType, Type>(new MethodType(this.builder, genericTypeKey.ToString(), methodType.Converter));
+                                    
+                                },
                                 type => Prototypist.Toolbox.OrType.Make<MethodType, Type>(new Type(this.builder, genericTypeKey.ToString(), type.Key, type.Converter,  Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>())));
 
                             // do I really need to make place holders?
@@ -478,8 +504,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     placeholder.Key,
                                     placeholderType);
 
-                                overlaysToTypeParameters.Add(placeholderType, placeholder.Value);
-                                typeParametersAndTypes.Add(placeholder.Value, placeholderType);
+                                overlaysToTypeParameters.TryAdd(placeholderType, placeholder.Value);
+                                typeParametersAndTypes.TryAdd(placeholder.Value, placeholderType);
                             }
 
                             return (genericTypeKey, newType);
