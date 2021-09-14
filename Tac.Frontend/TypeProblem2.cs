@@ -1156,7 +1156,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             //    }
             //}
 
-            static OrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> LookUpOrError(IStaticScope haveTypes, IKey key)
+            static Prototypist.Toolbox.IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> LookUpOrError(IStaticScope haveTypes, IKey key)
             {
                 while (true)
                 {
@@ -1231,22 +1231,23 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                             if (genericOverlays.TryGetValue(nameKey, out var res))
                             {
-                                if (res.Is1(out var methodType))
-                                {
-                                    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(methodType);
-                                }
-                                else if (res.Is2(out var innerType))
-                                {
-                                    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(innerType);
-                                }
-                                else if (res.Is6(out var error))
-                                {
-                                    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(error); ;
-                                }
-                                else
-                                {
-                                    throw new Exception("uh oh! we hit a type we did not want");
-                                }
+                                return res;
+                                //if (res.Is1(out var methodType))
+                                //{
+                                //    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(methodType);
+                                //}
+                                //else if (res.Is2(out var innerType))
+                                //{
+                                //    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(innerType);
+                                //}
+                                //else if (res.Is7(out IError error))
+                                //{
+                                //    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(error); ;
+                                //}
+                                //else
+                                //{
+                                //    throw new Exception("uh oh! we hit a type we did not want");
+                                //}
                             }
                         }
                     }
