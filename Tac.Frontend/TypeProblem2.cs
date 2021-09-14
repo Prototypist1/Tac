@@ -377,7 +377,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var generic in method.Generics)
                     {
-                        this.builder.HasGenericType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(methodType), generic.Key, generic.Value/* TODO do I need to copy this?!*/);
+                        this.builder.HasGenericType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(methodType), generic.Key, generic.Value);// it's tempting to copy here, but we don't. In this case the method type is really what defines the generics. The method is just using them.
                     }
 
                     var inputKey = method.PrivateMembers.Single(x => x.Value == method.Input.GetOrThrow()).Key;
@@ -482,9 +482,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                             var newType = genericTypeKey.primary.SwitchReturns(
                                
                                 methodType => {
-                                    // TODO! I need to set the input and output of mye new methodType
-                                    return Prototypist.Toolbox.OrType.Make<MethodType, Type>(new MethodType(this.builder, genericTypeKey.ToString(), methodType.Converter));
-                                    
+                                    var res = new MethodType(this.builder, genericTypeKey.ToString(), methodType.Converter);
+
+                                    // it's pretty weird that the data model lets me do this
+                                    // the name of the input is not really part of the definition of a method type 
+                                    var inputKey = methodType.PrivateMembers.Single(x => x.Value == methodType.Input.GetOrThrow()).Key;
+
+                                    res.Input = Possibly.Is(builder.CreatePrivateMember(res, res, inputKey, Prototypist.Toolbox.OrType.Make<IKey, IError>(rootMethod.Input.GetOrThrow().TypeKey.Is1OrThrow()/* lazy use of get or throw*/)));
+                                    res.Returns = Possibly.Is(builder.CreateTransientMember(res, methodType.Returns.GetOrThrow().TypeKey.Is1OrThrow()/*more lazy use of get or throw*/, $"return of {res.DebugName} "));
+
+                                    return Prototypist.Toolbox.OrType.Make<MethodType, Type>(res);
                                 },
                                 type => Prototypist.Toolbox.OrType.Make<MethodType, Type>(new Type(this.builder, genericTypeKey.ToString(), type.Key, type.Converter,  Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>())));
 
@@ -1263,92 +1270,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            // TODO
-            // why do I even have this
-            // nothing ever really uses the return, I just shove an erro in the out...
-            // [MaybeNullWhen(false)] grumble
-            //static bool TryLookUp(IStaticScope haveTypes, IKey key, out OrType<MethodType, Type, Object, OrType, InferredType, IError>? result)
-            //{
-
-            //}
-
-            //void HandleHopefulMember(IKey key, Member hopeful, IOrType<MethodType, Type, Object, OrType, InferredType, IError> type, Dictionary<IValue,IValue> deference)
-            //{
-            //    type.Switch(
-            //        x => {
-            //            throw new Exception("a method can't have a hopeful member");
-            //        },
-            //        x =>
-            //        {
-            //            if (x.PublicMembers.TryGetValue(key, out var member))
-            //            {
-            //                TryMerge(hopeful, member, deference);
-            //            }
-            //            // uhh this member is an error
-            //            // do I need to do something?
-            //        },
-            //        x =>
-            //        {
-            //            if (x.PublicMembers.TryGetValue(key, out var member))
-            //            {
-            //                TryMerge(hopeful, member, deference);
-            //            }
-            //            // uhh this member is an error
-            //            // do I need to do something?
-            //        },
-            //        orType =>
-            //        {
-            //            // we pretty much need to recurse
-            //            // we hope this member is on both sides
-
-            //            // can or types even be implicit?
-            //            // no but they can have members that are implicit 
-            //            // plus maybe they could be in the future this some sort of implicit key word
-            //            // number || implict 
-            //            //orType.Left.If(x => HandleHopefulMember(key, hopeful, GetType(x)));
-            //            //orType.Right.If(x => HandleHopefulMember(key, hopeful, GetType(x)));
-
-            //            //orType.Left.IfElse(x => 
-            //            //    orType.Right.IfElse(
-            //            //        y => HandleHopefulMember(key, hopeful,  GetType(x), GetType(y)),
-            //            //        ()=> HandleHopefulMember(key, hopeful, GetType(x))),
-            //            //    () => orType.Right.If(x => HandleHopefulMember(key, hopeful, GetType(x))));
-
-            //            // after the first one merges it might not be a infered type
-            //            // so it can't merge
-
-            //            // how does this work?? or them and then merge?
-            //            // yes, you or them and then merge
-
-            //            //--- no!
-            //            // I think it actually does not defer
-            //            // maybe it just has an assignment relationship to each?
-
-            //            // maybe it just doesn't defer?
-            //            // ok for now it just doesn't defer 
-            //            // kind of makes sense, who would it defer to?
-
-
-
-
-            //        },
-            //        inferredType =>
-            //        {
-            //            if (inferredType.PublicMembers.TryGetValue(key, out var member))
-            //            {
-            //                TryMerge(hopeful, member, deference);
-            //            }
-            //            else
-            //            {
-            //                Builder.HasPublicMember(inferredType, key, hopeful);
-            //            }
-            //        },
-            //        error =>
-            //        {
-
-            //        });
-            //}
-
             // should take IOrType<(MethodType from ,MethodType to),  (Type from , Type to)> pair 
             IOrType<MethodType, Type> CopyTree(IOrType<MethodType, Type> from, IOrType<MethodType, Type> to, IReadOnlyDictionary<GenericTypeParameter, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> overlayed)
             {
@@ -1715,22 +1636,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return innerTo;
                 }
             }
-
-
-            // TODO this does not need to be a method
-            //static bool IsNotInferedHasMembers(IOrType<MethodType, Type, Object, OrType, InferredType, IError> type, out IHavePublicMembers? haveMembers)
-            //{
-            //    var res = false;
-            //    (haveMembers, res) = type.SwitchReturns<(IHavePublicMembers?, bool)>(
-            //        v1 => (default, false),
-            //        v2 => (v2, true),
-            //        v3 => (v3, true),
-            //        v4 => (default, false),
-            //        v5 => (default, false),
-            //        v1 => (default, false));
-
-            //    return res;
-            //}
 
             // OK I think OrTypes should just make a infered type to represent them 
 
