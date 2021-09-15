@@ -51,7 +51,7 @@ namespace Tac.Frontend
                     new WeakGenericTypeDefinition(
                         from.Key,
                         typeSolution.GetHasMemberType(from), // wrapping in a box here is weird 
-                        from.Generics.Select(x=>Possibly.Is< IGenericTypeParameterPlacholder>(x.Value.Converter.Convert(typeSolution,x.Value))).ToArray()));
+                        from.Generics.Select(x => typeSolution.GetGenericPlaceholder(x.Value)).ToArray()));// from.Generics.Select(x=>Possibly.Is< IGenericTypeParameterPlacholder>(x.Value.Converter.Convert(typeSolution,x.Value))).ToArray()));
             }
 
             return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>(
@@ -60,14 +60,14 @@ namespace Tac.Frontend
         }
     }
 
-    internal class GernericPlaceHolderConverter : Tpn.IConvertTo<Tpn.TypeProblem2.GenericTypeParameter, GenericTypeParameterPlacholder>
-    {
+    //internal class GernericPlaceHolderConverter : Tpn.IConvertTo<Tpn.TypeProblem2.GenericTypeParameter, GenericTypeParameterPlacholder>
+    //{
 
-        public GenericTypeParameterPlacholder Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.GenericTypeParameter from)
-        {
-            return new GenericTypeParameterPlacholder(from.index, typeSolution.GetInferredType(from.constraint));
-        }
-    }
+    //    public GenericTypeParameterPlacholder Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.GenericTypeParameter from)
+    //    {
+    //        return new GenericTypeParameterPlacholder(from.index, typeSolution.GetInferredType(from.constraint));
+    //    }
+    //}
 
 
     internal class PrimitiveTypeConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Type, IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>>
@@ -125,7 +125,7 @@ namespace Tac.Frontend
                         body,
                         OrType.Make<WeakScope, IError>(scope),
                         Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>(),
-                        from.Generics.Select(x => { IGenericTypeParameterPlacholder y = x.Value.Converter.Convert(typeSolution, x.Value); return y; }).ToArray()));//, key
+                        from.Generics.Select(x => typeSolution.GetGenericPlaceholder(x.Value)).ToArray()));
             }
 
             return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>(new WeakMethodDefinition(

@@ -310,7 +310,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var i = 0;
                     foreach (var placeholder in placeholders)
                     {
-                        var placeholderType = new TypeProblem2.GenericTypeParameter(this, $"generic-parameter-{placeholder.key}", new GernericPlaceHolderConverter(), i++);
+                        var placeholderType = new TypeProblem2.GenericTypeParameter(this, $"generic-parameter-{placeholder.key}", i++);
                         //var placeholderType = new Type(
                         //    this,
                         //    $"generic-parameter-{placeholder.key}",
@@ -352,7 +352,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var i = 0;
                     foreach (var placeholder in placeholders)
                     {
-                        var placeholderType = new GenericTypeParameter(this, $"generic-parameter-{placeholder.key}", new GernericPlaceHolderConverter(), i++);
+                        var placeholderType = new GenericTypeParameter(this, $"generic-parameter-{placeholder.key}", i++);
 
                         //var placeholderType = new Type(
                         //    this,

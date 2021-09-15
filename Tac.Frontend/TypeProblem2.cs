@@ -291,9 +291,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             }
 
-            public class GenericTypeParameter: TypeProblemNode<GenericTypeParameter,GenericTypeParameterPlacholder>
+            public class GenericTypeParameter: TypeProblemNode
             {
-                public GenericTypeParameter(Builder problem, string debugName, IConvertTo<GenericTypeParameter, GenericTypeParameterPlacholder> converter, int index) : base(problem, debugName, converter)
+                public GenericTypeParameter(Builder problem, string debugName, int index) : base(problem, debugName)
                 {
                     constraint = new InferredType(problem, "constraint-for-"+debugName);
                     this.index = index;
@@ -488,7 +488,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             foreach (var placeholder in genericTypeKey.sourceTypes)
                             {
                                 //var key = new ImplicitKey(Guid.NewGuid());
-                                var placeholderType = new GenericTypeParameter(this.builder, placeholder.ToString(), new GernericPlaceHolderConverter(), i++);
+                                var placeholderType = new GenericTypeParameter(this.builder, placeholder.ToString(), i++);
                                 //var placeholderType = new Type(this.builder, placeholder.ToString(), Possibly.Is(Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(key)), new WeakTypeDefinitionConverter(),  Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>());
 
                                 builder.HasGenericType(
@@ -1777,7 +1777,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var i = 0;
                 foreach (var placeholder in placeholders)
                 {
-                    var placeholderType = new TypeProblem2.GenericTypeParameter(this.builder, $"generic-parameter-{placeholder.key}", new GernericPlaceHolderConverter(), i++);
+                    var placeholderType = new GenericTypeParameter(this.builder, $"generic-parameter-{placeholder.key}", i++);
                     //var placeholderType = new Type(this.builder, $"generic-parameter-{placeholder.key}", Possibly.Is(placeholder.key), placeholder.converter, Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>());
                     builder.HasGenericType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(rootMethod), placeholder.key, placeholderType);
                 }

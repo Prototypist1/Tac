@@ -1441,15 +1441,19 @@ namespace Tac.Frontend.TypeProblem.Test
                         new NameKey("method"),
                         new[] { new NameKey("T") },
                         new[] {
-                            Prototypist.Toolbox.OrType.Make<IKey,IError>(new NameKey("T")),
-                            Prototypist.Toolbox.OrType.Make<IKey,IError>(new NameKey("T"))})));
+                            OrType.Make<IKey,IError>(new NameKey("T")),
+                            OrType.Make<IKey,IError>(new NameKey("T"))})));
 
             var solution = typeProblem.Solve();
 
             var xType = solution.GetType(x).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
-            xType.inputType.GetValue().Is1OrThrow();
-            xType.outputType.GetValue().Is1OrThrow();
-            var genericType = Assert.Single(xType.typeParameterDefinitions);
+            var a = Assert.IsType<GenericTypeParameterPlacholder>( xType.inputType.GetValue().Is1OrThrow());
+            var b = Assert.IsType<GenericTypeParameterPlacholder>(xType.outputType.GetValue().Is1OrThrow());
+            var c = Assert.IsType<GenericTypeParameterPlacholder>(Assert.Single(xType.typeParameterDefinitions).GetValue().Is1OrThrow());
+
+            Assert.Equal(a, b);
+            Assert.Equal(a, c);
+            Assert.Equal(b, c);
 
         }
     }

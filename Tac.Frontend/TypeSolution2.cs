@@ -44,44 +44,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                 internal IIsPossibly<IOrType<Yolo, IError>> right;
 
                 internal readonly Box<IOrType<IFrontendType<IVerifiableType>, IError>> type = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
-
-                // {32A69308-8733-4409-82EC-5C91BC760E1F}
+                
                 // sometimes thing have no member but really we know they are an object or a type
                 // if this is not set the yolo becomes an AnyType with it set the Yolo becomes a HasMembers with no members
                 internal bool hasMemebers = false; 
-                internal bool isGeneric = false;
+                internal IIsPossibly<TypeProblem2.GenericTypeParameter> isGeneric = Possibly.IsNot<TypeProblem2.GenericTypeParameter>();
 
                 internal IIsPossibly<IInterfaceType> external = Possibly.IsNot<IInterfaceType>();
 
-            }
-
-            private class YoloKey {
-                public readonly EqualibleHashSet<Tpn.CombinedTypesAnd> rep;
-                // {32A69308-8733-4409-82EC-5C91BC760E1F}
-                // sometimes thing have no member but really we know they are an object or a type
-                // if this is not set the yolo becomes an AnyType with it set the Yolo becomes a HasMembers with no members
-                public readonly IOrType<bool, IError> hasMembers;
-                public readonly IOrType<TypeProblem2.GenericTypeParameter, IError> isGeneric;
-
-                public YoloKey(EqualibleHashSet<CombinedTypesAnd> rep, IOrType<bool, IError> hasMembers, IOrType<TypeProblem2.GenericTypeParameter, IError> isGeneric)
-                {
-                    this.rep = rep ?? throw new ArgumentNullException(nameof(rep));
-                    this.hasMembers = hasMembers ?? throw new ArgumentNullException(nameof(hasMembers));
-                    this.isGeneric = isGeneric ?? throw new ArgumentNullException(nameof(isGeneric));
-                }
-
-                public override bool Equals(object? obj)
-                {
-                    return obj is YoloKey key &&
-                           EqualityComparer<EqualibleHashSet<CombinedTypesAnd>>.Default.Equals(rep, key.rep) &&
-                           EqualityComparer<IOrType<bool, IError>>.Default.Equals(hasMembers, key.hasMembers) &&
-                           EqualityComparer<IOrType<TypeProblem2.GenericTypeParameter, IError>>.Default.Equals(isGeneric, key.isGeneric);
-                }
-
-                public override int GetHashCode()
-                {
-                    return HashCode.Combine(rep, hasMembers, isGeneric);
-                }
             }
 
             public TypeSolution(
@@ -98,11 +68,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 foreach (var flowNode in flowNodes)
                 {
-                    var rep = flowNode.Value.GetValueAs(out IVirtualFlowNode _).ToRep().TransformInner(x=> new YoloKey(x
-                        ,
-                        flowNode.Key.TransformInner(x => x.SafeIs(out TypeProblem2.Object _) || x.SafeIs(out TypeProblem2.Type _)),
-                        flowNode.Key.TransformInner(x => x.SafeCastTo(out TypeProblem2.GenericTypeParameter _))));
-
+                    IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError> rep = flowNode.Value.GetValueAs(out IVirtualFlowNode _).ToRep();
                     var yolo = GetOrAdd(rep);
 
                     // this feels a bit weird because it doesn't flow through the type problem
@@ -118,23 +84,23 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                         if (typeProblemNode.SafeIs(out TypeProblem2.GenericTypeParameter genericTypeParameter))
                         {
-                            realYolo.isGeneric = true;
+                            realYolo.isGeneric = Possibly.Is(genericTypeParameter);
                         }
                     }
                 }
 
-                IOrType < Yolo, IError> GetOrAdd(IOrType<YoloKey, IError>  rep){
+                IOrType < Yolo, IError> GetOrAdd(IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>  rep){
 
-                    return rep.TransformInner(yoloKey => {
+                    return rep.TransformInner(equalableHashSet => {
                         
                         var myBox = new Yolo();
-                        var current = cache.GetOrAdd(yoloKey, myBox);
+                        var current = cache.GetOrAdd(equalableHashSet, myBox);
 
                         // if we added it, fill it
                         if (current == myBox) {
 
 
-                            if (yoloKey.rep.Count() > 1)
+                            if (equalableHashSet.Count() > 1)
                             {
                                 myBox.left = Possibly.Is(GetOrAdd(OrType.Make<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>(new EqualibleHashSet<Tpn.CombinedTypesAnd>(equalableHashSet.Take(equalableHashSet.Count() - 1).ToHashSet()))));
                                 myBox.right = Possibly.Is( GetOrAdd(OrType.Make<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>(new EqualibleHashSet<Tpn.CombinedTypesAnd>(new HashSet<Tpn.CombinedTypesAnd>() { equalableHashSet.Last() }))));
@@ -144,9 +110,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 myBox.right = Possibly.IsNot<IOrType<Yolo, IError>>();
                             }
 
-                            myBox.members = yoloKey.rep.VirtualMembers().TransformInner(members => members.Select(virtualMember => (virtualMember.Key, GetOrAdd(virtualMember.Value.Value))).ToArray());
-                            myBox.input = yoloKey.rep.VirtualInput().TransformInner(input => GetOrAdd(input));
-                            myBox.output = yoloKey.rep.VirtualOutput().TransformInner(output => GetOrAdd(output));
+                            myBox.members = equalableHashSet.VirtualMembers().TransformInner(members => members.Select(virtualMember => (virtualMember.Key, GetOrAdd(virtualMember.Value.Value))).ToArray());
+                            myBox.input = equalableHashSet.VirtualInput().TransformInner(input => GetOrAdd(input));
+                            myBox.output = equalableHashSet.VirtualOutput().TransformInner(output => GetOrAdd(output));
                         }
                         return current;
                     });
@@ -186,6 +152,16 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 IOrType<IFrontendType<IVerifiableType>, IError> Convert2(Tpn.CombinedTypesAnd flowNode, Yolo yolo)
                 {
+                    if (yolo.isGeneric.Is(out var genericTypeParameter)) {
+                        var res = new GenericTypeParameterPlacholder(genericTypeParameter.index,
+                           flowNodes[OrType.Make<ITypeProblemNode, IError>(genericTypeParameter.constraint)]
+                           .GetValueAs(out IVirtualFlowNode _).ToRep()
+                           .SwitchReturns(
+                               x=> cache[x].type,
+                               error=> { IBox<IOrType<IFrontendType<IVerifiableType>, IError>> x = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(error)); return x; }
+                           ));
+                        return OrType.Make<IFrontendType<IVerifiableType>, IError>(res);
+                    }
 
                     if (flowNode.And.Count == 0)
                     {
@@ -365,6 +341,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     y =>(IBox<IOrType<IFrontendType<IVerifiableType>, IError>>) new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(y))))).ToList())));
                     }
 
+
                     return OrType.Make<IFrontendType<IVerifiableType>, IError>(new AnyType());
                 }
             }
@@ -473,6 +450,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                flowNodes[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _).ToRep().SwitchReturns(
                     x => cache[x].type.GetValue(),
                     x => OrType.Make<IFrontendType<IVerifiableType>, IError>(x));
+
+
+            internal IOrType<GenericTypeParameterPlacholder, IError> GetGenericPlaceholder(TypeProblem2.GenericTypeParameter from) =>
+               flowNodes[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _).ToRep().SwitchReturns(
+                    x => cache[x].type.GetValue().TransformInner(y => y.CastTo<GenericTypeParameterPlacholder>()),
+                    x => OrType.Make<GenericTypeParameterPlacholder, IError>(x));
 
 
             // this also ends up managing weak scopes that aren't types

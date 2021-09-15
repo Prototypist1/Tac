@@ -511,28 +511,26 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
     internal interface IGenericTypeParameterPlacholder : IFrontendType<IVerifiableType>
     { 
         int Index { get; }
-        //IFrontendType<IVerifiableType> Parent { get; }
-        IOrType<IFrontendType<IVerifiableType>, IError> Constraint { get; }
-        //IOrType<NameKey, ImplicitKey> Key { get; }
+        //IBox<IOrType<IFrontendType<IVerifiableType>, IError>> Constraint { get; }
     }
 
     internal class GenericTypeParameterPlacholder : IGenericTypeParameterPlacholder
     {
-        public GenericTypeParameterPlacholder(int index, IOrType<IFrontendType<IVerifiableType>, IError> constraint)
+        public GenericTypeParameterPlacholder(int index, IBox<IOrType<IFrontendType<IVerifiableType>, IError>> constraint)
         {
             this.Index = index;
             Constraint = constraint ?? throw new ArgumentNullException(nameof(constraint));
         }
 
         public int Index { get; }
-        public IOrType<IFrontendType<IVerifiableType>, IError> Constraint { get; }
+        public IBox<IOrType<IFrontendType<IVerifiableType>, IError>> Constraint { get; }
 
 
         public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
-            var res = GenericTypeParameter.CreateAndBuild(/*Parent.Convert(context),*/Index, Constraint.Is1OrThrow().Convert(context));
+            var (res ,build)= GenericTypeParameter.Create();
 
-            return new BuildIntention<IVerifiableType>(res, () => { });
+            return new BuildIntention<IVerifiableType>(res, () => build.Build(Index, Constraint.GetValue().Is1OrThrow().Convert(context)) );
         }
 
         public IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
@@ -543,12 +541,12 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             }
             assumeTrue.Add((this, they));
 
-            return Constraint.TransformInner(x=>x.TheyAreUs(they, assumeTrue));
+            return Constraint.GetValue().TransformInner(x=>x.TheyAreUs(they, assumeTrue));
         }
 
-        public IOrType<IOrType<WeakMemberDefinition, IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue) => Constraint.SwitchReturns(x=>x.TryGetMember(key, assumeTrue), x=> OrType.Make<IOrType<WeakMemberDefinition, IError>, No, IError>(x));
-        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn() => Constraint.SwitchReturns(x => x.TryGetReturn(), x=> OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(x));
-        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput() => Constraint.SwitchReturns(x => x.TryGetInput(), x=> OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(x));
+        public IOrType<IOrType<WeakMemberDefinition, IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue) => Constraint.GetValue().SwitchReturns(x=>x.TryGetMember(key, assumeTrue), x=> OrType.Make<IOrType<WeakMemberDefinition, IError>, No, IError>(x));
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn() => Constraint.GetValue().SwitchReturns(x => x.TryGetReturn(), x=> OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(x));
+        public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput() => Constraint.GetValue().SwitchReturns(x => x.TryGetInput(), x=> OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(x));
 
 #pragma warning disable CA1822 // Mark members as static
         public IEnumerable<IError> Validate() => Array.Empty<IError>();

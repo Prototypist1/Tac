@@ -45,7 +45,7 @@ namespace Tac.SemanticModel
         public WeakGenericTypeDefinition(
             IIsPossibly<IOrType<NameKey, ImplicitKey>> key,
             IOrType<HasMembersType, IError> type,
-            IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions)
+            IOrType<IGenericTypeParameterPlacholder, IError>[] TypeParameterDefinitions)
         {
             this.TypeParameterDefinitions = TypeParameterDefinitions ?? throw new ArgumentNullException(nameof(TypeParameterDefinitions));
             Key = key ?? throw new ArgumentNullException(nameof(key));
@@ -53,7 +53,7 @@ namespace Tac.SemanticModel
             Scope = type.TransformInner(x => x.weakScope);
         }
 
-        public IIsPossibly<IGenericTypeParameterPlacholder>[] TypeParameterDefinitions { get; }
+        public IOrType<IGenericTypeParameterPlacholder, IError>[] TypeParameterDefinitions { get; }
         public IIsPossibly<IOrType<NameKey, ImplicitKey>> Key { get; }
         public IOrType<WeakScope, IError> Scope { get; }
 

@@ -46,7 +46,7 @@ namespace Tac.SemanticModel
             IBox<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> body,
             IOrType<WeakScope, IError> scope,
             IReadOnlyList<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>> staticInitializers,
-            IGenericTypeParameterPlacholder[] TypeParameterDefinitions) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
+            IOrType<IGenericTypeParameterPlacholder, IError>[] TypeParameterDefinitions) : base(scope ?? throw new ArgumentNullException(nameof(scope)), body, staticInitializers)
         {
             OutputType = outputType ?? throw new ArgumentNullException(nameof(outputType));
             ParameterDefinition = parameterDefinition ?? throw new ArgumentNullException(nameof(parameterDefinition));
@@ -54,7 +54,7 @@ namespace Tac.SemanticModel
                 InputType,
                 new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OutputType),
                 TypeParameterDefinitions.Select(x=> {
-                    IBox<IOrType<IFrontendType<IVerifiableType>, IError>> y = new Box<IOrType<IGenericTypeParameterPlacholder, IError>>(OrType.Make<IGenericTypeParameterPlacholder, IError>(x));
+                    IBox<IOrType<IFrontendType<IVerifiableType>, IError>> y = new Box<IOrType<IGenericTypeParameterPlacholder, IError>>(x);
                     return y;
                 }).ToArray()
                 ));
@@ -64,7 +64,7 @@ namespace Tac.SemanticModel
         public IBox<IOrType<IFrontendType<IVerifiableType>, IError>> InputType => ParameterDefinition.Type;
         public IOrType<IFrontendType<IVerifiableType>, IError> OutputType { get; }
         public WeakMemberDefinition ParameterDefinition { get; }
-        public IGenericTypeParameterPlacholder[] TypeParameterDefinitions { get; }
+        public IOrType<IGenericTypeParameterPlacholder, IError>[] TypeParameterDefinitions { get; }
 
         public override IBuildIntention<IGenericMethodDefinition> GetBuildIntention(IConversionContext context)
         {
@@ -77,7 +77,7 @@ namespace Tac.SemanticModel
                     Scope.Is1OrThrow().Convert(context),
                     Body.GetValue().Select(x => x.Is1OrThrow().GetValue().ConvertElementOrThrow(context)).ToArray(),
                     StaticInitailizers.Select(x => x.GetOrThrow().ConvertElementOrThrow(context)).ToArray(),
-                    TypeParameterDefinitions.Select(x=> x.Convert(context).SafeCastTo(out IGenericTypeParameter _)).ToArray());
+                    TypeParameterDefinitions.Select(x=> x.Is1OrThrow().Convert(context).SafeCastTo(out IGenericTypeParameter _)).ToArray());
             });
         }
 
