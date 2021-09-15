@@ -56,7 +56,7 @@ namespace Tac.Frontend.TypeProblem.Test
             Assert.True(a.TheyAreUs(b, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow() && b.TheyAreUs(a, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
         }
 
-        private static RootScopePopulateScope DefaultRootScopePopulateScope() => new RootScopePopulateScope(
+        internal static RootScopePopulateScope DefaultRootScopePopulateScope() => new RootScopePopulateScope(
                 Array.Empty<IOrType<WeakAssignOperationPopulateScope, IError>>(),
                 OrType.Make<EntryPointDefinitionPopulateScope, IError>(
                     new EntryPointDefinitionPopulateScope(
@@ -1422,6 +1422,35 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var xType = solution.GetType(x).Is1OrThrow();
             Assert.IsType<FrontEndOrType>(xType);
+        }
+
+        [Fact]
+        public void DoubleGenericMethod() {
+
+
+            var typeProblem = new Tpn.TypeProblem2(
+             new WeakScopeConverter(),
+             DefaultRootScopePopulateScope(), _ => { });
+
+            var x = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("x"),
+                OrType.Make<IKey, IError>(
+                    new DoubleGenericNameKey(
+                        new NameKey("method"),
+                        new[] { new NameKey("T") },
+                        new[] {
+                            Prototypist.Toolbox.OrType.Make<IKey,IError>(new NameKey("T")),
+                            Prototypist.Toolbox.OrType.Make<IKey,IError>(new NameKey("T"))})));
+
+            var solution = typeProblem.Solve();
+
+            var xType = solution.GetType(x).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+            xType.inputType.GetValue().Is1OrThrow();
+            xType.outputType.GetValue().Is1OrThrow();
+            var genericType = Assert.Single(xType.typeParameterDefinitions);
+
         }
     }
 }

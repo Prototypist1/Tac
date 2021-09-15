@@ -331,6 +331,10 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             IOrType<IIsPossibly<Guid>, IError> Primitive();
 
+
+            IIsPossibly<Tpn.TypeProblem2.GenericTypeParameter> GenericParameter();
+            bool WillStillBeATypeWithMembersWhenThereAreNoAcutualMember();
+
             /// <summary>
             /// Source Path is used as a way to express identity
             /// virtual nodes are defined in terms of their replationship to a "real" node
@@ -403,21 +407,32 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return $"{nameof(PrimitiveFlowNode)}({Source})";
             }
 
+            public IIsPossibly<Tpn.TypeProblem2.GenericTypeParameter> GenericParameter() => Possibly.IsNot<Tpn.TypeProblem2.GenericTypeParameter>();
+            public bool WillStillBeATypeWithMembersWhenThereAreNoAcutualMember() => false;
+
         }
 
         public class ConcreteFlowNode<TSource> : ConcreteFlowNode, IFlowNode<TSource>
         {
             public ConcreteFlowNode(TSource source)
             {
-                Source = Possibly.Is(source);
+                this.source = source ?? throw new ArgumentNullException(nameof(source));
             }
 
-            public IIsPossibly<TSource> Source { get; }
+            private readonly TSource source;
+            public IIsPossibly<TSource> Source => Possibly.Is(source);
 
             public override string? ToString()
             {
                 return $"{nameof(ConcreteFlowNode)}<{typeof(TSource).Name}>({Source})";
             }
+            public override IIsPossibly<Tpn.TypeProblem2.GenericTypeParameter> GenericParameter() {
+                if (((object)source).SafeIs(out Tpn.TypeProblem2.GenericTypeParameter parameter)){
+                    return Possibly.Is(parameter);
+                }
+                return Possibly.IsNot<Tpn.TypeProblem2.GenericTypeParameter>();
+            }
+            public override bool WillStillBeATypeWithMembersWhenThereAreNoAcutualMember() => typeof(TSource).IsAssignableTo(typeof(TypeProblem2.Object)) || typeof(TSource).IsAssignableTo(typeof(TypeProblem2.Type));
         }
 
         public abstract class ConcreteFlowNode : IFlowNode
@@ -435,7 +450,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return OrType.Make<ICollection<KeyValuePair<IKey, Lazy<IOrType<VirtualNode, IError>>>>, IError>(
                     Members
                         .Select(x => new KeyValuePair<IKey, Lazy<IOrType<VirtualNode, IError>>>(
-                            x.Key, 
+                            x.Key,
                             new Lazy<IOrType<VirtualNode, IError>>(() => x.Value.GetValueAs(out IVirtualFlowNode _)
                                 .ToRep()
                                 .TransformInner(y => new VirtualNode(SourcePath().Member(x.Key), y)))))
@@ -445,15 +460,14 @@ namespace Tac.Frontend.New.CrzayNamespace
             public IOrType<IReadOnlyList<Lazy<IOrType<VirtualNode, IError>>>, IError> VirtualGenerics()
             {
                 var i = 0;
-                return OrType.Make<IReadOnlyList< Lazy<IOrType<VirtualNode, IError>>>, IError>(
+                return OrType.Make<IReadOnlyList<Lazy<IOrType<VirtualNode, IError>>>, IError>(
                     Generics
-                        .Select(x => 
+                        .Select(x =>
                         new Lazy<IOrType<VirtualNode, IError>>(() => x.GetValueAs(out IVirtualFlowNode _)
                             .ToRep()
                             .TransformInner(y => new VirtualNode(SourcePath().Generic(i++), y))))
                         .ToArray());
             }
-
 
             public IOrType<IIsPossibly<Guid>, IError> Primitive()
             {
@@ -652,6 +666,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     });
             }
 
+            public abstract IIsPossibly<TypeProblem2.GenericTypeParameter> GenericParameter();
+            public abstract bool WillStillBeATypeWithMembersWhenThereAreNoAcutualMember();
         }
 
         public class OrFlowNode : IFlowNode<TypeProblem2.OrType>
@@ -803,7 +819,14 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 return $"{nameof(OrFlowNode)}({Source})";
             }
-
+            public IIsPossibly<Tpn.TypeProblem2.GenericTypeParameter> GenericParameter() {
+                var groups = this.Or.Select(x => x.GetValueAs(out IVirtualFlowNode _).GenericParameter()).GroupBy(x => x).Select(x => x.Key).ToArray();
+                if (groups.Length == 1) {
+                    return groups[0];
+                }
+                return Possibly.IsNot<Tpn.TypeProblem2.GenericTypeParameter>();
+            }
+            public bool WillStillBeATypeWithMembersWhenThereAreNoAcutualMember() => false;
         }
 
         // what a mess 😭😭😭
@@ -998,8 +1021,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 get;
             }
-
-
 
             private IOrType<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist> ToRepReturns(IEnumerable<IOrType<Member, Input, Output, Generic>> pathParts)
             {
@@ -1440,7 +1461,8 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 return $"{nameof(InferredFlowNode)}({Source})";
             }
-
+            public IIsPossibly<Tpn.TypeProblem2.GenericTypeParameter> GenericParameter() => Possibly.IsNot<Tpn.TypeProblem2.GenericTypeParameter>();
+            public bool WillStillBeATypeWithMembersWhenThereAreNoAcutualMember() => false;
         }
 
 
@@ -1812,6 +1834,24 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 return $"{nameof(CombinedTypesAnd)}({string.Join(", ", And.Take(10).Select(x => x.ToString())) + (And.Count > 10 ? "..." : "")})";
             }
+
+            public IIsPossibly<Tpn.TypeProblem2.GenericTypeParameter> GenericParameter()
+            {
+                var groups = And.Select(x => x.GetValueAs(out IVirtualFlowNode _).GenericParameter()).GroupBy(x => x).Select(x => x.Key).ToArray();
+                if (groups.Length == 1)
+                {
+                    return groups[0];
+                }
+                return Possibly.IsNot<TypeProblem2.GenericTypeParameter>();
+            }
+            public bool WillStillBeATypeWithMembersWhenThereAreNoAcutualMember()
+            {
+                if (And.Count() == 1)
+                {
+                    return And.First().GetValueAs(out IVirtualFlowNode _).WillStillBeATypeWithMembersWhenThereAreNoAcutualMember();
+                }
+                return false;
+            }
         }
 
         public class VirtualNode : IVirtualFlowNode
@@ -1820,7 +1860,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             public readonly EqualibleHashSet<CombinedTypesAnd> Or;
             private readonly SourcePath sourcePath;
 
-            public VirtualNode(SourcePath sourcePath,EqualibleHashSet<CombinedTypesAnd> or)
+            public VirtualNode(SourcePath sourcePath, EqualibleHashSet<CombinedTypesAnd> or)
             {
                 Or = or ?? throw new ArgumentNullException(nameof(or));
                 this.sourcePath = sourcePath ?? throw new ArgumentNullException(nameof(sourcePath));
@@ -1853,7 +1893,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public IOrType<ICollection<KeyValuePair<IKey, Lazy<IOrType<VirtualNode, IError>>>>, IError> VirtualMembers()
             {
-                return Or.VirtualMembers().TransformInner(dict => (ICollection<KeyValuePair<IKey, Lazy<IOrType<VirtualNode, IError>>>>)(dict.Select(pair => KeyValuePair.Create(pair.Key, new Lazy<IOrType<VirtualNode, IError>>(()=> pair.Value.Value.TransformInner(ands => new VirtualNode( SourcePath().Member(pair.Key), ands))))).ToArray()));
+                return Or.VirtualMembers().TransformInner(dict => (ICollection<KeyValuePair<IKey, Lazy<IOrType<VirtualNode, IError>>>>)(dict.Select(pair => KeyValuePair.Create(pair.Key, new Lazy<IOrType<VirtualNode, IError>>(() => pair.Value.Value.TransformInner(ands => new VirtualNode(SourcePath().Member(pair.Key), ands))))).ToArray()));
             }
 
 
@@ -1862,7 +1902,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return Or.VirtualGenerics()
                     .TransformInner(list => {
                         int i = 0;
-                        return (IReadOnlyList<Lazy<IOrType<VirtualNode, IError>>>)(list.Select(value => new Lazy<IOrType<VirtualNode, IError>>(()=>value.Value.TransformInner(ands => new VirtualNode(SourcePath().Generic(i++), ands)))).ToArray());
+                        return (IReadOnlyList<Lazy<IOrType<VirtualNode, IError>>>)(list.Select(value => new Lazy<IOrType<VirtualNode, IError>>(() => value.Value.TransformInner(ands => new VirtualNode(SourcePath().Generic(i++), ands)))).ToArray());
                     });
             }
 
@@ -1918,6 +1958,22 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 return new EqualibleHashSet<CombinedTypesAnd>(toMerge.SelectMany(x => x.backing).Distinct().ToHashSet());
+            }
+
+            public IIsPossibly<Tpn.TypeProblem2.GenericTypeParameter> GenericParameter()
+            {
+                var groups = this.Or.Select(x => x.GenericParameter()).GroupBy(x => x).Select(x => x.Key).ToArray();
+                if (groups.Length == 1)
+                {
+                    return groups[0];
+                }
+                return Possibly.IsNot<Tpn.TypeProblem2.GenericTypeParameter>();
+            }
+            public bool WillStillBeATypeWithMembersWhenThereAreNoAcutualMember() {
+                if (this.Or.Count() == 1) {
+                    return Or.First().WillStillBeATypeWithMembersWhenThereAreNoAcutualMember();
+                }
+                return false;
             }
 
         }

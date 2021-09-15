@@ -44,13 +44,44 @@ namespace Tac.Frontend.New.CrzayNamespace
                 internal IIsPossibly<IOrType<Yolo, IError>> right;
 
                 internal readonly Box<IOrType<IFrontendType<IVerifiableType>, IError>> type = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
-                
+
+                // {32A69308-8733-4409-82EC-5C91BC760E1F}
                 // sometimes thing have no member but really we know they are an object or a type
                 // if this is not set the yolo becomes an AnyType with it set the Yolo becomes a HasMembers with no members
-                internal bool hasMemebers = false;
+                internal bool hasMemebers = false; 
+                internal bool isGeneric = false;
 
                 internal IIsPossibly<IInterfaceType> external = Possibly.IsNot<IInterfaceType>();
 
+            }
+
+            private class YoloKey {
+                public readonly EqualibleHashSet<Tpn.CombinedTypesAnd> rep;
+                // {32A69308-8733-4409-82EC-5C91BC760E1F}
+                // sometimes thing have no member but really we know they are an object or a type
+                // if this is not set the yolo becomes an AnyType with it set the Yolo becomes a HasMembers with no members
+                public readonly IOrType<bool, IError> hasMembers;
+                public readonly IOrType<TypeProblem2.GenericTypeParameter, IError> isGeneric;
+
+                public YoloKey(EqualibleHashSet<CombinedTypesAnd> rep, IOrType<bool, IError> hasMembers, IOrType<TypeProblem2.GenericTypeParameter, IError> isGeneric)
+                {
+                    this.rep = rep ?? throw new ArgumentNullException(nameof(rep));
+                    this.hasMembers = hasMembers ?? throw new ArgumentNullException(nameof(hasMembers));
+                    this.isGeneric = isGeneric ?? throw new ArgumentNullException(nameof(isGeneric));
+                }
+
+                public override bool Equals(object? obj)
+                {
+                    return obj is YoloKey key &&
+                           EqualityComparer<EqualibleHashSet<CombinedTypesAnd>>.Default.Equals(rep, key.rep) &&
+                           EqualityComparer<IOrType<bool, IError>>.Default.Equals(hasMembers, key.hasMembers) &&
+                           EqualityComparer<IOrType<TypeProblem2.GenericTypeParameter, IError>>.Default.Equals(isGeneric, key.isGeneric);
+                }
+
+                public override int GetHashCode()
+                {
+                    return HashCode.Combine(rep, hasMembers, isGeneric);
+                }
             }
 
             public TypeSolution(
@@ -67,35 +98,43 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 foreach (var flowNode in flowNodes)
                 {
-                    IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError> rep = flowNode.Value.GetValueAs(out IVirtualFlowNode _).ToRep();
+                    var rep = flowNode.Value.GetValueAs(out IVirtualFlowNode _).ToRep().TransformInner(x=> new YoloKey(x
+                        ,
+                        flowNode.Key.TransformInner(x => x.SafeIs(out TypeProblem2.Object _) || x.SafeIs(out TypeProblem2.Type _)),
+                        flowNode.Key.TransformInner(x => x.SafeCastTo(out TypeProblem2.GenericTypeParameter _))));
+
                     var yolo = GetOrAdd(rep);
 
                     // this feels a bit weird because it doesn't flow through the type problem
                     if (yolo.Is1(out var realYolo) && flowNode.Key.Is1(out var typeProblemNode)) {
                         realYolo.hasMemebers |= typeProblemNode.SafeIs<ITypeProblemNode, TypeProblem2.Object>();
-                        if (typeProblemNode.SafeIs(out TypeProblem2.Type x))
+                        if (typeProblemNode.SafeIs(out TypeProblem2.Type type))
                         {
                             realYolo.hasMemebers = true;
-                            if (x.External.Is(out var _))
+                            if (type.External.Is(out var _))
                             {
-                                realYolo.external = x.External;
+                                realYolo.external = type.External;
                             }
+                        }
+                        if (typeProblemNode.SafeIs(out TypeProblem2.GenericTypeParameter genericTypeParameter))
+                        {
+                            realYolo.isGeneric = true;
                         }
                     }
                 }
 
-                IOrType < Yolo, IError> GetOrAdd(IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>  rep){
+                IOrType < Yolo, IError> GetOrAdd(IOrType<YoloKey, IError>  rep){
 
-                    return rep.TransformInner(equalableHashSet => {
+                    return rep.TransformInner(yoloKey => {
                         
                         var myBox = new Yolo();
-                        var current = cache.GetOrAdd(equalableHashSet, myBox);
+                        var current = cache.GetOrAdd(yoloKey, myBox);
 
                         // if we added it, fill it
                         if (current == myBox) {
 
 
-                            if (equalableHashSet.Count() > 1)
+                            if (yoloKey.rep.Count() > 1)
                             {
                                 myBox.left = Possibly.Is(GetOrAdd(OrType.Make<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>(new EqualibleHashSet<Tpn.CombinedTypesAnd>(equalableHashSet.Take(equalableHashSet.Count() - 1).ToHashSet()))));
                                 myBox.right = Possibly.Is( GetOrAdd(OrType.Make<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>(new EqualibleHashSet<Tpn.CombinedTypesAnd>(new HashSet<Tpn.CombinedTypesAnd>() { equalableHashSet.Last() }))));
@@ -105,9 +144,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 myBox.right = Possibly.IsNot<IOrType<Yolo, IError>>();
                             }
 
-                            myBox.members = equalableHashSet.VirtualMembers().TransformInner(members => members.Select(virtualMember => (virtualMember.Key, GetOrAdd(virtualMember.Value.Value))).ToArray());
-                            myBox.input = equalableHashSet.VirtualInput().TransformInner(input => GetOrAdd(input));
-                            myBox.output = equalableHashSet.VirtualOutput().TransformInner(output => GetOrAdd(output));
+                            myBox.members = yoloKey.rep.VirtualMembers().TransformInner(members => members.Select(virtualMember => (virtualMember.Key, GetOrAdd(virtualMember.Value.Value))).ToArray());
+                            myBox.input = yoloKey.rep.VirtualInput().TransformInner(input => GetOrAdd(input));
+                            myBox.output = yoloKey.rep.VirtualOutput().TransformInner(output => GetOrAdd(output));
                         }
                         return current;
                     });
@@ -205,8 +244,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
 
                     if (flowNode.VirtualGenerics().Is1(out var generics) && generics.Any()) {
-
-                        var realizedGenerics = generics.Select(x => x.Value).ToArray();
 
                         if (input != default && output != default)
                         {

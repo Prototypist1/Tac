@@ -518,27 +518,15 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
     internal class GenericTypeParameterPlacholder : IGenericTypeParameterPlacholder
     {
-        public GenericTypeParameterPlacholder(int index, /*IFrontendType<IVerifiableType> parent,*/ IOrType<IFrontendType<IVerifiableType>, IError> constraint)
+        public GenericTypeParameterPlacholder(int index, IOrType<IFrontendType<IVerifiableType>, IError> constraint)
         {
             this.Index = index;
-            //this.Parent = parent ?? throw new ArgumentNullException(nameof(parent));
             Constraint = constraint ?? throw new ArgumentNullException(nameof(constraint));
         }
 
-        //public IOrType<NameKey, ImplicitKey> Key { get; }
         public int Index { get; }
-        //public IFrontendType<IVerifiableType> Parent { get; }
         public IOrType<IFrontendType<IVerifiableType>, IError> Constraint { get; }
 
-        //public override bool Equals(object? obj)
-        //{
-        //    return obj is GenericTypeParameterPlacholder placholder && Equals(placholder);
-        //}
-
-        //public override int GetHashCode()
-        //{
-        //    return Index;
-        //}
 
         public IBuildIntention<IVerifiableType> GetBuildIntention(IConversionContext context)
         {
@@ -556,28 +544,11 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             assumeTrue.Add((this, they));
 
             return Constraint.TransformInner(x=>x.TheyAreUs(they, assumeTrue));
-
-            //if (!they.SafeIs(out GenericTypeParameterPlacholder other)) {
-            //    return OrType.Make<bool, IError>(false);
-            //}
-
-            //if (Index != other.Index)
-            //{
-            //    return OrType.Make<bool, IError>(false);
-            //}
-
-            //return Parent.TheyAreUs(other.Parent, assumeTrue);
         }
 
         public IOrType<IOrType<WeakMemberDefinition, IError>, No, IError> TryGetMember(IKey key, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue) => Constraint.SwitchReturns(x=>x.TryGetMember(key, assumeTrue), x=> OrType.Make<IOrType<WeakMemberDefinition, IError>, No, IError>(x));
         public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetReturn() => Constraint.SwitchReturns(x => x.TryGetReturn(), x=> OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(x));
         public IOrType<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError> TryGetInput() => Constraint.SwitchReturns(x => x.TryGetInput(), x=> OrType.Make<IOrType<IFrontendType<IVerifiableType>, IError>, No, IError>(x));
-
-
-        //public bool Equals(GenericTypeParameterPlacholder placholder)
-        //{
-        //    return EqualityComparer<IOrType<NameKey, ImplicitKey>>.Default.Equals(Key, placholder.Key);
-        //}
 
 #pragma warning disable CA1822 // Mark members as static
         public IEnumerable<IError> Validate() => Array.Empty<IError>();
@@ -693,9 +664,9 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
     internal class GenericMethodType : IFrontendType<IVerifiableType> //,IFrontendGenericType
     {
-        private IBox<IOrType<IFrontendType<IVerifiableType>, IError>> inputType;
-        private Box<IOrType<IFrontendType<IVerifiableType>, IError>> outputType;
-        private IBox<IOrType<IFrontendType<IVerifiableType>, IError>>[] typeParameterDefinitions;
+        public readonly IBox<IOrType<IFrontendType<IVerifiableType>, IError>> inputType;
+        public readonly IBox<IOrType<IFrontendType<IVerifiableType>, IError>> outputType;
+        public readonly IBox<IOrType<IFrontendType<IVerifiableType>, IError>>[] typeParameterDefinitions;
 
         public GenericMethodType(IBox<IOrType<IFrontendType<IVerifiableType>, IError>> inputType, Box<IOrType<IFrontendType<IVerifiableType>, IError>> outputType, IBox<IOrType<IFrontendType<IVerifiableType>, IError>>[] typeParameterDefinitions)
         {
