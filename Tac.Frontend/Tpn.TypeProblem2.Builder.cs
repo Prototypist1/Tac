@@ -346,49 +346,52 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return res;
                 }
 
-                public Method CreateGenericMethod(IStaticScope parent, IOrType<TypeReference, IError> inputType, IOrType<TypeReference, IError> outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>> converter, IReadOnlyList<TypeAndConverter> placeholders)
+                public (Method, IOrType<TypeReference, IError>, IOrType<TypeReference, IError>) CreateGenericMethod(IStaticScope parent, Func<IStaticScope, IOrType<TypeReference, IError>> inputTypeBuilder, Func<IStaticScope, IOrType<TypeReference, IError>> outputTypeBuilder, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>> converter, IReadOnlyList<TypeAndConverter> placeholders)
                 {
-                    var method = CreateMethod(parent, inputType, outputType,  inputName, converter);
+                    var (method, inputType, outputType) = CreateMethod(parent, inputTypeBuilder, outputTypeBuilder,  inputName, converter);
                     var i = 0;
                     foreach (var placeholder in placeholders)
                     {
                         var placeholderType = new GenericTypeParameter(this, $"generic-parameter-{placeholder.key}", i++);
 
-                        //var placeholderType = new Type(
-                        //    this,
-                        //    $"generic-parameter-{placeholder.key}",
-                        //    Possibly.Is(placeholder.key),
-                        //    placeholder.converter,
-                        //    Possibly.IsNot<Guid>(),
-                        //    Possibly.IsNot<IInterfaceType>());
                         HasGenericType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(method), placeholder.key, placeholderType);
                     }
 
-                    // TODO you are here!
-                    // this has generic overlays!
-                    // but they probably maybe do look ups 
-                    // I don't think I suppert overlays that are lookups
-                    // naw...
+                    // why doesn't this have genericOverlays ({4BFD0274-B70F-4BD8-B290-63B69FF74FE7})
                     // the overlays are t1 and t2 of the base method "method [t1,t2]"
                     // they are never references anywhere so we don't care to overlay them
-                    // we build the right DoubleNameKey
+                    // we build the right MethodType
+                    // at {2E20DFFB-7BD2-4351-9CAF-10A63491ABCF}
+                    // this isn't great
+                    // it would be a little work to build the genericOverlays
+                    // genericOverlays take a looked up type not a key
 
-                    return method;
+                    return (method, inputType, outputType);
                 }
 
 
-                public Method CreateMethod(IStaticScope parent, IOrType<TypeReference, IError> inputType, IOrType<TypeReference, IError> outputType, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>> converter)
+                public (Method, IOrType<TypeReference, IError>, IOrType<TypeReference, IError>) CreateMethod(IStaticScope parent, Func<IStaticScope, IOrType<TypeReference, IError>> inputTypeBuilder, Func<IStaticScope, IOrType<TypeReference, IError>> outputTypeBuilder, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>> converter)
                 {
+                    //if (!inputType.Is1(out var inputTypeValue))
+                    //{
+                    //    throw new NotImplementedException();
+                    //}
+                    //if (!outputType.Is1(out var outputTypeValue))
+                    //{
+                    //    throw new NotImplementedException();
+                    //}
+
+                    var res = new Method(this, $"method{{inputName:{inputName}}}", converter);
+                    var inputType = inputTypeBuilder(res);
                     if (!inputType.Is1(out var inputTypeValue))
                     {
                         throw new NotImplementedException();
                     }
+                    var outputType = outputTypeBuilder(res);
                     if (!outputType.Is1(out var outputTypeValue))
                     {
                         throw new NotImplementedException();
                     }
-
-                    var res = new Method(this, $"method{{inputName:{inputName},inputType:{inputTypeValue.DebugName},outputType:{outputTypeValue.DebugName}}}", converter);
                     IsChildOf(parent, res);
                     HasMethod(parent, new ImplicitKey(Guid.NewGuid()), res);
                     {
@@ -409,7 +412,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             res.Input = Possibly.Is(CreatePrivateMember(res, res, new NameKey(inputName)));
                         }
                     }
-                    return res;
+                    return (res, inputType, outputType);
                 }
 
 

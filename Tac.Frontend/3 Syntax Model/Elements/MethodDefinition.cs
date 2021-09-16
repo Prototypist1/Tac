@@ -164,18 +164,20 @@ namespace Tac.SemanticModel
                 throw new NotImplementedException("this should be an IError");
             }
 
-            var realizedInput = parameterDefinition.Run(scope, context.CreateChildContext(this));
-            var realizedOutput = output.Run(scope, context.CreateChildContext(this));
 
             var box = new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>();
             var converter = new WeakMethodDefinitionConverter(box);
-            var method = context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter);
+            var (method, realizedInput, realizedOutput) = context.TypeProblem.CreateMethod(scope, 
+                x=> parameterDefinition.Run(x, context.CreateChildContext(this)).SetUpSideNode, 
+                x => output.Run(x, context.CreateChildContext(this)).SetUpSideNode, 
+                parameterName, 
+                converter);
 
             var nextElements = elements.Select(x => x.TransformInner(y => y.Run(method, context.CreateChildContext(this)).Resolve)).ToArray();
 
             var value = context.TypeProblem.CreateValue(runtimeScope, new GenericNameKey(new NameKey("method"), new IOrType<IKey, IError>[] {
-                    realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
-                    realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
+                    realizedInput.TransformInner(x=>x.Key()),
+                    realizedOutput.TransformInner(x=>x.Key()),
                 }), new PlaceholderValueConverter());
 
             return new SetUpResult<IBox<WeakMethodDefinition>, Tpn.IValue>(new MethodDefinitionResolveReferance(method, nextElements,box), OrType.Make<Tpn.IValue, IError>(value));

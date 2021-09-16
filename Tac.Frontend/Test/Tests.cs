@@ -1424,9 +1424,12 @@ namespace Tac.Frontend.TypeProblem.Test
             Assert.IsType<FrontEndOrType>(xType);
         }
 
+        // method [T] [T,T] x;
+        // method [T1] [T1,T1] y;
+        //
+        // x and y are the same type
         [Fact]
-        public void DoubleGenericMethod() {
-
+        public void DoubleGenericMethodUnification() {
 
             var typeProblem = new Tpn.TypeProblem2(
              new WeakScopeConverter(),
@@ -1444,17 +1447,163 @@ namespace Tac.Frontend.TypeProblem.Test
                             OrType.Make<IKey,IError>(new NameKey("T")),
                             OrType.Make<IKey,IError>(new NameKey("T"))})));
 
+            var y = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("y"),
+                OrType.Make<IKey, IError>(
+                    new DoubleGenericNameKey(
+                        new NameKey("method"),
+                        new[] { new NameKey("T1") },
+                        new[] {
+                            OrType.Make<IKey,IError>(new NameKey("T1")),
+                            OrType.Make<IKey,IError>(new NameKey("T1"))})));
+
             var solution = typeProblem.Solve();
 
             var xType = solution.GetType(x).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
-            var a = Assert.IsType<GenericTypeParameterPlacholder>( xType.inputType.GetValue().Is1OrThrow());
-            var b = Assert.IsType<GenericTypeParameterPlacholder>(xType.outputType.GetValue().Is1OrThrow());
-            var c = Assert.IsType<GenericTypeParameterPlacholder>(Assert.Single(xType.typeParameterDefinitions).GetValue().Is1OrThrow());
+            var xInput = Assert.IsType<GenericTypeParameterPlacholder>( xType.inputType.GetValue().Is1OrThrow());
+            var xOutput = Assert.IsType<GenericTypeParameterPlacholder>(xType.outputType.GetValue().Is1OrThrow());
+            var xParameter = Assert.IsType<GenericTypeParameterPlacholder>(Assert.Single(xType.typeParameterDefinitions).GetValue().Is1OrThrow());
 
-            Assert.Equal(a, b);
-            Assert.Equal(a, c);
-            Assert.Equal(b, c);
+            Assert.Equal(xInput, xOutput);
+            Assert.Equal(xInput, xParameter);
+            Assert.Equal(xOutput, xParameter);
+
+            var yType = solution.GetType(y).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+
+            Assert.Equal(xType, yType);
+        }
+
+        // type [T] pair1 { method [T1] [T1,T] x;}
+        // type [T] pair2 { method [T1] [T1,T] y; }
+        //
+        // x and y are not the same type, one's T is pair1's and the others is pair2's
+        // that is to say not equal, they are assignable
+        [Fact]
+        public void DoubleGenericMethodsInGenericsDontUnify()
+        {
+            var typeProblem = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope(), _ => { });
+
+            var pairType1 = typeProblem.builder.CreateGenericType(
+                typeProblem.ModuleRoot,
+                OrType.Make<NameKey, ImplicitKey>(new NameKey("pair1")),
+                new[]{
+                    new Tpn.TypeAndConverter(
+                        new NameKey("T"),
+                        new WeakTypeDefinitionConverter())},
+                new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...?  {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
+                );
+
+            var x1 = typeProblem.builder.CreatePublicMember(
+                pairType1,
+                pairType1,
+                new NameKey("x"),
+                OrType.Make<IKey, IError>(
+                    new DoubleGenericNameKey(
+                        new NameKey("method"),
+                        new[] { new NameKey("T1") },
+                        new[] {
+                            OrType.Make<IKey,IError>(new NameKey("T1")),
+                            OrType.Make<IKey,IError>(new NameKey("T"))})));
+
+            var pairType2 = typeProblem.builder.CreateGenericType(
+                typeProblem.ModuleRoot,
+                OrType.Make<NameKey, ImplicitKey>(new NameKey("pair2")),
+                new[]{
+                    new Tpn.TypeAndConverter(
+                        new NameKey("T"),
+                        new WeakTypeDefinitionConverter())},
+                new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...?  {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
+                );
+
+            var x2 = typeProblem.builder.CreatePublicMember(
+                pairType2,
+                pairType2,
+                new NameKey("x"),
+                OrType.Make<IKey, IError>(
+                    new DoubleGenericNameKey(
+                        new NameKey("method"),
+                        new[] { new NameKey("T1") },
+                        new[] {
+                            OrType.Make<IKey,IError>(new NameKey("T1")),
+                            OrType.Make<IKey,IError>(new NameKey("T"))})));
+
+            var solution = typeProblem.Solve();
+
+            var x1Type = solution.GetType(x1).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+            var x2Type = solution.GetType(x2).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+
+            Assert.NotEqual(x1Type, x2Type);
+            Assert.True(x1Type.TheyAreUs(x2Type, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
+            Assert.True(x2Type.TheyAreUs(x1Type, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
 
         }
+
+        [Fact]
+        public void GenericMethod()
+        {
+            // code is something like this
+            // type hello {x;y;}
+            //
+            // hello z > method {
+            //      input.x =: x;
+            //      input.y =: y;
+            //      input return;
+            // }
+
+            var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope(), _ => { });
+
+            //var hello = x.builder.CreateType(x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("hello")), new WeakTypeDefinitionConverter());
+            //x.builder.CreatePublicMember(hello, hello, new NameKey("x"));
+            //x.builder.CreatePublicMember(hello, hello, new NameKey("y"));
+
+            //var input = x.builder.CreateValue(x.ModuleRoot.InitizationScope, new NameKey("hello"), new PlaceholderValueConverter());
+            var method = problem.builder.CreateGenericMethod(
+                problem.ModuleRoot,
+                x => problem.builder.CreateMember(x, new NameKey("input"), OrType.Make<IKey, IError>())
+
+                "input",
+                new WeakMethodDefinitionConverter(new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>(new List<IOrType<IBox<IFrontendCodeElement>, IError>>())),
+                ); ;
+
+            //var input_x = x.builder.CreateHopefulMember(method.Input(), new NameKey("x"));
+            //var input_y = x.builder.CreateHopefulMember(method.Input(), new NameKey("y"));
+
+            //var method_x = x.builder.CreatePrivateMember(method, method, new NameKey("x"));
+            //var method_y = x.builder.CreatePrivateMember(method, method, new NameKey("y"));
+
+            //input_x.AssignTo(method_x);
+            //input_y.AssignTo(method_y);
+
+            //method.Input().AssignTo(method.Returns());
+
+            //input.AssignTo(method.Input());
+
+            //var result = x.Solve();
+
+            //var methodResult = method.Converter.Convert(result, method).Is1OrThrow();
+
+            //var HackToLookAtScope = new HasMembersType(methodResult.Scope.Is1OrThrow());
+
+            //HasMember(HackToLookAtScope, new NameKey("input"));
+            //HasMember(HackToLookAtScope, new NameKey("x"));
+            //HasMember(HackToLookAtScope, new NameKey("y"));
+            //var inputResult = HasMember(HackToLookAtScope, new NameKey("input"));
+
+            //HasMember(inputResult, new NameKey("x"));
+            //HasMember(inputResult, new NameKey("y"));
+
+
+            //var helloResult = hello.Converter.Convert(result, hello).Is1OrThrow().FrontendType();
+            //HasMember(helloResult.Is1OrThrow(), new NameKey("x"));
+            //HasMember(helloResult.Is1OrThrow(), new NameKey("y"));
+
+            //// return should really be an any...
+            //var methodReturns = methodResult.OutputType.Is1OrThrow();
+            //DoesNotHaveMember(methodReturns, new NameKey("x"));
+            //DoesNotHaveMember(methodReturns, new NameKey("y"));
+        }
+
     }
 }

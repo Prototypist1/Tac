@@ -286,6 +286,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public IIsPossibly<Member> Input { get; set; } = Possibly.IsNot<Member>();
                 public IIsPossibly<TransientMember> Returns { get; set; } = Possibly.IsNot<TransientMember>();
+                // {4BFD0274-B70F-4BD8-B290-63B69FF74FE7}
                 public Dictionary<NameKey, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> GenericOverlays { get; } = new Dictionary<NameKey, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>();
                 public Dictionary<NameKey, GenericTypeParameter> Generics { get; } = new Dictionary<NameKey, GenericTypeParameter>();
 
@@ -372,6 +373,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 foreach (var method in typeProblemNodes.OfType<Method>().Where(x => x.Generics.Any()).OrderBy(x => Height(x)))
                 {
+                    // {2E20DFFB-7BD2-4351-9CAF-10A63491ABCF}
                     var methodType = new MethodType(this.builder, "method-type-for-" + method.DebugName, new MethodTypeConverter());
 
                     foreach (var generic in method.Generics)
