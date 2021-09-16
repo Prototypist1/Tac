@@ -1559,13 +1559,13 @@ namespace Tac.Frontend.TypeProblem.Test
             //x.builder.CreatePublicMember(hello, hello, new NameKey("y"));
 
             //var input = x.builder.CreateValue(x.ModuleRoot.InitizationScope, new NameKey("hello"), new PlaceholderValueConverter());
-            //var method = problem.builder.CreateGenericMethod(
-            //    problem.ModuleRoot,
-            //    x => problem.builder.CreateMember(x, new NameKey("input"), OrType.Make<IKey, IError>())
+            var method = problem.builder.CreateGenericMethod(
+                problem.ModuleRoot,
+                x => problem.builder.CreateMember(x, new NameKey("input"), OrType.Make<IKey, IError>())
 
-            //    "input",
-            //    new WeakMethodDefinitionConverter(new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>(new List<IOrType<IBox<IFrontendCodeElement>, IError>>())),
-            //    ); ;
+                "input",
+                new WeakMethodDefinitionConverter(new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>(new List<IOrType<IBox<IFrontendCodeElement>, IError>>())),
+                ); ;
 
             //var input_x = x.builder.CreateHopefulMember(method.Input(), new NameKey("x"));
             //var input_y = x.builder.CreateHopefulMember(method.Input(), new NameKey("y"));

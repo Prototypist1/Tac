@@ -171,12 +171,9 @@ namespace Tac.SemanticModel
                 throw new NotImplementedException("this should be an IError");
             }
 
-            var realizedInput = parameterDefinition.Run(scope, context.CreateChildContext(this));
-            var realizedOutput = output.Run(scope, context.CreateChildContext(this));
-
             var box = new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>();
             var converter = new WeakMethodDefinitionConverter(box);
-            var method = context.TypeProblem.CreateGenericMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter, genericParameters.Select(x => new Tpn.TypeAndConverter(x, new WeakTypeDefinitionConverter())).ToArray());
+            var (method, realizedInput, realizedOutput) = context.TypeProblem.CreateGenericMethod(scope, x=> parameterDefinition.Run(x, context.CreateChildContext(this)).SetUpSideNode, x => output.Run(x, context.CreateChildContext(this)).SetUpSideNode, parameterName, converter, genericParameters.Select(x => new Tpn.TypeAndConverter(x, new WeakTypeDefinitionConverter())).ToArray());
 
             var nextElements = elements.Select(x => x.TransformInner(y => y.Run(method, context.CreateChildContext(this)).Resolve)).ToArray();
 
@@ -207,8 +204,8 @@ namespace Tac.SemanticModel
                 new NameKey("method"),
                 genericParameters,
                 new IOrType<IKey, IError>[] {
-                    realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
-                    realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
+                    realizedInput.TransformInner(x=>x.Key()),
+                    realizedOutput.TransformInner(x=>x.Key()),
                 }), new PlaceholderValueConverter()); ;
 
 
