@@ -233,74 +233,49 @@ namespace Tac.SemanticModel
             // but here they might maybe convert to an implementation not a method that returns a method
             // idk! 🤷‍😭
 
-            IIsPossibly<(IOrType<TypeProblem2.TypeReference, IError>, IOrType<TypeProblem2.TypeReference, IError>, IOrType<TypeProblem2.TypeReference, IError>)> pair = 
-                Possibly.IsNot<(IOrType<TypeProblem2.TypeReference, IError>, IOrType<TypeProblem2.TypeReference, IError>, IOrType<TypeProblem2.TypeReference, IError>)>();
+            var realizeContext = contextDefinition.Run(scope, context.CreateChildContext(this));
+            var realizedInput = parameterDefinition.Run(scope, context.CreateChildContext(this));
+            var realizedOutput = output.Run(scope, context.CreateChildContext(this));
+            var outputTypeRef = context.TypeProblem.CreateTypeReference(scope, new GenericNameKey(new NameKey("method"), new[] {
+                    realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
+                    realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
+                }), new WeakTypeReferenceConverter());
 
             var innerBox = new Box<Tpn.TypeProblem2.Method>();
-
             var linesBox = new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>();
-
-            IOrType<IKey, IError>? realizedInputKey = null;
-            IOrType<IKey, IError>? realizedOutputKey = null;
-            IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[]? nextElements = null;
-
-            var (outer, realizeContext, _) = context.TypeProblem.CreateMethod(
+            var outer = context.TypeProblem.CreateMethod(
                 scope, 
-                x=> parameterDefinition.Run(x, context.CreateChildContext(this)).SetUpSideNode,
-                x => {
-                    var (inner, realizedInput, realizedOutput) = context.TypeProblem.CreateMethod(
-                        x,
-                        y => parameterDefinition.Run(y, context.CreateChildContext(this)).SetUpSideNode,
-                        y => output.Run(y, context.CreateChildContext(this)).SetUpSideNode,
-                        parameterName,
-                        new WeakMethodDefinitionConverter(
-                            linesBox));
-
-                    innerBox.Fill(inner);
-                    nextElements = elements.Select(z => z.TransformInner(w => w.Run(inner, context.CreateChildContext(this)).Resolve)).ToArray();
-
-                    realizedInputKey = realizedInput.TransformInner(y => y.Key());
-                    realizedOutputKey = realizedOutput.TransformInner(y => y.Key());
-
-                    var outputTypeRef = context.TypeProblem.CreateTypeReference(scope, new GenericNameKey(new NameKey("method"), new[] {
-                       realizedInputKey,
-                        realizedOutputKey,
-                    }), new WeakTypeReferenceConverter());
-
-                    return OrType.Make<TypeProblem2.TypeReference, IError>(outputTypeRef); 
-                },
+                realizeContext.SetUpSideNode, 
+                OrType.Make<TypeProblem2.TypeReference, IError>(outputTypeRef), 
                 contextName, 
                 new WeakImplementationDefinitionConverter(
                     new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>(Array.Empty<IOrType<IBox<IFrontendCodeElement>,IError>>()), 
                     innerBox));
 
-            if (realizedInputKey == null)
-            {
-                throw new NullReferenceException(nameof(realizedInputKey));
-            }
-            if (realizedOutputKey == null)
-            {
-                throw new NullReferenceException(nameof(realizedOutputKey));
-            }
-            if (nextElements == null)
-            {
-                throw new NullReferenceException(nameof(nextElements));
-            }
+            var inner = context.TypeProblem.CreateMethod(
+                outer, 
+                realizedInput.SetUpSideNode, 
+                realizedOutput.SetUpSideNode, 
+                parameterName, 
+                new WeakMethodDefinitionConverter(
+                    linesBox));
+
+            innerBox.Fill(inner);
+            var nextElements = elements.Select(y => y.TransformInner(x => x.Run(inner, context.CreateChildContext(this)).Resolve)).ToArray();
 
             var innerValue = context.TypeProblem.CreateValue(outer,
                  new GenericNameKey(new NameKey("method"), new[] {
-                         realizedInputKey,
-                         realizedOutputKey,
+                         realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
+                         realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
                  }), new PlaceholderValueConverter());
 
             innerValue.AssignTo(outer.Returns());
 
-
             var value = context.TypeProblem.CreateValue(runtimeScope, new GenericNameKey(new NameKey("method"), new[] {
-                    realizeContext.TransformInner(x=>x.Key()),
+                    realizeContext.SetUpSideNode.TransformInner(x=>x.Key()),
                     OrType.Make<IKey,IError>(new GenericNameKey(new NameKey("method"), new[] {
-                         realizedInputKey,
-                         realizedOutputKey,
+                         realizedInput.SetUpSideNode.TransformInner(x=>x.Key()),
+                         realizedOutput.SetUpSideNode.TransformInner(x=>x.Key()),
                     })),
                 }), new PlaceholderValueConverter());
 

@@ -152,15 +152,12 @@ namespace Tac.SemanticModel
             //    throw new NotImplementedException("this should be an IError");
             //}
 
+            var realizedInput = parameterDefinition.Run(scope, context.CreateChildContext(this));
+            var realizedOutput = output.Run(scope, context.CreateChildContext(this));
 
             var box = new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>();
             var converter = new WeakEntryPointConverter(box);
-            var (method, realizedInput, realizedOutput) = context.TypeProblem.CreateMethod(
-                scope,
-                x=> parameterDefinition.Run(x, context.CreateChildContext(this)).SetUpSideNode, 
-                x => output.Run(x, context.CreateChildContext(this)).SetUpSideNode, 
-                parameterName, 
-                converter);
+            var method = context.TypeProblem.CreateMethod(scope, realizedInput.SetUpSideNode, realizedOutput.SetUpSideNode, parameterName, converter);
 
             var converted = elements.Select(x => x.TransformInner(y => y.Run(method, context.CreateChildContext(this)).Resolve)).ToArray();
 
