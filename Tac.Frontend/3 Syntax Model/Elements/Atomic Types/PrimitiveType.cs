@@ -508,10 +508,12 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
 
     // I don't think this is a type....
     // placeholders are effectively defined by constraints really just metadata
+    // 
+    // do I need this interface?
     internal interface IGenericTypeParameterPlacholder : IFrontendType<IVerifiableType>
     { 
         int Index { get; }
-        //IBox<IOrType<IFrontendType<IVerifiableType>, IError>> Constraint { get; }
+        IBox<IOrType<IFrontendType<IVerifiableType>, IError>> Constraint { get; }
     }
 
     internal class GenericTypeParameterPlacholder : IGenericTypeParameterPlacholder

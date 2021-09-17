@@ -370,7 +370,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
 
-                public (Method, IOrType<TypeReference, IError>, IOrType<TypeReference, IError>) CreateMethod(IStaticScope parent, Func<IStaticScope, IOrType<TypeReference, IError>> inputTypeBuilder, Func<IStaticScope, IOrType<TypeReference, IError>> outputTypeBuilder, string inputName, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>> converter)
+                public (Method, IOrType<TypeReference, IError>, IOrType<TypeReference, IError>) CreateMethod(
+                    IStaticScope parent, 
+                    Func<IStaticScope, IOrType<TypeReference, IError>> inputTypeBuilder, // these type references look up from inside the method they could look up to a generic type defined in the method
+                    Func<IStaticScope, IOrType<TypeReference, IError>> outputTypeBuilder, 
+                    string inputName, 
+                    IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>> converter)
                 {
                     //if (!inputType.Is1(out var inputTypeValue))
                     //{

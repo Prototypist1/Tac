@@ -1543,67 +1543,47 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void GenericMethod()
         {
-            // code is something like this
-            // type hello {x;y;}
+            // type chicken { eggs; } 
             //
-            // hello z > method {
-            //      input.x =: x;
-            //      input.y =: y;
-            //      input return;
+            // method [T] [T,T] input {
+            //  input =: chicken x;
             // }
+            //
+            // so T is contrained to be a chicken
 
             var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope(), _ => { });
 
-            //var hello = x.builder.CreateType(x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("hello")), new WeakTypeDefinitionConverter());
-            //x.builder.CreatePublicMember(hello, hello, new NameKey("x"));
-            //x.builder.CreatePublicMember(hello, hello, new NameKey("y"));
+            var chickenType = problem.builder.CreateType(problem.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("chicken")), new WeakTypeDefinitionConverter());
+            problem.builder.CreatePublicMember(chickenType, chickenType, new NameKey("eggs"));
 
-            //var input = x.builder.CreateValue(x.ModuleRoot.InitizationScope, new NameKey("hello"), new PlaceholderValueConverter());
-            var method = problem.builder.CreateGenericMethod(
+            var (method,_,_) = problem.builder.CreateGenericMethod(
                 problem.ModuleRoot,
-                x => problem.builder.CreateMember(x, new NameKey("input"), OrType.Make<IKey, IError>())
-
+                x => OrType.Make<Tpn.TypeProblem2.TypeReference,IError>( problem.builder.CreateTypeReference(problem.ModuleRoot, new NameKey("T"), new WeakTypeReferenceConverter())),
+                x => OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(problem.builder.CreateTypeReference(problem.ModuleRoot, new NameKey("T"), new WeakTypeReferenceConverter())),
                 "input",
                 new WeakMethodDefinitionConverter(new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>(new List<IOrType<IBox<IFrontendCodeElement>, IError>>())),
-                ); ;
+                new[] {
+                    new Tpn.TypeAndConverter(new NameKey("T"), new WeakTypeDefinitionConverter())
+                });
 
-            //var input_x = x.builder.CreateHopefulMember(method.Input(), new NameKey("x"));
-            //var input_y = x.builder.CreateHopefulMember(method.Input(), new NameKey("y"));
-
-            //var method_x = x.builder.CreatePrivateMember(method, method, new NameKey("x"));
-            //var method_y = x.builder.CreatePrivateMember(method, method, new NameKey("y"));
-
-            //input_x.AssignTo(method_x);
-            //input_y.AssignTo(method_y);
-
-            //method.Input().AssignTo(method.Returns());
-
-            //input.AssignTo(method.Input());
-
-            //var result = x.Solve();
-
-            //var methodResult = method.Converter.Convert(result, method).Is1OrThrow();
-
-            //var HackToLookAtScope = new HasMembersType(methodResult.Scope.Is1OrThrow());
-
-            //HasMember(HackToLookAtScope, new NameKey("input"));
-            //HasMember(HackToLookAtScope, new NameKey("x"));
-            //HasMember(HackToLookAtScope, new NameKey("y"));
-            //var inputResult = HasMember(HackToLookAtScope, new NameKey("input"));
-
-            //HasMember(inputResult, new NameKey("x"));
-            //HasMember(inputResult, new NameKey("y"));
+            var x = problem.builder.CreatePrivateMember(method, method, new NameKey("x"), OrType.Make<IKey, Error>(new NameKey("chicken")));
 
 
-            //var helloResult = hello.Converter.Convert(result, hello).Is1OrThrow().FrontendType();
-            //HasMember(helloResult.Is1OrThrow(), new NameKey("x"));
-            //HasMember(helloResult.Is1OrThrow(), new NameKey("y"));
+            problem.builder.IsAssignedTo(method.Input.GetOrThrow(), x);
 
-            //// return should really be an any...
-            //var methodReturns = methodResult.OutputType.Is1OrThrow();
-            //DoesNotHaveMember(methodReturns, new NameKey("x"));
-            //DoesNotHaveMember(methodReturns, new NameKey("y"));
+            var result = problem.Solve();
+
+            var methodResult = method.Converter.Convert(result, method).Is4OrThrow();
+
+            var parameter = Assert.Single(methodResult.TypeParameterDefinitions).Is1OrThrow();
+
+            var noEggs = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { }));
+
+            Assert.False(parameter.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
+
+            var hasEggs = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { new WeakMemberDefinition(Access.ReadWrite, new NameKey("eggs"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))) }));
+
+            Assert.True(parameter.TheyAreUs(hasEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
         }
-
     }
 }
