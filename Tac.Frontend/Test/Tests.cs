@@ -1424,6 +1424,142 @@ namespace Tac.Frontend.TypeProblem.Test
             Assert.IsType<FrontEndOrType>(xType);
         }
 
+
+
+        // typc more {a;b;}
+        // type less {a;}
+        // method [more,less] x;
+        // method [less,more] y;
+        //
+        // z =: x
+        // z =: y
+        //
+        // z is method [more, more]
+        [Fact]
+        public void MethodVarience()
+        {
+            var typeProblem = new Tpn.TypeProblem2(
+                 new WeakScopeConverter(),
+                 DefaultRootScopePopulateScope(), _ => { });
+
+            var moreType = typeProblem.builder.CreateType(typeProblem.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("more")), new WeakTypeDefinitionConverter());
+            typeProblem.builder.CreatePublicMember(moreType, moreType, new NameKey("a"));
+            typeProblem.builder.CreatePublicMember(moreType, moreType, new NameKey("b"));
+
+            var lessType = typeProblem.builder.CreateType(typeProblem.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("less")), new WeakTypeDefinitionConverter());
+            typeProblem.builder.CreatePublicMember(lessType, lessType, new NameKey("a"));
+
+            var x = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("x"),
+                OrType.Make<IKey, IError>(
+                    new GenericNameKey(
+                        new NameKey("method"),
+                        new[] {
+                            OrType.Make<IKey,IError>(new NameKey("more")),
+                            OrType.Make<IKey,IError>(new NameKey("less"))})));
+
+            var y = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("y"),
+                OrType.Make<IKey, IError>(
+                    new GenericNameKey(
+                        new NameKey("method"),
+                        new[] {
+                            OrType.Make<IKey,IError>(new NameKey("less")),
+                            OrType.Make<IKey,IError>(new NameKey("more"))})));
+
+
+            var z = typeProblem.builder.CreatePublicMember(typeProblem.ModuleRoot, typeProblem.ModuleRoot, new NameKey("z"));
+            typeProblem.builder.IsAssignedTo(z, x);
+            typeProblem.builder.IsAssignedTo(z, y);
+
+            var solution = typeProblem.Solve();
+
+            var zType = solution.GetType(z).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.MethodType _);
+            var zInput = zType.InputType.GetValue().Is1OrThrow();
+            HasMember(zInput, new NameKey("a"));
+            HasMember(zInput, new NameKey("b"));
+            var zOutput = zType.OutputType.GetValue().Is1OrThrow();
+            HasMember(zOutput, new NameKey("a"));
+            HasMember(zOutput, new NameKey("b"));
+        }
+
+        // typc more {a;b;}
+        // type less {a;}
+        // type has-more {more item};
+        // type has-less {less item};
+        // method [has-more,has-less] x;
+        // method [has-less,has-more] y;
+        //
+        // z =: x
+        // z =: y
+        //
+        // z is method [has-more, has-more]
+        [Fact]
+        public void DeepMethodVarience()
+        {
+            var typeProblem = new Tpn.TypeProblem2(
+                 new WeakScopeConverter(),
+                 DefaultRootScopePopulateScope(), _ => { });
+
+            var moreType = typeProblem.builder.CreateType(typeProblem.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("more")), new WeakTypeDefinitionConverter());
+            typeProblem.builder.CreatePublicMember(moreType, moreType, new NameKey("a"));
+            typeProblem.builder.CreatePublicMember(moreType, moreType, new NameKey("b"));
+
+            var lessType = typeProblem.builder.CreateType(typeProblem.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("less")), new WeakTypeDefinitionConverter());
+            typeProblem.builder.CreatePublicMember(lessType, lessType, new NameKey("a"));
+
+            var hasMoreType = typeProblem.builder.CreateType(typeProblem.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("has-more")), new WeakTypeDefinitionConverter());
+            typeProblem.builder.CreatePublicMember(hasMoreType, hasMoreType, new NameKey("item"), OrType.Make<IKey, IError>(new NameKey("more")));
+
+            var hasLessType = typeProblem.builder.CreateType(typeProblem.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("has-less")), new WeakTypeDefinitionConverter());
+            typeProblem.builder.CreatePublicMember(hasLessType, hasLessType, new NameKey("item"), OrType.Make<IKey, IError>(new NameKey("less")));
+
+            var x = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("x"),
+                OrType.Make<IKey, IError>(
+                    new GenericNameKey(
+                        new NameKey("method"),
+                        new[] {
+                            OrType.Make<IKey,IError>(new NameKey("has-more")),
+                            OrType.Make<IKey,IError>(new NameKey("has-less"))})));
+
+            var y = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("y"),
+                OrType.Make<IKey, IError>(
+                    new GenericNameKey(
+                        new NameKey("method"),
+                        new[] {
+                            OrType.Make<IKey,IError>(new NameKey("has-less")),
+                            OrType.Make<IKey,IError>(new NameKey("has-more"))})));
+
+
+            var z = typeProblem.builder.CreatePublicMember(typeProblem.ModuleRoot, typeProblem.ModuleRoot, new NameKey("z"));
+            typeProblem.builder.IsAssignedTo(z, x);
+            typeProblem.builder.IsAssignedTo(z, y);
+
+            var solution = typeProblem.Solve();
+
+            var zType = solution.GetType(z).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.MethodType _);
+            var zInput = zType.InputType.GetValue().Is1OrThrow();
+            var inputItem = HasMember(zInput, new NameKey("item"));
+            HasMember(inputItem, new NameKey("a"));
+            HasMember(inputItem, new NameKey("b"));
+            var zOutput = zType.OutputType.GetValue().Is1OrThrow();
+            var outputItem = HasMember(zOutput, new NameKey("item"));
+            HasMember(outputItem, new NameKey("a"));
+            HasMember(outputItem, new NameKey("b"));
+        }
+
+        // TODO method or varience
+
         // method [T] [T,T] x;
         // method [T1] [T1,T1] y;
         //
@@ -1470,6 +1606,60 @@ namespace Tac.Frontend.TypeProblem.Test
             Assert.Equal(xInput, xParameter);
             Assert.Equal(xOutput, xParameter);
 
+            var yType = solution.GetType(y).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+
+            Assert.Equal(xType, yType);
+        }
+
+        // method [T] [T, method [TT] [TT,T]] x;
+        // method [T1] [T1,method [T2] [T2,T1]] y;
+        //
+        // x and y are the same type
+        [Fact]
+        public void DoubleGenericMethodUnification2()
+        {
+
+            var typeProblem = new Tpn.TypeProblem2(
+             new WeakScopeConverter(),
+             DefaultRootScopePopulateScope(), _ => { });
+
+            var x = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("x"),
+                OrType.Make<IKey, IError>(
+                    new DoubleGenericNameKey(
+                        new NameKey("method"),
+                        new[] { new NameKey("T") },
+                        new[] {
+                            OrType.Make<IKey,IError>(new NameKey("T")),
+                            new DoubleGenericNameKey(
+                                new NameKey("method"),
+                                new[] { new NameKey("TT") },
+                                new[] {
+                                    OrType.Make<IKey,IError>(new NameKey("TT")),
+                                    OrType.Make<IKey,IError>(new NameKey("T"))})})));
+
+            var y = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("y"),
+                OrType.Make<IKey, IError>(
+                    new DoubleGenericNameKey(
+                        new NameKey("method"),
+                        new[] { new NameKey("T1") },
+                        new[] {
+                            OrType.Make<IKey,IError>(new NameKey("T1")),
+                            new DoubleGenericNameKey(
+                                new NameKey("method"),
+                                new[] { new NameKey("T2") },
+                                new[] {
+                                    OrType.Make<IKey,IError>(new NameKey("T2")),
+                                    OrType.Make<IKey,IError>(new NameKey("T1"))})})));
+
+            var solution = typeProblem.Solve();
+
+            var xType = solution.GetType(x).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
             var yType = solution.GetType(y).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
 
             Assert.Equal(xType, yType);
@@ -1540,22 +1730,23 @@ namespace Tac.Frontend.TypeProblem.Test
 
         }
 
+        // type chicken { eggs; } 
+        //
+        // method [T] [T,T] input {
+        //  input =: chicken x;
+        // }
+        //
+        // so T is contrained to be a chicken
         [Fact]
         public void GenericMethod()
         {
-            // type chicken { eggs; } 
-            //
-            // method [T] [T,T] input {
-            //  input =: chicken x;
-            // }
-            //
-            // so T is contrained to be a chicken
-
             var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope(), _ => { });
 
+            // type chicken { eggs; } 
             var chickenType = problem.builder.CreateType(problem.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("chicken")), new WeakTypeDefinitionConverter());
             problem.builder.CreatePublicMember(chickenType, chickenType, new NameKey("eggs"));
 
+            // method [T] [T,T] input {
             var (method,_,_) = problem.builder.CreateGenericMethod(
                 problem.ModuleRoot,
                 x => OrType.Make<Tpn.TypeProblem2.TypeReference,IError>( problem.builder.CreateTypeReference(problem.ModuleRoot, new NameKey("T"), new WeakTypeReferenceConverter())),
@@ -1566,23 +1757,157 @@ namespace Tac.Frontend.TypeProblem.Test
                     new Tpn.TypeAndConverter(new NameKey("T"), new WeakTypeDefinitionConverter())
                 });
 
+            // input =: chicken x;
             var x = problem.builder.CreatePrivateMember(method, method, new NameKey("x"), OrType.Make<IKey, Error>(new NameKey("chicken")));
-
-
             problem.builder.IsAssignedTo(method.Input.GetOrThrow(), x);
 
             var result = problem.Solve();
 
             var methodResult = method.Converter.Convert(result, method).Is4OrThrow();
-
             var parameter = Assert.Single(methodResult.TypeParameterDefinitions).Is1OrThrow();
 
             var noEggs = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { }));
-
             Assert.False(parameter.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
 
             var hasEggs = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { new WeakMemberDefinition(Access.ReadWrite, new NameKey("eggs"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))) }));
+            Assert.True(parameter.TheyAreUs(hasEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
+        }
 
+        // method [T] [T,T] x;
+        // method [T1] [T1,T1] y;
+        //
+        // z =: x
+        // z =: y
+        //
+        // z is double generic
+        [Fact]
+        public void DoubleGenericFlow()
+        {
+
+            var typeProblem = new Tpn.TypeProblem2(
+             new WeakScopeConverter(),
+             DefaultRootScopePopulateScope(), _ => { });
+
+            var x = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("x"),
+                OrType.Make<IKey, IError>(
+                    new DoubleGenericNameKey(
+                        new NameKey("method"),
+                        new[] { new NameKey("T") },
+                        new[] {
+                            OrType.Make<IKey,IError>(new NameKey("T")),
+                            OrType.Make<IKey,IError>(new NameKey("T"))})));
+
+            var y = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("y"),
+                OrType.Make<IKey, IError>(
+                    new DoubleGenericNameKey(
+                        new NameKey("method"),
+                        new[] { new NameKey("T1") },
+                        new[] {
+                            OrType.Make<IKey,IError>(new NameKey("T1")),
+                            OrType.Make<IKey,IError>(new NameKey("T1"))})));
+
+
+            var z = typeProblem.builder.CreatePublicMember(typeProblem.ModuleRoot, typeProblem.ModuleRoot, new NameKey("z"));
+            typeProblem.builder.IsAssignedTo(z, x); 
+            typeProblem.builder.IsAssignedTo(z, y);
+
+            var solution = typeProblem.Solve();
+
+            var zType = solution.GetType(z).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+            var zInput = Assert.IsType<GenericTypeParameterPlacholder>(zType.inputType.GetValue().Is1OrThrow());
+            var zOutput = Assert.IsType<GenericTypeParameterPlacholder>(zType.outputType.GetValue().Is1OrThrow());
+            var zParameter = Assert.IsType<GenericTypeParameterPlacholder>(Assert.Single(zType.typeParameterDefinitions).GetValue().Is1OrThrow());
+
+            var yType = solution.GetType(y).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+
+            Assert.Equal(zType, yType);
+        }
+
+        // .. I think I need more tests around this... but I'm failing to come up with one
+        // method [T] [method [T1,T2] [T1,T2], method [T3] [T3, T1]]
+
+
+
+        // what about...
+        //
+        // type chicken { eggs; } 
+        //
+        // method [T] [T,T] input {
+        //  input =: chicken x;
+        // } =: my-method
+        //
+        // method [T] [T,T] yolo 
+        //
+        // my-method and yolo are not the same type
+        // my-method is really method [T:chicken] [T,T]
+        // but I think probably the types will unify 
+        // we don't know the constraint until we flow
+        [Fact]
+        public void GenericMethodDoesUnifyWithGenericMethodType()
+        {
+            var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope(), _ => { });
+
+            // type chicken { eggs; } 
+            var chickenType = problem.builder.CreateType(problem.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("chicken")), new WeakTypeDefinitionConverter());
+            problem.builder.CreatePublicMember(chickenType, chickenType, new NameKey("eggs"));
+
+            // method [T] [T,T] input {
+            var (method, _, _) = problem.builder.CreateGenericMethod(
+                problem.ModuleRoot,
+                x => OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(problem.builder.CreateTypeReference(problem.ModuleRoot, new NameKey("T"), new WeakTypeReferenceConverter())),
+                x => OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(problem.builder.CreateTypeReference(problem.ModuleRoot, new NameKey("T"), new WeakTypeReferenceConverter())),
+                "input",
+                new WeakMethodDefinitionConverter(new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>(new List<IOrType<IBox<IFrontendCodeElement>, IError>>())),
+                new[] {
+                    new Tpn.TypeAndConverter(new NameKey("T"), new WeakTypeDefinitionConverter())
+                });
+
+
+            // input =: chicken x;
+            var x = problem.builder.CreatePrivateMember(method, method, new NameKey("x"), OrType.Make<IKey, Error>(new NameKey("chicken")));
+            problem.builder.IsAssignedTo(method.Input.GetOrThrow(), x);
+
+            //} =: my-method
+            var myMethod = problem.builder.CreatePublicMember(problem.ModuleRoot, problem.ModuleRoot, new NameKey("my-method"));
+            // TODO you are here 
+            // the method does not really even expose it type in any way
+            // currently I return a value 
+            // and the value looks up with a generic key 
+            //
+            // I do the same with normal method, it breaks the flow between the two
+            //
+            // object{ 5 =: a; } > method [infer, infer] { return 5;}
+            //
+            // would never work at the moment nothing out can interact with anything inside
+            problem.builder.IsAssignedTo(method, myMethod);
+
+            var yolo = problem.builder.CreatePublicMember(
+                problem.ModuleRoot,
+                problem.ModuleRoot,
+                new NameKey("yolo"),
+                OrType.Make<IKey, IError>(
+                    new DoubleGenericNameKey(
+                        new NameKey("method"),
+                        new[] { new NameKey("T") },
+                        new[] {
+                            OrType.Make<IKey,IError>(new NameKey("T")),
+                            OrType.Make<IKey,IError>(new NameKey("T"))})));
+
+            var result = problem.Solve();
+
+            var methodResult = method.Converter.Convert(result, method).Is4OrThrow();
+            var parameter = Assert.Single(methodResult.TypeParameterDefinitions).Is1OrThrow();
+
+            var noEggs = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { }));
+            Assert.False(parameter.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
+
+            var hasEggs = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { new WeakMemberDefinition(Access.ReadWrite, new NameKey("eggs"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))) }));
             Assert.True(parameter.TheyAreUs(hasEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
         }
     }
