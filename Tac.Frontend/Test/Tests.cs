@@ -1558,7 +1558,7 @@ namespace Tac.Frontend.TypeProblem.Test
             HasMember(outputItem, new NameKey("b"));
         }
 
-        // TODO method or varience
+        // TODO method varience with or-types
 
         // method [T] [T,T] x;
         // method [T1] [T1,T1] y;
@@ -1918,6 +1918,78 @@ namespace Tac.Frontend.TypeProblem.Test
             var yoloReturns = result.GetType(yolo).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _).typeParameterDefinitions.Single().GetValue().Is1OrThrow();
             Assert.True(myMethodReturns.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
             Assert.True(myMethodReturns.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
+        }
+
+        // type chicken {eggs;}
+        // 
+        // method [T] [T,T] x;
+        // method [T1] [T1,T1] y;
+        // method[T][T, chicken] z
+        //
+        // x =: z
+        //
+        // x and y are different types
+        // they pick up different contraints
+        // ...
+        // I don't know what happenss here
+        // "x" becomes "method [T:chicken] [T,T]" and "z" becomes "method [T:chicken] [T:chicken, chicken]" ??
+        [Fact]
+        public void Damning()
+        {
+
+            var typeProblem = new Tpn.TypeProblem2(
+             new WeakScopeConverter(),
+             DefaultRootScopePopulateScope(), _ => { });
+
+            // type chicken { eggs; } 
+            var chickenType = typeProblem.builder.CreateType(typeProblem.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("chicken")), new WeakTypeDefinitionConverter());
+            typeProblem.builder.CreatePublicMember(chickenType, chickenType, new NameKey("eggs"));
+
+            var x = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("x"),
+                OrType.Make<IKey, IError>(
+                    new DoubleGenericNameKey(
+                        new NameKey("method"),
+                        new[] { new NameKey("T") },
+                        new[] {
+                            OrType.Make<IKey,IError>(new NameKey("T")),
+                            OrType.Make<IKey,IError>(new NameKey("T"))})));
+
+            var y = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("y"),
+                OrType.Make<IKey, IError>(
+                    new DoubleGenericNameKey(
+                        new NameKey("method"),
+                        new[] { new NameKey("T1") },
+                        new[] {
+                            OrType.Make<IKey,IError>(new NameKey("T1")),
+                            OrType.Make<IKey,IError>(new NameKey("T1"))})));
+
+
+            var z = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("z"),
+                OrType.Make<IKey, IError>(
+                    new DoubleGenericNameKey(
+                        new NameKey("method"),
+                        new[] { new NameKey("T") },
+                        new[] {
+                            OrType.Make<IKey,IError>(new NameKey("T")),
+                            OrType.Make<IKey,IError>(new NameKey("chicken"))})));
+
+            typeProblem.builder.IsAssignedTo(x, z);
+
+            var solution = typeProblem.Solve();
+
+            var xType = solution.GetType(x).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+            var yType = solution.GetType(y).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+            Assert.False(xType.TheyAreUs(yType, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
+
         }
     }
 }

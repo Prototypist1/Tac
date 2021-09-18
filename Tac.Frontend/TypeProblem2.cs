@@ -318,18 +318,17 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 // create types for everything 
                 var toLookUp = typeProblemNodes.OfType<ILookUpType>().ToArray();
-                foreach (var node in toLookUp.Where(x => !(x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>) && x.TypeKey.Is3(out var _)))
+                foreach (var node in toLookUp.Where(x => x.LooksUp.IsNot() && x.TypeKey.Is3(out var _)))
                 {
                     var type = new InferredType(this.builder, $"for {((TypeProblemNode)node).DebugName}");
                     node.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(type));
                 }
 
                 // what happens here if x.TypeKey.Is2??
-                if (toLookUp.Any(x => !(x.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>) && x.TypeKey.Is2(out var _)))
+                if (toLookUp.Any(x => x.LooksUp.IsNot() && x.TypeKey.Is2(out var _)))
                 {
                     throw new NotImplementedException();
                 }
-
 
                 #region Handle generics
 
