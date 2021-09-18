@@ -291,7 +291,7 @@ namespace Tac.SemanticModel
                  new GenericNameKey(new NameKey("method"), new[] {
                          realizedInputKey,
                          realizedOutputKey,
-                 }), new PlaceholderValueConverter());
+                 }));
 
             innerValue.AssignTo(outer.Returns());
 
@@ -302,7 +302,7 @@ namespace Tac.SemanticModel
                          realizedInputKey,
                          realizedOutputKey,
                     })),
-                }), new PlaceholderValueConverter());
+                }));
 
             return new SetUpResult<IBox<WeakImplementationDefinition>, Tpn.IValue>(new ImplementationDefinitionResolveReferance(
                 outer, nextElements, linesBox), OrType.Make<Tpn.IValue, IError>(value));

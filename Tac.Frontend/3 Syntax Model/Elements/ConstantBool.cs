@@ -138,7 +138,7 @@ namespace Tac.SemanticModel.Operations
             // yeah it totally should
             // TODO 
             // this applies to my other constants 
-            var value = context.TypeProblem.CreateValue(runtimeScope, new NameKey("bool"), new PlaceholderValueConverter());
+            var value = context.TypeProblem.CreateValue(runtimeScope, new NameKey("bool"));
             return new SetUpResult<IBox<WeakConstantBool>, Tpn.IValue>(new ConstantBoolResolveReferance(dub), OrType.Make<Tpn.IValue, IError>(value));
         }
     }

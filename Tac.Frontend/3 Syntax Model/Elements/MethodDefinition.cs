@@ -175,10 +175,10 @@ namespace Tac.SemanticModel
 
             var nextElements = elements.Select(x => x.TransformInner(y => y.Run(method, context.CreateChildContext(this)).Resolve)).ToArray();
 
-            var value = context.TypeProblem.CreateValue(runtimeScope, new GenericNameKey(new NameKey("method"), new IOrType<IKey, IError>[] {
+            var value = context.TypeProblem.CreateTransientMember(runtimeScope, new GenericNameKey(new NameKey("method"), new IOrType<IKey, IError>[] {
                     realizedInput.TransformInner(x=>x.Key()),
                     realizedOutput.TransformInner(x=>x.Key()),
-                }), new PlaceholderValueConverter());
+                }), "result-of-" + method.DebugName);
 
             return new SetUpResult<IBox<WeakMethodDefinition>, Tpn.IValue>(new MethodDefinitionResolveReferance(method, nextElements,box), OrType.Make<Tpn.IValue, IError>(value));
         }

@@ -113,7 +113,7 @@ namespace Tac.Frontend.TypeProblem.Test
             x.builder.CreatePublicMember(hello, hello, new NameKey("x"));
             x.builder.CreatePublicMember(hello, hello, new NameKey("y"));
 
-            var input = x.builder.CreateValue(x.ModuleRoot.InitizationScope, new NameKey("hello"), new PlaceholderValueConverter());
+            var input = x.builder.CreateValue(x.ModuleRoot.InitizationScope, new NameKey("hello"));
             var method = x.builder.CreateMethod(x.ModuleRoot, "input", new WeakMethodDefinitionConverter(new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>(new List<IOrType<IBox<IFrontendCodeElement>, IError>>())));
 
             var input_x = x.builder.CreateHopefulMember(method.Input(), new NameKey("x"));
@@ -709,7 +709,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var c = x.builder.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("c"));
 
-            var five = x.builder.CreateValue(x.ModuleRoot.InitizationScope, new NameKey("number"), new PlaceholderValueConverter());
+            var five = x.builder.CreateValue(x.ModuleRoot.InitizationScope, new NameKey("number"));
 
 
             x.builder.IsAssignedTo(five, c);
@@ -752,7 +752,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var d = x.builder.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("d"), OrType.Make<IKey, IError>(new NameKey("number")));
 
-            var five = x.builder.CreateValue(x.ModuleRoot.InitizationScope, new NameKey("number"), new PlaceholderValueConverter());
+            var five = x.builder.CreateValue(x.ModuleRoot.InitizationScope, new NameKey("number"));
 
             x.builder.IsAssignedTo(five, c);
             x.builder.IsAssignedTo(c, b);
@@ -1222,7 +1222,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var methodValue = x.builder.CreateValue(x.ModuleRoot.InitizationScope, new GenericNameKey(new NameKey("method"), new IOrType<IKey, IError>[] {
                     OrType.Make<IKey, IError>(new NameKey("number")),
                     OrType.Make<IKey, IError>(new NameKey("number")),
-                }), new PlaceholderValueConverter());
+                }));
 
             var res = x.builder.CreatePublicMember(
                 x.ModuleRoot,
@@ -1230,7 +1230,7 @@ namespace Tac.Frontend.TypeProblem.Test
                 new NameKey("res"));
 
 
-            var two = x.builder.CreateValue(x.ModuleRoot.InitizationScope, new NameKey("number"), new PlaceholderValueConverter());
+            var two = x.builder.CreateValue(x.ModuleRoot.InitizationScope, new NameKey("number"));
 
             x.builder.IsAssignedTo(methodValue, res);
             x.builder.IsAssignedTo(two, res.Input());
@@ -1876,6 +1876,7 @@ namespace Tac.Frontend.TypeProblem.Test
             //} =: my-method
             var myMethod = problem.builder.CreatePublicMember(problem.ModuleRoot, problem.ModuleRoot, new NameKey("my-method"));
             // TODO you are here 
+            //problem.builder.IsAssignedTo(method, myMethod);
             // the method does not really even expose it type in any way
             // currently I return a value 
             // and the value looks up with a generic key 
@@ -1885,7 +1886,7 @@ namespace Tac.Frontend.TypeProblem.Test
             // object{ 5 =: a; } > method [infer, infer] { return 5;}
             //
             // would never work at the moment nothing out can interact with anything inside
-            problem.builder.IsAssignedTo(method, myMethod);
+
 
             var yolo = problem.builder.CreatePublicMember(
                 problem.ModuleRoot,
@@ -1901,14 +1902,22 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var result = problem.Solve();
 
+            var noEggs = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { }));
+            var hasEggs = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { new WeakMemberDefinition(Access.ReadWrite, new NameKey("eggs"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))) }));
+
+
             var methodResult = method.Converter.Convert(result, method).Is4OrThrow();
             var parameter = Assert.Single(methodResult.TypeParameterDefinitions).Is1OrThrow();
-
-            var noEggs = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { }));
             Assert.False(parameter.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
-
-            var hasEggs = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { new WeakMemberDefinition(Access.ReadWrite, new NameKey("eggs"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))) }));
             Assert.True(parameter.TheyAreUs(hasEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
+
+            var myMethodReturns = result.GetType(myMethod).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _).typeParameterDefinitions.Single().GetValue().Is1OrThrow();
+            Assert.False(myMethodReturns.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
+            Assert.True(myMethodReturns.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
+
+            var yoloReturns = result.GetType(yolo).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _).typeParameterDefinitions.Single().GetValue().Is1OrThrow();
+            Assert.True(myMethodReturns.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
+            Assert.True(myMethodReturns.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
         }
     }
 }

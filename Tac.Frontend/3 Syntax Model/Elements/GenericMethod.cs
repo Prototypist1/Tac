@@ -206,7 +206,7 @@ namespace Tac.SemanticModel
                 new IOrType<IKey, IError>[] {
                     realizedInput.TransformInner(x=>x.Key()),
                     realizedOutput.TransformInner(x=>x.Key()),
-                }), new PlaceholderValueConverter()); ;
+                })); ;
 
 
             return new SetUpResult<IBox<WeakGenericMethodDefinition>, Tpn.IValue>(new GenericMethodDefinitionResolveReferance(method, nextElements, box), OrType.Make<Tpn.IValue, IError>(value));

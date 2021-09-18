@@ -233,13 +233,6 @@ namespace Tac.Frontend
         }
     }
 
-    internal class PlaceholderValueConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Value, PlaceholderValue>
-    {
-        public PlaceholderValue Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Value from)
-        {
-            return new PlaceholderValue(typeSolution.GetType(from));
-        }
-    }
 
     internal class WeakBlockDefinitionConverter : Tpn.IConvertTo<Tpn.TypeProblem2.Scope, IOrType<WeakBlockDefinition, WeakScope,WeakEntryPointDefinition>>
     {

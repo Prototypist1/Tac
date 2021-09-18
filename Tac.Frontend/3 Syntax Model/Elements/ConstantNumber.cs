@@ -99,7 +99,7 @@ namespace Tac.SemanticModel.Operations
                 throw new NotImplementedException("this should be an IError");
             }
 
-            var value = context.TypeProblem.CreateValue(runtimeScope, new NameKey("number"), new PlaceholderValueConverter());
+            var value = context.TypeProblem.CreateValue(runtimeScope, new NameKey("number"));
             return new SetUpResult<IBox<WeakConstantNumber>, Tpn.IValue>(new ConstantNumberResolveReferance(dub), OrType.Make<Tpn.IValue, IError>(value));
         }
     }

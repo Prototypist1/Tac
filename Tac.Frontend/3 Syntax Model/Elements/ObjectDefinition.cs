@@ -164,7 +164,7 @@ namespace Tac.SemanticModel
             var nextElements = elements.Select(x =>
             x.TransformInner(y => y.Run(myScope, context.CreateChildContext(this)).Resolve)).ToArray();
 
-            var value = context.TypeProblem.CreateValue(runtimeScope, key, new PlaceholderValueConverter());
+            var value = context.TypeProblem.CreateValue(runtimeScope, key);
             // ugh! an object is a type
             //
 

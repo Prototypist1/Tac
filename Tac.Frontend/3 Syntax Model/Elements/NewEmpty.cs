@@ -98,7 +98,7 @@ namespace Tac.Frontend.SyntaxModel.Elements
                 throw new NotImplementedException("this should be an IError");
             }
 
-            var value = context.TypeProblem.CreateValue(runtimeScope, new NameKey("empty"), new PlaceholderValueConverter());
+            var value = context.TypeProblem.CreateValue(runtimeScope, new NameKey("empty"));
             return new SetUpResult<IBox<WeakEmptyInstance>, Tpn.IValue>(new EmptyInstanceResolveReferance(), OrType.Make<Tpn.IValue, IError>(value));
         }
     }

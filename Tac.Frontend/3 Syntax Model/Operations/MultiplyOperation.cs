@@ -104,7 +104,7 @@ namespace Tac.SemanticModel.Operations
             .IfNotError(x => c.TypeProblem.IsNumber(runtimeScope, x));
 
 
-            return OrType.Make<Tpn.IValue, IError>(c.TypeProblem.CreateValue(runtimeScope, new NameKey("number"), new PlaceholderValueConverter()));
+            return OrType.Make<Tpn.IValue, IError>(c.TypeProblem.CreateValue(runtimeScope, new NameKey("number")));
         }, true)
         {
         }

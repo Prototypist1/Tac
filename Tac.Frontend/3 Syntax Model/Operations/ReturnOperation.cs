@@ -230,7 +230,7 @@ namespace Tac.SemanticModel.Operations
             // I will need to change this when I do a pass to communitcate error better
             finalVal.AssignTo(mem);
 
-            return OrType.Make<Tpn.IValue, IError>( c.TypeProblem.CreateValue(runtimeScope, new NameKey("empty"), new PlaceholderValueConverter()));
+            return OrType.Make<Tpn.IValue, IError>( c.TypeProblem.CreateValue(runtimeScope, new NameKey("empty")));
         },false)
         {
         }

@@ -61,16 +61,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IOrType<IKey, IError, Unset> TypeKey { get; set; } = Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(new Unset());
                 public IIsPossibly<IStaticScope> Context { get; set; } = Possibly.IsNot<IStaticScope>();
                 public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>();
-
-                //public IReadOnlyDictionary<IKey, Member> GetPublicMembers()
-                //{
-                //    return new Dictionary<IKey, Member>();
-                //}
             }
 
-            public class Value : TypeProblemNode<Value, PlaceholderValue>, IValue, ILookUpType
+            // can be assigned from, but not to, doesn't have a name
+            public class Value : TypeProblemNode, IValue, ILookUpType
             {
-                public Value(Builder problem, string debugName, IConvertTo<Value, PlaceholderValue> converter) : base(problem, debugName, converter)
+                public Value(Builder problem, string debugName) : base(problem, debugName)
                 {
                 }
 
@@ -79,12 +75,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>();
 
                 public IIsPossibly<InferredType> Hopeful { get; set; } = Possibly.IsNot<InferredType>();
-
-                //public IReadOnlyDictionary<IKey, Member> GetPublicMembers()
-                //{
-                //    return HopefulMembers;
-                //}
             }
+
+            // can be assigned to and from, has a name
             public class Member : TypeProblemNode, IMember
             {
                 public Member(Builder problem, string debugName) : base(problem, debugName)
@@ -95,13 +88,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IIsPossibly<IStaticScope> Context { get; set; } = Possibly.IsNot<IStaticScope>();
                 public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>();
                 public IIsPossibly<InferredType> Hopeful { get; set; } = Possibly.IsNot<InferredType>();
-
-                //public IReadOnlyDictionary<IKey, Member> GetPublicMembers()
-                //{
-                //    return HopefulMembers;
-                //}
             }
 
+            // can be assigned to and from, doesn't have a name
             public class TransientMember : TypeProblemNode, IMember
             {
                 public TransientMember(Builder problem, string debugName) : base(problem, debugName)
@@ -113,10 +102,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public IIsPossibly<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> LooksUp { get; set; } = Possibly.IsNot<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>();
                 public IIsPossibly<InferredType> Hopeful { get; set; } = Possibly.IsNot<InferredType>();
 
-                //public IReadOnlyDictionary<IKey, Member> GetPublicMembers()
-                //{
-                //    return HopefulMembers;
-                //}
             }
 
             // I don't really think possible members belong here
@@ -199,9 +184,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                 }
                 public Dictionary<IKey, Member> PublicMembers { get; } = new Dictionary<IKey, Member>();
-
                 public IIsPossibly<Member> Input { get; set; } = Possibly.IsNot<Member>();
                 public IIsPossibly<TransientMember> Returns { get; set; } = Possibly.IsNot<TransientMember>();
+                
+                // TODO
+                // can infered types have generics?
+                // seems like they could
+                // 
             }
 
             public class OrType : TypeProblemNode<OrType, WeakTypeOrOperation>
@@ -985,24 +974,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            //IOrType<MethodType, Type, Object, OrType, InferredType, IError> LookUpOrOverlayOrThrow(ILookUpType node, Dictionary<GenericTypeKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> realizedGeneric)
-            //{
-
-            //    if (node.LooksUp is IIsDefinately<IOrType<MethodType, Type, Object, OrType, InferredType, IError>> nodeLooksUp)
-            //    {
-            //        return nodeLooksUp.Value;
-            //    }
-
-            //    // if we don't have a lookup we damn well better have a context and a key
-            //    var res = TryLookUpOrOverlay(node.Context.GetOrThrow(), node.TypeKey.Is1OrThrow(), realizedGeneric);
-            //    node.LooksUp = Possibly.Is(res);
-            //    return res;
-            //}
-
-            //IOrType<MethodType, Type, Object, OrType, InferredType, IError> TryLookUpOrOverlay(IStaticScope from, IKey key, Dictionary<GenericTypeKey, IOrType<MethodType, Type, Object, OrType, InferredType, IError>> realizedGeneric)
-            //{
-            //    if (key.SafeIs(out DoubleGenericNameKey doubleGenericNameKey)) {
-
 
             //        // do I need to cache locally?
             //        // that is, on the from.
@@ -1060,99 +1031,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             //        // double generic inside generic inside double generic?
 
 
-
-
-
-
-            //    }
-
-            //    if (key is GenericNameKey genericNameKey)
-            //    {
-
-            //        var types = genericNameKey.Types.Select(typeKey => typeKey.SwitchReturns(
-            //            x => TryLookUpOrOverlay(from, x, realizedGeneric),
-            //            y => throw new NotImplementedException("Type could not be resolved")) // I want to use NIEs to keep my code near compilablity. once I have a lot in type problem node, I can think about how to handle them.
-            //        ).ToArray();
-
-
-            //        var outerLookedUp = LookUpOrError(from, genericNameKey.Name);
-
-            //        return outerLookedUp.SwitchReturns(
-            //            methodType =>
-            //            {
-            //                var genericTypeKey = new GenericTypeKey(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(methodType), types);
-
-            //                if (realizedGeneric.TryGetValue(genericTypeKey, out var res2))
-            //                {
-            //                    return res2;
-            //                }
-
-            //                // this is duplicate code - 94875369485
-            //                var map = new Dictionary<IOrType<MethodType, Type, Object, OrType, InferredType, IError>, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
-            //                foreach (var (oldType, newType) in types.Zip(methodType.GenericOverlays, (x, y) => (y.Value, x)))
-            //                {
-            //                    map[oldType] = newType;
-            //                }
-
-            //                var @explicit = CopyTree(Prototypist.Toolbox.OrType.Make<MethodType, Type>(methodType), Prototypist.Toolbox.OrType.Make<MethodType, Type>(new MethodType(this.builder, $"generated-generic-{methodType.DebugName}", methodType.Converter)), map);
-
-            //                return @explicit.SwitchReturns(v1 =>
-            //                {
-            //                    realizedGeneric.Add(genericTypeKey, Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v1));
-            //                    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v1);
-            //                }, v2 =>
-            //                {
-            //                    realizedGeneric.Add(genericTypeKey, Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v2));
-            //                    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v2);
-            //                });
-
-            //            },
-            //            type =>
-            //            {
-            //                var genericTypeKey = new GenericTypeKey(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(type), types);
-
-            //                if (realizedGeneric.TryGetValue(genericTypeKey, out var res2))
-            //                {
-            //                    return res2;
-            //                }
-
-            //                // this is duplicate code - 94875369485
-            //                var map = new Dictionary<IOrType<MethodType, Type, Object, OrType, InferredType, IError>, IOrType<MethodType, Type, Object, OrType, InferredType, IError>>();
-            //                foreach (var (oldType, newType) in types.Zip(type.GenericOverlays, (x, y) => (y.Value, x)))
-            //                {
-            //                    map[oldType] = newType;
-            //                }
-
-            //                var @explicit = CopyTree(Prototypist.Toolbox.OrType.Make<MethodType, Type>(type), Prototypist.Toolbox.OrType.Make<MethodType, Type>(new Type(this.builder, $"generated-generic-{type.DebugName}", type.Key, type.Converter, type.IsPlaceHolder, Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>())), map);
-
-            //                return @explicit.SwitchReturns(v1 =>
-            //                {
-            //                    realizedGeneric.Add(genericTypeKey, Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v1));
-            //                    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v1);
-            //                },
-            //                v2 =>
-            //                {
-            //                    realizedGeneric.Add(genericTypeKey, Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v2));
-            //                    return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(v2);
-            //                });
-
-            //            },
-            //            @object => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(@object),
-            //            orType => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(orType),
-            //            inferredType => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(inferredType),
-            //            error => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(error));
-            //    }
-            //    else if (TryLookUp(from, key, out var res2))
-            //    {
-            //        //:'(
-            //        // I am sad about the !
-            //        return res2!;
-            //    }
-            //    else
-            //    {
-            //        return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, IError>(Error.TypeNotFound($"could not find type for {key} in {from}"));
-            //    }
-            //}
 
             static Prototypist.Toolbox.IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> LookUpOrError(IStaticScope haveTypes, IKey key)
             {
@@ -1485,7 +1363,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             foreach (var item in innerFromScope.Values)
                             {
-                                var newValue = Copy(item, new Value(this.builder, $"copied from {((TypeProblemNode)item).DebugName}", item.Converter));
+                                var newValue = Copy(item, new Value(this.builder, $"copied from {((TypeProblemNode)item).DebugName}"));
                                 Builder.HasValue(innerScopeTo, newValue);
                             }
                         }

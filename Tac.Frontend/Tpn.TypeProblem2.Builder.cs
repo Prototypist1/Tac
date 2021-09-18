@@ -126,9 +126,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                     problem.assignments.Add((assignedFrom, assignedTo));
                 }
 
-                public Value CreateValue(IScope scope, IKey typeKey, IConvertTo<Value, PlaceholderValue> converter)
+                public Value CreateValue(IScope scope, IKey typeKey)
                 {
-                    var res = new Value(this, typeKey.ToString()!, converter);
+                    var res = new Value(this, typeKey.ToString()!);
                     HasValue(scope, res);
                     res.Context = Possibly.Is(scope);
                     res.TypeKey = Prototypist.Toolbox.OrType.Make<IKey, IError, Unset>(typeKey);
@@ -465,36 +465,36 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public void IsNumber(IScope parent, ILookUpType target)
                 {
-                    // super weird that this has to be a transient member
-                    var thing = CreateTransientMember(parent, new NameKey("number"), $"is number for {target.DebugName}");
+                    // super weird that this has to be a value
+                    var thing = CreateValue(parent, new NameKey("number"));
                     AssertIs(target, thing);
                 }
 
                 public void IsBlock(IScope parent, ILookUpType target)
                 {
-                    // super weird that this has to be a transient member
-                    var thing = CreateTransientMember(parent, new NameKey("block"), $"is block for {target.DebugName}");
+                    // super weird that this has to be a value
+                    var thing = CreateValue(parent, new NameKey("block"));
                     AssertIs(target, thing);
                 }
 
                 public void IsBool(IScope parent, ILookUpType target)
                 {
-                    // super weird that this has to be a transient member
-                    var thing = CreateTransientMember(parent, new NameKey("bool"), $"is bool for {target.DebugName}");
+                    // super weird that this has to be a value
+                    var thing = CreateValue(parent, new NameKey("bool"));
                     AssertIs(target, thing);
                 }
 
                 public void IsEmpty(IScope parent, ILookUpType target)
                 {
-                    // super weird that this has to be a transient member
-                    var thing = CreateTransientMember(parent, new NameKey("empty"), $"is empty for {target.DebugName}");
+                    // super weird that this has to be a value
+                    var thing = CreateValue(parent, new NameKey("empty"));
                     AssertIs(target, thing);
                 }
 
                 public void IsString(IScope parent, ILookUpType target)
                 {
-                    // super weird that this has to be a transient member
-                    var thing = CreateTransientMember(parent, new NameKey("string"), $"is string for {target.DebugName}");
+                    // super weird that this has to be a value
+                    var thing = CreateValue(parent, new NameKey("string"));
                     AssertIs(target, thing);
                 }
 
@@ -521,13 +521,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // it is just something of type method
                 // it is really just a type
                 //
-                public Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>> converter)
-                {
-                    var thing = CreateTransientMember(parent, $"is method for {target.DebugName}");
-                    var method = CreateMethod(parent, "input", converter);
-                    IsAssignedTo(target, thing);
-                    return method;
-                }
+                //public Method IsMethod(IScope parent, ICanAssignFromMe target, IConvertTo<Method, IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>> converter)
+                //{
+                //    var thing = CreateTransientMember(parent, $"is method for {target.DebugName}");
+                //    var method = CreateMethod(parent, "input", converter);
+                //    IsAssignedTo(target, thing);
+                //    return method;
+                //}
 
 
                 public Member GetInput(IValue value)
