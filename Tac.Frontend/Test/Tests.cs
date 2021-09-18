@@ -1608,7 +1608,7 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var yType = solution.GetType(y).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
 
-            Assert.Equal(xType, yType);
+            Assert.True(xType.TheyAreUs(yType, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
         }
 
         // method [T] [T, method [TT] [TT,T]] x;
@@ -1662,7 +1662,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var xType = solution.GetType(x).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
             var yType = solution.GetType(y).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
 
-            Assert.Equal(xType, yType);
+            Assert.True(xType.TheyAreUs(yType, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
         }
 
         // type [T] pair1 { method [T1] [T1,T] x;}
@@ -1826,7 +1826,8 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var yType = solution.GetType(y).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
 
-            Assert.Equal(zType, yType);
+
+            Assert.True(zType.TheyAreUs(yType, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
         }
 
         // .. I think I need more tests around this... but I'm failing to come up with one
@@ -1841,6 +1842,8 @@ namespace Tac.Frontend.TypeProblem.Test
         // method [T] [T,T] input {
         //  input =: chicken x;
         // } =: my-method
+        //
+        // my-method =: method [T] [T,T] z
         //
         // method [T] [T,T] yolo 
         //
@@ -1887,6 +1890,19 @@ namespace Tac.Frontend.TypeProblem.Test
             //
             // would never work at the moment nothing out can interact with anything inside
 
+            // my-method =: method [T] [T,T] z
+            var z = problem.builder.CreatePublicMember(
+                problem.ModuleRoot,
+                problem.ModuleRoot,
+                new NameKey("z"),
+                OrType.Make<IKey, IError>(
+                    new DoubleGenericNameKey(
+                        new NameKey("method"),
+                        new[] { new NameKey("T") },
+                        new[] {
+                            OrType.Make<IKey,IError>(new NameKey("T")),
+                            OrType.Make<IKey,IError>(new NameKey("T"))})));
+            problem.builder.IsAssignedTo(myMethod, z);
 
             var yolo = problem.builder.CreatePublicMember(
                 problem.ModuleRoot,
@@ -1924,7 +1940,7 @@ namespace Tac.Frontend.TypeProblem.Test
         // 
         // method [T] [T,T] x;
         // method [T1] [T1,T1] y;
-        // method[T][T, chicken] z
+        // method [T] [T, chicken] z
         //
         // x =: z
         //
@@ -1990,6 +2006,64 @@ namespace Tac.Frontend.TypeProblem.Test
             var yType = solution.GetType(y).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
             Assert.False(xType.TheyAreUs(yType, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
 
+        }
+
+        [Fact]
+        public void GenericContainsSelfContainsDoubleGeneric()
+        {
+
+            // type[node-t] node {node[node-t] next; method [T] [T,T] z}
+            // type chicken {}
+            // node[chicken] thing;
+
+            var x = new Tpn.TypeProblem2(new WeakScopeConverter(),
+                DefaultRootScopePopulateScope(), _ => { });
+
+            var type = x.builder.CreateGenericType(
+                x.ModuleRoot,
+                OrType.Make<NameKey, ImplicitKey>(new NameKey("node")),
+                new[]{
+                    new Tpn.TypeAndConverter(new NameKey("node-t"), new WeakTypeDefinitionConverter())
+                },
+                new WeakTypeDefinitionConverter() // this is so werid shouldn' these use a convert that converts to a generic type...?  {0A2986D9-59AA-460C-B946-FF20B15FCEE6}
+            );
+
+            x.builder.CreatePublicMember(type, type, new NameKey("next"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("node"), new IOrType<IKey, IError>[] {
+                OrType.Make<IKey, IError>(new NameKey("node-t"))
+            })));
+            var z = x.builder.CreatePublicMember(
+                        type,
+                        type,
+                        new NameKey("z"),
+                        OrType.Make<IKey, IError>(
+                            new DoubleGenericNameKey(
+                                new NameKey("method"),
+                                new[] { new NameKey("T") },
+                                new[] {
+                                        OrType.Make<IKey,IError>(new NameKey("T")),
+                                        OrType.Make<IKey,IError>(new NameKey("T"))})));
+
+            x.builder.CreateType(x.ModuleRoot, OrType.Make<NameKey, ImplicitKey>(new NameKey("chicken")), new WeakTypeDefinitionConverter());
+
+
+            var thing = x.builder.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("thing"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("node"), new IOrType<IKey, IError>[] {
+                OrType.Make<IKey, IError>(new NameKey("chicken"))
+            })));
+
+            var solution = x.Solve();
+            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot).Is2OrThrow().Scope.Is1OrThrow();
+
+
+            var thingResult = obj.membersList.Single(x => x.Key.Equals(new NameKey("thing")));
+            var thingResultType = MemberToType(thingResult);
+
+            //HasCount(1, thingResultType);
+            var nextResult = HasMember(thingResultType, new NameKey("next"));
+            //var nextResultType = MemberToType(nextResult);
+            //HasCount(1, nextResultType);
+            HasMember(nextResult, new NameKey("next"));
+
+            Equal(thingResultType, nextResult);
         }
     }
 }

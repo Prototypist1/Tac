@@ -687,8 +687,6 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
             }
         }
 
-        // this matches a few places
-        // {A1078BB9-DF91-48C0-998A-95673AD1272B}
         public IOrType<bool, IError> TheyAreUs(IFrontendType<IVerifiableType> they, List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)> assumeTrue)
         {
             if (!they.SafeIs(out GenericMethodType genericMethod))
