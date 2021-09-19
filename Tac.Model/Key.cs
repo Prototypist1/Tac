@@ -72,10 +72,16 @@ namespace Tac.Model
 
         public override int GetHashCode()
         {
-            var hashCode = -850890288;
-            hashCode = (hashCode * -1521134295) + base.GetHashCode();
-            hashCode = (hashCode * -1521134295) + Types.Sum(x=>x.GetHashCode());
-            return hashCode;
+            unchecked
+            {
+                var hashCode = -850890288;
+                hashCode = (hashCode * -1521134295) + base.GetHashCode();
+                foreach (var item in Types.Select(x => x.GetHashCode()))
+                {
+                    hashCode = (hashCode * -1521134295) + item;
+                }
+                return hashCode;
+            }
         }
 
         public override string ToString()

@@ -500,8 +500,6 @@ namespace Tac.Model.Instantiated
 
         public IIsPossibly<(IVerifiableType, Access)> TryGetMember(IKey key, List<(IVerifiableType, IVerifiableType)> assumeTrue) => Possibly.IsNot<(IVerifiableType, Access)>();
 
-        // this matches equality of GenericTypeKey which represents this in the type problem
-        // {A1078BB9-DF91-48C0-998A-95673AD1272B}
         public bool TheyAreUs(IVerifiableType they, List<(IVerifiableType, IVerifiableType)> assumeTrue)
         {
             if (!they.SafeIs(out GenericMethodType genericMethod)) {
