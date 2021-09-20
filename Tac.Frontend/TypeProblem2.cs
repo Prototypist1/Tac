@@ -444,6 +444,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 var steam = 0;
 
+                var realizedGeneric = new Dictionary<GenericTypeKey, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>();
+
+
                 // this while is where because copy tree creates new looks
                 while (typeProblemNodes.OfType<ILookUpType>().Any(x=>x.LooksUp.IsNot()))
                 {
@@ -454,9 +457,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
 
 
-                    foreach (var item in typeProblemNodes.OfType<ILookUpType>().ToArray())
+                    foreach (var item in typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp.IsNot()).ToArray())
                     {
-                        item.LooksUp = Possibly.Is( OuterLookUpOrError(item));
+                        item.LooksUp = Possibly.Is( OuterLookUpOrError(item, realizedGeneric));
 
                     }
 
@@ -1053,9 +1056,8 @@ namespace Tac.Frontend.New.CrzayNamespace
             //        // what happen when we have generic inside a double generic
             //        // double generic inside generic inside double generic?
 
-            Prototypist.Toolbox.IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> OuterLookUpOrError(ILookUpType item)
+            Prototypist.Toolbox.IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> OuterLookUpOrError(ILookUpType item, Dictionary<GenericTypeKey, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> realizedGenerics)
             {
-
                 if (item.LooksUp.Is(out var res))
                 {
                     return res;
@@ -1063,11 +1065,14 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 var key = item.TypeKey.Is1OrThrow()/*lazy Is1OrThrow*/;
 
-                return OuterLookUpOrError(item.Context.GetOrThrow()/*lazy*/, key);
+                return OuterLookUpOrError(item.Context.GetOrThrow()/*lazy*/, key, realizedGenerics);
 
             }
 
-            private IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> OuterLookUpOrError(IStaticScope context, IKey key)
+            private IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> OuterLookUpOrError(
+                IStaticScope context, 
+                IKey key, 
+                Dictionary<GenericTypeKey, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> realizedGenerics)
             {
                 IOrType<MethodType, Type>? newType = null;
                 IOrType<MethodType, Type>? from = null;
@@ -1084,12 +1089,21 @@ namespace Tac.Frontend.New.CrzayNamespace
                         _ => throw new Exception(""),
                         _ => throw new Exception(""));
 
-                    overlays = genericNameKey.Types.Select(x => OuterLookUpOrError(context, x.Is1OrThrow()/*lazy*/)).ToArray();
+                    overlays = genericNameKey.Types.Select(x => OuterLookUpOrError(context, x.Is1OrThrow()/*lazy*/, realizedGenerics)).ToArray();
+
+                    var genericTypeKey = new GenericTypeKey(from, overlays);
+
+                    if (realizedGenerics.TryGetValue(genericTypeKey, out var res)) {
+                        return res;
+                    }
 
                     newType = from.SwitchReturns(
                         methodType => Prototypist.Toolbox.OrType.Make<MethodType, Type>(new MethodType(this.builder, key.ToString() ?? "", methodType.Converter)),
                         type => Prototypist.Toolbox.OrType.Make<MethodType, Type>(new Type(this.builder, key.ToString() ?? "", type.Key, type.Converter, Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>())));
 
+                    realizedGenerics.Add(genericTypeKey, newType.SwitchReturns(
+                        x=> Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(x), 
+                        x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(x)));
                 }
                 else if (key.SafeIs(out DoubleGenericNameKey doubleGenericNameKey))
                 {
@@ -1102,7 +1116,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                        _ => throw new Exception(""),
                        _ => throw new Exception(""));
 
-                    overlays = doubleGenericNameKey.DependentTypes.Select(x => OuterLookUpOrError(context/*lazy GetOrThrow*/, x.Is1OrThrow()/*lazy*/)).ToArray();
+                    overlays = doubleGenericNameKey.DependentTypes.Select(x => OuterLookUpOrError(context/*lazy GetOrThrow*/, x.Is1OrThrow()/*lazy*/, realizedGenerics)).ToArray();
 
                     newType = from.SwitchReturns(
                        methodType => Prototypist.Toolbox.OrType.Make<MethodType, Type>(new MethodType(this.builder, key.ToString() ?? "", methodType.Converter)),
@@ -1121,20 +1135,20 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 // do I really need to make place holders?
                 // yeah, for a reference like generic-method [t1] [t1, t1] 
-                var i = 0;
-                foreach (var placeholder in from.SwitchReturns(x => x.Generics, x => x.Generics))
-                {
-                    //var key = new ImplicitKey(Guid.NewGuid());
-                    var placeholderType = new GenericTypeParameter(this.builder, placeholder.ToString(), i++);
-                    //var placeholderType = new Type(this.builder, placeholder.ToString(), Possibly.Is(Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(key)), new WeakTypeDefinitionConverter(),  Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>());
+                //var i = 0;
+                //foreach (var placeholder in from.SwitchReturns(x => x.Generics, x => x.Generics))
+                //{
+                //    //var key = new ImplicitKey(Guid.NewGuid());
+                //    var placeholderType = new GenericTypeParameter(this.builder, placeholder.ToString(), i++);
+                //    //var placeholderType = new Type(this.builder, placeholder.ToString(), Possibly.Is(Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(key)), new WeakTypeDefinitionConverter(),  Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>());
 
-                    builder.HasGenericType(
-                        newType.SwitchReturns(
-                            x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(x),
-                            x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(x)),
-                        placeholder.Key,
-                        placeholderType);
-                }
+                //    builder.HasGenericType(
+                //        newType.SwitchReturns(
+                //            x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(x),
+                //            x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(x)),
+                //        placeholder.Key,
+                //        placeholderType);
+                //}
 
                 var map = from.SwitchReturns(x => x.Generics.Values, x => x.Generics.Values)
                     .Zip(overlays, (from, to) => (from, to))
@@ -1786,6 +1800,37 @@ namespace Tac.Frontend.New.CrzayNamespace
                 Dependency = builder.CreateScope(Primitive, rootConverter);
                 initDependencyScope(this);
                 ModuleRoot = rootScopePopulateScope.InitizeForTypeProblem(this);
+            }
+
+            private class GenericTypeKey
+            {
+                private readonly IOrType<MethodType, Type> primary;
+                private readonly IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>[] parameters;
+
+                public GenericTypeKey(IOrType<MethodType, Type> primary, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>[] parameters)
+                {
+                    this.primary = primary ?? throw new ArgumentNullException(nameof(primary));
+                    this.parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
+                }
+
+                public override bool Equals(object? obj)
+                {
+                    return Equals(obj as GenericTypeKey);
+                }
+
+                public bool Equals(GenericTypeKey? other)
+                {
+                    return other != null &&
+                        primary.Equals(other.primary) &&
+                        parameters.Length == other.parameters.Length &&
+                        parameters.Zip(other.parameters, (x, y) => x.Equals(y)).All(x => x);
+                }
+
+                public override int GetHashCode()
+                {
+                    return 1;
+                    //return unchecked(primary.GetHashCode() + parameters.Aggregate(0, (y, x) => unchecked(y + x.GetHashCode())));
+                }
             }
         }
     }
