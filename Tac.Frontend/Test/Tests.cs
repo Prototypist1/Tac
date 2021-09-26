@@ -1609,6 +1609,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var yType = solution.GetType(y).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
 
             Assert.True(xType.TheyAreUs(yType, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
+            Assert.True(yType.TheyAreUs(xType, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
         }
 
         // method [T] [T, method [TT] [TT,T]] x;

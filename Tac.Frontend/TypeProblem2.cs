@@ -459,7 +459,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var item in typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp.IsNot()).ToArray())
                     {
-                        item.LooksUp = Possibly.Is( OuterLookUpOrError(item, realizedGeneric));
+                        item.LooksUp = Possibly.Is( OuterLookUpOrError(item, realizedGeneric, WalkParent(item.Context.GetOrThrow())));
 
                     }
 
@@ -1056,7 +1056,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             //        // what happen when we have generic inside a double generic
             //        // double generic inside generic inside double generic?
 
-            Prototypist.Toolbox.IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> OuterLookUpOrError(ILookUpType item, Dictionary<GenericTypeKey, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> realizedGenerics)
+            Prototypist.Toolbox.IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> OuterLookUpOrError(ILookUpType item, Dictionary<GenericTypeKey, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> realizedGenerics, IEnumerable<IStaticScope> contextStack)
             {
                 if (item.LooksUp.Is(out var res))
                 {
@@ -1065,12 +1065,12 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 var key = item.TypeKey.Is1OrThrow()/*lazy Is1OrThrow*/;
 
-                return OuterLookUpOrError(item.Context.GetOrThrow()/*lazy*/, key, realizedGenerics);
+                return OuterLookUpOrError(contextStack, key, realizedGenerics);
 
             }
 
             private IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> OuterLookUpOrError(
-                IStaticScope context, 
+                IEnumerable<IStaticScope> context, 
                 IKey key, 
                 Dictionary<GenericTypeKey, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> realizedGenerics)
             {
@@ -1116,12 +1116,30 @@ namespace Tac.Frontend.New.CrzayNamespace
                        _ => throw new Exception(""),
                        _ => throw new Exception(""));
 
-                    overlays = doubleGenericNameKey.DependentTypes.Select(x => OuterLookUpOrError(context/*lazy GetOrThrow*/, x.Is1OrThrow()/*lazy*/, realizedGenerics)).ToArray();
 
                     newType = from.SwitchReturns(
                        methodType => Prototypist.Toolbox.OrType.Make<MethodType, Type>(new MethodType(this.builder, key.ToString() ?? "", methodType.Converter)),
                        type => Prototypist.Toolbox.OrType.Make<MethodType, Type>(new Type(this.builder, key.ToString() ?? "", type.Key, type.Converter, Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>())));
 
+                    var i = 0;
+                    foreach (var item in doubleGenericNameKey.Types)
+                    {
+                        builder.HasGenericType(
+                            newType.SwitchReturns(
+                                x=> Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(x), 
+                                x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(x)), 
+                            item, 
+                            new GenericTypeParameter(
+                                builder,
+                                $"generic-parameter-{item}",
+                                i++));
+                    }
+
+                    // ThisThenThose because we need to beable to look up the generics we defined above
+                    // we set parent in copyTree
+                    // so I didn't want to set it here as well
+                    // probably would be a ok, but seemed dangerous
+                    overlays = doubleGenericNameKey.DependentTypes.Select(x => OuterLookUpOrError(ThisThenThose(newType.GetValueAs(out IStaticScope _) ,context)/*lazy GetOrThrow*/, x.Is1OrThrow()/*lazy*/, realizedGenerics)).ToArray();
                 }
                 else
                 {
@@ -1156,14 +1174,15 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 CopyTree(from, newType, map);
 
-                return from.SwitchReturns(x => Prototypist.Toolbox.OrType.Make<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, TypeProblem2.GenericTypeParameter, IError>(x),
+                return newType.SwitchReturns(x => Prototypist.Toolbox.OrType.Make<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, TypeProblem2.GenericTypeParameter, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, TypeProblem2.GenericTypeParameter, IError>(x));
             }
 
-            static Prototypist.Toolbox.IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> LookUpOrError(IStaticScope haveTypes, IKey key)
+            static Prototypist.Toolbox.IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> LookUpOrError(IEnumerable< IStaticScope> haveTypeses, IKey key)
             {
-                while (true)
+                foreach (var haveTypes in haveTypeses)
                 {
+
                     {
                         if (haveTypes.Types.TryGetValue(key, out var res))
                         {
@@ -1255,15 +1274,25 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                         }
                     }
+                }
+                return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(Error.TypeNotFound($"could not find type for {key}"));
+            }
 
-                    if (haveTypes.Parent.SafeIs(out IIsDefinately<IStaticScope> defScope))
-                    {
-                        haveTypes = defScope.Value;
-                    }
-                    else
-                    {
-                        return Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(Error.TypeNotFound($"could not find type for {key} in {haveTypes}"));
-                    }
+            private static IEnumerable<IStaticScope> WalkParent(IStaticScope source) {
+                yield return source;
+                while (source.Parent.SafeIs(out IIsDefinately<IStaticScope> defScope))
+                {
+                    source = defScope.Value;
+                    yield return source;
+                }
+            }
+
+            private static IEnumerable<IStaticScope> ThisThenThose(IStaticScope first, IEnumerable<IStaticScope> then )
+            {
+                yield return first;
+                foreach (var item in then)
+                {
+                    yield return item;
                 }
             }
 
