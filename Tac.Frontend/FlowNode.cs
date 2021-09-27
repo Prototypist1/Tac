@@ -398,6 +398,29 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(new DoesNotExist());
             }
 
+
+            public IIsPossibly<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>> Flatten(HashSet<IOrType<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>> except, IEnumerable<IOrType<Member, Input, Output, Generic>> pathParts, bool _) {
+
+                if (pathParts.Any()) {
+                    throw new Exception("....a primitive can't have a type...");
+                }
+
+                var key = OrType.Make<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>(this);
+                if (except.Contains(key))
+                {
+                    return Possibly.IsNot<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>>();
+                }
+                except.Add(key);
+
+                return Possibly.Is(
+                    OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(
+                        new EqualibleHashSet<CombinedTypesAnd>(
+                            new HashSet<CombinedTypesAnd>{
+                                new CombinedTypesAnd(
+                                    new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{
+                                        OrType.Make<ConcreteFlowNode, PrimitiveFlowNode > (this) })})));
+            }
+
             public override string? ToString()
             {
                 return $"{nameof(PrimitiveFlowNode)}({Source})";
@@ -652,6 +675,70 @@ namespace Tac.Frontend.New.CrzayNamespace
                     });
             }
 
+            public IIsPossibly<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>> Flatten(HashSet<IOrType<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>> except, IEnumerable<IOrType<Member, Input, Output, Generic>> pathParts, bool accepted)
+            {
+
+                if (pathParts.Any())
+                {
+
+                    pathParts.First().SwitchReturns(
+                        member =>
+                        {
+                            if (Members.TryGetValue(member.key, out var value))
+                            {
+                                return value.SwitchReturns(x => x.Flatten(except.ToHashSet(), pathParts.Skip(1).ToArray(), accepted),
+                                    x => x.Flatten(except.ToHashSet(), pathParts.Skip(1).ToArray(), accepted),
+                                    x => x.Flatten(except.ToHashSet(), pathParts.Skip(1).ToArray(), accepted),
+                                    x => x.Flatten(except.ToHashSet(), pathParts.Skip(1).ToArray(), accepted));
+                            }
+                            return Possibly.IsNot<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>>();
+                        },
+                        input =>
+                        {
+                            if (Input.Is(out var myInput))
+                            {
+                                return myInput.SwitchReturns(x => x.Flatten(except.ToHashSet(), pathParts.Skip(1).ToArray(), accepted),
+                                        x => x.Flatten(except.ToHashSet(), pathParts.Skip(1).ToArray(), accepted),
+                                        x => x.Flatten(except.ToHashSet(), pathParts.Skip(1).ToArray(), accepted),
+                                        x => x.Flatten(except.ToHashSet(), pathParts.Skip(1).ToArray(), accepted));
+                            }
+                            return Possibly.IsNot<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>>();
+                        },
+                        output =>
+                        {
+                            if (Input.Is(out var myOutput))
+                            {
+                                return myOutput.SwitchReturns(x => x.Flatten(except.ToHashSet(), pathParts.Skip(1).ToArray(), accepted),
+                                        x => x.Flatten(except.ToHashSet(), pathParts.Skip(1).ToArray(), accepted),
+                                        x => x.Flatten(except.ToHashSet(), pathParts.Skip(1).ToArray(), accepted),
+                                        x => x.Flatten(except.ToHashSet(), pathParts.Skip(1).ToArray(), accepted));
+                            }
+                            return Possibly.IsNot<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>>();
+                        },
+                        generic =>
+                        {
+                            return Generics[generic.index].SwitchReturns(x => x.Flatten(except.ToHashSet(), pathParts.Skip(1).ToArray(), accepted),
+                                x => x.Flatten(except.ToHashSet(), pathParts.Skip(1).ToArray(), accepted),
+                                x => x.Flatten(except.ToHashSet(), pathParts.Skip(1).ToArray(), accepted),
+                                x => x.Flatten(except.ToHashSet(), pathParts.Skip(1).ToArray(), accepted));
+                        });
+                }
+
+                var key = OrType.Make<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>(this);
+                if (except.Contains(key))
+                {
+                    return Possibly.IsNot<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>>();
+                }
+                except.Add(key);
+
+                return Possibly.Is(
+                    OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(
+                        new EqualibleHashSet<CombinedTypesAnd>(
+                            new HashSet<CombinedTypesAnd>{
+                                new CombinedTypesAnd(
+                                    new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{
+                                        OrType.Make<ConcreteFlowNode, PrimitiveFlowNode > (this) })})));
+            }
         }
 
         public class OrFlowNode : IFlowNode<TypeProblem2.OrType>
@@ -804,6 +891,46 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return $"{nameof(OrFlowNode)}({Source})";
             }
 
+            public IIsPossibly<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>> Flatten(HashSet<IOrType<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>> except, IEnumerable<IOrType<Member, Input, Output, Generic>> pathParts, bool accepted)
+            {
+                if (!pathParts.Any())
+                {
+                    var key = OrType.Make<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>(this);
+                    if (except.Contains(key))
+                    {
+                        return Possibly.IsNot<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>>();
+                    }
+                    except.Add(key);
+                }
+
+                var list = Or.Select(y =>
+                   y.SwitchReturns(
+                       x => x.Flatten(except.ToHashSet(), pathParts, accepted),
+                       x => x.Flatten(except.ToHashSet(), pathParts, accepted),
+                       x => x.Flatten(except.ToHashSet(), pathParts, accepted),
+                       x => x.Flatten(except.ToHashSet(), pathParts, accepted)))
+                    .SelectMany(x=>
+                       {
+                           if (x.Is(out var orType))
+                           {
+                               return new[] { orType };
+                           }
+                           return Array.Empty<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>>();
+                       }).Distinct().ToArray();
+
+                var error = list.SelectMany(x => { if (x.Is2(out var error)){ return new[] { error }; } return Array.Empty<IError>(); }).ToArray();
+
+                if (error.Length == 1){
+                    return Possibly.Is(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(error[0]));
+                }
+
+                if (error.Length > 1) {
+
+                    return Possibly.Is(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(Error.Cascaded("errors",error)));
+                }
+
+                return Possibly.Is(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(list.SelectMany(x => x.Is1OrThrow()).ToHashSet())));
+            }
         }
 
         // what a mess 😭😭😭
@@ -999,171 +1126,118 @@ namespace Tac.Frontend.New.CrzayNamespace
                 get;
             }
 
-
-
-            private IOrType<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist> ToRepReturns(IEnumerable<IOrType<Member, Input, Output, Generic>> pathParts)
+            private IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> ToRepReturns(IEnumerable<IOrType<Member, Input, Output, Generic>> pathParts)
             {
-                var nodeOrError = FlattenReturn(new HashSet<SourcePath> { }, pathParts);
-                var errors = nodeOrError.SelectMany(x =>
+                if (Flatten(new HashSet<IOrType<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>> { }, pathParts, false).Is(out var res))
                 {
-                    if (x.Is2(out var error))
-                    {
-                        return new IError[] { error };
-                    }
-                    return new IError[] { };
-
-                }).ToArray();
-
-                if (errors.Any())
-                {
-                    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(Error.Cascaded("", errors));
+                    return res;
                 }
-
-                if (nodeOrError.All(x => x.Is3(out var _))) {
-                    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(new DoesNotExist());
-                }
-
-                var setOrError = nodeOrError.Where(x => x.Is1(out var _)).Select(x => x.Is1OrThrow().ToRep()).ToArray();
-
-                errors = setOrError.SelectMany(x =>
+                else
                 {
-                    if (x.Is2(out var error))
-                    {
-                        return new IError[] { error };
-                    }
-                    return new IError[] { };
-
-                }).ToArray();
-
-                if (errors.Any())
-                {
-                    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(Error.Cascaded("", errors));
+                    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd>()));
                 }
-
-                var sets = setOrError.Select(x => x.Is1OrThrow()).ToArray();
-
-                if (sets.Length == 0)
-                {
-                    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd>()));
-                }
-
-                if (sets.Length == 1)
-                {
-                    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(sets.First());
-                }
-
-                var at = sets.First();
-                foreach (var item in sets.Skip(1))
-                {
-                    var or = Union(at, item);
-                    if (or.Is2(out var error))
-                    {
-                        return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(error);
-                    }
-                    at = or.Is1OrThrow();
-                }
-                return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(at);
             }
 
-            private IOrType<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist> ToRepAccepts(IEnumerable<IOrType<Member, Input, Output, Generic>> pathParts)
+            private IOrType<EqualibleHashSet<CombinedTypesAnd>, IError> ToRepAccepts(IEnumerable<IOrType<Member, Input, Output, Generic>> pathParts)
             {
-                var nodeOrError = FlattenAccepts(new HashSet<SourcePath> { }, pathParts);
-
-                var errors = nodeOrError.SelectMany(x =>
+                if (Flatten(new HashSet<IOrType<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>> { }, pathParts, true).Is(out var res))
                 {
-                    if (x.Is2(out var error))
-                    {
-                        return new IError[] { error };
-                    }
-                    return new IError[] { };
-
-                }).ToArray();
-
-                if (errors.Any())
-                {
-                    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(Error.Cascaded("", errors));
+                    return res;
                 }
-
-                if (nodeOrError.Any(x => x.Is3(out var _)))
-                {
-                    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(new DoesNotExist());
+                else {
+                    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd>()));
                 }
-
-                var setOrError = nodeOrError.Select(x => x.Is1OrThrow().ToRep()).ToArray();
-
-                errors = setOrError.SelectMany(x =>
-                {
-                    if (x.Is2(out var error))
-                    {
-                        return new IError[] { error };
-                    }
-                    return new IError[] { };
-
-                }).ToArray();
-
-                if (errors.Any())
-                {
-                    return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(Error.Cascaded("", errors));
-                }
-
-                return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(new EqualibleHashSet<CombinedTypesAnd>(setOrError.SelectMany(x => x.Is1OrThrow()).Distinct().ToHashSet()));
             }
 
-            public HashSet<IOrType<IVirtualFlowNode, IError, DoesNotExist>> FlattenReturn(HashSet<SourcePath> except, IEnumerable<IOrType<Member, Input, Output, Generic>> pathParts)
-            {
-                return Flatten(except, pathParts, false);
-            }
+            //public HashSet<EqualibleHashSet<CombinedTypesAnd>> FlattenReturn(HashSet<IOrType<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>> except, IEnumerable<IOrType<Member, Input, Output, Generic>> pathParts)
+            //{
+            //    return Flatten(except, pathParts, false);
+            //}
 
-            public HashSet<IOrType<IVirtualFlowNode, IError, DoesNotExist>> FlattenAccepts(HashSet<SourcePath> except, IEnumerable<IOrType<Member, Input, Output, Generic>> pathParts)
-            {
-                return Flatten(except, pathParts, true);
-            }
+            //public HashSet<EqualibleHashSet<CombinedTypesAnd>> FlattenAccepts(HashSet<IOrType<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>> except, IEnumerable<IOrType<Member, Input, Output, Generic>> pathParts)
+            //{
+            //    return Flatten(except, pathParts, true);
+            //}
 
             // I think "or nothing" might be a good idea
             // I think maybe Flatten should just flatten and we can walk after 
 
             // this "except" song and dance is to avoid stack overflows
             // when you flow in to something and it flows in to you bad things can happen
-            public HashSet<IOrType<IVirtualFlowNode, IError, DoesNotExist>> Flatten(HashSet<SourcePath> except, IEnumerable<IOrType<Member, Input, Output, Generic>> pathParts, bool accepted)
+
+            // the IIsPossibly here is just used for stuff we have already seen
+            public IIsPossibly<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>> Flatten(HashSet<IOrType<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>> except, IEnumerable<IOrType<Member, Input, Output, Generic>> pathParts, bool accepted)
             {
-                var res = new HashSet<IOrType<IVirtualFlowNode, IError, DoesNotExist>>();
-
-                foreach (var item in (accepted ? AcceptedSources : ReturnedSources))
+                if (!pathParts.Any())
                 {
-                    var fullPath = new List<IOrType<Member, Input, Output, Generic>>();
-                    fullPath.AddRange(item.path);
-                    fullPath.AddRange(pathParts);
-                    var effectiveSourceNode = new SourcePath(item.source, fullPath);
-
-                    if (except.Contains(effectiveSourceNode)) {
-                        continue;
-                    }
-
-                    except.Add(effectiveSourceNode);
-
-                    var walked = item.source.SwitchReturns(
-                                        primitive => new[] { primitive.ToRep(fullPath).SwitchReturns(
-                                            x => OrType.Make<IVirtualFlowNode, IError, DoesNotExist>( new VirtualNode(effectiveSourceNode, x)),
-                                            x => OrType.Make <IVirtualFlowNode, IError, DoesNotExist > (x) ,
-                                            x => OrType.Make < IVirtualFlowNode, IError, DoesNotExist > (x)) },
-                                        concrete => new[] { concrete.ToRep(fullPath).SwitchReturns(
-                                            x=> OrType.Make<IVirtualFlowNode, IError, DoesNotExist>( new VirtualNode(effectiveSourceNode, x)),
-                                            x => OrType.Make <IVirtualFlowNode, IError, DoesNotExist > (x) ,
-                                            x => OrType.Make < IVirtualFlowNode, IError, DoesNotExist > (x)) },
-                                        or => new[] { or.ToRep(fullPath).SwitchReturns(
-                                            x=> OrType.Make<IVirtualFlowNode, IError, DoesNotExist>( new VirtualNode(effectiveSourceNode, x)),
-                                            x => OrType.Make <IVirtualFlowNode, IError, DoesNotExist > (x) ,
-                                            x => OrType.Make < IVirtualFlowNode, IError, DoesNotExist > (x)) },
-                                        inferred => inferred.Flatten(except.ToHashSet(), fullPath, accepted).ToArray());
-
-                    foreach (var walkedItem in walked)
+                    var key = OrType.Make<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>(this);
+                    if (except.Contains(key))
                     {
-                        res.Add(walkedItem);
+                        return Possibly.IsNot<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>>();
                     }
+                    except.Add(key);
                 }
 
-                return res;
 
+                var setsSet = (accepted ? AcceptedSources : ReturnedSources)
+                    .Select(item => item.source.SwitchReturns(
+                         primitive => primitive.Flatten(except.ToHashSet(), pathParts, accepted),
+                         concrete => concrete.Flatten(except.ToHashSet(), pathParts, accepted),
+                         or => or.Flatten(except.ToHashSet(), pathParts, accepted),
+                         inferred => inferred.Flatten(except.ToHashSet(), pathParts, accepted)))
+                    .SelectMany(x =>
+                         {
+                             if (x.Is(out var orType))
+                             {
+                                 return new[] { orType };
+                             }
+                             return Array.Empty<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>>();
+                         })
+                    .Distinct()
+                    .ToArray();
+
+                var errors = setsSet.SelectMany(x => { if (x.Is2(out var error)) { return new[] { error }; } return Array.Empty<IError>(); }).ToArray();
+
+                if (errors.Length == 1)
+                {
+                    return Possibly.Is(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(errors[0]));
+                }
+
+                if (errors.Length > 1)
+                {
+
+                    return Possibly.Is(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(Error.Cascaded("errors", errors)));
+                }
+
+                var sets = setsSet.Select(x => x.Is1OrThrow()).ToArray();
+
+                if (!accepted)
+                {
+                    if (sets.Length == 0)
+                    {
+                        return Possibly.IsNot<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>>();
+                    }
+
+                    if (sets.Length == 1)
+                    {
+                        return Possibly.Is(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(sets.First()));
+                    }
+
+                    var at = sets.First();
+                    foreach (var item in sets.Skip(1))
+                    {
+                        var or = Union(at, item);
+                        if (or.Is2(out var error))
+                        {
+                            return Possibly.Is(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(error));
+                        }
+                        at = or.Is1OrThrow();
+                    }
+                    return Possibly.Is(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(at));
+                }
+                else {
+                    return Possibly.Is(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(sets.SelectMany(x => x).ToHashSet())));
+                }
             }
 
             public bool MustAccept(IVirtualFlowNode from, List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
@@ -1424,16 +1498,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 x => OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(x),
                                 x => OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(x));
                         },
-                        acceptsError => OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(acceptsError),
-                        acceptsDoesNotExist => OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(returnsAnds)),
+                        acceptsError => OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(acceptsError)),
                     returnsError => accepts.SwitchReturns(
                         acceptsAnds => OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(returnsError),
-                        acceptsError => OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(Error.Cascaded("", new[] { returnsError, acceptsError })),
-                        acceptsDoesNotExist => OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(returnsError)),
-                    returnDoesNotExist => accepts.SwitchReturns(
-                        acceptsAnds => OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd>())),// if there are no constraints on the return side it's basically an any
-                        acceptsError => OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(acceptsError),
-                        acceptsDoesNotExist => OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(new DoesNotExist())));
+                        acceptsError => OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(Error.Cascaded("", new[] { returnsError, acceptsError }))));
             }
 
             public override string? ToString()

@@ -92,7 +92,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 IOrType < Yolo, IError> GetOrAdd(IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>  rep){
 
                     return rep.TransformInner(equalableHashSet => {
-                        
+
                         var myBox = new Yolo();
                         var current = cache.GetOrAdd(equalableHashSet, myBox);
 

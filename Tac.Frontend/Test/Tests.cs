@@ -637,7 +637,6 @@ namespace Tac.Frontend.TypeProblem.Test
             var bTypeSolution = bType.Converter.Convert(solution, bType).Is1OrThrow();
             var bMember = HasMember(bTypeSolution.FrontendType().Is1OrThrow(), new NameKey("x"));
             Assert.True(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType().TheyAreUs(bMember, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
-
         }
 
         // type A {x;y}
@@ -1598,7 +1597,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var solution = typeProblem.Solve();
 
             var xType = solution.GetType(x).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
-            var xInput = Assert.IsType<GenericTypeParameterPlacholder>( xType.inputType.GetValue().Is1OrThrow());
+            var xInput = Assert.IsType<GenericTypeParameterPlacholder>(xType.inputType.GetValue().Is1OrThrow());
             var xOutput = Assert.IsType<GenericTypeParameterPlacholder>(xType.outputType.GetValue().Is1OrThrow());
             var xParameter = Assert.IsType<GenericTypeParameterPlacholder>(Assert.Single(xType.typeParameterDefinitions).GetValue().Is1OrThrow());
 
@@ -1941,7 +1940,7 @@ namespace Tac.Frontend.TypeProblem.Test
         // 
         // method [T] [T,T] x;
         // method [T1] [T1,T1] y;
-        // method [T] [T, chicken] z
+        // method [T2] [T2, chicken] z
         //
         // x =: z
         //
@@ -1949,7 +1948,9 @@ namespace Tac.Frontend.TypeProblem.Test
         // they pick up different contraints
         // ...
         // I don't know what happenss here
-        // "x" becomes "method [T:chicken] [T,T]" and "z" becomes "method [T:chicken] [T:chicken, chicken]" ??
+        // "x" becomes "method [T:chicken] [T,T]" and "z" becomes "method [T2:chicken] [2T:chicken, chicken]" ??
+        // ...
+        // in general I've been treating method [T] [T,T] x as method [T:infer] [T,T] x
         [Fact]
         public void Damning()
         {
@@ -1994,9 +1995,9 @@ namespace Tac.Frontend.TypeProblem.Test
                 OrType.Make<IKey, IError>(
                     new DoubleGenericNameKey(
                         new NameKey("method"),
-                        new[] { new NameKey("T") },
+                        new[] { new NameKey("T2") },
                         new[] {
-                            OrType.Make<IKey,IError>(new NameKey("T")),
+                            OrType.Make<IKey,IError>(new NameKey("T2")),
                             OrType.Make<IKey,IError>(new NameKey("chicken"))})));
 
             typeProblem.builder.IsAssignedTo(x, z);
