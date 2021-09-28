@@ -803,11 +803,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 foreach (var generic in ors.Select(x => (x.Is6(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
-                    var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(generic);
-                    var value = ToOr(new ConcreteFlowNode<GenericTypeParameter>(generic));
+                    // generics don't enter the type problem
+                    //var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(generic);
+                    //var value = ToOr(new ConcreteFlowNode<GenericTypeParameter>(generic));
 
-                    orsToFlowNodesBuild.Add(key, value);
-                    orsToFlowNodesLookup.Add(key, value);
+                    //orsToFlowNodesBuild.Add(key, value);
+                    //orsToFlowNodesLookup.Add(key, value);
                 }
                 foreach (var error in ors.Select(x => (x.Is7(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
@@ -858,7 +859,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.constraint),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))]);
                     }
                 }
@@ -1803,8 +1804,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // we have to define the generic form of method
                 var key = new NameKey("method");
                 var placeholders = new TypeAndConverter[] {
-                    new TypeAndConverter(new NameKey("T1"), new WeakTypeDefinitionConverter()),
-                    new TypeAndConverter(new NameKey("T2"), new WeakTypeDefinitionConverter()) };
+                    new TypeAndConverter(new NameKey("T_BASE_INPUT"), new WeakTypeDefinitionConverter()),
+                    new TypeAndConverter(new NameKey("T_BASE_OUTPUT"), new WeakTypeDefinitionConverter()) };
 
                 rootMethod = new MethodType(
                     this.builder,
@@ -1822,8 +1823,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 var methodInputKey = new NameKey("method type input" + Guid.NewGuid());
                 // here it is ok for these to be members because we are using a method type
-                rootMethod.Input = Possibly.Is(builder.CreatePrivateMember(rootMethod, rootMethod, methodInputKey, Prototypist.Toolbox.OrType.Make<IKey, IError>(new NameKey("T1"))));
-                rootMethod.Returns = Possibly.Is(builder.CreateTransientMember(rootMethod, new NameKey("T2"), $"return of {rootMethod.DebugName} "));
+                rootMethod.Input = Possibly.Is(builder.CreatePrivateMember(rootMethod, rootMethod, methodInputKey, Prototypist.Toolbox.OrType.Make<IKey, IError>(new NameKey("T_BASE_INPUT"))));
+                rootMethod.Returns = Possibly.Is(builder.CreateTransientMember(rootMethod, new NameKey("T_BASE_OUTPUT"), $"return of {rootMethod.DebugName} "));
                 builder.IsChildOf(Primitive, rootMethod);
 
                 Dependency = builder.CreateScope(Primitive, rootConverter);

@@ -48,7 +48,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // sometimes thing have no member but really we know they are an object or a type
                 // if this is not set the yolo becomes an AnyType with it set the Yolo becomes a HasMembers with no members
                 internal bool hasMemebers = false; 
-                internal IIsPossibly<TypeProblem2.GenericTypeParameter> isGeneric = Possibly.IsNot<TypeProblem2.GenericTypeParameter>();
+                //internal IIsPossibly<TypeProblem2.GenericTypeParameter> isGeneric = Possibly.IsNot<TypeProblem2.GenericTypeParameter>();
+                internal IIsPossibly<TypeProblem2.GenericTypeParameter> isGenericConstraintFor = Possibly.IsNot<TypeProblem2.GenericTypeParameter>();
+                internal IIsPossibly<Box<IOrType<IFrontendType<IVerifiableType>, IError>>> isGenericConstraintFroRealized = Possibly.IsNot<Box<IOrType<IFrontendType<IVerifiableType>, IError>>>();
 
                 internal IIsPossibly<IInterfaceType> external = Possibly.IsNot<IInterfaceType>();
 
@@ -65,6 +67,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 this.flowNodes = flowNodes ?? throw new ArgumentNullException(nameof(flowNodes));
 
+                var constrainsToGenerics = things.SelectMany(x => { if (x.Is6(out var genericTypeParameter)) { return new[] { genericTypeParameter }; } return Array.Empty<TypeProblem2.GenericTypeParameter>(); }).ToDictionary(x => x.constraint, x => x);
 
                 foreach (var flowNode in flowNodes)
                 {
@@ -82,9 +85,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 realYolo.external = type.External;
                             }
                         }
-                        if (typeProblemNode.SafeIs(out TypeProblem2.GenericTypeParameter genericTypeParameter))
                         {
-                            realYolo.isGeneric = Possibly.Is(genericTypeParameter);
+                            if (typeProblemNode.SafeIs(out TypeProblem2.GenericTypeParameter genericTypeParameter))
+                            {
+                                throw new Exception("we pass the constraint into the type problem, not the actual parameter");
+                                //realYolo.isGeneric = Possibly.Is(genericTypeParameter);
+                            }
+                        }
+                        {
+                            if (typeProblemNode.SafeIs(out TypeProblem2.InferredType inferredType) && constrainsToGenerics.TryGetValue(inferredType, out var genericTypeParameter))
+                            {
+                                realYolo.isGenericConstraintFor = Possibly.Is(genericTypeParameter);
+                            }
                         }
                     }
                 }
@@ -152,16 +164,16 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 IOrType<IFrontendType<IVerifiableType>, IError> Convert2(Tpn.CombinedTypesAnd flowNode, Yolo yolo)
                 {
-                    if (yolo.isGeneric.Is(out var genericTypeParameter)) {
-                        var res = new GenericTypeParameterPlacholder(genericTypeParameter.index,
-                           flowNodes[OrType.Make<ITypeProblemNode, IError>(genericTypeParameter.constraint)]
-                           .GetValueAs(out IVirtualFlowNode _).ToRep()
-                           .SwitchReturns(
-                               x=> cache[x].type,
-                               error=> { IBox<IOrType<IFrontendType<IVerifiableType>, IError>> x = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(error)); return x; }
-                           ));
-                        return OrType.Make<IFrontendType<IVerifiableType>, IError>(res);
-                    }
+                    //if (yolo.isGeneric.Is(out var genericTypeParameter)) {
+                    //    var res = new GenericTypeParameterPlacholder(genericTypeParameter.index,
+                    //       flowNodes[OrType.Make<ITypeProblemNode, IError>(genericTypeParameter.constraint)]
+                    //       .GetValueAs(out IVirtualFlowNode _).ToRep()
+                    //       .SwitchReturns(
+                    //           x=> cache[x].type,
+                    //           error=> { IBox<IOrType<IFrontendType<IVerifiableType>, IError>> x = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(error)); return x; }
+                    //       ));
+                    //    return OrType.Make<IFrontendType<IVerifiableType>, IError>(res);
+                    //}
 
                     if (flowNode.And.Count == 0)
                     {
@@ -228,9 +240,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                             return
                                  OrType.Make<IFrontendType<IVerifiableType>, IError>(
                                 new GenericMethodType(
-                                    cache[input].type,
-                                    cache[output].type,
-                                    generics.Select(x=> x.Value.SwitchReturns(y=> cache[y].type, error => { //*this is a poor mans safe cast, safe cast doesn't go this way (to a super class), but I need to communicate the type to C#
+                                    GetFromCacheReplaceGenericConstrainsWithTheGeneric(input),
+                                    GetFromCacheReplaceGenericConstrainsWithTheGeneric(output),
+                                    generics.Select(x=> x.Value.SwitchReturns(y=> GetFromCacheReplaceGenericConstrainsWithTheGeneric(y), error => { //*this is a poor mans safe cast, safe cast doesn't go this way (to a super class), but I need to communicate the type to C#
                                         IBox<IOrType<IFrontendType<IVerifiableType>, IError>> y = new Box<IOrType<IGenericTypeParameterPlacholder, IError>>(OrType.Make<IGenericTypeParameterPlacholder, IError>(error)); return y; })).ToArray()));
                         }
 
@@ -242,9 +254,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                             return
                                 OrType.Make<IFrontendType<IVerifiableType>, IError>(
                                     new GenericMethodType(
-                                        cache[input].type,
+                                        GetFromCacheReplaceGenericConstrainsWithTheGeneric(input),
                                         new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                        generics.Select(x => x.Value.SwitchReturns(y => cache[y].type, error => { //*this is a poor mans safe cast, safe cast doesn't go this way (to a super class), but I need to communicate the type to C#
+                                        generics.Select(x => x.Value.SwitchReturns(y => GetFromCacheReplaceGenericConstrainsWithTheGeneric(y), error => { //*this is a poor mans safe cast, safe cast doesn't go this way (to a super class), but I need to communicate the type to C#
                                             IBox<IOrType<IFrontendType<IVerifiableType>, IError>> y = new Box<IOrType<IGenericTypeParameterPlacholder, IError>>(OrType.Make<IGenericTypeParameterPlacholder, IError>(error)); return y;
                                         })).ToArray()));
                         }
@@ -257,8 +269,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 OrType.Make<IFrontendType<IVerifiableType>, IError>(
                                     new GenericMethodType(
                                         new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                        cache[output].type,
-                                        generics.Select(x => x.Value.SwitchReturns(y => cache[y].type, error => { //*this is a poor mans safe cast, safe cast doesn't go this way (to a super class), but I need to communicate the type to C#
+                                        GetFromCacheReplaceGenericConstrainsWithTheGeneric(output),
+                                        generics.Select(x => x.Value.SwitchReturns(y => GetFromCacheReplaceGenericConstrainsWithTheGeneric(y), error => { //*this is a poor mans safe cast, safe cast doesn't go this way (to a super class), but I need to communicate the type to C#
                                             IBox<IOrType<IFrontendType<IVerifiableType>, IError>> y = new Box<IOrType<IGenericTypeParameterPlacholder, IError>>(OrType.Make<IGenericTypeParameterPlacholder, IError>(error)); return y;
                                         })).ToArray()));
                         }
@@ -268,7 +280,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 new GenericMethodType(
                                     new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
                                     new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                    generics.Select(x => x.Value.SwitchReturns(y => cache[y].type, error => { //*this is a poor mans safe cast, safe cast doesn't go this way (to a super class), but I need to communicate the type to C#
+                                    generics.Select(x => x.Value.SwitchReturns(y => GetFromCacheReplaceGenericConstrainsWithTheGeneric(y), error => { //*this is a poor mans safe cast, safe cast doesn't go this way (to a super class), but I need to communicate the type to C#
                                                                     IBox<IOrType<IFrontendType<IVerifiableType>, IError>> y = new Box<IOrType<IGenericTypeParameterPlacholder, IError>>(OrType.Make<IGenericTypeParameterPlacholder, IError>(error)); return y;
                                     })).ToArray()));
                     }
@@ -280,8 +292,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                         return
                              OrType.Make<IFrontendType<IVerifiableType>, IError>(
                             new MethodType(
-                                cache[input].type,
-                                cache[output].type));
+                                GetFromCacheReplaceGenericConstrainsWithTheGeneric(input),
+                                GetFromCacheReplaceGenericConstrainsWithTheGeneric(output)));
                     }
 
 
@@ -292,7 +304,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         return
                              OrType.Make<IFrontendType<IVerifiableType>, IError>(
                             new MethodType(
-                                cache[input].type,
+                                GetFromCacheReplaceGenericConstrainsWithTheGeneric(input),
                                 new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType()))));
                     }
 
@@ -304,7 +316,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                              OrType.Make<IFrontendType<IVerifiableType>, IError>(
                             new MethodType(
                                 new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                cache[output].type));
+                                GetFromCacheReplaceGenericConstrainsWithTheGeneric(output)));
                     }
 
                     // if it has members it must be a scope
@@ -344,9 +356,30 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     return OrType.Make<IFrontendType<IVerifiableType>, IError>(new AnyType());
                 }
+
+
+
             }
 
 
+            Box<IOrType<IFrontendType<IVerifiableType>, IError>> GetFromCacheReplaceGenericConstrainsWithTheGeneric(EqualibleHashSet<Tpn.CombinedTypesAnd> key)
+            {
+                var res = cache[key];
+                if (res.isGenericConstraintFor.Is(out var genericTypeParameter))
+                {
+
+                    if (res.isGenericConstraintFroRealized.Is(out var alreadyGotIt))
+                    {
+                        return alreadyGotIt;
+                    }
+
+                    var innerRes = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new GenericTypeParameterPlacholder(genericTypeParameter.index, res.type)));
+                    res.isGenericConstraintFroRealized = Possibly.Is(innerRes);
+                    return innerRes;
+
+                }
+                return res.type;
+            }
             //public static IIsPossibly<IOrType<NameKey, ImplicitKey>[]> HasPlacholders(TypeProblem2.Method type)
             //{
             //    var res = type.Generics.Select(x => {
@@ -415,48 +448,51 @@ namespace Tac.Frontend.New.CrzayNamespace
                     throw new Exception("it should be set by this point? right");
                 }
 
-                return flowNodes[from.LooksUp.GetOrThrow().SwitchReturns(
-                    x => OrType.Make<ITypeProblemNode, IError>(x),
-                    x => OrType.Make<ITypeProblemNode, IError>(x),
-                    x => OrType.Make<ITypeProblemNode, IError>(x),
-                    x => OrType.Make<ITypeProblemNode, IError>(x),
-                    x => OrType.Make<ITypeProblemNode, IError>(x),
-                    x => OrType.Make<ITypeProblemNode, IError>(x),
-                    x => OrType.Make<ITypeProblemNode, IError>(x))].GetValueAs(out IVirtualFlowNode _).ToRep().SwitchReturns(
-                     x => cache[x].type.GetValue(),
-                     x => OrType.Make<IFrontendType<IVerifiableType>, IError>(x));
+                return flowNodes[from.LooksUp.GetOrThrow()
+                    .SwitchReturns(
+                        x => OrType.Make<ITypeProblemNode, IError>(x),
+                        x => OrType.Make<ITypeProblemNode, IError>(x),
+                        x => OrType.Make<ITypeProblemNode, IError>(x),
+                        x => OrType.Make<ITypeProblemNode, IError>(x),
+                        x => OrType.Make<ITypeProblemNode, IError>(x),
+                        x => OrType.Make<ITypeProblemNode, IError>(x.constraint),
+                        x => OrType.Make<ITypeProblemNode, IError>(x))]
+                    .GetValueAs(out IVirtualFlowNode _)
+                    .ToRep()
+                    .SwitchReturns(
+                        x => GetFromCacheReplaceGenericConstrainsWithTheGeneric(x).GetValue(),
+                        x => OrType.Make<IFrontendType<IVerifiableType>, IError>(x));
             }
             internal IOrType<FrontEndOrType, IError> GetOrType(TypeProblem2.OrType from) =>
                flowNodes[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _).ToRep().SwitchReturns(
-                    x => cache[x].type.GetValue().TransformInner(y => y.CastTo<FrontEndOrType>()),
+                    x => GetFromCacheReplaceGenericConstrainsWithTheGeneric(x).GetValue().TransformInner(y => y.CastTo<FrontEndOrType>()),
                     x => OrType.Make<FrontEndOrType, IError>(x));
 
             internal IOrType<MethodType, IError> GetMethodType(TypeProblem2.MethodType from) =>
                flowNodes[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _).ToRep().SwitchReturns(
-                    x => cache[x].type.GetValue().TransformInner(y => y.CastTo<MethodType>()),
+                    x => GetFromCacheReplaceGenericConstrainsWithTheGeneric(x).GetValue().TransformInner(y => y.CastTo<MethodType>()),
                     x => OrType.Make<MethodType, IError>(x));
 
             internal IOrType<HasMembersType, IError> GetHasMemberType(TypeProblem2.Type from) =>
                flowNodes[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _).ToRep().SwitchReturns(
-                    x => cache[x].type.GetValue().TransformInner(y=>y.CastTo<HasMembersType>()),
+                    x => GetFromCacheReplaceGenericConstrainsWithTheGeneric(x).GetValue().TransformInner(y=>y.CastTo<HasMembersType>()),
                     x => OrType.Make< HasMembersType, IError > (x));
 
             internal IOrType<HasMembersType, IError> GetObjectType(TypeProblem2.Object from) =>
                flowNodes[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _).ToRep().SwitchReturns(
-                    x => cache[x].type.GetValue().TransformInner(y=>y.CastTo<HasMembersType>()),
+                    x => GetFromCacheReplaceGenericConstrainsWithTheGeneric(x).GetValue().TransformInner(y=>y.CastTo<HasMembersType>()),
                     x => OrType.Make<HasMembersType, IError>(x));
 
             internal IOrType<IFrontendType<IVerifiableType>, IError> GetInferredType(TypeProblem2.InferredType from) =>
                flowNodes[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _).ToRep().SwitchReturns(
-                    x => cache[x].type.GetValue(),
+                    x => GetFromCacheReplaceGenericConstrainsWithTheGeneric(x).GetValue(),
                     x => OrType.Make<IFrontendType<IVerifiableType>, IError>(x));
 
 
             internal IOrType<GenericTypeParameterPlacholder, IError> GetGenericPlaceholder(TypeProblem2.GenericTypeParameter from) =>
-               flowNodes[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IVirtualFlowNode _).ToRep().SwitchReturns(
-                    x => cache[x].type.GetValue().TransformInner(y => y.CastTo<GenericTypeParameterPlacholder>()),
-                    x => OrType.Make<GenericTypeParameterPlacholder, IError>(x));
-
+                cache.Where(x => x.Value.isGenericConstraintFor.Is(out var y) && y == from)
+                .Select(x => GetFromCacheReplaceGenericConstrainsWithTheGeneric(x.Key).GetValue().TransformInner(y => y.CastTo<GenericTypeParameterPlacholder>()))
+                .Single();
 
             // this also ends up managing weak scopes that aren't types
             private readonly ConcurrentIndexed<Tpn.IHavePrivateMembers, WeakScope> nonTypeScopes = new ConcurrentIndexed<IHavePrivateMembers, WeakScope>();
@@ -470,7 +506,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 if (flowNodes.TryGetValue(OrType.Make<ITypeProblemNode, IError>(scope), out var flowNode)) {
                     var rep = flowNode.GetValueAs(out IVirtualFlowNode _).ToRep();
                     if (rep.Is1(out var combinedTypesAnds)) {
-                        var type = cache[combinedTypesAnds].type.GetValue();
+                        var type = GetFromCacheReplaceGenericConstrainsWithTheGeneric(combinedTypesAnds).GetValue();
                         if (type.Is1(out var reallyType))
                         {
                             var maybeMember = reallyType.TryGetMember(key, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>());
