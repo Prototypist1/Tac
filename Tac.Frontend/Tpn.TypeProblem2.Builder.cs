@@ -123,8 +123,17 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public void AssertIs(ILookUpType assignedFrom, ILookUpType assignedTo)
                 {
-                    problem.assignments.Add((assignedFrom, assignedTo));
+                    problem.assignments.Add((
+                        Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(assignedFrom),
+                        Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(assignedTo)));
                 }
+
+                //public void AssertIs(MethodType assignedFrom, ILookUpType assignedTo)
+                //{
+                //    problem.assignments.Add((
+                //        Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>( Prototypist.Toolbox.OrType.Make < MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(assignedFrom)),
+                //        Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(assignedTo)));
+                //}
 
                 public Value CreateValue(IScope scope, IKey typeKey)
                 {
@@ -589,6 +598,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return method.Returns.GetOrThrow();
                 }
 
+                // TODO
+                // {A48C75B3-07B4-4D84-8803-250D6406695D}
+                // this is a bit weird
+                // it is get or create
+                // but like if something as already made a hopeful member it will just throw
+                // that is probably a bug
+                // x.y := 5
+                // 5 > x
+                // boom, probably 
                 public TransientMember GetReturns(IValue value)
                 {
                     if (value.Hopeful is IIsDefinately<InferredType> inferredType)
@@ -616,6 +634,30 @@ namespace Tac.Frontend.New.CrzayNamespace
                         return returnMember;
                     }
                 }
+
+                //public IReadOnlyDictionary<NameKey, GenericTypeParameter> HasGenerics(IValue value, NameKey[] keys)
+                //{
+                //    InferredType? inferredType = null;
+                //    if (value.Hopeful.Is(out var innerInferredType))
+                //    {
+                //        inferredType = innerInferredType;
+                //    }
+                //    else
+                //    {
+                //        var inferredMethodType = new InferredType(this, "generated infered method type");
+                //        value.Hopeful = Possibly.Is(inferredMethodType);
+                //        inferredType = inferredMethodType;
+                //    }
+                //    if (inferredType.Generics.Count > 0) {
+                //        throw new Exception("this already has generics!");
+                //    }
+                //    var i = 0;
+                //    foreach (var key in keys)
+                //    {
+                //        inferredType.Generics.Add(key, new GenericTypeParameter(this, $"generic-parameter-{key}", i++));
+                //    }
+                //    return inferredType.Generics;
+                //}
 
                 public T Register<T>(T typeProblemNode)
                     where T : ITypeProblemNode

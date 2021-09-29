@@ -509,7 +509,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 if (Input.Is(out var input) && from.VirtualInput().Is(out var theirInputOr) && theirInputOr.Is1(out var theirInput))
                 {
-                    // for a seond I thought this would be mustReturn but..
                     // method [{a,b,c},empty] =: x
                     // method [{a,b},empty] =: x
                     // method [{a},empty] =: x
@@ -519,7 +518,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 if (Output.Is(out var output) && from.VirtualOutput().Is(out var theirOutputOr) && theirOutputOr.Is1(out var theirOutput))
                 {
-                    // for a seond I thought this would be mustReturn but..
                     // method [empty,{a,b,c}] =: x
                     // method [empty,{a,b}] =: x
                     // method [empty,{a}] =: x
@@ -565,13 +563,37 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
+
+
                 if (Input.Is(out var input) && from.VirtualInput().Is(out var theirInputOr) && theirInputOr.Is1(out var theirInput))
                 {
+                    // x =: method [{a,b,c},empty]
+                    // x =: method [{a,b},empty]
+                    // x =: method [{a},empty]
+                    // x better be metohd[{a,b,c},empty]
+
+                    // must return 
+                    // x =: {a,b,c} x1
+                    // x =: {a,b} x2 
+                    // x =: {a} x3
+                    // x is {a,b,c}
+
+                    // must accept 
+                    // {a,b,c} x1 =: x 
+                    // {a,b} x2 =: x 
+                    // {a} x3 =: x 
+                    // x is {a}
+
+                    // yeah must return
                     changes |= input.GetValueAs(out IFlowNode _).MustReturn(theirInput, alreadyFlowing.ToList());
                 }
 
                 if (Output.Is(out var output) && from.VirtualOutput().Is(out var theirOutputOr) && theirOutputOr.Is1(out var theirOutput))
                 {
+                    // x =: method [empty,{a,b,c}]
+                    // x =: method [empty,{a,b}]
+                    // x =: method [empty,{a}]
+                    // x better be metohd[empty,{a,b,c}]
                     changes |= output.GetValueAs(out IFlowNode _).MustReturn(theirOutput, alreadyFlowing.ToList());
                 }
 
@@ -708,7 +730,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         },
                         output =>
                         {
-                            if (Input.Is(out var myOutput))
+                            if (Output.Is(out var myOutput))
                             {
                                 return myOutput.SwitchReturns(
                                     x => x.Flatten(except.ToHashSet(), pathParts.Skip(1).ToArray(), accepted),
@@ -1193,23 +1215,38 @@ namespace Tac.Frontend.New.CrzayNamespace
                     except.Add(key);
                 }
 
-
-                var setsSet = (accepted ? AcceptedSources : ReturnedSources)
-                    .Select(item => item.source.SwitchReturns(
-                         primitive => primitive.Flatten(except.ToHashSet(), Combine(item.path,  pathParts).ToArray(), accepted),
+                var hashSetSet = new HashSet<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>>();
+                foreach (var item in accepted ? AcceptedSources : ReturnedSources)
+                {
+                    var flattened = item.source.SwitchReturns(
+                         primitive => primitive.Flatten(except.ToHashSet(), Combine(item.path, pathParts).ToArray(), accepted),
                          concrete => concrete.Flatten(except.ToHashSet(), Combine(item.path, pathParts).ToArray(), accepted),
                          or => or.Flatten(except.ToHashSet(), Combine(item.path, pathParts).ToArray(), accepted),
-                         inferred => inferred.Flatten(except.ToHashSet(), Combine(item.path, pathParts).ToArray(), accepted)))
-                    .SelectMany(x =>
-                         {
-                             if (x.Is(out var orType))
-                             {
-                                 return new[] { orType };
-                             }
-                             return Array.Empty<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>>();
-                         })
-                    .Distinct()
-                    .ToArray();
+                         inferred => inferred.Flatten(except.ToHashSet(), Combine(item.path, pathParts).ToArray(), accepted));
+
+                    if (flattened.Is(out var orType)) {
+                        hashSetSet.Add(orType);
+                    }
+                }
+
+                var setsSet = hashSetSet.ToArray();
+
+                //var setsSet = (accepted ? AcceptedSources : ReturnedSources)
+                //    .Select(item => item.source.SwitchReturns(
+                //         primitive => primitive.Flatten(except.ToHashSet(), Combine(item.path,  pathParts).ToArray(), accepted),
+                //         concrete => concrete.Flatten(except.ToHashSet(), Combine(item.path, pathParts).ToArray(), accepted),
+                //         or => or.Flatten(except.ToHashSet(), Combine(item.path, pathParts).ToArray(), accepted),
+                //         inferred => inferred.Flatten(except.ToHashSet(), Combine(item.path, pathParts).ToArray(), accepted)))
+                //    .SelectMany(x =>
+                //         {
+                //             if (x.Is(out var orType))
+                //             {
+                //                 return new[] { orType };
+                //             }
+                //             return Array.Empty<IOrType<EqualibleHashSet<CombinedTypesAnd>, IError>>();
+                //         })
+                //    .Distinct()
+                //    .ToArray();
 
                 var errors = setsSet.SelectMany(x => { if (x.Is2(out var error)) { return new[] { error }; } return Array.Empty<IError>(); }).ToArray();
 
@@ -1473,6 +1510,19 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public IOrType<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist> ToRep(IReadOnlyList<IOrType<Member, Input, Output, Generic>> pathParts)
             {
+                // I have some doubt about this...
+                // this used to get full to reps of thing we have to return/accept
+                // there was some stack overflows there
+                // so I split it out.. I now just get what the things we accept accept/ what the thing we return return
+                // and I just bring those together one time here
+                // but I am not sure it is the same
+                //
+                // {3C5701EB-2CC9-4D58-8336-D5877F6661EF}
+                // TODO test this!
+                // I need something with a above+below type inference flowing in to something else with about+below type inference
+                // 
+                // I think I could have a toRep context with all the cached work for all the node, not just the current one
+                // to stop stack overflows
                 var returns = ToRepReturns(pathParts);
                 var accepts = ToRepAccepts(pathParts);
 

@@ -199,10 +199,9 @@ namespace Tac.SemanticModel
             // types can do it too type X {int a} and type Y {int a}
             // for types, they just end up being assignable to each other
             // I don't think generic types really work... in the example above those would both be registered under NameKey("X") and the second one you try to add would throw
-            
+
             // if I can count on them to combine later maybe I should just make the type here
             // there will still be look up tho, members
-
 
 
             var value = context.TypeProblem.CreateValue(method, new DoubleGenericNameKey(
@@ -212,6 +211,25 @@ namespace Tac.SemanticModel
                     realizedInput.TransformInner(x=>x.Key()),
                     realizedOutput.TransformInner(x=>x.Key()),
                 })); ;
+
+
+            // {C28BDF52-A848-4D0A-824A-7F2943BCFE53}
+            //var inputMember = context.TypeProblem.GetInput(value);
+            //context.TypeProblem.IsAssignedTo(inputMember, method.Input.GetOrThrow()/*lazy GetOrThrow*/);
+
+            //var returnsMember = context.TypeProblem.GetReturns(value);
+            //context.TypeProblem.IsAssignedTo(method.Returns.GetOrThrow()/*lazy GetOrThrow*/, returnsMember);
+
+            //var dict =context.TypeProblem.HasGenerics(value, genericParameters);
+            //foreach (var key in genericParameters)
+            //{
+            //    // this would be a hell of a lot simpler if I could assert directly!
+            //    context.TypeProblem.IsAssignedTo(method.Generics[key]/*lazy GetOrThrow*/, dict[key]);
+            //}
+
+
+            //var returnsMember = context.TypeProblem.GetReturns(value);
+            //context.TypeProblem.IsAssignedTo(method.Returns.GetOrThrow()/*lazy GetOrThrow*/, returnsMember);
 
             return new SetUpResult<IBox<WeakGenericMethodDefinition>, Tpn.IValue>(new GenericMethodDefinitionResolveReferance(method, nextElements, box), OrType.Make<Tpn.IValue, IError>(value));
         }
