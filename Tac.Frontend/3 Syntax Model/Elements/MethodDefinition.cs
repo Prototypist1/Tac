@@ -182,22 +182,18 @@ namespace Tac.SemanticModel
 
             // TODO write a test
             // {C28BDF52-A848-4D0A-824A-7F2943BCFE53}
-            // when I allow inferred in methods 
-            // there is going to be a problem with the type problem not following past the points of the method
-            // for example
+            // follow throw methods should work now.
             // 
             // x > method [infer; infer] input { input return; } =: chicken c
             //
             // chicken need to flow through the method to x, 
-            // maybe something like:
-            // 
-            //var inputMember = context.TypeProblem.GetInput(value);
-            //context.TypeProblem.IsAssignedTo(inputMember, method.Input.GetOrThrow()/*lazy GetOrThrow*/);
 
-            //var returnsMember = context.TypeProblem.GetReturns(value);
-            //context.TypeProblem.IsAssignedTo(method.Returns.GetOrThrow()/*lazy GetOrThrow*/, returnsMember);
+            var inputMember = context.TypeProblem.GetInput(value);
+            context.TypeProblem.IsAssignedTo(inputMember, method.Input.GetOrThrow()/*lazy GetOrThrow*/);
 
-            context.TypeProblem.AssertIs()
+            var returnsMember = context.TypeProblem.GetReturns(value);
+            context.TypeProblem.IsAssignedTo(method.Returns.GetOrThrow()/*lazy GetOrThrow*/, returnsMember);
+
 
             return new SetUpResult<IBox<WeakMethodDefinition>, Tpn.IValue>(new MethodDefinitionResolveReferance(method, nextElements,box), OrType.Make<Tpn.IValue, IError>(value));
         }

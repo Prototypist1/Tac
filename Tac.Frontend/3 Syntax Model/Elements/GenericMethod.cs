@@ -214,18 +214,18 @@ namespace Tac.SemanticModel
 
 
             // {C28BDF52-A848-4D0A-824A-7F2943BCFE53}
-            //var inputMember = context.TypeProblem.GetInput(value);
-            //context.TypeProblem.IsAssignedTo(inputMember, method.Input.GetOrThrow()/*lazy GetOrThrow*/);
+            // {8E138F8D-53AA-4D6A-B337-64CAFED23391}
+            var inputMember = context.TypeProblem.GetInput(value);
+            context.TypeProblem.IsAssignedTo(inputMember, method.Input.GetOrThrow()/*lazy GetOrThrow*/);
 
-            //var returnsMember = context.TypeProblem.GetReturns(value);
-            //context.TypeProblem.IsAssignedTo(method.Returns.GetOrThrow()/*lazy GetOrThrow*/, returnsMember);
+            var returnsMember = context.TypeProblem.GetReturns(value);
+            context.TypeProblem.IsAssignedTo(method.Returns.GetOrThrow()/*lazy GetOrThrow*/, returnsMember);
 
-            //var dict =context.TypeProblem.HasGenerics(value, genericParameters);
-            //foreach (var key in genericParameters)
-            //{
-            //    // this would be a hell of a lot simpler if I could assert directly!
-            //    context.TypeProblem.IsAssignedTo(method.Generics[key]/*lazy GetOrThrow*/, dict[key]);
-            //}
+            var dict =context.TypeProblem.HasGenerics(value, genericParameters);
+            foreach (var key in genericParameters)
+            {
+                context.TypeProblem.AssertIs(dict[key], method.Generics[key]/*lazy GetOrThrow*/);
+            }
 
 
             //var returnsMember = context.TypeProblem.GetReturns(value);

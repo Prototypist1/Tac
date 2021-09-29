@@ -1878,17 +1878,21 @@ namespace Tac.Frontend.TypeProblem.Test
 
             //} =: my-method
             var myMethod = problem.builder.CreatePublicMember(problem.ModuleRoot, problem.ModuleRoot, new NameKey("my-method"));
-            // TODO you are here 
-            //problem.builder.IsAssignedTo(method, myMethod);
-            // the method does not really even expose it type in any way
-            // currently I return a value 
-            // and the value looks up with a generic key 
-            //
-            // I do the same with normal method, it breaks the flow between the two
-            //
-            // object{ 5 =: a; } > method [infer, infer] { return 5;}
-            //
-            // would never work at the moment nothing out can interact with anything inside
+            
+            // this is copied from here:
+            // {8E138F8D-53AA-4D6A-B337-64CAFED23391}
+            var inputMember = problem.builder.GetInput(myMethod);
+            problem.builder.IsAssignedTo(inputMember, method.Input.GetOrThrow()/*lazy GetOrThrow*/);
+
+            var returnsMember = problem.builder.GetReturns(myMethod);
+            problem.builder.IsAssignedTo(method.Returns.GetOrThrow()/*lazy GetOrThrow*/, returnsMember);
+
+            var genericParameters = new[] { new NameKey("T") };
+            var dict = problem.builder.HasGenerics(myMethod, genericParameters);
+            foreach (var key in genericParameters)
+            {
+                problem.builder.AssertIs(dict[key], method.Generics[key]/*lazy GetOrThrow*/);
+            }
 
             // my-method =: method [T] [T,T] z
             var z = problem.builder.CreatePublicMember(
@@ -1929,11 +1933,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var myMethodReturns = result.GetType(myMethod).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _).typeParameterDefinitions.Single().GetValue().Is1OrThrow();
             Assert.False(myMethodReturns.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
-            Assert.True(myMethodReturns.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
+            Assert.True(myMethodReturns.TheyAreUs(hasEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
 
             var yoloReturns = result.GetType(yolo).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _).typeParameterDefinitions.Single().GetValue().Is1OrThrow();
-            Assert.True(myMethodReturns.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
-            Assert.True(myMethodReturns.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
+            Assert.True(yoloReturns.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
+            Assert.True(yoloReturns.TheyAreUs(hasEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
         }
 
         // type chicken {eggs;}
