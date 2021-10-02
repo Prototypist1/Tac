@@ -74,6 +74,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                 x => Possibly.IsNot<IOrType<Tpn.VirtualNode, IError>>());
         }
 
+        public static IIsPossibly<IOrType<Tpn.VirtualNode, IError>> VirtualMember(this Tpn.IVirtualFlowNode self, IKey key)
+        {
+            return self.ToRep(new[] { OrType.Make<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>(new Tpn.Member(key)) }).SwitchReturns(
+                x => Possibly.Is(OrType.Make<Tpn.VirtualNode, IError>(new Tpn.VirtualNode(self.SourcePath().Input(), x))),
+                x => Possibly.Is(OrType.Make<Tpn.VirtualNode, IError>(x)),
+                x => Possibly.IsNot<IOrType<Tpn.VirtualNode, IError>>());
+        }
+
         public static IIsPossibly<IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>> VirtualOutput(this EqualibleHashSet<Tpn.CombinedTypesAnd> Or)
         {
             return Or.ToRep(new[] { OrType.Make<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>(new Tpn.Output()) }).SwitchReturns(
@@ -345,6 +353,9 @@ namespace Tac.Frontend.New.CrzayNamespace
         {
             bool MustAccept(SourcePath from, List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing);
             bool MustReturn(SourcePath from, List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing);
+            // AND of ORs of ANDs
+            List<EqualibleHashSet<CombinedTypesAnd>> UpStreamMustReturn();
+            List<EqualibleHashSet<CombinedTypesAnd>> DownStreamMustAccept();
         }
 
 
@@ -433,6 +444,20 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return $"{nameof(PrimitiveFlowNode)}({Source})";
             }
 
+            public List<EqualibleHashSet<CombinedTypesAnd>> UpStreamMustReturn() =>
+                new List<EqualibleHashSet<CombinedTypesAnd>> {
+                    new EqualibleHashSet<CombinedTypesAnd>(
+                        new HashSet<CombinedTypesAnd> {
+                            new CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{
+                                Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(this)})})};
+            public List<EqualibleHashSet<CombinedTypesAnd>> DownStreamMustAccept() =>
+                new List<EqualibleHashSet<CombinedTypesAnd>> {
+                    new EqualibleHashSet<CombinedTypesAnd>(
+                        new HashSet<CombinedTypesAnd> {
+                            new CombinedTypesAnd(
+                                new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{
+                                    Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(this)})})};
+
         }
 
         public class ConcreteFlowNode<TSource> : ConcreteFlowNode, IFlowNode<TSource>
@@ -469,12 +494,12 @@ namespace Tac.Frontend.New.CrzayNamespace
             public IReadOnlyDictionary<IKey, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> Members => members;
             public IIsPossibly<IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> Input { get {
                     return input;
-                } 
+                }
                 set {
                     if (input.Is(out var _)) {
                         throw new Exception("I don't think this should be set twice...");
                     }
-                    sourcePathCache.AddInput(this,value.GetOrThrow()/*I'm not getting this to a not*/);
+                    sourcePathCache.AddInput(this, value.GetOrThrow()/*I'm not getting this to a not*/);
                     input = value;
                 }
             }
@@ -577,14 +602,25 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // I should just flow the stuff flowing into it
                 // so in "MustAcceptMember(fromMember.Value.Value.Is1OrThrow().SourcePath()/*lazy*/, alreadyFlowing);" I need to replace "fromMember.Value.Value.Is1OrThrow().SourcePath()" with what source paths to flow, if any  
                 // 
-                if (from.VirtualMembers().Is1(out var members))
+                //{
+                //    if (from.VirtualMembers().Is1(out var fromMembers))
+                //    {
+                //        foreach (var fromMember in fromMembers)
+                //        {
+                //            // 
+                //            changes |= MustAcceptMember(fromMember.Value.Value.Is1OrThrow().SourcePath()/*lazy*/, alreadyFlowing);
+                //        }
+                //    }
+                //}
+
+                foreach (var ourMember in members)
                 {
-                    foreach (var fromMember in members)
+                    if (from.VirtualMember(ourMember.Key).Is(out var fromMemberOrError) && fromMemberOrError.Is1(out var fromMember))
                     {
-                        // 
-                        changes |= MustAcceptMember(fromMember.Value.Value.Is1OrThrow().SourcePath()/*lazy*/, alreadyFlowing);
+                        ourMember.Value.GetValueAs(out IFlowNode _).MustAccept(fromMember, alreadyFlowing);
                     }
                 }
+
 
                 if (Input.Is(out var input) && from.VirtualInput().Is(out var theirInputOr) && theirInputOr.Is1(out var theirInput))
                 {
@@ -642,13 +678,21 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 var changes = false;
-                if (from.VirtualMembers().Is1(out var members))
+                //if (from.VirtualMembers().Is1(out var members))
+                //{
+                //    foreach (var fromMember in members)
+                //    {
+                //        changes |= MustReturnMember(fromMember.Value.Value.Is1OrThrow()/*lazy*/.SourcePath(), alreadyFlowing);
+                //    }
+                //}
+                foreach (var ourMember in members)
                 {
-                    foreach (var fromMember in members)
+                    if (from.VirtualMember(ourMember.Key).Is(out var fromMemberOrError) && fromMemberOrError.Is1(out var fromMember))
                     {
-                        changes |= MustReturnMember(fromMember.Value.Value.Is1OrThrow()/*lazy*/.SourcePath(), alreadyFlowing);
+                        changes |= ourMember.Value.GetValueAs(out IFlowNode _).MustReturn(fromMember, alreadyFlowing);
                     }
                 }
+
 
                 if (Input.Is(out var input) && from.VirtualInput().Is(out var theirInputOr) && theirInputOr.Is1(out var theirInput))
                 {
@@ -696,61 +740,60 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 return changes;
             }
-            //KeyValuePair<IKey, Lazy<IOrType<VirtualNode, IError>>>
-            private bool MustAcceptMember(SourcePath fromMember, List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
-            {
-                //if (fromMember.Value.Value.Is2(out var _))
-                //{
-                //    return false;
-                //}
+            ////KeyValuePair<IKey, Lazy<IOrType<VirtualNode, IError>>>
+            //private bool MustAcceptMember(SourcePath fromMember, List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
+            //{
+            //    //if (fromMember.Value.Value.Is2(out var _))
+            //    //{
+            //    //    return false;
+            //    //}
 
-                var changes = false;
-                if (this.Members.TryGetValue(fromMember.path.Last().Is1OrThrow().key, out var toMember))
-                {
-                    changes |= toMember.GetValueAs(out IFlowNode _).MustAccept(fromMember, alreadyFlowing.ToList());
-                }
-                else
-                {
-                    // we end up here because we try to flow all the values in an or type
-                    // below are two code snipits:
+            //    var changes = false;
+            //    if (this.Members.TryGetValue(fromMember.path.Last().Is1OrThrow().key, out var toMember))
+            //    {
+            //        changes |= toMember.GetValueAs(out IFlowNode _).MustAccept(fromMember, alreadyFlowing.ToList());
+            //    }
+            //    else
+            //    {
+            //        // we end up here because we try to flow all the values in an or type
+            //        // below are two code snipits:
 
-                    // in this one, A's "num" and "a" have to be numbers
+            //        // in this one, A's "num" and "a" have to be numbers
 
-                    // type A { num; a;}
-                    // A a;
-                    // a =: type {number num; number a} | type {number a; number b;} c
+            //        // type A { num; a;}
+            //        // A a;
+            //        // a =: type {number num; number a} | type {number a; number b;} c
 
 
-                    // in this one, A's "b" and "a" have to be numbers
+            //        // in this one, A's "b" and "a" have to be numbers
 
-                    // type A { b; a;}
-                    // A a;
-                    // a =: type {number num; number a} | type {number a; number b;} c
+            //        // type A { b; a;}
+            //        // A a;
+            //        // a =: type {number num; number a} | type {number a; number b;} c
 
-                    // for them both to work the or type has to flow all of it's member definitions
-                }
-                return changes;
-            }
+            //        // for them both to work the or type has to flow all of it's member definitions
+            //    }
+            //    return changes;
+            //}
 
-            private bool MustReturnMember(SourcePath fromMember, List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
-            {
-                //if (fromMember.Value.Value.Is2(out var _))
-                //{
-                //    return false;
-                //}
+            //private bool MustReturnMember(SourcePath fromMember, List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
+            //{
+            //    //if (fromMember.Value.Value.Is2(out var _))
+            //    //{
+            //    //    return false;
+            //    //}
 
-                var changes = false;
-                if (this.Members.TryGetValue(fromMember.path.Last().Is1OrThrow().key, out var toMember))
-                {
-                    changes |= toMember.GetValueAs(out IFlowNode _).MustReturn(fromMember, alreadyFlowing.ToList());
-                }
-                else
-                {
+            //    var changes = false;
+            //    if (this.Members.TryGetValue(fromMember.path.Last().Is1OrThrow().key, out var toMember))
+            //    {
+            //        changes |= toMember.GetValueAs(out IFlowNode _).MustReturn(fromMember, alreadyFlowing.ToList());
+            //    }
+            //    else
+            //    {
 
-                }
-                return changes;
-            }
-
+            //    }
+            //    return changes;
+            //}
 
             public SourcePath SourcePath()
             {
@@ -866,6 +909,20 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{
                                         OrType.Make<ConcreteFlowNode, PrimitiveFlowNode > (this) })})));
             }
+
+            public List<EqualibleHashSet<CombinedTypesAnd>> UpStreamMustReturn() =>
+                new List<EqualibleHashSet<CombinedTypesAnd>> {
+                    new EqualibleHashSet<CombinedTypesAnd>(
+                        new HashSet<CombinedTypesAnd> { 
+                            new CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{
+                                Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(this)})})};
+            public List<EqualibleHashSet<CombinedTypesAnd>> DownStreamMustAccept() =>
+                new List<EqualibleHashSet<CombinedTypesAnd>> {
+                    new EqualibleHashSet<CombinedTypesAnd>(
+                        new HashSet<CombinedTypesAnd> { 
+                            new CombinedTypesAnd(
+                                new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{
+                                    Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(this)})})};
         }
 
         public class OrFlowNode : IFlowNode<TypeProblem2.OrType>
@@ -892,7 +949,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(couldBeErrors.SelectMany(x => x.Is1OrThrow().backing).Distinct().ToHashSet()));
             }
-
 
             public bool MustAccept(SourcePath from, List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
             {
@@ -1063,251 +1119,20 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 return Possibly.Is(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(list.SelectMany(x => x.Is1OrThrow()).ToHashSet())));
             }
+            public List<EqualibleHashSet<CombinedTypesAnd>> UpStreamMustReturn() => Or.SelectMany(x => x.GetValueAs(out IFlowNode _).UpStreamMustReturn()).ToList();
+            public List<EqualibleHashSet<CombinedTypesAnd>> DownStreamMustAccept() => Or.SelectMany(x => x.GetValueAs(out IFlowNode _).DownStreamMustAccept()).ToList();
         }
 
-        // what a mess 😭😭😭
-        // if A | B flow in to empty
-        // it will flow and you will get A | B
-        // and it will flow again and you will get AA |AB |AB | BB aka A | AB | B
-
-        // maybe I can simplify A | AB | B to A | B
-
-        // the other option is tracking what flows in to a node
-        // that is a little bit of work since inflows are often virtual
-        // so maybe a path from a real node
-
-        // can a node ever loose a member?
-        // not right now
-
-        // if we think of InferredFlowNode as a sum in flows (and calculate what they have at time of use) they they could
-        // because a valid merge could become invald
-
-
-        public class Input
-        {
-            public override bool Equals(object? obj)
-            {
-                return obj != null && obj is Input;
-            }
-
-            public override int GetHashCode()
-            {
-                return Guid.Parse("{41BEF862-F911-45AA-A7FA-BF53F455B6E5}").GetHashCode();
-            }
-        }
-        public class Output
-        {
-            public override bool Equals(object? obj)
-            {
-                return obj != null && obj is Output;
-            }
-
-            public override int GetHashCode()
-            {
-                return Guid.Parse("{C3BA31B3-0779-4073-AB6F-E8965DD83F7A}").GetHashCode();
-            }
-        }
-
-        public class Generic
-        {
-            public readonly int index;
-
-            public Generic(int index)
-            {
-                this.index = index;
-            }
-
-            public override bool Equals(object? obj)
-            {
-                return obj != null && obj is Generic generic && generic.index.Equals(this.index);
-            }
-
-            public override int GetHashCode()
-            {
-                return index;
-            }
-        }
-
-        public class Member
-        {
-            public readonly IKey key;
-
-            public Member(IKey key)
-            {
-                this.key = key ?? throw new ArgumentNullException(nameof(key));
-            }
-
-            public override bool Equals(object? obj)
-            {
-                return obj != null && obj is Member member && member.key.Equals(this.key);
-            }
-
-            public override int GetHashCode()
-            {
-                return key.GetHashCode();
-            }
-        }
-
-
-
-
-
-        public class SourcePath
-        {
-            public readonly IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> source;
-            public readonly IReadOnlyList<IOrType<Member, Input, Output, Generic>> path;
-            private readonly SourcePathCache cache;
-
-            private SourcePath(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> source, IReadOnlyList<IOrType<Member, Input, Output, Generic>> path, SourcePathCache cache)
-            {
-                this.source = source ?? throw new ArgumentNullException(nameof(source));
-                this.path = path ?? throw new ArgumentNullException(nameof(path));
-                this.cache = cache ?? throw new ArgumentNullException(nameof(cache));
-            }
-
-            public override bool Equals(object? obj)
-            {
-                return obj is SourcePath inflow &&
-                        source.Equals(inflow.source) &&
-                        path.SequenceEqual(inflow.path);
-            }
-
-            public override int GetHashCode()
-            {
-                unchecked
-                {
-                    var res = source.GetHashCode();
-                    foreach (var pathPart in path)
-                    {
-                        res += pathPart.GetHashCode();
-                    }
-                    return res;
-                }
-            }
-
-            public SourcePath Member(IKey key)
-            {
-                var newList = path.ToList();
-                newList.Add(OrType.Make<Member, Input, Output, Generic>(new Member(key)));
-                return cache.CreateSourcePath(source, newList);
-            }
-
-            // are generics really a "path"?
-            // I think it is. virtual flow nodes are defined by thier relation to their parent
-            // some are generics defined off their parent 
-            public SourcePath Generic(int index)
-            {
-                var newList = path.ToList();
-                newList.Add(OrType.Make<Member, Input, Output, Generic>(new Generic(index)));
-                return cache.CreateSourcePath(source, newList);
-            }
-
-            public SourcePath Input()
-            {
-                var newList = path.ToList();
-                newList.Add(OrType.Make<Member, Input, Output, Generic>(new Input()));
-                return cache.CreateSourcePath(source, newList);
-
-            }
-
-            public SourcePath Output()
-            {
-                var newList = path.ToList();
-                newList.Add(OrType.Make<Member, Input, Output, Generic>(new Output()));
-                return cache.CreateSourcePath(source, newList);
-            }
-
-            public IOrType<IVirtualFlowNode, IError> Walk()
-            {
-
-                var result = source.GetValueAs(out IVirtualFlowNode _);
-                foreach (var pathElement in path)
-                {
-                    var couldBeError = pathElement.SwitchReturns(
-                            x => result.ToRep(new IOrType<Member, Input, Output, Generic>[] { OrType.Make<Member, Input, Output, Generic>(new Member(x.key)) }).SwitchReturns(
-                                inner => (IOrType<IVirtualFlowNode, IError>)OrType.Make<IVirtualFlowNode, IError>(new VirtualNode(result.SourcePath().Member(x.key), inner)),
-                                error => (IOrType<IVirtualFlowNode, IError>)OrType.Make<IVirtualFlowNode, IError>(error),
-                                _ => (IOrType<IVirtualFlowNode, IError>)OrType.Make<IVirtualFlowNode, IError>(Error.Other($"member does not exist {x.key}"))),  //.VirtualMembers().SwitchReturns(inner=> inner.Where(y => y.Key.Equals(x.key)).Single().Value, error=> (IOrType<IVirtualFlowNode, IError>) OrType.Make< IVirtualFlowNode, IError >(error)),
-                            x => result.VirtualInput().GetOrThrow(),
-                            x => result.VirtualOutput().GetOrThrow(),
-                            x => result.VirtualGenerics().SwitchReturns(
-                                inner => inner[x.index].Value,
-                                error => (IOrType<IVirtualFlowNode, IError>)OrType.Make<IVirtualFlowNode, IError>(error)
-                                ));
-                    if (couldBeError.Is2(out var error))
-                    {
-                        return OrType.Make<IVirtualFlowNode, IError>(error);
-                    }
-                    else
-                    {
-                        result = couldBeError.Is1OrThrow();
-                    }
-                }
-                return OrType.Make<IVirtualFlowNode, IError>(result);
-            }
-
-            public override string? ToString()
-            {
-                return $"SourcePath({source}, {string.Join(", ", path.Take(10).Select(x => x.ToString())) + (path.Count > 10 ? "..." : "")})";
-            }
-
-            // we need to manage SourcePath creation
-            public class SourcePathCache
-            {
-                Dictionary<SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> cache = new Dictionary<SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
-
-                public SourcePath CreateSourcePath(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> source, IReadOnlyList<IOrType<Member, Input, Output, Generic>> path)
-                {
-                    for (int i = path.Count; i > 0; i--)
-                    {
-                        if (cache.TryGetValue(new SourcePath(source, path.Take(i).ToArray(),this), out var res))
-                        {
-                            if (i == path.Count) {
-                                return new SourcePath(res,Array.Empty<IOrType<Member, Input, Output, Generic>>(),this);
-                            }
-                            return CreateSourcePath(res, path.Skip(i).ToArray());
-                        }
-                    }
-                    {
-                        return new SourcePath(source, path, this);
-                    }
-                }
-
-                internal void AddGeneric(ConcreteFlowNode concreteFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> value, int i)
-                {
-                    var path = new SourcePath(OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(concreteFlowNode), new IOrType<Member, Input, Output, Generic>[] { OrType.Make<Member, Input, Output, Generic>(new Tpn.Generic(i)) }, this);
-                    cache[path] = value;
-                }
-
-                internal void AddInput(ConcreteFlowNode concreteFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> value)
-                {
-                    var path = new SourcePath(OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(concreteFlowNode), new IOrType<Member, Input, Output, Generic>[] { OrType.Make<Member, Input, Output, Generic>(new Tpn.Input()) }, this);
-                    cache[path] = value;
-                }
-
-                internal void AddMember(ConcreteFlowNode source, IKey key, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> value)
-                {
-                    var path = new SourcePath(OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(source), new IOrType<Member, Input, Output, Generic>[] { OrType.Make<Member, Input, Output, Generic>(new Tpn.Member(key)) }, this);
-                    cache[path] = value;
-                }
-
-                internal void AddOutput(ConcreteFlowNode concreteFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> value)
-                {
-                    var path = new SourcePath(OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(concreteFlowNode), new IOrType<Member, Input, Output, Generic>[] { OrType.Make<Member, Input, Output, Generic>(new Tpn.Output()) }, this);
-                    cache[path] = value;
-                }
-            }
-        }
-    
-
-
-
+        
         public class InferredFlowNode : IFlowNode<TypeProblem2.InferredType>
         {
             private readonly SourcePath.SourcePathCache sourcePathCache;
 
             public readonly HashSet<SourcePath> AcceptedSources = new HashSet<SourcePath>();
             public readonly HashSet<SourcePath> ReturnedSources = new HashSet<SourcePath>();
+
+            public readonly List<EqualibleHashSet<CombinedTypesAnd>> Acceped2 = new List<EqualibleHashSet<CombinedTypesAnd>>();
+            public readonly List<EqualibleHashSet<CombinedTypesAnd>> Returned2 = new List<EqualibleHashSet<CombinedTypesAnd>>();
 
 
             public InferredFlowNode(IIsPossibly<TypeProblem2.InferredType> source, SourcePath.SourcePathCache sourcePathCache)
@@ -1770,6 +1595,16 @@ namespace Tac.Frontend.New.CrzayNamespace
             public override string? ToString()
             {
                 return $"{nameof(InferredFlowNode)}({Source})";
+            }
+
+
+            public List<EqualibleHashSet<CombinedTypesAnd>> UpStreamMustReturn()
+            {
+                return Returned2;
+            }
+            public List<EqualibleHashSet<CombinedTypesAnd>> DownStreamMustAccept()
+            {
+                return Acceped2;
             }
 
         }
@@ -2268,6 +2103,245 @@ namespace Tac.Frontend.New.CrzayNamespace
         {
             return OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(node);
         }
+
+        // what a mess 😭😭😭
+        // if A | B flow in to empty
+        // it will flow and you will get A | B
+        // and it will flow again and you will get AA |AB |AB | BB aka A | AB | B
+
+        // maybe I can simplify A | AB | B to A | B
+
+        // the other option is tracking what flows in to a node
+        // that is a little bit of work since inflows are often virtual
+        // so maybe a path from a real node
+
+        // can a node ever loose a member?
+        // not right now
+
+        // if we think of InferredFlowNode as a sum in flows (and calculate what they have at time of use) they they could
+        // because a valid merge could become invald
+
+
+        public class Input
+        {
+            public override bool Equals(object? obj)
+            {
+                return obj != null && obj is Input;
+            }
+
+            public override int GetHashCode()
+            {
+                return Guid.Parse("{41BEF862-F911-45AA-A7FA-BF53F455B6E5}").GetHashCode();
+            }
+        }
+        public class Output
+        {
+            public override bool Equals(object? obj)
+            {
+                return obj != null && obj is Output;
+            }
+
+            public override int GetHashCode()
+            {
+                return Guid.Parse("{C3BA31B3-0779-4073-AB6F-E8965DD83F7A}").GetHashCode();
+            }
+        }
+
+        public class Generic
+        {
+            public readonly int index;
+
+            public Generic(int index)
+            {
+                this.index = index;
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return obj != null && obj is Generic generic && generic.index.Equals(this.index);
+            }
+
+            public override int GetHashCode()
+            {
+                return index;
+            }
+        }
+
+        public class Member
+        {
+            public readonly IKey key;
+
+            public Member(IKey key)
+            {
+                this.key = key ?? throw new ArgumentNullException(nameof(key));
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return obj != null && obj is Member member && member.key.Equals(this.key);
+            }
+
+            public override int GetHashCode()
+            {
+                return key.GetHashCode();
+            }
+        }
+
+
+
+
+
+        public class SourcePath
+        {
+            public readonly IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> source;
+            public readonly IReadOnlyList<IOrType<Member, Input, Output, Generic>> path;
+            private readonly SourcePathCache cache;
+
+            private SourcePath(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> source, IReadOnlyList<IOrType<Member, Input, Output, Generic>> path, SourcePathCache cache)
+            {
+                this.source = source ?? throw new ArgumentNullException(nameof(source));
+                this.path = path ?? throw new ArgumentNullException(nameof(path));
+                this.cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return obj is SourcePath inflow &&
+                        source.Equals(inflow.source) &&
+                        path.SequenceEqual(inflow.path);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    var res = source.GetHashCode();
+                    foreach (var pathPart in path)
+                    {
+                        res += pathPart.GetHashCode();
+                    }
+                    return res;
+                }
+            }
+
+            public SourcePath Member(IKey key)
+            {
+                var newList = path.ToList();
+                newList.Add(OrType.Make<Member, Input, Output, Generic>(new Member(key)));
+                return cache.CreateSourcePath(source, newList);
+            }
+
+            // are generics really a "path"?
+            // I think it is. virtual flow nodes are defined by thier relation to their parent
+            // some are generics defined off their parent 
+            public SourcePath Generic(int index)
+            {
+                var newList = path.ToList();
+                newList.Add(OrType.Make<Member, Input, Output, Generic>(new Generic(index)));
+                return cache.CreateSourcePath(source, newList);
+            }
+
+            public SourcePath Input()
+            {
+                var newList = path.ToList();
+                newList.Add(OrType.Make<Member, Input, Output, Generic>(new Input()));
+                return cache.CreateSourcePath(source, newList);
+
+            }
+
+            public SourcePath Output()
+            {
+                var newList = path.ToList();
+                newList.Add(OrType.Make<Member, Input, Output, Generic>(new Output()));
+                return cache.CreateSourcePath(source, newList);
+            }
+
+            public IOrType<IVirtualFlowNode, IError> Walk()
+            {
+
+                var result = source.GetValueAs(out IVirtualFlowNode _);
+                foreach (var pathElement in path)
+                {
+                    var couldBeError = pathElement.SwitchReturns(
+                            x => result.ToRep(new IOrType<Member, Input, Output, Generic>[] { OrType.Make<Member, Input, Output, Generic>(new Member(x.key)) }).SwitchReturns(
+                                inner => (IOrType<IVirtualFlowNode, IError>)OrType.Make<IVirtualFlowNode, IError>(new VirtualNode(result.SourcePath().Member(x.key), inner)),
+                                error => (IOrType<IVirtualFlowNode, IError>)OrType.Make<IVirtualFlowNode, IError>(error),
+                                _ => (IOrType<IVirtualFlowNode, IError>)OrType.Make<IVirtualFlowNode, IError>(Error.Other($"member does not exist {x.key}"))),  //.VirtualMembers().SwitchReturns(inner=> inner.Where(y => y.Key.Equals(x.key)).Single().Value, error=> (IOrType<IVirtualFlowNode, IError>) OrType.Make< IVirtualFlowNode, IError >(error)),
+                            x => result.VirtualInput().GetOrThrow(),
+                            x => result.VirtualOutput().GetOrThrow(),
+                            x => result.VirtualGenerics().SwitchReturns(
+                                inner => inner[x.index].Value,
+                                error => (IOrType<IVirtualFlowNode, IError>)OrType.Make<IVirtualFlowNode, IError>(error)
+                                ));
+                    if (couldBeError.Is2(out var error))
+                    {
+                        return OrType.Make<IVirtualFlowNode, IError>(error);
+                    }
+                    else
+                    {
+                        result = couldBeError.Is1OrThrow();
+                    }
+                }
+                return OrType.Make<IVirtualFlowNode, IError>(result);
+            }
+
+            public override string? ToString()
+            {
+                return $"SourcePath({source}, {string.Join(", ", path.Take(10).Select(x => x.ToString())) + (path.Count > 10 ? "..." : "")})";
+            }
+
+            // we need to manage SourcePath creation
+            public class SourcePathCache
+            {
+                Dictionary<SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> cache = new Dictionary<SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
+
+                public SourcePath CreateSourcePath(IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> source, IReadOnlyList<IOrType<Member, Input, Output, Generic>> path)
+                {
+                    for (int i = path.Count; i > 0; i--)
+                    {
+                        if (cache.TryGetValue(new SourcePath(source, path.Take(i).ToArray(), this), out var res))
+                        {
+                            if (i == path.Count)
+                            {
+                                return new SourcePath(res, Array.Empty<IOrType<Member, Input, Output, Generic>>(), this);
+                            }
+                            return CreateSourcePath(res, path.Skip(i).ToArray());
+                        }
+                    }
+                    {
+                        return new SourcePath(source, path, this);
+                    }
+                }
+
+                internal void AddGeneric(ConcreteFlowNode concreteFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> value, int i)
+                {
+                    var path = new SourcePath(OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(concreteFlowNode), new IOrType<Member, Input, Output, Generic>[] { OrType.Make<Member, Input, Output, Generic>(new Tpn.Generic(i)) }, this);
+                    cache[path] = value;
+                }
+
+                internal void AddInput(ConcreteFlowNode concreteFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> value)
+                {
+                    var path = new SourcePath(OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(concreteFlowNode), new IOrType<Member, Input, Output, Generic>[] { OrType.Make<Member, Input, Output, Generic>(new Tpn.Input()) }, this);
+                    cache[path] = value;
+                }
+
+                internal void AddMember(ConcreteFlowNode source, IKey key, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> value)
+                {
+                    var path = new SourcePath(OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(source), new IOrType<Member, Input, Output, Generic>[] { OrType.Make<Member, Input, Output, Generic>(new Tpn.Member(key)) }, this);
+                    cache[path] = value;
+                }
+
+                internal void AddOutput(ConcreteFlowNode concreteFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> value)
+                {
+                    var path = new SourcePath(OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(concreteFlowNode), new IOrType<Member, Input, Output, Generic>[] { OrType.Make<Member, Input, Output, Generic>(new Tpn.Output()) }, this);
+                    cache[path] = value;
+                }
+            }
+        }
+
+
+
+
     }
 
     // we use a struct so we get equality and hashcodes for free 
