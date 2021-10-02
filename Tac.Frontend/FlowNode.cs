@@ -15,9 +15,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
     internal class EqualibleHashSet<T> : IEnumerable<T>
     {
-        public readonly IReadOnlySet<T> backing;
+        public readonly HashSet<T> backing;
 
-        public EqualibleHashSet(IReadOnlySet<T> backing)
+        public EqualibleHashSet(HashSet<T> backing)
         {
             this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
         }
@@ -41,6 +41,10 @@ namespace Tac.Frontend.New.CrzayNamespace
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        public bool Add(T t) {
+            return backing.Add(t);
         }
 
         public override string? ToString()
@@ -97,6 +101,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                 x => Possibly.IsNot<IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>>());
         }
 
+        // OR of ANDs
+        public static IIsPossibly<IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>> VirtualMember(this EqualibleHashSet<Tpn.CombinedTypesAnd> Or, IKey key)
+        {
+            return Or.ToRep(new[] { OrType.Make<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>(new Tpn.Member(key)) }).SwitchReturns(
+                x => Possibly.Is(OrType.Make<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>(x)),
+                x => Possibly.Is(OrType.Make<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>(x)),
+                x => Possibly.IsNot<IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>>());
+        }
 
         public static IOrType<ICollection<KeyValuePair<IKey, Lazy<IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>>>>, IError> VirtualMembers(this EqualibleHashSet<Tpn.CombinedTypesAnd> Or)
         {
@@ -351,11 +363,11 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public interface IFlowNode : IVirtualFlowNode
         {
-            bool MustAccept(SourcePath from, List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing);
-            bool MustReturn(SourcePath from, List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing);
+            bool MustAccept(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> from, List<(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing);
+            bool MustReturn(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> from, List<(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing);
             // AND of ORs of ANDs
-            List<EqualibleHashSet<CombinedTypesAnd>> UpStreamMustReturn();
-            List<EqualibleHashSet<CombinedTypesAnd>> DownStreamMustAccept();
+            EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> UpStreamMustReturn();
+            EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> DownStreamMustAccept();
         }
 
 
@@ -377,11 +389,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return OrType.Make<IIsPossibly<Guid>, IError>(Possibly.Is(Guid));
             }
 
-            public bool MustAccept(SourcePath from, List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
+            public bool MustAccept(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> from, List<(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
             {
                 return false;
             }
-            public bool MustReturn(SourcePath from, List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
+            public bool MustReturn(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> from, List<(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
             {
                 return false;
             }
@@ -444,20 +456,22 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return $"{nameof(PrimitiveFlowNode)}({Source})";
             }
 
-            public List<EqualibleHashSet<CombinedTypesAnd>> UpStreamMustReturn() =>
-                new List<EqualibleHashSet<CombinedTypesAnd>> {
-                    new EqualibleHashSet<CombinedTypesAnd>(
-                        new HashSet<CombinedTypesAnd> {
-                            new CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{
-                                Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(this)})})};
-            public List<EqualibleHashSet<CombinedTypesAnd>> DownStreamMustAccept() =>
-                new List<EqualibleHashSet<CombinedTypesAnd>> {
-                    new EqualibleHashSet<CombinedTypesAnd>(
-                        new HashSet<CombinedTypesAnd> {
-                            new CombinedTypesAnd(
-                                new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{
-                                    Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(this)})})};
+            public EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> UpStreamMustReturn() =>
+                new EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>(
+                    new HashSet<EqualibleHashSet<CombinedTypesAnd>> {
+                        new EqualibleHashSet<CombinedTypesAnd>(
+                            new HashSet<CombinedTypesAnd> {
+                                new CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{
+                                    Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(this)})})});
 
+            public EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> DownStreamMustAccept() =>
+                new EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>(
+                    new HashSet<EqualibleHashSet<CombinedTypesAnd>> {
+                        new EqualibleHashSet<CombinedTypesAnd>(
+                            new HashSet<CombinedTypesAnd> {
+                                new CombinedTypesAnd(
+                                    new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{
+                                        Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(this)})})});
         }
 
         public class ConcreteFlowNode<TSource> : ConcreteFlowNode, IFlowNode<TSource>
@@ -572,7 +586,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return OrType.Make<IIsPossibly<Guid>, IError>(Possibly.IsNot<Guid>());
             }
 
-            public bool MustAccept(SourcePath sourcePath, List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
+            public bool MustAccept(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> sourcePath, List<(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
             {
 
                 var me = (sourcePath, ToOr(this));
@@ -583,18 +597,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                 alreadyFlowing.Add(me);
 
 
-                if (sourcePath.source.Is3(out var _))
-                {
-                    throw new Exception("actually don't flow");
-                }
+                //if (sourcePath.source.Is3(out var _))
+                //{
+                //    throw new Exception("actually don't flow");
+                //}
 
-                var walked = sourcePath.Walk();
+                //var walked = sourcePath.Walk();
 
-                if (!walked.Is1(out var from)) {
-                    return false;
-                }
+                //if (!walked.Is1(out var from)) {
+                //    return false;
+                //}
 
-                var changes = false;
+                //
                 // TODO 
                 // you are here,
                 // we can lead with our members
@@ -613,40 +627,75 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //    }
                 //}
 
+                var changes = false;
+
                 foreach (var ourMember in members)
                 {
-                    if (from.VirtualMember(ourMember.Key).Is(out var fromMemberOrError) && fromMemberOrError.Is1(out var fromMember))
+                    var memberFlow = new EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>(sourcePath.Select(x => x.VirtualMember(ourMember.Key)).SelectMany(x =>
                     {
-                        ourMember.Value.GetValueAs(out IFlowNode _).MustAccept(fromMember, alreadyFlowing);
-                    }
+                        if (x.Is(out var exists) && exists.Is1(out var notError))
+                        {
+                            return new[] { notError };
+                        }
+                        return Array.Empty<EqualibleHashSet<CombinedTypesAnd>>();
+                    }).ToHashSet());
+
+                    changes |= ourMember.Value.GetValueAs(out IFlowNode _).MustAccept(memberFlow, alreadyFlowing);
                 }
 
 
-                if (Input.Is(out var input) && from.VirtualInput().Is(out var theirInputOr) && theirInputOr.Is1(out var theirInput))
+                if (Input.Is(out var input))
                 {
                     // method [{a,b,c},empty] =: x
                     // method [{a,b},empty] =: x
                     // method [{a},empty] =: x
                     // x better be metohd[{a},empty]
-                    changes |= input.GetValueAs(out IFlowNode _).MustAccept(theirInput.SourcePath(), alreadyFlowing.ToList());
+
+                    var inputFlow = new EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>(sourcePath.Select(x => x.VirtualInput()).SelectMany(x =>
+                    {
+                        if (x.Is(out var exists) && exists.Is1(out var notError))
+                        {
+                            return new[] { notError };
+                        }
+                        return Array.Empty<EqualibleHashSet<CombinedTypesAnd>>();
+                    }).ToHashSet());
+
+                    changes |= input.GetValueAs(out IFlowNode _).MustAccept(inputFlow, alreadyFlowing.ToList());
                 }
 
-                if (Output.Is(out var output) && from.VirtualOutput().Is(out var theirOutputOr) && theirOutputOr.Is1(out var theirOutput))
+                if (Output.Is(out var output))
                 {
                     // method [empty,{a,b,c}] =: x
                     // method [empty,{a,b}] =: x
                     // method [empty,{a}] =: x
                     // x better be metohd[empty,{a}]
-                    changes |= output.GetValueAs(out IFlowNode _).MustAccept(theirOutput.SourcePath(), alreadyFlowing.ToList());
+
+
+                    var outputFlow = new EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>(sourcePath.Select(x => x.VirtualOutput()).SelectMany(x =>
+                    {
+                        if (x.Is(out var exists) && exists.Is1(out var notError))
+                        {
+                            return new[] { notError };
+                        }
+                        return Array.Empty<EqualibleHashSet<CombinedTypesAnd>>();
+                    }).ToHashSet());
+
+
+                    changes |= output.GetValueAs(out IFlowNode _).MustAccept(outputFlow, alreadyFlowing.ToList());
                 }
 
-                if (from.VirtualGenerics().Is1(out var theirGenerics))
+                foreach (var from in sourcePath)
                 {
-                    foreach (var (ours, theirs) in Generics.Zip(theirGenerics, (x, y) => (x, y)))
+                    if (from.VirtualGenerics().Is1(out var theirGenerics))
                     {
-                        if (theirs.Value.Is1(out var thiersConcrete))
+                        foreach (var (ours, theirs) in Generics.Zip(theirGenerics, (x, y) => (x, y)))
                         {
-                            changes |= ours.GetValueAs(out IFlowNode _).MustAccept(thiersConcrete.SourcePath(), alreadyFlowing.ToList()/*do I need to always copy this list?*/);
+                            if (theirs.Value.Is1(out var thiersConcrete))
+                            {
+                                changes |= ours.GetValueAs(out IFlowNode _).MustAccept(
+                                    new EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>(
+                                        new HashSet<EqualibleHashSet<CombinedTypesAnd>> { thiersConcrete }), alreadyFlowing.ToList()/*do I need to always copy this list?*/);
+                            }
                         }
                     }
                 }
@@ -654,7 +703,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return changes;
             }
 
-            public bool MustReturn(SourcePath sourcePath, List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
+            public bool MustReturn(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> sourcePath, List<(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
             {
                 var me = (sourcePath, ToOr(this));
                 if (alreadyFlowing.Contains(me))
@@ -664,20 +713,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                 alreadyFlowing.Add(me);
 
 
-                if (sourcePath.source.Is3(out var _))
-                {
-                    throw new Exception("actually don't flow");
-                }
+                //if (sourcePath.source.Is3(out var _))
+                //{
+                //    throw new Exception("actually don't flow");
+                //}
 
 
-                var walked = sourcePath.Walk();
+                //var walked = sourcePath.Walk();
 
-                if (!walked.Is1(out var from))
-                {
-                    return false;
-                }
+                //if (!walked.Is1(out var from))
+                //{
+                //    return false;
+                //}
 
-                var changes = false;
                 //if (from.VirtualMembers().Is1(out var members))
                 //{
                 //    foreach (var fromMember in members)
@@ -685,16 +733,24 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //        changes |= MustReturnMember(fromMember.Value.Value.Is1OrThrow()/*lazy*/.SourcePath(), alreadyFlowing);
                 //    }
                 //}
+
+                var changes = false;
                 foreach (var ourMember in members)
                 {
-                    if (from.VirtualMember(ourMember.Key).Is(out var fromMemberOrError) && fromMemberOrError.Is1(out var fromMember))
+                    var memberFlow = new EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>(sourcePath.Select(x => x.VirtualMember(ourMember.Key)).SelectMany(x =>
                     {
-                        changes |= ourMember.Value.GetValueAs(out IFlowNode _).MustReturn(fromMember, alreadyFlowing);
-                    }
+                        if (x.Is(out var exists) && exists.Is1(out var notError))
+                        {
+                            return new[] { notError };
+                        }
+                        return Array.Empty<EqualibleHashSet<CombinedTypesAnd>>();
+                    }).ToHashSet());
+
+                    changes |= ourMember.Value.GetValueAs(out IFlowNode _).MustReturn(memberFlow, alreadyFlowing);
                 }
 
 
-                if (Input.Is(out var input) && from.VirtualInput().Is(out var theirInputOr) && theirInputOr.Is1(out var theirInput))
+                if (Input.Is(out var input))
                 {
                     // x =: method [{a,b,c},empty]
                     // x =: method [{a,b},empty]
@@ -714,29 +770,54 @@ namespace Tac.Frontend.New.CrzayNamespace
                     // x is {a}
 
                     // yeah must return
-                    changes |= input.GetValueAs(out IFlowNode _).MustReturn(theirInput.SourcePath(), alreadyFlowing.ToList());
+
+                    var inputFlow = new EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>(sourcePath.Select(x => x.VirtualInput()).SelectMany(x =>
+                    {
+                        if (x.Is(out var exists) && exists.Is1(out var notError))
+                        {
+                            return new[] { notError };
+                        }
+                        return Array.Empty<EqualibleHashSet<CombinedTypesAnd>>();
+                    }).ToHashSet());
+
+                    changes |= input.GetValueAs(out IFlowNode _).MustReturn(inputFlow, alreadyFlowing.ToList());
                 }
 
-                if (Output.Is(out var output) && from.VirtualOutput().Is(out var theirOutputOr) && theirOutputOr.Is1(out var theirOutput))
+                if (Output.Is(out var output))
                 {
                     // x =: method [empty,{a,b,c}]
                     // x =: method [empty,{a,b}]
                     // x =: method [empty,{a}]
                     // x better be metohd[empty,{a,b,c}]
-                    changes |= output.GetValueAs(out IFlowNode _).MustReturn(theirOutput.SourcePath(), alreadyFlowing.ToList());
+
+
+                    var outputFlow = new EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>(sourcePath.Select(x => x.VirtualOutput()).SelectMany(x =>
+                    {
+                        if (x.Is(out var exists) && exists.Is1(out var notError))
+                        {
+                            return new[] { notError };
+                        }
+                        return Array.Empty<EqualibleHashSet<CombinedTypesAnd>>();
+                    }).ToHashSet());
+
+                    changes |= output.GetValueAs(out IFlowNode _).MustReturn(outputFlow, alreadyFlowing.ToList());
                 }
 
-                if (from.VirtualGenerics().Is1(out var theirGenerics))
+                foreach (var from in sourcePath)
                 {
-                    foreach (var (ours, theirs) in Generics.Zip(theirGenerics, (x, y) => (x, y)))
+                    if (from.VirtualGenerics().Is1(out var theirGenerics))
                     {
-                        if (theirs.Value.Is1(out var thiersConcrete))
+                        foreach (var (ours, theirs) in Generics.Zip(theirGenerics, (x, y) => (x, y)))
                         {
-                            changes |= ours.GetValueAs(out IFlowNode _).MustReturn(thiersConcrete.SourcePath(), alreadyFlowing.ToList()/*do I need to always copy this list?*/);
+                            if (theirs.Value.Is1(out var thiersConcrete))
+                            {
+                                changes |= ours.GetValueAs(out IFlowNode _).MustReturn(
+                                    new EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>(
+                                        new HashSet<EqualibleHashSet<CombinedTypesAnd>> { thiersConcrete }), alreadyFlowing.ToList()/*do I need to always copy this list?*/);
+                            }
                         }
                     }
                 }
-
 
                 return changes;
             }
@@ -910,19 +991,21 @@ namespace Tac.Frontend.New.CrzayNamespace
                                         OrType.Make<ConcreteFlowNode, PrimitiveFlowNode > (this) })})));
             }
 
-            public List<EqualibleHashSet<CombinedTypesAnd>> UpStreamMustReturn() =>
-                new List<EqualibleHashSet<CombinedTypesAnd>> {
-                    new EqualibleHashSet<CombinedTypesAnd>(
-                        new HashSet<CombinedTypesAnd> { 
-                            new CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{
-                                Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(this)})})};
-            public List<EqualibleHashSet<CombinedTypesAnd>> DownStreamMustAccept() =>
-                new List<EqualibleHashSet<CombinedTypesAnd>> {
-                    new EqualibleHashSet<CombinedTypesAnd>(
-                        new HashSet<CombinedTypesAnd> { 
-                            new CombinedTypesAnd(
-                                new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{
-                                    Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(this)})})};
+            public EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> UpStreamMustReturn() =>
+                new EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> (
+                    new HashSet<EqualibleHashSet<CombinedTypesAnd>> {
+                        new EqualibleHashSet<CombinedTypesAnd>(
+                            new HashSet<CombinedTypesAnd> {
+                                new CombinedTypesAnd(new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{
+                                    Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(this)})})});
+            public EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> DownStreamMustAccept() =>
+                new EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> (
+                    new HashSet<EqualibleHashSet<CombinedTypesAnd>> {
+                        new EqualibleHashSet<CombinedTypesAnd>(
+                            new HashSet<CombinedTypesAnd> {
+                                new CombinedTypesAnd(
+                                    new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{
+                                        Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(this)})})});
         }
 
         public class OrFlowNode : IFlowNode<TypeProblem2.OrType>
@@ -950,7 +1033,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(couldBeErrors.SelectMany(x => x.Is1OrThrow().backing).Distinct().ToHashSet()));
             }
 
-            public bool MustAccept(SourcePath from, List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
+            public bool MustAccept(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> from, List<(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
             {
                 var me = (from, ToOr(this));
                 if (alreadyFlowing.Contains(me))
@@ -959,11 +1042,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 alreadyFlowing.Add(me);
 
-                if (from.source.Is3(out var _))
-                {
-                    return false;
-                    //throw new Exception("actually don't flow");
-                }
+                //if (from.source.Is3(out var _))
+                //{
+                //    return false;
+                //    //throw new Exception("actually don't flow");
+                //}
 
                 var changes = false;
                 foreach (var item in this.Or)
@@ -973,7 +1056,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return changes;
             }
 
-            public bool MustReturn(SourcePath from, List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
+            public bool MustReturn(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> from, List<(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
             {
                 var me = (from, ToOr(this));
                 if (alreadyFlowing.Contains(me))
@@ -982,11 +1065,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 alreadyFlowing.Add(me);
 
-                if (from.source.Is3(out var _))
-                {
-                    return false;
-                    //throw new Exception("actually don't flow");
-                }
+                //if (from.source.Is3(out var _))
+                //{
+                //    return false;
+                //    //throw new Exception("actually don't flow");
+                //}
 
                 var changes = false;
                 foreach (var item in this.Or)
@@ -1119,8 +1202,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 return Possibly.Is(OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError>(new EqualibleHashSet<CombinedTypesAnd>(list.SelectMany(x => x.Is1OrThrow()).ToHashSet())));
             }
-            public List<EqualibleHashSet<CombinedTypesAnd>> UpStreamMustReturn() => Or.SelectMany(x => x.GetValueAs(out IFlowNode _).UpStreamMustReturn()).ToList();
-            public List<EqualibleHashSet<CombinedTypesAnd>> DownStreamMustAccept() => Or.SelectMany(x => x.GetValueAs(out IFlowNode _).DownStreamMustAccept()).ToList();
+            public EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> UpStreamMustReturn() => new EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>( Or.SelectMany(x => x.GetValueAs(out IFlowNode _).UpStreamMustReturn()).ToHashSet());
+            public EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> DownStreamMustAccept() => new EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>(Or.SelectMany(x => x.GetValueAs(out IFlowNode _).DownStreamMustAccept()).ToHashSet());
         }
 
         
@@ -1131,9 +1214,8 @@ namespace Tac.Frontend.New.CrzayNamespace
             public readonly HashSet<SourcePath> AcceptedSources = new HashSet<SourcePath>();
             public readonly HashSet<SourcePath> ReturnedSources = new HashSet<SourcePath>();
 
-            public readonly List<EqualibleHashSet<CombinedTypesAnd>> Acceped2 = new List<EqualibleHashSet<CombinedTypesAnd>>();
-            public readonly List<EqualibleHashSet<CombinedTypesAnd>> Returned2 = new List<EqualibleHashSet<CombinedTypesAnd>>();
-
+            public readonly EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> Acceped2 = new EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>(new HashSet<EqualibleHashSet<CombinedTypesAnd>> ());
+            public readonly EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> Returned2 = new EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>(new HashSet<EqualibleHashSet<CombinedTypesAnd>>());
 
             public InferredFlowNode(IIsPossibly<TypeProblem2.InferredType> source, SourcePath.SourcePathCache sourcePathCache)
             {
@@ -1290,7 +1372,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            public bool MustAccept(SourcePath from, List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
+            public bool MustAccept(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> from, List<(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
             {
                 // consider:
                 //
@@ -1305,10 +1387,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // but that's not right 
                 //
                 // I think primitive are always driven from must return because they don't have any member or inputs
-                if (from.source.Is3(out PrimitiveFlowNode _))
-                {
-                    return false;
-                }
+                //if (from.source.Is3(out PrimitiveFlowNode _))
+                //{
+                //    return false;
+                //}
                 // this ^ comment doesn't make any sense
                 // and I don't like the code
                 // when I get things stable I would like to comment it out
@@ -1323,21 +1405,20 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
                 // don't flow in to your self
-                if (from.Walk().Is1(out var v1) && v1 == this)
+                //if (from.Walk().Is1(out var v1) && v1 == this)
+                //{
+                //    return false;
+                //}
+                var res = false;
+                foreach (var item in from)
                 {
-                    return false;
+                    res |= Acceped2.Add(item); 
                 }
 
-                if (!AcceptedSources.Contains(from))
-                {
-                    AcceptedSources.Add(from);
-                    return true;
-                }
-
-                return false;
+                return res;
             }
 
-            public bool MustReturn(SourcePath from, List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
+            public bool MustReturn(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> from, List<(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)> alreadyFlowing)
             {
                 var me = (from, ToOr(this));
                 if (alreadyFlowing.Contains(me))
@@ -1348,18 +1429,17 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
                 // don't flow in to your self
-                if (from.Walk().Is1(out var v1) && v1 == this)
+                //if (from.Walk().Is1(out var v1) && v1 == this)
+                //{
+                //    return false;
+                //}
+                var res = false;
+                foreach (var item in from)
                 {
-                    return false;
+                    res |= Returned2.Add(item);
                 }
 
-                if (!ReturnedSources.Contains(from))
-                {
-                    ReturnedSources.Add(from);
-                    return true;
-                }
-
-                return false;
+                return res;
             }
 
             public IOrType<IIsPossibly<Guid>, IError> Primitive()
@@ -1598,11 +1678,11 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            public List<EqualibleHashSet<CombinedTypesAnd>> UpStreamMustReturn()
+            public EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> UpStreamMustReturn()
             {
                 return Returned2;
             }
-            public List<EqualibleHashSet<CombinedTypesAnd>> DownStreamMustAccept()
+            public EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>> DownStreamMustAccept()
             {
                 return Acceped2;
             }
