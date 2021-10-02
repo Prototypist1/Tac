@@ -419,6 +419,7 @@ namespace Tac.Frontend.TypeProblem.Test
         public void GenericContainsSelfWithInferred()
         {
 
+            throw new Exception("I get in a loop!");
             // type[node-t] node {node[node-t] next}
             // type chicken {}
             // node[chicken] thing;
@@ -473,6 +474,9 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void GenericCircular()
         {
+
+            throw new Exception("I get in a loop!");
+
             // type[left-t] left {  right[left-t] thing }
             // type[right-t] right {  left[right-t] thing }
             // type chicken {}
@@ -992,8 +996,6 @@ namespace Tac.Frontend.TypeProblem.Test
         }
 
 
-
-
         // Type X {
         //     Y | X member;
         // }
@@ -1004,9 +1006,9 @@ namespace Tac.Frontend.TypeProblem.Test
         // do these colapse?
 
         [Fact]
-        public void Complex()
+        public void Complex()  
         {
-
+            
             var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope(), _ => { });
 
             var yType = problem.builder.CreateType(
@@ -1206,9 +1208,9 @@ namespace Tac.Frontend.TypeProblem.Test
         // by assigning
 
         // another exmpale is ... 
-        // object { number x := 2 } =: a        // this puts a restring on a... it has to have an x and the x can only be set to a number
+        // object { number x := 2 } =: a        // this puts a restraint on a... it has to have an x and the x can only be set to a number
         // "test" =: a.x                        // this puts a restraint on x... it has to be allowed to be a string   
-        // 
+        // x end up as { number | string x } or any.... I wonder which?
 
         [Fact]
         public void MethodAndCall()
@@ -1242,6 +1244,128 @@ namespace Tac.Frontend.TypeProblem.Test
 
             Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(resType.TryGetInput().Is1OrThrow().Is1OrThrow());
             Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(resType.TryGetReturn().Is1OrThrow().Is1OrThrow());
+        }
+
+        // method [number,number ] input { input return; } =: res
+        // 2 > res
+        // x =: res
+        //
+        // x shares res's type
+        [Fact]
+        public void MethodAndCallAndUp()
+        {
+
+            var typeProblem = new Tpn.TypeProblem2(
+                new WeakScopeConverter(),
+                DefaultRootScopePopulateScope(), _ => { });
+
+            var methodValue = typeProblem.builder.CreateValue(typeProblem.ModuleRoot.InitizationScope, new GenericNameKey(new NameKey("method"), new IOrType<IKey, IError>[] {
+                    OrType.Make<IKey, IError>(new NameKey("number")),
+                    OrType.Make<IKey, IError>(new NameKey("number")),
+                }));
+
+            var res = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("res"));
+
+            var x = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("x"));
+
+
+              
+            var two = typeProblem.builder.CreateValue(typeProblem.ModuleRoot.InitizationScope, new NameKey("number"));
+
+            typeProblem.builder.IsAssignedTo(methodValue, res);
+            typeProblem.builder.IsAssignedTo(two, res.Input());
+            typeProblem.builder.IsAssignedTo(x, res);
+
+            var solution = typeProblem.Solve();
+
+            // currently we have: 
+            // method<any|number, any> | method<number, number> 
+            var resType = solution.GetType(res).Is1OrThrow();
+
+            Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(resType.TryGetInput().Is1OrThrow().Is1OrThrow());
+            Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(resType.TryGetReturn().Is1OrThrow().Is1OrThrow());
+
+
+            var xType = solution.GetType(x).Is1OrThrow();
+
+            Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(xType.TryGetInput().Is1OrThrow().Is1OrThrow());
+            Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(xType.TryGetReturn().Is1OrThrow().Is1OrThrow());
+        }
+
+        // type {x;} a =: b
+        // a =: type {y;} c
+        // d =: b
+        //
+        // b and d should be {x;y;} ... no this should be an error 
+
+
+
+        // type { number x } a =: b             // this puts a restraint on b... it has to have an x and the x can only be set to a number
+        // "test" =: b.x                        // this puts a restraint on x... it has to be allowed to be a string   
+        // c =: b.x
+        // b.x and c end up as ... any?
+        [Fact]
+        public void UpAndDown() {
+            var typeProblem = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope(), _ => { });
+
+        }
+
+
+        // a =: b
+        // number c =: b
+        // b =: number|bool d
+        // 
+        // a and b are both number|bool
+        [Fact]
+        public void AssignmentY() {
+            var typeProblem = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope(), _ => { });
+
+            var keyD = new ImplicitKey(Guid.NewGuid());
+            var orTypeD = typeProblem.builder.CreateOrType(
+                typeProblem.ModuleRoot, 
+                keyD,
+                OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(typeProblem.builder.CreateTypeReference(typeProblem.ModuleRoot, new NameKey("number"), new WeakTypeReferenceConverter())),
+                OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(typeProblem.builder.CreateTypeReference(typeProblem.ModuleRoot, new NameKey("bool"), new WeakTypeReferenceConverter())),
+                new WeakTypeOrOperationConverter());
+
+            var a = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("a"));
+            var b = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("b"));
+            var c = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                typeProblem.ModuleRoot,
+                new NameKey("c"),
+                OrType.Make<IKey, IError>(new NameKey("bool")));
+            var d = typeProblem.builder.CreatePublicMember(
+                typeProblem.ModuleRoot,
+                new NameKey("d"),
+                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError>(orTypeD));
+
+            typeProblem.builder.IsAssignedTo(a, b);
+            typeProblem.builder.IsAssignedTo(c, b);
+            typeProblem.builder.IsAssignedTo(b, d);
+
+            var solution = typeProblem.Solve();
+
+
+            var bType = solution.GetType(b).Is1OrThrow();
+            Assert.True(bType.TheyAreUs(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType(), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
+            Assert.True(bType.TheyAreUs(new Tac.SyntaxModel.Elements.AtomicTypes.BooleanType(), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
+
+            var aType = solution.GetType(a).Is1OrThrow();
+            Assert.True(aType.TheyAreUs(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType(), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
+            Assert.True(aType.TheyAreUs(new Tac.SyntaxModel.Elements.AtomicTypes.BooleanType(), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
         }
 
 
@@ -1350,6 +1474,9 @@ namespace Tac.Frontend.TypeProblem.Test
                 OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(typeProblem.builder.CreateTypeReference(typeProblem.ModuleRoot, new NameKey("string"), new WeakTypeReferenceConverter())),
                 new WeakTypeOrOperationConverter());
 
+            typeProblem.builder.CreatePublicMember(dType,
+                new NameKey("y"),
+                OrType.Make<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError>(orType));
 
             var a = typeProblem.builder.CreatePublicMember(
                 typeProblem.ModuleRoot,

@@ -771,11 +771,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // TODO (or atleast document), do I need both of these?
                 var orsToFlowNodesBuild = new Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
                 var orsToFlowNodesLookup = new Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
+                var sourcePathCache = new Tpn.SourcePath.SourcePathCache();
 
                 foreach (var methodType in ors.Select(x => (x.Is1(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
                     var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(methodType);
-                    var inner = new ConcreteFlowNode<Tpn.TypeProblem2.MethodType>(methodType);
+                    var inner = new ConcreteFlowNode<Tpn.TypeProblem2.MethodType>(methodType, sourcePathCache);
                     var value = ToOr(inner);
 
                     orsToFlowNodesBuild.Add(key, value);
@@ -786,14 +787,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                     if (type.PrimitiveId.Is(out var guid))
                     {
                         var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(type);
-                        var flowNode = ToOr(new PrimitiveFlowNode(type, guid));
+                        var flowNode = ToOr(new PrimitiveFlowNode(type, guid, sourcePathCache));
                         orsToFlowNodesBuild.Add(key, flowNode);
                         orsToFlowNodesLookup.Add(key, flowNode);
                     }
                     else
                     {
                         var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(type);
-                        var value = ToOr(new ConcreteFlowNode<Tpn.TypeProblem2.Type>(type));
+                        var value = ToOr(new ConcreteFlowNode<Tpn.TypeProblem2.Type>(type, sourcePathCache));
 
                         orsToFlowNodesBuild.Add(key, value);
                         orsToFlowNodesLookup.Add(key, value);
@@ -802,7 +803,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 foreach (var @object in ors.Select(x => (x.Is3(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
                     var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(@object);
-                    var value = ToOr(new ConcreteFlowNode<Tpn.TypeProblem2.Object>(@object));
+                    var value = ToOr(new ConcreteFlowNode<Tpn.TypeProblem2.Object>(@object, sourcePathCache));
 
                     orsToFlowNodesBuild.Add(key, value);
                     orsToFlowNodesLookup.Add(key, value);
@@ -811,12 +812,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     // duplicate {DCDB88BC-5843-448D-8E6B-673ECD445250}
                     var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(inferred);
-                    var concrete = new ConcreteFlowNode<Tpn.TypeProblem2.InferredType>(inferred);
+                    var concrete = new ConcreteFlowNode<Tpn.TypeProblem2.InferredType>(inferred, sourcePathCache);
 
                     orsToFlowNodesBuild.Add(key, ToOr(concrete));
 
-                    var inferredFlowNode = new InferredFlowNode(Possibly.Is(inferred));
-                    inferredFlowNode.ReturnedSources.Add(new SourcePath(Prototypist.Toolbox.OrType.Make<PrimitiveFlowNode, ConcreteFlowNode, OrFlowNode, InferredFlowNode>(concrete), new List<IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>>()));
+                    var inferredFlowNode = new InferredFlowNode(Possibly.Is(inferred), sourcePathCache);
+                    inferredFlowNode.ReturnedSources.Add(sourcePathCache.CreateSourcePath(Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(concrete), new List<IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>>()));
                     orsToFlowNodesLookup.Add(key, ToOr(inferredFlowNode));
                 }
                 foreach (var generic in ors.Select(x => (x.Is6(out var v), v)).Where(x => x.Item1).Select(x => x.v))
@@ -831,7 +832,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 foreach (var error in ors.Select(x => (x.Is7(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
                     var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(error);
-                    var value = ToOr(new ConcreteFlowNode<IError>(error));
+                    var value = ToOr(new ConcreteFlowNode<IError>(error, sourcePathCache));
 
                     orsToFlowNodesBuild.Add(key, value);
                     orsToFlowNodesLookup.Add(key, value);
@@ -847,7 +848,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var nextTodo = new List<TypeProblem2.OrType>();
                     foreach (var or in todo)
                     {
-                        if (TryToOuterFlowNode(orsToFlowNodesLookup, or, out var res))
+                        if (TryToOuterFlowNode(orsToFlowNodesLookup, or, out var res, sourcePathCache))
                         {
                             orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(or)] = res;
                             orsToFlowNodesLookup[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(or)] = res;
@@ -869,7 +870,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     foreach (var member in hasPublicMembers.PublicMembers)
                     {
-                        orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasPublicMembers)].Is1OrThrow().Members.Add(
+                        orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasPublicMembers)].Is1OrThrow().AddMember(
                             member.Key,
                             orsToFlowNodesLookup[member.Value.LooksUp.GetOrThrow().SwitchReturns(
                                 x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -935,16 +936,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                     foreach (var (from, to) in flows)
                     {
                         go |= orsToFlowNodesLookup[to].GetValueAs(out IFlowNode _).MustAccept(
-                            orsToFlowNodesLookup[from].GetValueAs(out IVirtualFlowNode _),
-                            new List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
+                            sourcePathCache.CreateSourcePath(orsToFlowNodesLookup[from], Array.Empty<IOrType<Tpn.Member, Input, Output, Generic>>()),
+                            new List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
 
                     }
 
                     foreach (var (from, to) in flows)
                     {
                         go |= orsToFlowNodesLookup[from].GetValueAs(out IFlowNode _).MustReturn(
-                            orsToFlowNodesLookup[to].GetValueAs(out IVirtualFlowNode _),
-                            new List<(IVirtualFlowNode, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
+                            sourcePathCache.CreateSourcePath(orsToFlowNodesLookup[to], Array.Empty<IOrType<Tpn.Member, Input, Output, Generic>> ()),
+                            new List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
                     }
 
                     excapeValve++;
@@ -973,7 +974,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            private static bool TryToOuterFlowNode(Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> orsToFlowNodes, Tpn.TypeProblem2.OrType or, out IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> res)
+            private static bool TryToOuterFlowNode(Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> orsToFlowNodes, Tpn.TypeProblem2.OrType or, out IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> res, SourcePath.SourcePathCache sourcePathCache)
             {
                 if (orsToFlowNodes.TryGetValue(GetType(or.Left.GetOrThrow()).SwitchReturns(
                                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -993,7 +994,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x)), out var right))
                 {
 
-                    res = ToOr(new OrFlowNode(new[] { left, right }, Possibly.Is(or)));
+                    res = ToOr(new OrFlowNode(new[] { left, right }, Possibly.Is(or), sourcePathCache));
                     return true;
                 }
                 res = default;
