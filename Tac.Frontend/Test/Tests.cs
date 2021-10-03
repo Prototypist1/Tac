@@ -418,8 +418,6 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void GenericContainsSelfWithInferred()
         {
-
-            throw new Exception("I get in a loop!");
             // type[node-t] node {node[node-t] next}
             // type chicken {}
             // node[chicken] thing;
@@ -474,8 +472,6 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void GenericCircular()
         {
-
-            throw new Exception("I get in a loop!");
 
             // type[left-t] left {  right[left-t] thing }
             // type[right-t] right {  left[right-t] thing }
@@ -1211,7 +1207,30 @@ namespace Tac.Frontend.TypeProblem.Test
         // object { number x := 2 } =: a        // this puts a restraint on a... it has to have an x and the x can only be set to a number
         // "test" =: a.x                        // this puts a restraint on x... it has to be allowed to be a string   
         // x end up as { number | string x } or any.... I wonder which?
+        // reversing again, I think these clash the object might be relying on x to be a number, we can't just make it a string
 
+        // can yo do this? 
+        // {int a} x =: {int|string a} y 
+        // I don't think so...
+        // because you can't do 
+        // "test" =: (a.x)
+        // so you should be able to do
+        // "test" =: y.a
+        // if a is readonly then it is fine
+
+        // so... there are upstream constraints and downstream constraints and it depends on varience??
+
+        // {int a} x =: y
+        // y is any
+
+        // {int a} x =: y
+        // b =: y.a
+        // y is {int a} and b is int
+
+
+        // method [number,number ] input { input return; } =: res
+        // 2 > res
+        // res is method [number; any;]
         [Fact]
         public void MethodAndCall()
         {

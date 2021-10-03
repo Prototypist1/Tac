@@ -817,7 +817,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                     orsToFlowNodesBuild.Add(key, ToOr(concrete));
 
                     var inferredFlowNode = new InferredFlowNode(Possibly.Is(inferred), sourcePathCache);
-                    inferredFlowNode.ReturnedSources.Add(sourcePathCache.CreateSourcePath(Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(concrete), new List<IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>>()));
+                    inferredFlowNode.Returned2.Add(
+                        new EqualibleHashSet<CombinedTypesAnd>(
+                            new HashSet<CombinedTypesAnd> {
+                                new CombinedTypesAnd(
+                                    new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{
+                                        Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(concrete)})}));
                     orsToFlowNodesLookup.Add(key, ToOr(inferredFlowNode));
                 }
                 foreach (var generic in ors.Select(x => (x.Is6(out var v), v)).Where(x => x.Item1).Select(x => x.v))
@@ -936,16 +941,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                     foreach (var (from, to) in flows)
                     {
                         go |= orsToFlowNodesLookup[to].GetValueAs(out IFlowNode _).MustAccept(
-                            sourcePathCache.CreateSourcePath(orsToFlowNodesLookup[from], Array.Empty<IOrType<Tpn.Member, Input, Output, Generic>>()),
-                            new List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
+                            orsToFlowNodesLookup[from].GetValueAs(out IFlowNode _).DownStreamMustAccept(),
+                            new List<(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
 
                     }
 
                     foreach (var (from, to) in flows)
                     {
                         go |= orsToFlowNodesLookup[from].GetValueAs(out IFlowNode _).MustReturn(
-                            sourcePathCache.CreateSourcePath(orsToFlowNodesLookup[to], Array.Empty<IOrType<Tpn.Member, Input, Output, Generic>> ()),
-                            new List<(SourcePath, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
+                            orsToFlowNodesLookup[to].GetValueAs(out IFlowNode _).UpStreamMustReturn(),
+                            new List<(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
                     }
 
                     excapeValve++;
