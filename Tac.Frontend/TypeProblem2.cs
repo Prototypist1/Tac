@@ -771,12 +771,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // TODO (or atleast document), do I need both of these?
                 var orsToFlowNodesBuild = new Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
                 var orsToFlowNodesLookup = new Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
-                var sourcePathCache = new Tpn.SourcePath.SourcePathCache();
+                //var sourcePathCache = new Tpn.SourcePath.SourcePathCache();
 
                 foreach (var methodType in ors.Select(x => (x.Is1(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
                     var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(methodType);
-                    var inner = new ConcreteFlowNode<Tpn.TypeProblem2.MethodType>(methodType, sourcePathCache);
+                    var inner = new ConcreteFlowNode<Tpn.TypeProblem2.MethodType>(methodType);
                     var value = ToOr(inner);
 
                     orsToFlowNodesBuild.Add(key, value);
@@ -787,14 +787,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                     if (type.PrimitiveId.Is(out var guid))
                     {
                         var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(type);
-                        var flowNode = ToOr(new PrimitiveFlowNode(type, guid, sourcePathCache));
+                        var flowNode = ToOr(new PrimitiveFlowNode(type, guid));
                         orsToFlowNodesBuild.Add(key, flowNode);
                         orsToFlowNodesLookup.Add(key, flowNode);
                     }
                     else
                     {
                         var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(type);
-                        var value = ToOr(new ConcreteFlowNode<Tpn.TypeProblem2.Type>(type, sourcePathCache));
+                        var value = ToOr(new ConcreteFlowNode<Tpn.TypeProblem2.Type>(type));
 
                         orsToFlowNodesBuild.Add(key, value);
                         orsToFlowNodesLookup.Add(key, value);
@@ -803,7 +803,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 foreach (var @object in ors.Select(x => (x.Is3(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
                     var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(@object);
-                    var value = ToOr(new ConcreteFlowNode<Tpn.TypeProblem2.Object>(@object, sourcePathCache));
+                    var value = ToOr(new ConcreteFlowNode<Tpn.TypeProblem2.Object>(@object));
 
                     orsToFlowNodesBuild.Add(key, value);
                     orsToFlowNodesLookup.Add(key, value);
@@ -812,13 +812,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     // duplicate {DCDB88BC-5843-448D-8E6B-673ECD445250}
                     var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(inferred);
-                    var concrete = new ConcreteFlowNode<Tpn.TypeProblem2.InferredType>(inferred, sourcePathCache);
+                    var concrete = new ConcreteFlowNode<Tpn.TypeProblem2.InferredType>(inferred);
 
                     orsToFlowNodesBuild.Add(key, ToOr(concrete));
 
-                    var inferredFlowNode = new InferredFlowNode(Possibly.Is(inferred), sourcePathCache);
+                    var inferredFlowNode = new InferredFlowNode(Possibly.Is(inferred));
                     inferredFlowNode.Returned2.Add(
-                        new EqualibleHashSet<CombinedTypesAnd>(
+                        new EqualableHashSet<CombinedTypesAnd>(
                             new HashSet<CombinedTypesAnd> {
                                 new CombinedTypesAnd(
                                     new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{
@@ -837,7 +837,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 foreach (var error in ors.Select(x => (x.Is7(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
                     var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(error);
-                    var value = ToOr(new ConcreteFlowNode<IError>(error, sourcePathCache));
+                    var value = ToOr(new ConcreteFlowNode<IError>(error));
 
                     orsToFlowNodesBuild.Add(key, value);
                     orsToFlowNodesLookup.Add(key, value);
@@ -853,7 +853,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var nextTodo = new List<TypeProblem2.OrType>();
                     foreach (var or in todo)
                     {
-                        if (TryToOuterFlowNode(orsToFlowNodesLookup, or, out var res, sourcePathCache))
+                        if (TryToOuterFlowNode(orsToFlowNodesLookup, or, out var res))
                         {
                             orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(or)] = res;
                             orsToFlowNodesLookup[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(or)] = res;
@@ -942,7 +942,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         go |= orsToFlowNodesLookup[to].GetValueAs(out IFlowNode _).MustAccept(
                             orsToFlowNodesLookup[from].GetValueAs(out IFlowNode _).DownStreamMustAccept(),
-                            new List<(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
+                            new List<(EqualableHashSet<EqualableHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
 
                     }
 
@@ -950,7 +950,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         go |= orsToFlowNodesLookup[from].GetValueAs(out IFlowNode _).MustReturn(
                             orsToFlowNodesLookup[to].GetValueAs(out IFlowNode _).UpStreamMustReturn(),
-                            new List<(EqualibleHashSet<EqualibleHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
+                            new List<(EqualableHashSet<EqualableHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
                     }
 
                     excapeValve++;
@@ -979,7 +979,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            private static bool TryToOuterFlowNode(Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> orsToFlowNodes, Tpn.TypeProblem2.OrType or, out IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> res, SourcePath.SourcePathCache sourcePathCache)
+            private static bool TryToOuterFlowNode(Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> orsToFlowNodes, Tpn.TypeProblem2.OrType or, out IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> res)
             {
                 if (orsToFlowNodes.TryGetValue(GetType(or.Left.GetOrThrow()).SwitchReturns(
                                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -999,7 +999,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x)), out var right))
                 {
 
-                    res = ToOr(new OrFlowNode(new[] { left, right }, Possibly.Is(or), sourcePathCache));
+                    res = ToOr(new OrFlowNode(new[] { left, right }, Possibly.Is(or)));
                     return true;
                 }
                 res = default;

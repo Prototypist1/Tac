@@ -29,7 +29,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             //readonly Dictionary<TypeProblem2.Method, Scope> methodScopeCache = new Dictionary<TypeProblem2.Method, Scope>();
             //readonly Dictionary<TypeProblem2.Scope, Scope> scopeScopeCache = new Dictionary<TypeProblem2.Scope, Scope>();
 
-            private readonly ConcurrentIndexed<EqualibleHashSet<Tpn.CombinedTypesAnd>, Yolo> cache = new ConcurrentIndexed<EqualibleHashSet<CombinedTypesAnd>, Yolo>();
+            private readonly ConcurrentIndexed<EqualableHashSet<Tpn.CombinedTypesAnd>, Yolo> cache = new ConcurrentIndexed<EqualableHashSet<CombinedTypesAnd>, Yolo>();
             private readonly Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodes;
 
             private class Yolo
@@ -71,7 +71,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 foreach (var flowNode in flowNodes)
                 {
-                    IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError> rep = flowNode.Value.GetValueAs(out IVirtualFlowNode _).ToRep();
+                    IOrType<EqualableHashSet<Tpn.CombinedTypesAnd>, IError> rep = flowNode.Value.GetValueAs(out IVirtualFlowNode _).ToRep();
                     var yolo = GetOrAdd(rep);
 
                     // this feels a bit weird because it doesn't flow through the type problem
@@ -101,7 +101,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
-                IOrType < Yolo, IError> GetOrAdd(IOrType<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>  rep){
+                IOrType < Yolo, IError> GetOrAdd(IOrType<EqualableHashSet<Tpn.CombinedTypesAnd>, IError>  rep){
 
                     return rep.TransformInner(equalableHashSet => {
 
@@ -114,8 +114,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                             if (equalableHashSet.Count() > 1)
                             {
-                                myBox.left = Possibly.Is(GetOrAdd(OrType.Make<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>(new EqualibleHashSet<Tpn.CombinedTypesAnd>(equalableHashSet.Take(equalableHashSet.Count() - 1).ToHashSet()))));
-                                myBox.right = Possibly.Is( GetOrAdd(OrType.Make<EqualibleHashSet<Tpn.CombinedTypesAnd>, IError>(new EqualibleHashSet<Tpn.CombinedTypesAnd>(new HashSet<Tpn.CombinedTypesAnd>() { equalableHashSet.Last() }))));
+                                myBox.left = Possibly.Is(GetOrAdd(OrType.Make<EqualableHashSet<Tpn.CombinedTypesAnd>, IError>(new EqualableHashSet<Tpn.CombinedTypesAnd>(equalableHashSet.Take(equalableHashSet.Count() - 1).ToHashSet()))));
+                                myBox.right = Possibly.Is( GetOrAdd(OrType.Make<EqualableHashSet<Tpn.CombinedTypesAnd>, IError>(new EqualableHashSet<Tpn.CombinedTypesAnd>(new HashSet<Tpn.CombinedTypesAnd>() { equalableHashSet.Last() }))));
                             }
                             else {
                                 myBox.left = Possibly.IsNot<IOrType<Yolo, IError>>();
@@ -362,7 +362,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
 
-            Box<IOrType<IFrontendType<IVerifiableType>, IError>> GetFromCacheReplaceGenericConstrainsWithTheGeneric(EqualibleHashSet<Tpn.CombinedTypesAnd> key)
+            Box<IOrType<IFrontendType<IVerifiableType>, IError>> GetFromCacheReplaceGenericConstrainsWithTheGeneric(EqualableHashSet<Tpn.CombinedTypesAnd> key)
             {
                 var res = cache[key];
                 if (res.isGenericConstraintFor.Is(out var genericTypeParameter))
