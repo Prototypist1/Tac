@@ -13,9 +13,13 @@ using Tac.Model.Elements;
 namespace Tac.Frontend.New.CrzayNamespace
 {
 
-    internal class EqualibleHashSet<T> : IEnumerable<T>
+
+
+    internal class EqualibleHashSet<T> : IEnumerable<T>, IReadOnlySet<T>
     {
         public readonly HashSet<T> backing;
+
+        public int Count => ((IReadOnlyCollection<T>)backing).Count;
 
         public EqualibleHashSet(HashSet<T> backing)
         {
@@ -51,6 +55,41 @@ namespace Tac.Frontend.New.CrzayNamespace
         public override string? ToString()
         {
             return $"EqualibleHashSet<{typeof(T).Name}>({string.Join(", ", backing.Take(10).Select(x => x.ToString())) + ((backing.Count > 10) ? "..." : "")})";
+        }
+
+        public bool Contains(T item)
+        {
+            return ((IReadOnlySet<T>)backing).Contains(item);
+        }
+
+        public bool IsProperSubsetOf(IEnumerable<T> other)
+        {
+            return ((IReadOnlySet<T>)backing).IsProperSubsetOf(other);
+        }
+
+        public bool IsProperSupersetOf(IEnumerable<T> other)
+        {
+            return ((IReadOnlySet<T>)backing).IsProperSupersetOf(other);
+        }
+
+        public bool IsSubsetOf(IEnumerable<T> other)
+        {
+            return ((IReadOnlySet<T>)backing).IsSubsetOf(other);
+        }
+
+        public bool IsSupersetOf(IEnumerable<T> other)
+        {
+            return ((IReadOnlySet<T>)backing).IsSupersetOf(other);
+        }
+
+        public bool Overlaps(IEnumerable<T> other)
+        {
+            return ((IReadOnlySet<T>)backing).Overlaps(other);
+        }
+
+        public bool SetEquals(IEnumerable<T> other)
+        {
+            return ((IReadOnlySet<T>)backing).SetEquals(other);
         }
     }
 
@@ -309,6 +348,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
     internal partial class Tpn
     {
+
+
+
         // ok so next a try they shared virtual representation
         // it is an or of and of primitive/concrete nodes
 
@@ -1787,7 +1829,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     returnsAnds => accepts.SwitchReturns(
                         acceptsAnds =>
                         {
-
+                            // return new Rep2(acceptsAnds, returnsAnds);
                             {
                                 // when there are no constraints on what to return
                                 // the constrains on what we accept arn't interstesting
@@ -1870,7 +1912,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                             // is bool
                             // has x
                             // has x and x is bool
-
 
                             return InferredFlowNode.Union(returnsAnds, acceptsAnds).SwitchReturns(
                                 x => OrType.Make<EqualibleHashSet<CombinedTypesAnd>, IError, DoesNotExist>(x),
@@ -2289,7 +2330,216 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
         }
 
-        public class VirtualNode : IVirtualFlowNode
+        public class AbstractRep { 
+        
+        }
+
+        internal class Rep2: AbstractRep
+        {
+            public readonly EqualibleHashSet<CombinedTypesAnd> mustAccept;
+            public readonly EqualibleHashSet<CombinedTypesAnd> mustReturn;
+
+            public Rep2(EqualibleHashSet<CombinedTypesAnd> mustAccept, EqualibleHashSet<CombinedTypesAnd> mustReturn)
+            {
+                this.mustAccept = mustAccept ?? throw new ArgumentNullException(nameof(mustAccept));
+                this.mustReturn = mustReturn ?? throw new ArgumentNullException(nameof(mustReturn));
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return obj.SafeIs(out Rep2 rep) && mustAccept.Equals(rep.mustAccept) && mustReturn.Equals(rep.mustReturn);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(mustAccept, mustReturn);
+            }
+
+            public IOrType<IReadOnlyList<Lazy<IOrType<Rep2, IError>>>, IError> VirtualGenerics()
+            {
+                var acceptOr = mustAccept.VirtualGenerics();
+                var returnOr = mustReturn.VirtualGenerics();
+
+                var errors = new List<IError>();
+
+                if (acceptOr.Is2(out var acceprtError))
+                {
+                    errors.Add(acceprtError);
+                }
+                if (returnOr.Is2(out var returnError))
+                {
+                    errors.Add(returnError);
+                }
+                if (errors.Any())
+                {
+                    return OrType.Make<IReadOnlyList<Lazy<IOrType<Rep2, IError>>>, IError>(Error.Cascaded("", errors.ToArray()));
+                }
+
+                var acceptList = acceptOr.Is1OrThrow();
+                var returnList = returnOr.Is1OrThrow();
+
+                if (acceptList.Count != returnList.Count)
+                {
+                    return OrType.Make<IReadOnlyList<Lazy<IOrType<Rep2, IError>>>, IError>(Error.Other("accept and returd different numbers of generics that doesn't seem ok"));
+                }
+
+                return OrType.Make<IReadOnlyList<Lazy<IOrType<Rep2, IError>>>, IError>(acceptList.Zip(returnList, (x, y) =>
+                {
+                    return new Lazy<IOrType<Rep2, IError>>(() => {
+                        var acceptValueOr = x.Value;
+                        var returnValueOr = y.Value;
+
+                        var innerErrors = new List<IError>();
+
+                        if (acceptValueOr.Is2(out var acceprtError))
+                        {
+                            innerErrors.Add(acceprtError);
+                        }
+                        if (returnValueOr.Is2(out var returnError))
+                        {
+                            innerErrors.Add(returnError);
+                        }
+                        if (innerErrors.Any())
+                        {
+                            return OrType.Make<Rep2, IError>(Error.Cascaded("", innerErrors.ToArray()));
+                        }
+
+                        var acceptValue = acceptValueOr.Is1OrThrow();
+                        var returnValue = returnValueOr.Is1OrThrow();
+
+                        return OrType.Make<Rep2, IError>(new Rep2(acceptValue, returnValue));
+                    });
+                }).ToList());
+            }
+
+            public IOrType<IIsPossibly<Guid>, IError> Primitive()
+            {
+                var acceptPrimOr = mustAccept.Primitive();
+                var returnPrimOr = mustReturn.Primitive();
+
+                var errors = new List<IError>();
+
+                if (acceptPrimOr.Is2(out var acceprtError))
+                {
+                    errors.Add(acceprtError);
+                }
+                if (returnPrimOr.Is2(out var returnError))
+                {
+                    errors.Add(returnError);
+                }
+                if (errors.Any())
+                {
+                    return OrType.Make<IIsPossibly<Guid>, IError>(Error.Cascaded("", errors.ToArray()));
+                }
+
+                var acceptPossiblePrim = acceptPrimOr.Is1OrThrow();
+                var returnPossiblePrim = returnPrimOr.Is1OrThrow();
+
+                // this isn't symetic
+                // if we don't need to return it
+                // than who cares if we accept it
+                if (returnPossiblePrim.IsNot() || acceptPossiblePrim.IsNot())
+                {
+                    return OrType.Make<IIsPossibly<Guid>, IError>(returnPossiblePrim);
+                }
+
+                // at this point we know they exist
+                acceptPossiblePrim.Is(out var acceptPrim);
+                returnPossiblePrim.Is(out var returnPrim);
+
+                if (acceptPrim == returnPrim)
+                {
+
+                    return OrType.Make<IIsPossibly<Guid>, IError>(returnPossiblePrim);
+                }
+                return OrType.Make<IIsPossibly<Guid>, IError>(Error.Other("what prim am I? I must accept one and return another!"));
+
+                //var errors =  mustReturn.SelectMany(x => {
+                //    if (x.Primitive().Is2(out var error)) {
+                //        return new[] { error };
+                //    }
+                //    return Array.Empty<IError>();
+                //}).Union(mustReturn.SelectMany(x => {
+                //    if (x.Primitive().Is2(out var error))
+                //    {
+                //        return new[] { error };
+                //    }
+                //    return Array.Empty<IError>();
+                //})).ToArray();
+
+                //if (errors.Any()) {
+                //    return OrType.Make<IIsPossibly<Guid>,IError>( Error.Cascaded("", errors));
+                //}
+
+                //var returnGroups = mustReturn.SelectMany(x => {
+                //    if (x.Primitive().Is1(out var notError) && notError.Is(out var prim)) {
+                //        return new[] { prim };
+                //    }
+                //    return new Guid[] { };
+                //}).GroupBy(x => x).ToArray();
+
+                //if (returnGroups.Length != 1 || returnGroups.First().Count() != mustReturn.Count()) {
+                //    return OrType.Make<IIsPossibly<Guid>, IError>(Possibly.IsNot<Guid>());
+                //}
+
+                //var acceptGroups = mustAccept.SelectMany(x => {
+                //    if (x.Primitive().Is1(out var notError) && notError.Is(out var prim))
+                //    {
+                //        return new[] { prim };
+                //    }
+                //    return new Guid[] { };
+                //}).GroupBy(x => x).ToArray();
+
+                //if (acceptGroups.Length != 1 || acceptGroups.First().Count() != mustReturn.Count())
+                //{
+                //    return OrType.Make<IIsPossibly<Guid>, IError>(Possibly.IsNot<Guid>());
+                //}
+
+                //if (returnGroups.First().Key == acceptGroups.First().Key) { 
+                //    return OrType.Make<IIsPossibly<Guid>, IError>(Possibly.Is(returnGroups.First().Key));
+                //}
+
+                //return OrType.Make<IIsPossibly<Guid>, IError>(Possibly.IsNot<Guid>());
+            }
+
+            public IOrType<Rep2, IError, DoesNotExist> ToRep(IReadOnlyList<IOrType<Member, Input, Output, Generic>> path)
+            {
+                var acceptRep1 = mustAccept.ToRep(path);
+                var returnRep1 = mustReturn.ToRep(path);
+
+                var errors = new List<IError>();
+
+                if (acceptRep1.Is2(out var acceprtError))
+                {
+                    errors.Add(acceprtError);
+                }
+                if (returnRep1.Is2(out var returnError))
+                {
+                    errors.Add(returnError);
+                }
+                if (errors.Any())
+                {
+                    return OrType.Make<Rep2, IError, DoesNotExist>(Error.Cascaded("", errors.ToArray()));
+                }
+
+                // this isn't symetic
+                // if we don't need to return it
+                // than who cares if we accept it
+                if (returnRep1.Is3(out var returnDoesNotExist))
+                {
+                    return OrType.Make<Rep2, IError, DoesNotExist>(returnDoesNotExist);
+                }
+
+                if (acceptRep1.Is3(out var _))
+                {
+                    return OrType.Make<Rep2, IError, DoesNotExist>(new Rep2(new EqualibleHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd>()), returnRep1.Is1OrThrow()));
+                }
+                return OrType.Make<Rep2, IError, DoesNotExist>(new Rep2(acceptRep1.Is1OrThrow(), returnRep1.Is1OrThrow()));
+
+            }
+        }
+
+        public class VirtualNode : AbstractRep,IVirtualFlowNode
         {
 
             public readonly EqualibleHashSet<CombinedTypesAnd> Or;
