@@ -394,10 +394,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             // this is lazy because we don't what to have to fully calculate all our members
             // it is a lot of wasted work
             // also if we flow in to one of our members we get a stack overflow
-            IOrType<ICollection<KeyValuePair<IKey, Lazy<IOrType<VirtualNode, IError>>>>, IError> VirtualMembers();
+            IOrType<ICollection<KeyValuePair<IKey, Lazy<IOrType<IVirtualFlowNode, IError>>>>, IError> VirtualMembers();
 
             // so much work 
-            IOrType<IReadOnlyList<Lazy<IOrType<VirtualNode, IError>>>, IError> VirtualGenerics();
+            IOrType<IReadOnlyList<Lazy<IOrType<IVirtualFlowNode, IError>>>, IError> VirtualGenerics();
 
             IOrType<IIsPossibly<Guid>, IError> Primitive();
 
@@ -407,7 +407,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             /// </summary>
             //SourcePath SourcePath();
 
-            IOrType<EqualableHashSet<CombinedTypesAnd>, IError, DoesNotExist> ToRep(IReadOnlyList<IOrType<Member, Input, Output, Generic>> path);
+            IOrType<IVirtualFlowNode, IError, DoesNotExist> ToRep(IReadOnlyList<IOrType<Member, Input, Output, Generic>> path);
         }
 
 
@@ -2314,16 +2314,14 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
         }
 
-        public class AbstractRep { 
-        
-        }
 
-        internal class Rep2: AbstractRep
+
+        internal class Rep2: IVirtualFlowNode
         {
-            public readonly EqualableHashSet<CombinedTypesAnd> mustAccept;
-            public readonly EqualableHashSet<CombinedTypesAnd> mustReturn;
+            public readonly IVirtualFlowNode mustAccept;
+            public readonly IVirtualFlowNode mustReturn;
 
-            public Rep2(EqualableHashSet<CombinedTypesAnd> mustAccept, EqualableHashSet<CombinedTypesAnd> mustReturn)
+            public Rep2(IVirtualFlowNode mustAccept, IVirtualFlowNode mustReturn)
             {
                 this.mustAccept = mustAccept ?? throw new ArgumentNullException(nameof(mustAccept));
                 this.mustReturn = mustReturn ?? throw new ArgumentNullException(nameof(mustReturn));
@@ -2339,7 +2337,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return HashCode.Combine(mustAccept, mustReturn);
             }
 
-            public IOrType<IReadOnlyList<Lazy<IOrType<Rep2, IError>>>, IError> VirtualGenerics()
+            public IOrType<IReadOnlyList<Lazy<IOrType<IVirtualFlowNode, IError>>>, IError> VirtualGenerics()
             {
                 var acceptOr = mustAccept.VirtualGenerics();
                 var returnOr = mustReturn.VirtualGenerics();
@@ -2356,7 +2354,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 if (errors.Any())
                 {
-                    return OrType.Make<IReadOnlyList<Lazy<IOrType<Rep2, IError>>>, IError>(Error.Cascaded("", errors.ToArray()));
+                    return OrType.Make<IReadOnlyList<Lazy<IOrType<IVirtualFlowNode, IError>>>, IError>(Error.Cascaded("", errors.ToArray()));
                 }
 
                 var acceptList = acceptOr.Is1OrThrow();
@@ -2364,12 +2362,12 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 if (acceptList.Count != returnList.Count)
                 {
-                    return OrType.Make<IReadOnlyList<Lazy<IOrType<Rep2, IError>>>, IError>(Error.Other("accept and returd different numbers of generics that doesn't seem ok"));
+                    return OrType.Make<IReadOnlyList<Lazy<IOrType<IVirtualFlowNode, IError>>>, IError>(Error.Other("accept and returd different numbers of generics that doesn't seem ok"));
                 }
 
-                return OrType.Make<IReadOnlyList<Lazy<IOrType<Rep2, IError>>>, IError>(acceptList.Zip(returnList, (x, y) =>
+                return OrType.Make<IReadOnlyList<Lazy<IOrType<IVirtualFlowNode, IError>>>, IError>(acceptList.Zip(returnList, (x, y) =>
                 {
-                    return new Lazy<IOrType<Rep2, IError>>(() => {
+                    return new Lazy<IOrType<IVirtualFlowNode, IError>>(() => {
                         var acceptValueOr = x.Value;
                         var returnValueOr = y.Value;
 
@@ -2385,13 +2383,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                         if (innerErrors.Any())
                         {
-                            return OrType.Make<Rep2, IError>(Error.Cascaded("", innerErrors.ToArray()));
+                            return OrType.Make<IVirtualFlowNode, IError>(Error.Cascaded("", innerErrors.ToArray()));
                         }
 
                         var acceptValue = acceptValueOr.Is1OrThrow();
                         var returnValue = returnValueOr.Is1OrThrow();
 
-                        return OrType.Make<Rep2, IError>(new Rep2(acceptValue, returnValue));
+                        return OrType.Make<IVirtualFlowNode, IError>(new Rep2(acceptValue, returnValue));
                     });
                 }).ToList());
             }
@@ -2486,7 +2484,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //return OrType.Make<IIsPossibly<Guid>, IError>(Possibly.IsNot<Guid>());
             }
 
-            public IOrType<Rep2, IError, DoesNotExist> ToRep(IReadOnlyList<IOrType<Member, Input, Output, Generic>> path)
+            public IOrType<IVirtualFlowNode, IError, DoesNotExist> ToRep(IReadOnlyList<IOrType<Member, Input, Output, Generic>> path)
             {
                 var acceptRep1 = mustAccept.ToRep(path);
                 var returnRep1 = mustReturn.ToRep(path);
@@ -2503,7 +2501,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 if (errors.Any())
                 {
-                    return OrType.Make<Rep2, IError, DoesNotExist>(Error.Cascaded("", errors.ToArray()));
+                    return OrType.Make<IVirtualFlowNode, IError, DoesNotExist>(Error.Cascaded("", errors.ToArray()));
                 }
 
                 // this isn't symetic
@@ -2511,19 +2509,84 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // than who cares if we accept it
                 if (returnRep1.Is3(out var returnDoesNotExist))
                 {
-                    return OrType.Make<Rep2, IError, DoesNotExist>(returnDoesNotExist);
+                    return OrType.Make<IVirtualFlowNode, IError, DoesNotExist>(returnDoesNotExist);
                 }
 
                 if (acceptRep1.Is3(out var _))
                 {
-                    return OrType.Make<Rep2, IError, DoesNotExist>(new Rep2(new EqualableHashSet<CombinedTypesAnd>(new HashSet<CombinedTypesAnd>()), returnRep1.Is1OrThrow()));
+                    return OrType.Make<IVirtualFlowNode, IError, DoesNotExist>(returnRep1.Is1OrThrow());
                 }
-                return OrType.Make<Rep2, IError, DoesNotExist>(new Rep2(acceptRep1.Is1OrThrow(), returnRep1.Is1OrThrow()));
+                return OrType.Make<IVirtualFlowNode, IError, DoesNotExist>(new Rep2(acceptRep1.Is1OrThrow(), returnRep1.Is1OrThrow()));
 
+            }
+
+            public IOrType<ICollection<KeyValuePair<IKey, Lazy<IOrType<IVirtualFlowNode, IError>>>>, IError> VirtualMembers() {
+
+                var acceptOr = mustAccept.VirtualMembers();
+                var returnOr = mustReturn.VirtualMembers();
+
+                {
+                    var errors = new List<IError>();
+
+                    if (acceptOr.Is2(out var acceprtError))
+                    {
+                        errors.Add(acceprtError);
+                    }
+                    if (returnOr.Is2(out var returnError))
+                    {
+                        errors.Add(returnError);
+                    }
+                    if (errors.Any())
+                    {
+                        return OrType.Make<ICollection<KeyValuePair<IKey, Lazy<IOrType<IVirtualFlowNode, IError>>>>, IError>(Error.Cascaded("", errors.ToArray()));
+                    }
+                }
+
+                var acceptList = acceptOr.Is1OrThrow();
+                var returnList = returnOr.Is1OrThrow();
+
+                var res = new List<KeyValuePair<IKey, Lazy<IOrType<IVirtualFlowNode, IError>>>>();
+
+                foreach (var item in returnList)
+                {
+                    if (acceptList.Any(x => x.Key == item.Key))
+                    {
+                        var match = acceptList.Single(x => x.Key == item.Key).Value;
+
+                        res.Add(new KeyValuePair<IKey, Lazy<IOrType<IVirtualFlowNode, IError>>>(item.Key, new Lazy<IOrType<IVirtualFlowNode, IError>>(() =>
+                        {
+                            var returnValueOr = item.Value.Value;
+                            var acceptValueOr = match.Value;
+
+                            var innerErrors = new List<IError>();
+
+                            if (acceptValueOr.Is2(out var acceprtError))
+                            {
+                                innerErrors.Add(acceprtError);
+                            }
+                            if (returnValueOr.Is2(out var returnError))
+                            {
+                                innerErrors.Add(returnError);
+                            }
+                            if (innerErrors.Any())
+                            {
+                                return OrType.Make<IVirtualFlowNode, IError>(Error.Cascaded("", innerErrors.ToArray()));
+                            }
+
+                            return OrType.Make<IVirtualFlowNode, IError>(new Rep2(acceptValueOr.Is1OrThrow(), returnValueOr.Is1OrThrow()));
+                        })));
+
+                    }
+                    else {
+                        res.Add(item);
+                    }
+                }
+
+                return OrType.Make<ICollection<KeyValuePair<IKey, Lazy<IOrType<IVirtualFlowNode, IError>>>>, IError>(res);
             }
         }
 
-        public class VirtualNode : AbstractRep,IVirtualFlowNode
+        public class VirtualNode : IVirtualFlowNode
         {
 
             public readonly EqualableHashSet<CombinedTypesAnd> Or;
@@ -2560,19 +2623,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return Or.Primitive();
             }
 
-            public IOrType<ICollection<KeyValuePair<IKey, Lazy<IOrType<VirtualNode, IError>>>>, IError> VirtualMembers()
+            public IOrType<ICollection<KeyValuePair<IKey, Lazy<IOrType<IVirtualFlowNode, IError>>>>, IError> VirtualMembers()
             {
-                return Or.VirtualMembers().TransformInner(dict => (ICollection<KeyValuePair<IKey, Lazy<IOrType<VirtualNode, IError>>>>)(dict.Select(pair => KeyValuePair.Create(pair.Key, new Lazy<IOrType<VirtualNode, IError>>(() => pair.Value.Value.TransformInner(ands => new VirtualNode(ands))))).ToArray()));
+                return Or.VirtualMembers().TransformInner(dict => (ICollection<KeyValuePair<IKey, Lazy<IOrType<IVirtualFlowNode, IError>>>>)(dict.Select(pair => KeyValuePair.Create(pair.Key, new Lazy<IOrType<IVirtualFlowNode, IError>>(() => pair.Value.Value.TransformInner(ands => new VirtualNode(ands))))).ToArray()));
             }
 
 
-            public IOrType<IReadOnlyList<Lazy<IOrType<VirtualNode, IError>>>, IError> VirtualGenerics()
+            public IOrType<IReadOnlyList<Lazy<IOrType<IVirtualFlowNode, IError>>>, IError> VirtualGenerics()
             {
                 return Or.VirtualGenerics()
                     .TransformInner(list =>
                     {
                         int i = 0;
-                        return (IReadOnlyList<Lazy<IOrType<VirtualNode, IError>>>)(list.Select(value => new Lazy<IOrType<VirtualNode, IError>>(() => value.Value.TransformInner(ands => new VirtualNode(ands)))).ToArray());
+                        return (IReadOnlyList<Lazy<IOrType<IVirtualFlowNode, IError>>>)(list.Select(value => new Lazy<IOrType<IVirtualFlowNode, IError>>(() => value.Value.TransformInner(ands => new VirtualNode(ands)))).ToArray());
                     });
             }
 
@@ -2580,7 +2643,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             //{
             //}
 
-            public IOrType<EqualableHashSet<CombinedTypesAnd>, IError, DoesNotExist> ToRep(IReadOnlyList<IOrType<Member, Input, Output, Generic>> path)
+            public IOrType<IVirtualFlowNode, IError, DoesNotExist> ToRep(IReadOnlyList<IOrType<Member, Input, Output, Generic>> path)
             {
                 return Or.ToRep(path);
             }
