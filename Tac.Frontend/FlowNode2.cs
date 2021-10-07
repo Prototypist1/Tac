@@ -120,6 +120,11 @@ namespace Tac.Frontend
     {
         private readonly Guid guid;
 
+        public PrimitiveFlowNode2(Guid guid)
+        {
+            this.guid = guid;
+        }
+
         public IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> GetConstraints()
         {
             return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>(new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> {
@@ -134,7 +139,6 @@ namespace Tac.Frontend
             constraint.All(x=>x.Is2(out var prim) && prim.primitive == guid);
         
     }
-
 
     class ConcreteFlowNode2 : IFlowNode2
     {
@@ -468,5 +472,28 @@ namespace Tac.Frontend
 
         }
     }
+
+    // Tests to write
+    //
+    // something where an or flow a DisjointConstraint of GivenPathThen down stream
+    // is it even possible? I can't come up with an example...
+    //
+    // {int a;} | {int b} =: y
+    // y.a := 5;
+    //
+    // y has an a
+    // but y could still have a b
+    // so we don't flow
+    // y ends up being {a;}
+    // 
+    // {string|empty x;} | { int|empty x;} =: y
+    // y.x := empty
+    // 
+    // y is {string|empty x;} | { int|empty x;}
+    //
+    // ...am I missing a constrint?
+    // y.x ... exists, I've got that. but it also has to accept empty
+    // that doesn't mean it is empty
+    // 
 
 }

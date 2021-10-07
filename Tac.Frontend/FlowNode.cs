@@ -2648,6 +2648,23 @@ namespace Tac.Frontend.New.CrzayNamespace
             return OrType.Make<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>(node);
         }
 
+        public static IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2> ToOr2(ConcreteFlowNode2 node)
+        {
+            return OrType.Make<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>(node);
+        }
+        public static IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2> ToOr2(InferredFlowNode2 node)
+        {
+            return OrType.Make<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>(node);
+        }
+        public static IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2> ToOr2(PrimitiveFlowNode2 node)
+        {
+            return OrType.Make<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>(node);
+        }
+        public static IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2> ToOr2(OrFlowNode2 node)
+        {
+            return OrType.Make<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>(node);
+        }
+
         // what a mess 😭😭😭
         // if A | B flow in to empty
         // it will flow and you will get A | B

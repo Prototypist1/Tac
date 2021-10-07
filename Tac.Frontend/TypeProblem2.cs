@@ -773,6 +773,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var orsToFlowNodesLookup = new Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
                 //var sourcePathCache = new Tpn.SourcePath.SourcePathCache();
 
+
+                var flowNodes2 = new Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>>();
+
                 foreach (var methodType in ors.Select(x => (x.Is1(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
                     var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(methodType);
@@ -781,6 +784,11 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     orsToFlowNodesBuild.Add(key, value);
                     orsToFlowNodesLookup.Add(key, value);
+
+
+                    var flowNode2 = new ConcreteFlowNode2();
+                    flowNodes2.Add(key,  ToOr2(flowNode2));
+
                 }
                 foreach (var type in ors.Select(x => (x.Is2(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
@@ -790,6 +798,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                         var flowNode = ToOr(new PrimitiveFlowNode(type, guid));
                         orsToFlowNodesBuild.Add(key, flowNode);
                         orsToFlowNodesLookup.Add(key, flowNode);
+
+                        var flowNode2 = new PrimitiveFlowNode2(guid);
+                        flowNodes2.Add(key, ToOr2(flowNode2));
                     }
                     else
                     {
@@ -798,6 +809,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                         orsToFlowNodesBuild.Add(key, value);
                         orsToFlowNodesLookup.Add(key, value);
+
+                        var flowNode2 = new ConcreteFlowNode2();
+                        flowNodes2.Add(key, ToOr2(flowNode2));
                     }
                 }
                 foreach (var @object in ors.Select(x => (x.Is3(out var v), v)).Where(x => x.Item1).Select(x => x.v))
@@ -807,6 +821,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     orsToFlowNodesBuild.Add(key, value);
                     orsToFlowNodesLookup.Add(key, value);
+
+                    var flowNode2 = new ConcreteFlowNode2();
+                    flowNodes2.Add(key, ToOr2(flowNode2));
                 }
                 foreach (var inferred in ors.Select(x => (x.Is5(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
@@ -824,6 +841,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{
                                         Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(concrete)})}));
                     orsToFlowNodesLookup.Add(key, ToOr(inferredFlowNode));
+
+
+                    var concreteFlowNode2 = new ConcreteFlowNode2();
+                    flowNodes2.Add(key, ToOr2(concreteFlowNode2));
+                    
+                    // TODO figure out how to flow from the concrete to the flowNode2
+
+                    var inferredFlowNode2 = new InferredFlowNode2();
+                    flowNodes2.Add(key, ToOr2(inferredFlowNode2));
                 }
                 foreach (var generic in ors.Select(x => (x.Is6(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
