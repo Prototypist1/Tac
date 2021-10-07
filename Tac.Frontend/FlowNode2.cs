@@ -102,23 +102,25 @@ namespace Tac.Frontend
         {
             return HashCode.Combine(constraintSets);
         }
+
     }
 
     interface IFlowNode2 {
-        EqualableHashSet<GivenPathThen> GetDownStreamConstraints();
-        IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> GetUpStreamConstraints();
+        IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> GetConstraints();
+        /// <summary>
+        /// when flowing down stream (given a =: b, downstream would be from a to b)
+        /// only pass GivenPathThen and DisjointConstraint of GivenPathThen
+        /// see {95C8B654-3AF5-42FD-A42B-A94165BEF7A3}
+        /// </summary>
         bool AcceptConstraints(EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints);
-        bool CouldApplyToMe(IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint> constraint)
+        bool CouldApplyToMe(IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraint);
     }
 
     class PrimitiveFlowNode2: IFlowNode2
     {
         private readonly Guid guid;
 
-        public EqualableHashSet<GivenPathThen> GetDownStreamConstraints() {
-            return new EqualableHashSet<GivenPathThen>(new HashSet<GivenPathThen>());
-        }
-        public IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> GetUpStreamConstraints()
+        public IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> GetConstraints()
         {
             return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>(new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> {
                 OrType.Make<MustHave, MustBePrimitive, GivenPathThen,DisjointConstraint> (new MustBePrimitive(guid))
@@ -128,10 +130,11 @@ namespace Tac.Frontend
             return false;
         }
 
-        public bool CouldApplyToMe(IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint> constraint) { 
+        public bool CouldApplyToMe(IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraint) =>
+            constraint.All(x=>x.Is2(out var prim) && prim.primitive == guid);
         
-        }
     }
+
 
     class ConcreteFlowNode2 : IFlowNode2
     {
@@ -139,19 +142,7 @@ namespace Tac.Frontend
         private readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>> constraints = new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>(new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>());
         private readonly Dictionary<IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>, IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2, OrFlowNode2>> dependents = new ();
 
-        public EqualableHashSet<GivenPathThen> GetDownStreamConstraints()
-        {
-            return new EqualableHashSet<GivenPathThen>(
-                constraints.SelectMany(x =>
-                {
-                    if (x.Is3(out var givenPath))
-                    {
-                        return new[] { givenPath };
-                    }
-                    return Array.Empty<GivenPathThen>();
-                }).ToHashSet());
-        }
-        public IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> GetUpStreamConstraints()
+        public IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> GetConstraints()
         {
             return constraints.Select(x=>x.SwitchReturns(
                 x => (IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>)OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(x),
@@ -200,7 +191,7 @@ namespace Tac.Frontend
                             var couldApplyToMe = true;
                             foreach (var item in set)
                             {
-                                couldApplyToMe |= CouldApplyToMe(Broaden(item));
+                                couldApplyToMe |= CouldApplyToMe(ConstraintUtils.Broaden(item));
                             }
                             if (couldApplyToMe) {
                                 return new[] { set };
@@ -215,7 +206,7 @@ namespace Tac.Frontend
                         if (couldApply.Length == 1) {
                             return AcceptConstraints(
                                 new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>(
-                                    couldApply.Single().Select(x => Broaden(x)).ToHashSet()));
+                                    couldApply.Single().Select(x => ConstraintUtils.Broaden(x)).ToHashSet()));
                         }
 
                         // we need to create to approprate disjointConstraint for each element
@@ -228,7 +219,7 @@ namespace Tac.Frontend
                             var next = new DisjointConstraint(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>>(
                                 couldApply
                                     .SelectMany(set=>
-                                        Flatten(set
+                                        ConstraintUtils.Flatten(set
                                             .SelectMany(constraint => Retarget(constraint, dependent))
                                             .ToArray())
                                         .Select(x=> new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>(x.ToHashSet())))
@@ -245,7 +236,153 @@ namespace Tac.Frontend
         }
 
         // but this could contain DisjointConstraint so we need to split it out
-        private List<List<IOrType<MustHave, MustBePrimitive, GivenPathThen>>> Flatten(IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>[] constraints ) {
+        
+        private IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>[] Retarget(IOrType<MustHave, MustBePrimitive, GivenPathThen> constraint, KeyValuePair<IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>, IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2, OrFlowNode2>> dependent)
+        {
+            return constraint.SwitchReturns(
+                mustHave =>
+                {
+                    if (dependent.Key.Equals(mustHave.path))
+                    {
+                        return mustHave.constraints.ToArray();//??
+                    }
+                    return Array.Empty<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>();
+                },
+                mustBePrimitive => Array.Empty<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>(),
+                givenPathThen => {
+                    if (dependent.Key.Equals(givenPathThen.path.First()))
+                    {
+                        if (givenPathThen.path.Length == 1)
+                        {
+                            return givenPathThen.constraints.ToArray();
+                        }
+                        var next = new GivenPathThen(givenPathThen.path.Skip(1).ToArray(), givenPathThen.constraints);
+                        return new[] {OrType.Make<MustHave, MustBePrimitive, GivenPathThen,DisjointConstraint>(next)};
+                    }
+                    return Array.Empty<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>();
+                });
+        }
+
+
+
+        public bool CouldApplyToMe(IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints)
+        {
+            return constraints.All(constraint => CouldApplyToMe(constraint));
+        }
+
+        private bool CouldApplyToMe(IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint> constraint)
+        {
+            return constraint.SwitchReturns(
+                    mustHave =>
+                    {
+                        if (dependents.TryGetValue(mustHave.path, out var dependent))
+                        {
+                            return dependent.GetValueAs(out IFlowNode2 _).CouldApplyToMe(mustHave.constraints);
+                        }
+                        return false;
+                    },
+                    mustBePrimitve => false,
+                    givenPathThen =>
+                    {
+                        if (dependents.TryGetValue(givenPathThen.path.First(), out var dependent))
+                        {
+                            if (givenPathThen.path.Length == 1)
+                            {
+                                return givenPathThen.constraints.All(x => dependent.GetValueAs(out IFlowNode2 _).CouldApplyToMe(new[] { x }));
+                            }
+                            var next = new GivenPathThen(givenPathThen.path.Skip(1).ToArray(), givenPathThen.constraints);
+                            return dependent.GetValueAs(out IFlowNode2 _).CouldApplyToMe(new[] { OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(next) });
+
+                        }
+                        return false;
+                    },
+                    disjointConstraint => disjointConstraint.constraintSets.Any(x => CouldApplyToMe(x.Select(y=>ConstraintUtils.Broaden(y)))));
+        }
+    }
+
+    class InferredFlowNode2 : IFlowNode2
+    {
+        private readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints = new (new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>());
+
+        public bool AcceptConstraints(EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints)
+        {
+            var res = false;
+            foreach (var newConstraint in newConstraints)
+            {
+                res |= constraints.Add(newConstraint);
+            }
+            return res;
+        }
+        public IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> GetConstraints()
+        {
+            return constraints;
+        }
+
+        public bool CouldApplyToMe(IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraint)
+        {
+            return true;
+        }
+    }
+
+    class OrFlowNode2 : IFlowNode2
+    {
+        // we have shared constrains
+        // and disjoin constraints
+        // do we calculate them from our sources?
+        private readonly EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2>> or = new (new HashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2>>());
+
+
+        public bool AcceptConstraints(EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints)
+        {
+            var res = false;
+            foreach (var item in or)
+            {
+                res |= item.GetValueAs(out IFlowNode2 _).AcceptConstraints(newConstraints);
+            }
+            return res;
+        }
+
+        public IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> GetConstraints()
+        {
+            var sets =  or.SelectMany(x => ConstraintUtils.Flatten(x.GetValueAs(out IFlowNode2 _).GetConstraints().ToArray())).ToArray();
+
+            var unionSet = sets.First().ToArray();
+            
+            foreach (var set in sets.Skip(1))
+            {
+                unionSet = unionSet.Union(set).ToArray();
+            }
+
+            var res = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>();
+
+            foreach (var item in unionSet)
+            {
+                res.Add(ConstraintUtils.Broaden(item));
+            }
+
+            var disjoint = 
+                new DisjointConstraint(
+                    new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>>(
+                        sets.Select(x => new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>(x.Except(unionSet).ToHashSet())).ToHashSet()));
+            res.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(disjoint));
+
+            return res;
+        }
+
+        public bool CouldApplyToMe(IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints)
+            => or.Any(x => x.GetValueAs(out IFlowNode2 _).CouldApplyToMe(constraints));
+    }
+
+
+    static class ConstraintUtils
+    {
+        /// <summary>
+        /// take [A,B,C,(E|F)] to [[A,B,C,E],[A,B,C,F]]
+        /// where (E|F) is a DisjointConstraint
+        /// the result will contain no DisjointConstraints
+        /// </summary>
+        public static List<List<IOrType<MustHave, MustBePrimitive, GivenPathThen>>> Flatten(IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>[] constraints)
+        {
             List<List<IOrType<MustHave, MustBePrimitive, GivenPathThen>>> ress = new List<List<IOrType<MustHave, MustBePrimitive, GivenPathThen>>> {
                 new List<IOrType<MustHave, MustBePrimitive, GivenPathThen>>()
             };
@@ -291,127 +428,45 @@ namespace Tac.Frontend
             return ress;
         }
 
-        private IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>[] Retarget(IOrType<MustHave, MustBePrimitive, GivenPathThen> constraint, KeyValuePair<IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>, IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2, OrFlowNode2>> dependent)
-        {
-            return constraint.SwitchReturns(
-                mustHave =>
-                {
-                    if (dependent.Key.Equals(mustHave.path))
-                    {
-                        return mustHave.constraints.ToArray();//??
-                    }
-                    return Array.Empty<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>();
-                },
-                mustBePrimitive => Array.Empty<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>(),
-                givenPathThen => {
-                    if (dependent.Key.Equals(givenPathThen.path.First()))
-                    {
-                        if (givenPathThen.path.Length == 1)
-                        {
-                            return givenPathThen.constraints.ToArray();
-                        }
-                        var next = new GivenPathThen(givenPathThen.path.Skip(1).ToArray(), givenPathThen.constraints);
-                        return new[] {OrType.Make<MustHave, MustBePrimitive, GivenPathThen,DisjointConstraint>(next)};
-                    }
-                    return Array.Empty<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>();
-                });
-        }
 
-        public IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint> Broaden(IOrType<MustHave, MustBePrimitive, GivenPathThen> orType) =>
+        public static IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint> Broaden(IOrType<MustHave, MustBePrimitive, GivenPathThen> orType) =>
             orType.SwitchReturns(x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(x),
                 x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(x),
                 x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(x));
 
-        public bool CouldApplyToMe(IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint> constraint)
-        {
-            return constraint.SwitchReturns(
-                    mustHave =>
-                    {
-                        if (dependents.TryGetValue(mustHave.path, out var dependent))
-                        {
-                            return mustHave.constraints.All(x=> dependent.GetValueAs(out IFlowNode2 _).CouldApplyToMe(x));
-                        }
-                        return false;
-                    },
-                    mustBePrimitve => false,
-                    givenPathThen =>
-                    {
-                        if (dependents.TryGetValue(givenPathThen.path.First(), out var dependent))
-                        {
-                            if (givenPathThen.path.Length == 1)
-                            {
-                                return givenPathThen.constraints.All(x => dependent.GetValueAs(out IFlowNode2 _).CouldApplyToMe(x));
-                            }
-                            var next = new GivenPathThen(givenPathThen.path.Skip(1).ToArray(), givenPathThen.constraints);
-                            return dependent.GetValueAs(out IFlowNode2 _).CouldApplyToMe(OrType.Make<MustHave, MustBePrimitive, GivenPathThen,DisjointConstraint>(next));
+        public static IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint> Broaden(IOrType<GivenPathThen, DisjointConstraint> orType) =>
+                orType.SwitchReturns(x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(x),
+                    x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(x));
 
-                        }
-                        return false;
-                    },
-                    disjointConstraint => disjointConstraint.constraintSets.Any(x => x.All(y=>CouldApplyToMe(Broaden(y)))));
-        }
-    }
 
-    class InferredFlowNode2 : IFlowNode2
-    {
-        private readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints = new (new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>());
-
-        public bool AcceptConstraints(EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints)
-        {
-            var res = false;
-            foreach (var newConstraint in newConstraints)
+        // downstream we only send GivenPathThen and DisjointConstraint made entirely of GivenPathThen
+        // {95C8B654-3AF5-42FD-A42B-A94165BEF7A3}
+        public static IReadOnlySet<IOrType<GivenPathThen, DisjointConstraint>> ToDownStream(IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints) {
+            return constraints.SelectMany(x =>
             {
-                res |= constraints.Add(newConstraint);
-            }
-            return res;
-        }
-        public EqualableHashSet<GivenPathThen> GetDownStreamConstraints()
-        {
-            return new EqualableHashSet<GivenPathThen>(
-                constraints.SelectMany(x =>
+                if (x.Is3(out var givenPath))
                 {
-                    if (x.Is3(out var givenPath))
-                    {
-                        return new[] { givenPath };
+                    return new[] { OrType.Make < GivenPathThen, DisjointConstraint > (givenPath) };
+                }
+                if (x.Is4(out var disjoint)) {
+                    var sets = new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>>(disjoint.constraintSets.Select(set =>
+                        new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>(set.SelectMany(y =>
+                       {
+                           if (y.Is3(out var innerGivenPath))
+                           {
+                               return new[] { OrType.Make<MustHave, MustBePrimitive, GivenPathThen>(innerGivenPath) };
+                           }
+                           return Array.Empty<IOrType<MustHave, MustBePrimitive, GivenPathThen>>();
+                       }).ToHashSet())).ToHashSet());
+
+                    if (sets.Any(x => x.Any())) {
+                        return new[] { OrType.Make<GivenPathThen, DisjointConstraint>(new DisjointConstraint(sets)) };
                     }
-                    return Array.Empty<GivenPathThen>();
-                }).ToHashSet());
-        }
-        public IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> GetUpStreamConstraints()
-        {
-            return constraints;
-        }
-
-        public bool CouldApplyToMe(IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint> constraint)
-        {
-            return true;
-        }
-    }
-
-    class OrFlowNode2 : IFlowNode2
-    {
-        // we have shared constrains
-        // and disjoin constraints
-        // do we calculate them from our sources?
-
-        public bool AcceptConstraints(EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints)
-        {
-            throw new NotImplementedException();
-        }
-
-        public EqualableHashSet<GivenPathThen> GetDownStreamConstraints()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> GetUpStreamConstraints()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool CouldApplyToMe(IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint> constraint)
-        {
+                }
+                return Array.Empty<IOrType<GivenPathThen, DisjointConstraint>>();
+            }).ToHashSet();
 
         }
     }
+
 }
