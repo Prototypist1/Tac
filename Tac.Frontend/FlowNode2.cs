@@ -10,29 +10,46 @@ namespace Tac.Frontend
 {
 
 
+    // assumptions:
+    //  - if a node flows something, it will always flow that thing. once "A" has a member nothing can take that member away from "A"
+    // 
+
+    // this originates at a ConcreteFlowNode2 
+    // but it's constraints code from the element at the path
+    //
+    // this could also come from an or node
     class MustHave {
         public readonly IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic> path;
-        public readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints;
+        public readonly ConcreteFlowNode2 source;
+        public readonly IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2, OrFlowNode2> dependent;
 
-        public MustHave(IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic> path, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints)
+        public MustHave(IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic> path, ConcreteFlowNode2 source, IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2, OrFlowNode2> dependent)
         {
             this.path = path ?? throw new ArgumentNullException(nameof(path));
-            this.constraints = constraints ?? throw new ArgumentNullException(nameof(constraints));
+            this.source = source ?? throw new ArgumentNullException(nameof(source));
+            this.dependent = dependent ?? throw new ArgumentNullException(nameof(dependent));
         }
 
         public override bool Equals(object? obj)
         {
             return obj is MustHave have &&
-                   EqualityComparer<IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>>.Default.Equals(path, have.path) &&
-                   EqualityComparer<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>>.Default.Equals(constraints, have.constraints);
+                   EqualityComparer<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2, OrFlowNode2>>.Default.Equals(dependent, have.dependent);
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(path, constraints);
+            return HashCode.Combine(dependent);
         }
+
+        //public readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints;
+
     }
 
+    // this orginates at a primitive flow node
+    //
+    // but it might also come from a very pointless or node: number | number
+    //
+    // but it doesn't really matter where it comes from
     class MustBePrimitive {
         public readonly Guid primitive;
 
@@ -53,31 +70,42 @@ namespace Tac.Frontend
         }
     }
 
+    // this comes from concrete and flow down and up
+    // but it's constraints code from the element at the path
+    //
+    // I don't think I really need path, just chain them together...
+    // if .x.y then why is an int
+    // .x.y implies .x
+    // so (GivenPathThen .x.y implies int ) is (GivenPathThen .x implies  GivenPathThen .y implies int) 
     class GivenPathThen {
-        public readonly IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>[] path;
-        public readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints;
+        public readonly IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic> path;
+        public readonly ConcreteFlowNode2 source;
+        public readonly IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2, OrFlowNode2> dependent;
 
-        public GivenPathThen(IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>[] path, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints)
+        public GivenPathThen(IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic> path, ConcreteFlowNode2 source, IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2, OrFlowNode2> dependent)
         {
             this.path = path ?? throw new ArgumentNullException(nameof(path));
-            this.constraints = constraints ?? throw new ArgumentNullException(nameof(constraints));
+            this.source = source ?? throw new ArgumentNullException(nameof(source));
+            this.dependent = dependent ?? throw new ArgumentNullException(nameof(dependent));
         }
 
         public override bool Equals(object? obj)
         {
             return obj is GivenPathThen then &&
-                   EqualityComparer<IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>[]>.Default.Equals(path, then.path) &&
-                   EqualityComparer<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>>.Default.Equals(constraints, then.constraints);
+                   EqualityComparer<IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>>.Default.Equals(path, then.path) &&
+                   EqualityComparer<ConcreteFlowNode2>.Default.Equals(source, then.source);
         }
-
-
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(path, constraints);
+            return HashCode.Combine(path, source);
         }
+
     }
 
+    // this comes from on or
+    // it's set really comes from a set of nodes of various types
+    //
     class DisjointConstraint {
         // constraintSets does not containt DisjointConstraint
         // they are flattened out
@@ -112,7 +140,7 @@ namespace Tac.Frontend
         /// only pass GivenPathThen and DisjointConstraint of GivenPathThen
         /// see {95C8B654-3AF5-42FD-A42B-A94165BEF7A3}
         /// </summary>
-        bool AcceptConstraints(EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints);
+        bool AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints);
         bool CouldApplyToMe(IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraint);
     }
 
@@ -131,7 +159,7 @@ namespace Tac.Frontend
                 OrType.Make<MustHave, MustBePrimitive, GivenPathThen,DisjointConstraint> (new MustBePrimitive(guid))
             });
         }
-        public bool AcceptConstraints(EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints) {
+        public bool AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints) {
             return false;
         }
 
@@ -153,7 +181,7 @@ namespace Tac.Frontend
                 x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(x),
                 x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(x))).ToHashSet();
         }
-        public bool AcceptConstraints(EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints)
+        public bool AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints)
         {
             var res = false;
             foreach (var constraint in newConstraints)
@@ -166,24 +194,17 @@ namespace Tac.Frontend
                         // ...they wrote bad code
                         // y could flow if they had left it inferred but they didn't
                         if (dependents.TryGetValue(mustHave.path, out var dependent)) {
-                            return dependent.GetValueAs(out IFlowNode2 _).AcceptConstraints(mustHave.constraints);
+                            var constraints = mustHave.dependent.GetValueAs(out IFlowNode2 _).GetConstraints();
+                            return dependent.GetValueAs(out IFlowNode2 _).AcceptConstraints(constraints);
                         }
                         return false;
                     },
                     mustBePrimitve => false,
                     givenPathThen =>
                     {
-                        if (dependents.TryGetValue(givenPathThen.path.First(), out var dependent))
+                        if (dependents.TryGetValue(givenPathThen.path, out var dependent))
                         {
-                            if (givenPathThen.path.Length == 1) {
-                                return dependent.GetValueAs(out IFlowNode2 _).AcceptConstraints(givenPathThen.constraints);
-                            }
-                            var next = new GivenPathThen(givenPathThen.path.Skip(1).ToArray(), givenPathThen.constraints);
-                            return dependent.GetValueAs(out IFlowNode2 _).AcceptConstraints(
-                                new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>(
-                                    new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> { 
-                                        OrType.Make<MustHave, MustBePrimitive, GivenPathThen,DisjointConstraint>(next)}));
-
+                            return dependent.GetValueAs(out IFlowNode2 _).AcceptConstraints(givenPathThen.dependent.GetValueAs(out IFlowNode2 _).GetConstraints());
                         }
                         return false;
                     },
@@ -209,8 +230,7 @@ namespace Tac.Frontend
 
                         if (couldApply.Length == 1) {
                             return AcceptConstraints(
-                                new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>(
-                                    couldApply.Single().Select(x => ConstraintUtils.Broaden(x)).ToHashSet()));
+                                    couldApply.Single().Select(x => ConstraintUtils.Broaden(x)).ToHashSet());
                         }
 
                         // we need to create to approprate disjointConstraint for each element
@@ -229,9 +249,8 @@ namespace Tac.Frontend
                                         .Select(x=> new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>(x.ToHashSet())))
                                     .ToHashSet()));
                             res |= dependent.Value.GetValueAs(out IFlowNode2 _).AcceptConstraints(
-                                new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>(
                                     new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> {
-                                        OrType.Make<MustHave, MustBePrimitive, GivenPathThen,DisjointConstraint>(next)}));
+                                        OrType.Make<MustHave, MustBePrimitive, GivenPathThen,DisjointConstraint>(next)});
                         }
                         return res;
                     });
@@ -248,20 +267,15 @@ namespace Tac.Frontend
                 {
                     if (dependent.Key.Equals(mustHave.path))
                     {
-                        return mustHave.constraints.ToArray();//??
+                        return mustHave.dependent.GetValueAs(out IFlowNode2 _).GetConstraints().ToArray();//??
                     }
                     return Array.Empty<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>();
                 },
                 mustBePrimitive => Array.Empty<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>(),
                 givenPathThen => {
-                    if (dependent.Key.Equals(givenPathThen.path.First()))
+                    if (dependent.Key.Equals(givenPathThen.path))
                     {
-                        if (givenPathThen.path.Length == 1)
-                        {
-                            return givenPathThen.constraints.ToArray();
-                        }
-                        var next = new GivenPathThen(givenPathThen.path.Skip(1).ToArray(), givenPathThen.constraints);
-                        return new[] {OrType.Make<MustHave, MustBePrimitive, GivenPathThen,DisjointConstraint>(next)};
+                        return givenPathThen.dependent.GetValueAs(out IFlowNode2 _).GetConstraints().ToArray();
                     }
                     return Array.Empty<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>();
                 });
@@ -281,22 +295,36 @@ namespace Tac.Frontend
                     {
                         if (dependents.TryGetValue(mustHave.path, out var dependent))
                         {
-                            return dependent.GetValueAs(out IFlowNode2 _).CouldApplyToMe(mustHave.constraints);
+                            return dependent.GetValueAs(out IFlowNode2 _).CouldApplyToMe(mustHave.dependent.GetValueAs(out IFlowNode2 _).GetConstraints());
                         }
                         return false;
                     },
                     mustBePrimitve => false,
                     givenPathThen =>
                     {
-                        if (dependents.TryGetValue(givenPathThen.path.First(), out var dependent))
+                        // does this really stop the flow?
+                        //
+                        // {int a; int b} =: x;
+                        // {b;} y =: x
+                        // 
+                        // test is ...anything
+                        // ...???
+                        // ...
+                        // does GivenPathThen really flow up stream?
+                        // maybe it just flows downstream and then if it is realized if flow upstream....
+                        //
+                        // {int a; int b} =: x;
+                        // {b;} y =: x
+                        // z =: x.b
+                        // now z is an int
+                        // and y.b is an int
+                        // and x.b is an int
+                        // so probably really y.b was in int all along??
+                        // 
+                        // I meam x could be {int|string b} right?...not right.
+                        if (dependents.TryGetValue(givenPathThen.path, out var dependent))
                         {
-                            if (givenPathThen.path.Length == 1)
-                            {
-                                return givenPathThen.constraints.All(x => dependent.GetValueAs(out IFlowNode2 _).CouldApplyToMe(new[] { x }));
-                            }
-                            var next = new GivenPathThen(givenPathThen.path.Skip(1).ToArray(), givenPathThen.constraints);
-                            return dependent.GetValueAs(out IFlowNode2 _).CouldApplyToMe(new[] { OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(next) });
-
+                            return dependent.GetValueAs(out IFlowNode2 _).CouldApplyToMe(givenPathThen.dependent.GetValueAs(out IFlowNode2 _).GetConstraints());
                         }
                         return false;
                     },
@@ -308,7 +336,7 @@ namespace Tac.Frontend
     {
         private readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints = new (new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>());
 
-        public bool AcceptConstraints(EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints)
+        public bool AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints)
         {
             var res = false;
             foreach (var newConstraint in newConstraints)
@@ -336,7 +364,7 @@ namespace Tac.Frontend
         private readonly EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2>> or = new (new HashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2>>());
 
 
-        public bool AcceptConstraints(EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints)
+        public bool AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints)
         {
             var res = false;
             foreach (var item in or)
@@ -495,5 +523,70 @@ namespace Tac.Frontend
     // y.x ... exists, I've got that. but it also has to accept empty
     // that doesn't mean it is empty
     // 
+    // here is the test:
+    //
+    // {int x} | int a =: b
+    // {x} c =: b
+    //
+    // c.x is an int
 
+
+    // flows from Or nodes can get a bit werid, mostly for broken code
+    //
+    // I think I need dependent constriants
+    //
+    // type test inferred // assuming you can do this, which seems like it would be nice...
+    // {x;} a =: int | test t1
+    // test t1 =: {int x;} b
+    // test t2 =: {int y;} c
+    //
+    // fist this line flows and we conclude a.x is an int
+    // test t1 =: {int x;} b
+    // 
+    // then this line flows and we conclude that {x;} a will accept neither side of (int | test) and there for a.x is not an int
+    // test t2 =: {int y;} c
+    //
+    // but... it is mostly for broken code
+    // so maybe I don't have to worry about it
+
+    // maybe I always push or to the members
+    // I would need: doesn't-have path | no-constraints | is int
+
+    // can a disjoint constraint ever add a member?
+    // if it shows up on both sides...
+    // {int x; int y;}|{int x; int b;}
+    // ok, once it show up on both sides can it ever not show up?
+    // 
+    // type test inferred
+    // {int x;} | test t1
+    // test t2 =: {int x;} b
+    // test t3 =: int c 
+    // I mean, then inferred becomes an error
+
+
+    // I think in this case we want {int x;} ?
+    // {x;} a =: int | test t1
+    // test t1 =: {int x;} b
+    // test t2 =: {int y;} c
+    //
+    // I mean it comes down to:
+    // {x;} a =: {int x; int y;} test
+    // in this case we would flow the int....
+    // 
+    // so... extra members don't stop the flow
+    // but they do...
+    // {x;} a =: {int x; int y;} | {string x;}
+    // ... in this case a.x is a string
+    // 
+    // so.. flow as far as you can and enter an error state <<< TODO
+
+    // type test infer
+    // test | int x;
+    // if 
+    //      {int a; int b} =: x;
+    // else
+    //      {b;} y =: x
+    // 
+    // if (x is test t)
+    //      t.b := "yolo" // is this an error?... yes
 }
