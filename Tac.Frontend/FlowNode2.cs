@@ -262,6 +262,84 @@ namespace Tac.Frontend
         }
     }
 
+    //class IllegalActionException : Exception
+    //{
+    //    private object action;
+
+    //    public IllegalActionException(object action)
+    //    {
+    //        this.action = action;
+    //    }
+    //}
+
+    class NoChanges { }
+    class Changes { }
+    class FailedAction { }
+
+    // this is probably a bad idea
+    //class X : IOrType<NoChanges, Changes, FailedAction> {
+    //    IOrType<NoChanges, Changes, FailedAction> inner;
+
+    //    public override bool Equals(object? obj)
+    //    {
+    //        return obj is X x &&
+    //               EqualityComparer<IOrType<NoChanges, Changes, FailedAction>>.Default.Equals(inner, x.inner);
+    //    }
+
+    //    public override int GetHashCode() => inner.GetHashCode();
+
+    //    public bool Is<T>(out T res) => inner.Is(out res);
+    //    public NoChanges Is1OrThrow() => inner.Is1OrThrow();
+    //    public Changes Is2OrThrow() => inner.Is2OrThrow();
+    //    public FailedAction Is3OrThrow() =>  inner.Is3OrThrow();
+    //    public IIsPossibly<NoChanges> Possibly1() => inner.Possibly1();
+    //    public IIsPossibly<Changes> Possibly2() => inner.Possibly2();
+    //    public IIsPossibly<FailedAction> Possibly3() => inner.Possibly3();
+    //    public void Switch(Action<NoChanges> a1, Action<Changes> a2, Action<FailedAction> a3) => inner.Switch(a1, a2, a3);
+    //    public T SwitchReturns<T>(Func<NoChanges, T> f1, Func<Changes, T> f2, Func<FailedAction, T> f3) => inner.SwitchReturns(f1, f2, f3);
+        
+    //}
+
+    static class TriStateExtensions {
+
+        public static IOrType<NoChanges, Changes, FailedAction> CombineBothMustPass(this IOrType<NoChanges, Changes, FailedAction> self, IOrType<NoChanges, Changes, FailedAction> that) {
+            if (self.Is3(out var _)) {
+                return self;
+            }
+            if (that.Is3(out var _))
+            {
+                return that;
+            }
+            if (self.Is2(out var _))
+            {
+                return self;
+            }
+            if (that.Is2(out var _))
+            {
+                return that;
+            }
+            return self;
+        }
+
+        public static IOrType<NoChanges, Changes, FailedAction> CombineOneMustPass(this IOrType<NoChanges, Changes, FailedAction> self, IOrType<NoChanges, Changes, FailedAction> that)
+        {
+            if (self.Is3(out var _) && that.Is3(out var _))
+            {
+                return self;
+            }
+            if (self.Is2(out var _))
+            {
+                return self;
+            }
+            if (that.Is2(out var _))
+            {
+                return that;
+            }
+            return self;
+        }
+    }
+
+
     interface IFlowNode2 {
         IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> GetConstraints();
         /// <summary>
@@ -269,7 +347,7 @@ namespace Tac.Frontend
         /// only pass GivenPathThen and DisjointConstraint of GivenPathThen
         /// see {95C8B654-3AF5-42FD-A42B-A94165BEF7A3}
         /// </summary>
-        bool AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints);
+        bool AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints, object action);
         bool CouldApplyToMe(IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraint);
     }
 
@@ -288,7 +366,7 @@ namespace Tac.Frontend
                 OrType.Make<MustHave, MustBePrimitive, GivenPathThen,DisjointConstraint> (new MustBePrimitive(guid))
             });
         }
-        public bool AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints) {
+        public bool AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints, object action) {
             return false;
         }
 
@@ -310,7 +388,7 @@ namespace Tac.Frontend
                 x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(x),
                 x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(x))).ToHashSet();
         }
-        public bool AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints)
+        public bool AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints, object action)
         {
             var res = false;
             foreach (var constraint in newConstraints)
@@ -324,7 +402,7 @@ namespace Tac.Frontend
                         // y could flow if they had left it inferred but they didn't
                         if (dependents.TryGetValue(mustHave.path, out var dependent)) {
                             var constraints = mustHave.dependent.GetValueAs(out IFlowNode2 _).GetConstraints();
-                            return dependent.GetValueAs(out IFlowNode2 _).AcceptConstraints(constraints);
+                            return dependent.GetValueAs(out IFlowNode2 _).AcceptConstraints(constraints, action);
                         }
                         return false;
                     },
@@ -333,7 +411,7 @@ namespace Tac.Frontend
                     {
                         if (dependents.TryGetValue(givenPathThen.path, out var dependent))
                         {
-                            return dependent.GetValueAs(out IFlowNode2 _).AcceptConstraints(givenPathThen.dependent.GetValueAs(out IFlowNode2 _).GetConstraints());
+                            return dependent.GetValueAs(out IFlowNode2 _).AcceptConstraints(givenPathThen.dependent.GetValueAs(out IFlowNode2 _).GetConstraints(), action);
                         }
                         return false;
                     },
@@ -367,7 +445,7 @@ namespace Tac.Frontend
 
                         if (couldApply.Length == 1) {
                             return AcceptConstraints(
-                                    couldApply.Single().Select(x => ConstraintUtils.Broaden(x)).ToHashSet());
+                                    couldApply.Single().Select(x => ConstraintUtils.Broaden(x)).ToHashSet(), action);
                         }
 
                         // we need to create to approprate disjointConstraint for each element
@@ -387,7 +465,7 @@ namespace Tac.Frontend
                                     .ToHashSet()));
                             res |= dependent.Value.GetValueAs(out IFlowNode2 _).AcceptConstraints(
                                     new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> {
-                                        OrType.Make<MustHave, MustBePrimitive, GivenPathThen,DisjointConstraint>(next)});
+                                        OrType.Make<MustHave, MustBePrimitive, GivenPathThen,DisjointConstraint>(next)}, action);
                         }
                         return res;
                     });
@@ -459,18 +537,14 @@ namespace Tac.Frontend
     class InferredFlowNode2 : IFlowNode2
     {
         private readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints = new (new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>());
-        private bool errorState = false;
 
-        public bool AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints)
+
+        public bool AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints, object action)
         {
-            if (errorState) {
-                return false;
-            }
 
             if (!constraints.All(existingItem => newConstraints
                     .All(newItem => existingItem.GetValueAs(out IConstraint _).IsCompatible(newItem, new List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>>())))){
-                errorState = true;
-                return false;
+                throw new IllegalActionException(action);
             }
 
             var res = false;
@@ -499,12 +573,14 @@ namespace Tac.Frontend
         private readonly EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2>> or = new (new HashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2>>());
 
 
-        public bool AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints)
+        public bool AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints, object action)
         {
+            
+
             var res = false;
             foreach (var item in or)
             {
-                res |= item.GetValueAs(out IFlowNode2 _).AcceptConstraints(newConstraints);
+                res |= item.GetValueAs(out IFlowNode2 _).AcceptConstraints(newConstraints, action);
             }
             return res;
         }
@@ -775,4 +851,13 @@ namespace Tac.Frontend
     // ... 
     // yeah, reflow and black list is a way to get a solution with no illegal moves
     // and it is simpler I think
+    // ...
+    // but it is hard to know you have taken an illegal move
+    // I just pass in an action with the inital flow 
+    // and if anything goes wrong a blame that flow and don't do it next time
+    // ...
+    // only going wrong shouldn't be an exceptoin
+    // I should return a tri-state
+
+
 }
