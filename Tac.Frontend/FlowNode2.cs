@@ -37,6 +37,9 @@ namespace Tac.Frontend
 
         public override bool Equals(object? obj)
         {
+            // AHHH! I don't even think this is right
+            // the same PrimitiveFlowNode2 node could show up on two different paths:
+            // "method [int, int]" for example
             return obj is MustHave have &&
                    EqualityComparer<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2, OrFlowNode2>>.Default.Equals(dependent, have.dependent);
         }
@@ -302,7 +305,7 @@ namespace Tac.Frontend
 
     static class TriStateExtensions {
 
-        public static IOrType<NoChanges, Changes, FailedAction> CombineBothMustPass(this IOrType<NoChanges, Changes, FailedAction> self, IOrType<NoChanges, Changes, FailedAction> that) {
+        public static IOrType<NoChanges, Changes, FailedAction> CombineBothMustNotFail(this IOrType<NoChanges, Changes, FailedAction> self, IOrType<NoChanges, Changes, FailedAction> that) {
             if (self.Is3(out var _)) {
                 return self;
             }
@@ -321,7 +324,7 @@ namespace Tac.Frontend
             return self;
         }
 
-        public static IOrType<NoChanges, Changes, FailedAction> CombineOneMustPass(this IOrType<NoChanges, Changes, FailedAction> self, IOrType<NoChanges, Changes, FailedAction> that)
+        public static IOrType<NoChanges, Changes, FailedAction> CombineOneMustNotFail(this IOrType<NoChanges, Changes, FailedAction> self, IOrType<NoChanges, Changes, FailedAction> that)
         {
             if (self.Is3(out var _) && that.Is3(out var _))
             {
@@ -347,7 +350,7 @@ namespace Tac.Frontend
         /// only pass GivenPathThen and DisjointConstraint of GivenPathThen
         /// see {95C8B654-3AF5-42FD-A42B-A94165BEF7A3}
         /// </summary>
-        bool AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints, object action);
+        IOrType<NoChanges, Changes, FailedAction> AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints);
         bool CouldApplyToMe(IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraint);
     }
 
@@ -366,8 +369,8 @@ namespace Tac.Frontend
                 OrType.Make<MustHave, MustBePrimitive, GivenPathThen,DisjointConstraint> (new MustBePrimitive(guid))
             });
         }
-        public bool AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints, object action) {
-            return false;
+        public IOrType<NoChanges, Changes, FailedAction> AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints) {
+            return OrType.Make<NoChanges, Changes, FailedAction>(new NoChanges());
         }
 
         public bool CouldApplyToMe(IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraint) =>
@@ -388,89 +391,102 @@ namespace Tac.Frontend
                 x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(x),
                 x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(x))).ToHashSet();
         }
-        public bool AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints, object action)
+        public IOrType<NoChanges, Changes, FailedAction> AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints)
         {
-            var res = false;
+            var sum = (IOrType<NoChanges, Changes, FailedAction>)OrType.Make<NoChanges, Changes, FailedAction>(new NoChanges());
+
             foreach (var constraint in newConstraints)
             {
-                res |= constraint.SwitchReturns(
-                    mustHave =>
-                    {
-                        // what happen here?
-                        // type {x;} a =: {y;} | number b
-                        // ...they wrote bad code
-                        // y could flow if they had left it inferred but they didn't
-                        if (dependents.TryGetValue(mustHave.path, out var dependent)) {
-                            var constraints = mustHave.dependent.GetValueAs(out IFlowNode2 _).GetConstraints();
-                            return dependent.GetValueAs(out IFlowNode2 _).AcceptConstraints(constraints, action);
-                        }
-                        return false;
-                    },
-                    mustBePrimitve => false,
-                    givenPathThen =>
-                    {
-                        if (dependents.TryGetValue(givenPathThen.path, out var dependent))
+
+                sum = TriStateExtensions.CombineBothMustNotFail(
+                    sum, 
+                    constraint.SwitchReturns(
+                        mustHave =>
                         {
-                            return dependent.GetValueAs(out IFlowNode2 _).AcceptConstraints(givenPathThen.dependent.GetValueAs(out IFlowNode2 _).GetConstraints(), action);
-                        }
-                        return false;
-                    },
-                    disjointConstraint => {
-                        // we try to find determine if we are definately one or the other of the disjoint options
-                        // if we could be either, path the constraint on to our dependents
-                        var couldApply = disjointConstraint.constraintSets.SelectMany(set =>
+                            // what happen here?
+                            // type {x;} a =: {y;} | number b
+                            // ...they wrote bad code
+                            // y could flow if they had left it inferred but they didn't
+                            if (dependents.TryGetValue(mustHave.path, out var dependent)) {
+                                var constraints = mustHave.dependent.GetValueAs(out IFlowNode2 _).GetConstraints();
+                                return dependent.GetValueAs(out IFlowNode2 _).AcceptConstraints(constraints);
+                            }
+                            return OrType.Make<NoChanges, Changes, FailedAction>(new NoChanges());
+                        },
+                        mustBePrimitve => OrType.Make<NoChanges, Changes, FailedAction>(new NoChanges()),
+                        givenPathThen =>
                         {
-                            var couldApplyToMe = true;
-                            foreach (var item in set)
+                            if (dependents.TryGetValue(givenPathThen.path, out var dependent))
                             {
-                                couldApplyToMe |= CouldApplyToMe(ConstraintUtils.Broaden(item));
+                                return dependent.GetValueAs(out IFlowNode2 _).AcceptConstraints(givenPathThen.dependent.GetValueAs(out IFlowNode2 _).GetConstraints());
                             }
-                            if (couldApplyToMe) {
-                                return new[] { set };
+                            return OrType.Make<NoChanges, Changes, FailedAction>(new NoChanges());
+                        },
+                        disjointConstraint => {
+                            // we try to find determine if we are definately one or the other of the disjoint options
+                            // if we could be either, path the constraint on to our dependents
+                            var couldApply = disjointConstraint.constraintSets.SelectMany(set =>
+                            {
+                                var couldApplyToMe = true;
+                                foreach (var item in set)
+                                {
+                                    couldApplyToMe |= CouldApplyToMe(ConstraintUtils.Broaden(item));
+                                }
+                                if (couldApplyToMe) {
+                                    return new[] { set };
+                                }
+                                return Array.Empty<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>>();
+                            }).ToArray();
+
+                            if (couldApply.Length == 0) {
+                                // EDCECD4E-62DF-4216-BFDE-71083FF0C64A
+                                // this is really an error state
+                                // and an upsetting one because we could have flowed earlier versions of the disjointConstraint
+                                // I think I probably want to restart the solve 
+                                // not to flow certain pairs of nodes 
+                                // 
+                                // there are probably other cases
+                                // like being asked to accept inconsistant constraints
+                                //
+                                // this really doesn't force a re-solve
+                                // unless we previously accepted a different subset of it
+                                //
+                                // I am still not sure if this is right
+                                // it is only a failed constraint is I have already flows some stuff 
+                                // lot to think about see {09D023F3-5EF1-441C-ACAC-711AE78B9B47}
+                                return OrType.Make<NoChanges, Changes, FailedAction>(new FailedAction());
                             }
-                            return Array.Empty<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>>();
-                        }).ToArray();
 
-                        if (couldApply.Length == 0) {
-                            // EDCECD4E-62DF-4216-BFDE-71083FF0C64A
-                            // this is really an error state
-                            // and an upsetting one because we could have flowed earlier versions of the disjointConstraint
-                            // I think I probably want to restart the solve 
-                            // not to flow certain pairs of nodes 
-                            // 
-                            // there are probably other cases
-                            // like being asked to accept inconsistant constraints
-                            return false;
-                        }
+                            if (couldApply.Length == 1) {
+                                return AcceptConstraints(
+                                        couldApply.Single().Select(x => ConstraintUtils.Broaden(x)).ToHashSet());
+                            }
 
-                        if (couldApply.Length == 1) {
-                            return AcceptConstraints(
-                                    couldApply.Single().Select(x => ConstraintUtils.Broaden(x)).ToHashSet(), action);
-                        }
-
-                        // we need to create to approprate disjointConstraint for each element
-                        var res = false;
-                        foreach (var dependent in dependents)
-                        {
-                            // this DisjointConstraint can have empty sets in it
-                            // {a;b;} y =: {int a;}| {b;} x
-                            // y's a could be an int or it could be unconstrainted
-                            var next = new DisjointConstraint(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>>(
-                                couldApply
-                                    .SelectMany(set=>
-                                        ConstraintUtils.Flatten(set
-                                            .SelectMany(constraint => Retarget(constraint, dependent))
-                                            .ToArray())
-                                        .Select(x=> new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>(x.ToHashSet())))
-                                    .ToHashSet()));
-                            res |= dependent.Value.GetValueAs(out IFlowNode2 _).AcceptConstraints(
-                                    new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> {
-                                        OrType.Make<MustHave, MustBePrimitive, GivenPathThen,DisjointConstraint>(next)}, action);
-                        }
-                        return res;
-                    });
+                            // we need to create to approprate disjointConstraint for each element
+                            var res = (IOrType<NoChanges, Changes, FailedAction>)OrType.Make<NoChanges, Changes, FailedAction>(new NoChanges());
+                            foreach (var dependent in dependents)
+                            {
+                                // this DisjointConstraint can have empty sets in it
+                                // {a;b;} y =: {int a;}| {b;} x
+                                // y's a could be an int or it could be unconstrainted
+                                var next = new DisjointConstraint(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>>(
+                                    couldApply
+                                        .SelectMany(set=>
+                                            ConstraintUtils.Flatten(set
+                                                .SelectMany(constraint => Retarget(constraint, dependent))
+                                                .ToArray())
+                                            .Select(x=> new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>(x.ToHashSet())))
+                                        .ToHashSet()));
+                                res = TriStateExtensions.CombineBothMustNotFail(
+                                        res,    
+                                        dependent.Value.GetValueAs(out IFlowNode2 _).AcceptConstraints(
+                                            new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> {
+                                                OrType.Make<MustHave, MustBePrimitive, GivenPathThen,DisjointConstraint>(next)}));
+                            }
+                            return res;
+                        }));
             }
-            return false;
+            return sum;
         }
 
         // but this could contain DisjointConstraint so we need to split it out
@@ -539,20 +555,22 @@ namespace Tac.Frontend
         private readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints = new (new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>());
 
 
-        public bool AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints, object action)
+        public IOrType<NoChanges, Changes, FailedAction> AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints)
         {
 
             if (!constraints.All(existingItem => newConstraints
                     .All(newItem => existingItem.GetValueAs(out IConstraint _).IsCompatible(newItem, new List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>>())))){
-                throw new IllegalActionException(action);
+                return OrType.Make<NoChanges, Changes, FailedAction>(new FailedAction());
             }
 
-            var res = false;
+            var sum = (IOrType<NoChanges, Changes, FailedAction>)OrType.Make<NoChanges, Changes, FailedAction>(new NoChanges());
             foreach (var newConstraint in newConstraints)
             {
-                res |= constraints.Add(newConstraint);
+                if (constraints.Add(newConstraint)) {
+                    sum = OrType.Make<NoChanges, Changes, FailedAction>(new Changes());
+                }
             }
-            return res;
+            return sum;
         }
         public IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> GetConstraints()
         {
@@ -573,16 +591,18 @@ namespace Tac.Frontend
         private readonly EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2>> or = new (new HashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2>>());
 
 
-        public bool AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints, object action)
+        public IOrType<NoChanges, Changes, FailedAction> AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> newConstraints)
         {
-            
 
-            var res = false;
+            var sum = (IOrType<NoChanges, Changes, FailedAction>)OrType.Make<NoChanges, Changes, FailedAction>(new NoChanges());
+
             foreach (var item in or)
             {
-                res |= item.GetValueAs(out IFlowNode2 _).AcceptConstraints(newConstraints, action);
+                var accepted = item.GetValueAs(out IFlowNode2 _).AcceptConstraints(newConstraints);
+
+                sum = TriStateExtensions.CombineBothMustNotFail(sum, accepted);
             }
-            return res;
+            return sum;
         }
 
         public IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> GetConstraints()
@@ -590,11 +610,17 @@ namespace Tac.Frontend
             var sets =  or.SelectMany(x => ConstraintUtils.Flatten(x.GetValueAs(out IFlowNode2 _).GetConstraints().ToArray())).ToArray();
 
             var unionSet = sets.First().ToArray();
-            
+
+            // ugh! this union doesn't work
+            // MustHave equality is based on the dependend
+            //
+            //
+            //
             foreach (var set in sets.Skip(1))
             {
                 unionSet = unionSet.Union(set).ToArray();
             }
+
 
             var res = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>();
 
@@ -859,5 +885,52 @@ namespace Tac.Frontend
     // only going wrong shouldn't be an exceptoin
     // I should return a tri-state
 
+
+    // {x;} a =: test1 | test2 t
+    // test1 t1 =: {int x;}
+    // test2 t2 =: { y;}
+    //
+    // {09D023F3-5EF1-441C-ACAC-711AE78B9B47}
+    //
+    // we can't really say infered doesn't apply 
+    // {x;} a =: test1 | test2 t
+    // test1 t1 =: {int x;}
+    // test2 could get "x" at somepoint
+    // we just don't know 
+    //
+    // however once we know one of the elements in the or doesn't flow, it is never going to start flowing
+    // {x;} a =: test1 | test2 t
+    // test1 t1 =: {int y;}
+    //
+    // we are only going to accept something once it is on all applicable members of the or 
+    // {x;} a =: int | test1 | test2 t
+    // test1 t1 =: {int x;}
+    // test2 t2 =: {int x;}
+    //
+    // once we have accepted it only becomes a problem if we no longer accept any members of the or
+    // {x;} a =: int | test1 | test2 t
+    // test1 t1 =: {int x;}
+    // test2 t2 =: {int x;}
+    // test1 t1 =: {int y;}
+    // test2 t2 =: {int y;}
+    //
+    // the problem it is hard to if "it is on all applicable members"
+    // sure x is on all available members
+    // but MustHave as written is drive by a concrete node
+    // and these are driven by two different con
+    // {x;} a =: int | test1 | test2 t
+    // test1 t1 =: {infered1 x;}
+    // test2 t2 =: {infered2 x;}
+    // 
+    // so... it has x and it has the intersection of the constraints infered1 and infered2 have 
+    // that is fair to say 
+    //
+    // do disjoint constraints really flow?
+    // x =: int| string y 
+    // x is a int|string of course they do
+    //
+    // but I do think they should look more like anything else where they are bound to their source node
+    // how does rescoping work? there can be rescoped disjoint constraints
+    //
 
 }
