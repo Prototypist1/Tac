@@ -19,41 +19,41 @@ namespace Tac.Frontend
         bool IsCompatible(IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint> constraint, List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>> assumeTrue);
     }
 
+    interface IConstraintSoruce {
+        IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> GetConstraints();
+    }
+
     // this originates at a ConcreteFlowNode2 
     // but it's constraints code from the element at the path
     //
     // this could also come from an or node
-    class MustHave :IConstraint{
+    class MustHave : IConstraint {
         public readonly IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic> path;
-        public readonly ConcreteFlowNode2 source;
         public readonly IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2, OrFlowNode2> dependent;
 
-        public MustHave(IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic> path, ConcreteFlowNode2 source, IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2, OrFlowNode2> dependent)
+        public MustHave(IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic> path, IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2, OrFlowNode2> dependent)
         {
             this.path = path ?? throw new ArgumentNullException(nameof(path));
-            this.source = source ?? throw new ArgumentNullException(nameof(source));
             this.dependent = dependent ?? throw new ArgumentNullException(nameof(dependent));
         }
 
         public override bool Equals(object? obj)
         {
-            // AHHH! I don't even think this is right
-            // the same PrimitiveFlowNode2 node could show up on two different paths:
-            // "method [int, int]" for example
             return obj is MustHave have &&
+                   EqualityComparer<IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>>.Default.Equals(path, have.path) &&
                    EqualityComparer<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2, OrFlowNode2>>.Default.Equals(dependent, have.dependent);
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(dependent);
+            return HashCode.Combine(path, dependent);
         }
 
         public bool IsCompatible(
-            IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint> constraint, 
-            List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>> assumeTrue) 
+            IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint> constraint,
+            List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>> assumeTrue)
         {
-            var pair = new UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>( OrType.Make< MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint> (this), constraint);
+            var pair = new UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(this), constraint);
             if (assumeTrue.Contains(pair)) {
                 return true;
             }
@@ -100,7 +100,7 @@ namespace Tac.Frontend
     // but it might also come from a very pointless or node: number | number
     //
     // but it doesn't really matter where it comes from
-    class MustBePrimitive: IConstraint
+    class MustBePrimitive : IConstraint
     {
         public readonly Guid primitive;
 
@@ -136,7 +136,7 @@ namespace Tac.Frontend
 
             return constraint.SwitchReturns(
                 mustHave => mustHave.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(this), assumeTrue), // reverse it  - use og assumeTrue
-                prim => primitive == prim.primitive, 
+                prim => primitive == prim.primitive,
                 givenPathThen => false,
                 disjoint => disjoint.constraintSets.Any(oneOf => oneOf.All(item => this.IsCompatible(ConstraintUtils.Broaden(item), nextAssumeTrue.Value))));
         }
@@ -208,6 +208,48 @@ namespace Tac.Frontend
         }
     }
 
+
+    class UnionConstraintSource : IConstraintSoruce
+    {
+
+        private readonly EqualableHashSet<IConstraintSoruce> or;
+
+        public IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> GetConstraints()
+        {
+            // find if there is anything common
+            // but also just go ahead and pass on the disjoin constring
+
+            // I don't think I also go ahead and pass the disjoint....
+            // {int x;} | {string x}
+            // yeah, I do.
+            // we definately have an "x" but we also definately are {int x;} | {string x;}
+            // 
+            // we are not {int | string x;}
+
+
+            var sets = or.SelectMany(x => ConstraintUtils.Flatten(x.GetConstraints().ToArray())).ToArray();
+
+            // if all the sets are only MustBePrimitive
+            // and they all have the same guid
+            // then that is easy
+            var groups = sets.SelectMany(x => x.SelectMany(y =>
+            {
+                if (y.Is2(out var prim))
+                {
+                    return new[] { prim };
+                }
+                return Array.Empty<MustBePrimitive>();
+            })).GroupBy(x => x.primitive).ToList();
+
+            if (groups.Count == 1 && groups.First().Count() == sets.Sum(x=>x.Count)) {
+                return new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> {
+                    OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(
+                    groups.First().First())
+                };
+            }
+        }
+    }
+
     // this comes from on or
     // it's set really comes from a set of nodes of various types
     //
@@ -246,21 +288,21 @@ namespace Tac.Frontend
             {
                 return true;
             }
-            var nextAssumeTrue = new Lazy<List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>>>(()=> { 
+            var nextAssumeTrue = new Lazy<List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>>>(() => {
                 var list = assumeTrue.ToList();
                 list.Add(pair);
                 return list;
-                });
+            });
 
             return constraint.SwitchReturns(
                 mustHave => mustHave.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(this), assumeTrue), // reverse it  - use og assumeTrue
                 primitive => primitive.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(this), assumeTrue), // reverse it  - use og assumeTrue
                 givenPathThen => givenPathThen.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>(this), assumeTrue), // reverse it  - use og assumeTrue
-                disjoint => 
+                disjoint =>
                     constraintSets
-                        .Any(ourSet => 
-                            disjoint.constraintSets.Any(thierSet => 
-                                ourSet.All(ourItem => 
+                        .Any(ourSet =>
+                            disjoint.constraintSets.Any(thierSet =>
+                                ourSet.All(ourItem =>
                                     thierSet.All(theirItem => ourItem.GetValueAs(out IConstraint _).IsCompatible(ConstraintUtils.Broaden(theirItem), nextAssumeTrue.Value))))));
         }
     }
@@ -300,7 +342,7 @@ namespace Tac.Frontend
     //    public IIsPossibly<FailedAction> Possibly3() => inner.Possibly3();
     //    public void Switch(Action<NoChanges> a1, Action<Changes> a2, Action<FailedAction> a3) => inner.Switch(a1, a2, a3);
     //    public T SwitchReturns<T>(Func<NoChanges, T> f1, Func<Changes, T> f2, Func<FailedAction, T> f3) => inner.SwitchReturns(f1, f2, f3);
-        
+
     //}
 
     static class TriStateExtensions {
@@ -343,8 +385,7 @@ namespace Tac.Frontend
     }
 
 
-    interface IFlowNode2 {
-        IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> GetConstraints();
+    interface IFlowNode2 : IConstraintSoruce {
         /// <summary>
         /// when flowing down stream (given a =: b, downstream would be from a to b)
         /// only pass GivenPathThen and DisjointConstraint of GivenPathThen
@@ -352,6 +393,8 @@ namespace Tac.Frontend
         /// </summary>
         IOrType<NoChanges, Changes, FailedAction> AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraints);
         bool CouldApplyToMe(IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraint);
+        //IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>[] Retarget(IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic> path);
+
     }
 
     class PrimitiveFlowNode2: IFlowNode2
@@ -375,7 +418,7 @@ namespace Tac.Frontend
 
         public bool CouldApplyToMe(IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> constraint) =>
             constraint.All(x=>x.Is2(out var prim) && prim.primitive == guid);
-        
+
     }
 
     class ConcreteFlowNode2 : IFlowNode2
@@ -502,7 +545,7 @@ namespace Tac.Frontend
                     }
                     return Array.Empty<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>();
                 },
-                mustBePrimitive => Array.Empty<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>(),
+                mustBePrimitive => throw new Exception("a constraint set with a MustBePrimitive shouldn't have applied to a ConcreteFlowNode2"),//Array.Empty<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>>(),
                 givenPathThen => {
                     if (dependent.Key.Equals(givenPathThen.path))
                     {
@@ -608,6 +651,20 @@ namespace Tac.Frontend
         public IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, DisjointConstraint>> GetConstraints()
         {
             var sets =  or.SelectMany(x => ConstraintUtils.Flatten(x.GetValueAs(out IFlowNode2 _).GetConstraints().ToArray())).ToArray();
+
+            // each set is either:
+            // - has members
+            // - primitive
+            // - empty
+            // - inconsistant
+
+            // an example:
+            // {int x;} | {string x}
+            // {int|string x;}
+            // these are the same...
+            // but it is fair to say that it has an x
+            
+
 
             var unionSet = sets.First().ToArray();
 
@@ -932,5 +989,17 @@ namespace Tac.Frontend
     // but I do think they should look more like anything else where they are bound to their source node
     // how does rescoping work? there can be rescoped disjoint constraints
     //
+
+    // we need to be smart about intersect constraints
+    // intersect of  A intersect B
+    // is obviously stronger than
+    // intersect of  A intersect B intersect C
+    // 
+    // but..
+    // intersect of  A intersect B intersect C
+    // vs
+    // intersect of  A intersect B intersect (C union D) intersect (C union E)
+    // get's more complex
+    // we have added a constrait to C it is: C & (D | E)
 
 }
