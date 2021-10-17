@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Tac.Frontend.New.CrzayNamespace;
+using Tac.Model;
 
 namespace Tac.Frontend
 {
@@ -215,8 +216,6 @@ namespace Tac.Frontend
     // the constraints end up flowing to concrete.x are:
     // - MustHave with a UnionConstraintSource of the two inferred node from the second and third elements of the or
     // - a OrConstraint { a; } | { a; int b;}
-
-    // TODO OrConstraint should have real nodes for sources
     class IntersectionsConstraintSource : IConstraintSoruce
     {
 
@@ -495,6 +494,10 @@ namespace Tac.Frontend
         private readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>> constraints = new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>(new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>());
         private readonly Dictionary<IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>, IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2, OrFlowNode2>> dependents = new ();
 
+        private readonly HashSet<OrFlowNode2> perviouslyAccepted = new HashSet<OrFlowNode2>();
+        private readonly HashSet<OrFlowNode2> perviouslyAcceptedDownstream= new HashSet<OrFlowNode2>();
+
+
         public IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> GetConstraints()
         {
             return constraints.Select(x=>x.SwitchReturns(
@@ -534,6 +537,12 @@ namespace Tac.Frontend
                             return OrType.Make<NoChanges, Changes, FailedAction>(new NoChanges());
                         },
                         orConstraint => {
+
+                            // this isn't always right
+                            // something could be upstream and all GivenPathThen
+                            // but in that case it's upstream and downstream are the same 
+                            var downstream = newConstraints.All(x => x.Is3(out GivenPathThen _));
+
                             // we try to find determine if we are definately one or the other of the disjoint options
                             // if we could be either, path the constraint on to our dependents
                             var couldApply = orConstraint.source.or.SelectMany(sourceOr =>
@@ -546,8 +555,7 @@ namespace Tac.Frontend
                             }).ToArray();
 
                             if (couldApply.Length == 0) {
-                                // EDCECD4E-62DF-4216-BFDE-71083FF0C64A
-                                // this is really an error state
+                                // this is an error state
                                 // and an upsetting one because we could have flowed earlier versions of the OrConstraint
                                 // I think I probably want to restart the solve 
                                 // not to flow certain pairs of nodes 
@@ -560,17 +568,62 @@ namespace Tac.Frontend
                                 //
                                 // I am still not sure if this is right
                                 // it is only a failed constraint is I have already flows some stuff 
-                                // lot to think about see {09D023F3-5EF1-441C-ACAC-711AE78B9B47}
+                                // lot to think about see 
                                 //
-                                // TODO 
-                                return OrType.Make<NoChanges, Changes, FailedAction>(new FailedAction());
+                                // once we know one of the elements in the or doesn't flow, it is never going to start flowing
+                                // {x;} a =: test1 | test2 t
+                                // test1 t1 =: {int y;}
+                                //
+                                // we are only going to accept something once it is on all applicable members of the or 
+                                // {x;} a =: int | test1 | test2 t
+                                // test1 t1 =: {int x;}
+                                // test2 t2 =: {int x;}
+                                //
+                                // once we have accepted it only becomes a problem if we no longer accept any members of the or
+                                // {x;} a =: int | test1 | test2 t
+                                // test1 t1 =: {int x;}
+                                // test2 t2 =: {int x;}
+                                // test1 t1 =: {int y;}
+                                // test2 t2 =: {int y;}
+
+                                if (downstream)
+                                {
+                                    if (perviouslyAcceptedDownstream.Contains(orConstraint.source))
+                                    {
+                                        return OrType.Make<NoChanges, Changes, FailedAction>(new FailedAction());
+                                    }
+                                }
+                                else {
+
+                                    if (perviouslyAccepted.Contains(orConstraint.source))
+                                    {
+                                        return OrType.Make<NoChanges, Changes, FailedAction>(new FailedAction());
+                                    }
+                                }
+                                return OrType.Make<NoChanges, Changes, FailedAction>(new NoChanges());
                             }
 
                             if (couldApply.Length == 1) {
+                                if (downstream)
+                                {
+                                    perviouslyAcceptedDownstream.Add(orConstraint.source);
+                                }
+                                else
+                                {
+                                    perviouslyAccepted.Add(orConstraint.source);
+                                }
                                 return AcceptConstraints(
                                         couldApply.Single().GetValueAs(out IConstraintSoruce _).GetConstraints().ToHashSet());
                             }
 
+                            if (downstream)
+                            {
+                                perviouslyAcceptedDownstream.Add(orConstraint.source);
+                            }
+                            else
+                            {
+                                perviouslyAccepted.Add(orConstraint.source);
+                            }
 
                             var intersectionsConstraintSource = new IntersectionsConstraintSource(new EqualableHashSet<IConstraintSoruce>(couldApply.Select(x => x.GetValueAs(out IConstraintSoruce _)).ToHashSet()));
 
@@ -605,26 +658,26 @@ namespace Tac.Frontend
 
         // but this could contain OrConstraint so we need to split it out
         
-        private IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>[] Retarget(IOrType<MustHave, MustBePrimitive, GivenPathThen> constraint, KeyValuePair<IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>, IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2, OrFlowNode2>> dependent)
-        {
-            return constraint.SwitchReturns(
-                mustHave =>
-                {
-                    if (dependent.Key.Equals(mustHave.path))
-                    {
-                        return mustHave.dependent.GetConstraints().ToArray();//??
-                    }
-                    return Array.Empty<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>();
-                },
-                mustBePrimitive => throw new Exception("a constraint set with a MustBePrimitive shouldn't have applied to a ConcreteFlowNode2"),//Array.Empty<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>(),
-                givenPathThen => {
-                    if (dependent.Key.Equals(givenPathThen.path))
-                    {
-                        return givenPathThen.dependent.GetConstraints().ToArray();
-                    }
-                    return Array.Empty<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>();
-                });
-        }
+        //private IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>[] Retarget(IOrType<MustHave, MustBePrimitive, GivenPathThen> constraint, KeyValuePair<IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>, IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2, OrFlowNode2>> dependent)
+        //{
+        //    return constraint.SwitchReturns(
+        //        mustHave =>
+        //        {
+        //            if (dependent.Key.Equals(mustHave.path))
+        //            {
+        //                return mustHave.dependent.GetConstraints().ToArray();//??
+        //            }
+        //            return Array.Empty<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>();
+        //        },
+        //        mustBePrimitive => throw new Exception("a constraint set with a MustBePrimitive shouldn't have applied to a ConcreteFlowNode2"),//Array.Empty<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>(),
+        //        givenPathThen => {
+        //            if (dependent.Key.Equals(givenPathThen.path))
+        //            {
+        //                return givenPathThen.dependent.GetConstraints().ToArray();
+        //            }
+        //            return Array.Empty<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>();
+        //        });
+        //}
 
         public bool CouldApplyToMe(IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> constraints)
         {
@@ -662,6 +715,26 @@ namespace Tac.Frontend
                     },
                     orConstraint => orConstraint.source.or.Any(x => CouldApplyToMe(x.GetValueAs(out IConstraintSoruce _).GetConstraints())));
         }
+
+        internal void AddMember(IKey key, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2> orType)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal void AddInput(IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2> orType)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal void AddOutput(IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2> orType)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal void AddGenerics(IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>[] orTypes)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     class InferredFlowNode2 : IFlowNode2
@@ -671,10 +744,14 @@ namespace Tac.Frontend
 
         public IOrType<NoChanges, Changes, FailedAction> AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> newConstraints)
         {
-
+            // it might be ok for inferred nodes to become hot messes
+            // for now I am just going to go with NoChanges
+            // but it this could be a FailedAction - after all it did fail
+            // but we could also just pile all the constraints on
             if (!constraints.All(existingItem => newConstraints
-                    .All(newItem => existingItem.GetValueAs(out IConstraint _).IsCompatible(newItem, new List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>>())))){
-                return OrType.Make<NoChanges, Changes, FailedAction>(new FailedAction());
+                    .All(newItem => existingItem.GetValueAs(out IConstraint _).IsCompatible(newItem, new List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>>()))))
+            {
+                return OrType.Make<NoChanges, Changes, FailedAction>(new NoChanges());
             }
 
             var sum = (IOrType<NoChanges, Changes, FailedAction>)OrType.Make<NoChanges, Changes, FailedAction>(new NoChanges());
@@ -836,19 +913,19 @@ namespace Tac.Frontend
         //}
 
 
-        public static IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint> Broaden(IOrType<MustHave, MustBePrimitive, GivenPathThen> orType) =>
-            orType.SwitchReturns(x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>(x),
-                x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>(x),
-                x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>(x));
+        //public static IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint> Broaden(IOrType<MustHave, MustBePrimitive, GivenPathThen> orType) =>
+        //    orType.SwitchReturns(x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>(x),
+        //        x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>(x),
+        //        x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>(x));
 
-        public static IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint> Broaden(IOrType<GivenPathThen, OrConstraint> orType) =>
+        public static IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint> Broaden(this IOrType<GivenPathThen, OrConstraint> orType) =>
                 orType.SwitchReturns(x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>(x),
                     x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>(x));
 
 
         // downstream we only send GivenPathThen and OrConstraint made entirely of GivenPathThen
         // {95C8B654-3AF5-42FD-A42B-A94165BEF7A3}
-        public static IReadOnlySet<IOrType<GivenPathThen, OrConstraint>> ToDownStream(IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> constraints) {
+        public static IReadOnlySet<IOrType<GivenPathThen, OrConstraint>> ToDownStream(this IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> constraints) {
             return constraints.SelectMany(x =>
             {
                 if (x.Is3(out var givenPath))
@@ -1030,8 +1107,6 @@ namespace Tac.Frontend
     // {x;} a =: test1 | test2 t
     // test1 t1 =: {int x;}
     // test2 t2 =: { y;}
-    //
-    // {09D023F3-5EF1-441C-ACAC-711AE78B9B47}
     //
     // we can't really say infered doesn't apply 
     // {x;} a =: test1 | test2 t

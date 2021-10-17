@@ -775,6 +775,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
                 var flowNodes2 = new Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>>();
+                var concreteHelp = new Dictionary<InferredType, ConcreteFlowNode2>();
 
                 foreach (var methodType in ors.Select(x => (x.Is1(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
@@ -842,14 +843,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                                         Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(concrete)})}));
                     orsToFlowNodesLookup.Add(key, ToOr(inferredFlowNode));
 
-
-                    var concreteFlowNode2 = new ConcreteFlowNode2();
-                    flowNodes2.Add(key, ToOr2(concreteFlowNode2));
-                    
-                    // TODO figure out how to flow from the concrete to the flowNode2
-
                     var inferredFlowNode2 = new InferredFlowNode2();
                     flowNodes2.Add(key, ToOr2(inferredFlowNode2));
+
+                    // we create a concrete flow node to pass the concrete aspects to the infered node
+                    var concreteFlowNode2 = new ConcreteFlowNode2();
+                    concreteHelp.Add(inferred, concreteFlowNode2);
                 }
                 foreach (var generic in ors.Select(x => (x.Is6(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
@@ -867,43 +866,91 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     orsToFlowNodesBuild.Add(key, value);
                     orsToFlowNodesLookup.Add(key, value);
+
+                    var inferredFlowNode2 = new InferredFlowNode2();
+                    flowNodes2.Add(key, ToOr2(inferredFlowNode2));
                 }
 
-                var todo = ors.Select(x => (x.Is4(out var v), v)).Where(x => x.Item1).Select(x => x.v).ToArray();
-                var excapeValve = 0;
-
-                // or types are a bit of a project because they might depend on each other
-                while (todo.Any())
                 {
-                    excapeValve++;
-                    var nextTodo = new List<TypeProblem2.OrType>();
-                    foreach (var or in todo)
+                    var todo = ors.Select(x => (x.Is4(out var v), v)).Where(x => x.Item1).Select(x => x.v).ToArray();
+                    var excapeValve = 0;
+
+                    // or types are a bit of a project because they might depend on each other
+                    while (todo.Any())
                     {
-                        if (TryToOuterFlowNode(orsToFlowNodesLookup, or, out var res))
+                        excapeValve++;
+                        var nextTodo = new List<TypeProblem2.OrType>();
+                        foreach (var or in todo)
                         {
-                            orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(or)] = res;
-                            orsToFlowNodesLookup[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(or)] = res;
+                            if (TryToOuterFlowNode(orsToFlowNodesLookup, or, out var res))
+                            {
+                                orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(or)] = res;
+                                orsToFlowNodesLookup[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(or)] = res;
+                            }
+                            else
+                            {
+                                nextTodo.Add(or);
+                            }
                         }
-                        else
+                        todo = nextTodo.ToArray();
+                        if (excapeValve > 100000)
                         {
-                            nextTodo.Add(or);
+                            throw new Exception("we are probably stuck");
                         }
                     }
-                    todo = nextTodo.ToArray();
-                    if (excapeValve > 100000)
+                }
+                {
+                    var todo = ors.Select(x => (x.Is4(out var v), v)).Where(x => x.Item1).Select(x => x.v).ToArray();
+                    var excapeValve = 0;
+
+                    // or types are a bit of a project because they might depend on each other
+                    while (todo.Any())
                     {
-                        throw new Exception("we are probably stuck");
+                        excapeValve++;
+                        var nextTodo = new List<TypeProblem2.OrType>();
+                        foreach (var or in todo)
+                        {
+                            if (TryToOuterFlowNode2(flowNodes2, or, out var res))
+                            {
+                                flowNodes2.Add(Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(or), ToOr2(res));
+                            }
+                            else
+                            {
+                                nextTodo.Add(or);
+                            }
+                        }
+                        todo = nextTodo.ToArray();
+                        if (excapeValve > 100000)
+                        {
+                            throw new Exception("we are probably stuck");
+                        }
                     }
                 }
 
                 // we create members on our new representation
                 foreach (var hasPublicMembers in ors.Select(x => (x.Is(out IHavePublicMembers members), members)).Where(x => x.Item1).Select(x => x.members))
                 {
+                    var targetOr = flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasPublicMembers)];
+                    if (targetOr.Is2(out var inferredFlowNode2))
+                    {
+                        targetOr = ToOr2(concreteHelp[hasPublicMembers.SafeCastTo(out InferredType _)]);
+                    }
+                    var target = targetOr.Is1OrThrow();
+
                     foreach (var member in hasPublicMembers.PublicMembers)
                     {
                         orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasPublicMembers)].Is1OrThrow().AddMember(
                             member.Key,
                             orsToFlowNodesLookup[member.Value.LooksUp.GetOrThrow().SwitchReturns(
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.constraint),
+                                    x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))]);
+
+                        target.AddMember(member.Key, flowNodes2[member.Value.LooksUp.GetOrThrow().SwitchReturns(
                                 x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -918,6 +965,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // we create input and output on our new implmentation
                 foreach (var hasInputAndOutput in ors.Select(x => (x.Is(out IHaveInputAndOutput io), io)).Where(x => x.Item1).Select(x => x.io))
                 {
+                    var targetOr = flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasInputAndOutput)];
+                    if (targetOr.Is2(out var inferredFlowNode2))
+                    {
+                        targetOr = ToOr2(concreteHelp[hasInputAndOutput.SafeCastTo(out InferredType _)]);
+                    }
+                    var target = targetOr.Is1OrThrow();
+
                     if (hasInputAndOutput.Input.Is(out var input))
                     {
                         orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasInputAndOutput)].Is1OrThrow().Input =
@@ -929,6 +983,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.constraint),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))]);
+
+                        target.AddInput(flowNodes2[input.LooksUp.GetOrThrow().SwitchReturns(
+                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.constraint),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))]);
                     }
                     if (hasInputAndOutput.Returns.Is(out var output))
                     {
@@ -941,6 +1004,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.constraint),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))]);
+
+
+                        target.AddOutput(flowNodes2[output.LooksUp.GetOrThrow().SwitchReturns(
+                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.constraint),
+                                x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))]);
                     }
                 }
 
@@ -949,43 +1022,102 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // until I rethink that
                 foreach (var methodType in ors.Select(x => (x.Is1(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
+                    var targetOr = flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(methodType)];
+                    var target = targetOr.Is1OrThrow();
+
+                    target.AddGenerics(methodType.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray());
+
+
                     orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(methodType)].Is1OrThrow().Generics = methodType.Generics.Select(x => orsToFlowNodesLookup[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray();
                 }
                 // infered types as well, they are probably methods
                 foreach (var inferredType in ors.Select(x => (x.Is5(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
+                    var targetOr = flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(inferredType)];
+                    if (targetOr.Is2(out var inferredFlowNode2))
+                    {
+                        targetOr = ToOr2(concreteHelp[inferredType.SafeCastTo(out InferredType _)]);
+                    }
+                    var target = targetOr.Is1OrThrow();
+
+                    target.AddGenerics(inferredType.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray());
+
                     orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(inferredType)].Is1OrThrow().Generics = inferredType.Generics.Select(x => orsToFlowNodesLookup[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray();
+
+
                 }
 
-                excapeValve = 0;
-
-                bool go;
-                do
                 {
-                    go = false;
+                    var excapeValve = 0;
 
-                    foreach (var (from, to) in flows)
+                    bool go;
+                    do
                     {
-                        go |= orsToFlowNodesLookup[to].GetValueAs(out IFlowNode _).MustAccept(
-                            orsToFlowNodesLookup[from].GetValueAs(out IFlowNode _).DownStreamMustAccept(),
-                            new List<(EqualableHashSet<EqualableHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
+                        go = false;
 
-                    }
+                        foreach (var (from, to) in flows)
+                        {
+                            go |= orsToFlowNodesLookup[to].GetValueAs(out IFlowNode _).MustAccept(
+                                orsToFlowNodesLookup[from].GetValueAs(out IFlowNode _).DownStreamMustAccept(),
+                                new List<(EqualableHashSet<EqualableHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
 
-                    foreach (var (from, to) in flows)
+                        }
+
+                        foreach (var (from, to) in flows)
+                        {
+                            go |= orsToFlowNodesLookup[from].GetValueAs(out IFlowNode _).MustReturn(
+                                orsToFlowNodesLookup[to].GetValueAs(out IFlowNode _).UpStreamMustReturn(),
+                                new List<(EqualableHashSet<EqualableHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
+                        }
+
+                        excapeValve++;
+                        if (excapeValve > 1000000)
+                        {
+                            throw new Exception("probably stuck in a loop");
+                        }
+
+                    } while (go);
+                }
+                {
+                    var excapeValve = 0;
+
+                    bool go;
+                    do
                     {
-                        go |= orsToFlowNodesLookup[from].GetValueAs(out IFlowNode _).MustReturn(
-                            orsToFlowNodesLookup[to].GetValueAs(out IFlowNode _).UpStreamMustReturn(),
-                            new List<(EqualableHashSet<EqualableHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
-                    }
+                        go = false;
 
-                    excapeValve++;
-                    if (excapeValve > 1000000)
-                    {
-                        throw new Exception("probably stuck in a loop");
-                    }
+                        // "to" and "from" here are what we are assigning to and what we are assinign form
 
-                } while (go);
+                        foreach (var pair in concreteHelp)
+                        {
+                            var to = pair.Value;
+                            var from = flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(pair.Key)]; 
+
+                            from.GetValueAs(out IFlowNode2 _).AcceptConstraints(to.GetConstraints())
+                                .Switch(_=> { }, _=> { go = true; }, _=> { throw new NotImplementedException("blacklist, restart the flow!"); });
+
+                            to.AcceptConstraints(from.GetValueAs(out IFlowNode2 _).GetConstraints().ToDownStream().Select(x=> x.Broaden()).ToHashSet())
+                                .Switch(_ => { }, _ => { go = true; }, _ => { throw new NotImplementedException("blacklist, restart the flow!"); });
+                        }
+
+                        foreach (var (from, to) in flows)
+                        {
+                            flowNodes2[from].GetValueAs(out IFlowNode2 _).AcceptConstraints(flowNodes2[to].GetValueAs(out IFlowNode2 _).GetConstraints())
+                                .Switch(_ => { }, _ => { go = true; }, _ => { throw new NotImplementedException("blacklist, restart the flow!"); });
+
+                            flowNodes2[to].GetValueAs(out IFlowNode2 _).AcceptConstraints(flowNodes2[from].GetValueAs(out IFlowNode2 _).GetConstraints().ToDownStream().Select(x => x.Broaden()).ToHashSet())
+                                .Switch(_ => { }, _ => { go = true; }, _ => { throw new NotImplementedException("blacklist, restart the flow!"); });
+
+                        }
+
+                        excapeValve++;
+                        if (excapeValve > 1000000)
+                        {
+                            throw new Exception("probably stuck in a loop");
+                        }
+
+                    } while (go);
+                }
 
                 return new TypeSolution(ors, orsToFlowNodesLookup);
             }
@@ -1026,6 +1158,33 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
 
                     res = ToOr(new OrFlowNode(new[] { left, right }, Possibly.Is(or)));
+                    return true;
+                }
+                res = default;
+                return false;
+            }
+
+            private static bool TryToOuterFlowNode2(Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> orsToFlowNodes, Tpn.TypeProblem2.OrType or, out OrFlowNode2 res)
+            {
+                if (orsToFlowNodes.TryGetValue(GetType(or.Left.GetOrThrow()).SwitchReturns(
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x)), out var left) &&
+                           orsToFlowNodes.TryGetValue(GetType(or.Right.GetOrThrow()).SwitchReturns(
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x)), out var right))
+                {
+
+                    res = new OrFlowNode2();
                     return true;
                 }
                 res = default;
