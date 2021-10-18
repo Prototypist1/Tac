@@ -47,6 +47,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             return GetEnumerator();
         }
 
+        // I kind of wish I could remove this...
         public bool Add(T t)
         {
             return backing.Add(t);

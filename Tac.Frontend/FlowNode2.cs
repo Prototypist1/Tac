@@ -739,7 +739,7 @@ namespace Tac.Frontend
 
     class InferredFlowNode2 : IFlowNode2
     {
-        private readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> constraints = new (new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>());
+        public readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> constraints = new (new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>());
 
 
         public IOrType<NoChanges, Changes, FailedAction> AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> newConstraints)
@@ -748,6 +748,16 @@ namespace Tac.Frontend
             // for now I am just going to go with NoChanges
             // but it this could be a FailedAction - after all it did fail
             // but we could also just pile all the constraints on
+            //
+            // we could have accepted it eariler see:
+            // x.a =: int z
+            // x =: y
+            // y =: {int b} _
+            // y =: {string a} _        
+            //
+            // up to line 3 it is consistant, we sould accpet that x.b exists
+            // but then in line 4 isn't good, x.a has to be a string and a int
+            // so maybe this is really an error
             if (!constraints.All(existingItem => newConstraints
                     .All(newItem => existingItem.GetValueAs(out IConstraint _).IsCompatible(newItem, new List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>>()))))
             {
@@ -779,6 +789,7 @@ namespace Tac.Frontend
         // we have shared constrains
         // and disjoin constraints
         // do we calculate them from our sources?
+
         public readonly EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2>> or = new (new HashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2>>());
 
 

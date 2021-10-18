@@ -562,4 +562,64 @@ namespace Tac.Frontend.New.CrzayNamespace
             // and return the box on the next passes
         }
     }
+
+    // extension because that could make these context dependent
+    // you shoul only use this after the problem is solved
+
+    class Rep {
+        // it was an Or of Ands of (Primitives types and concrete types)
+        // but now it is an Or of Ands of (primitive types, concrete types, and intersection types)
+        // intersection types... this could be sourced off primitive types and orTypes.... I think that is ok....
+        public readonly EqualableHashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>> backing = new EqualableHashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>>();
+
+        public Rep(EqualableHashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>> backing)
+        {
+            this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj.SafeIs(out Rep rep) &&
+                   backing.Equals(rep.backing);
+        }
+
+        public override int GetHashCode()
+        {
+            return backing.GetHashCode();
+        }
+    }
+
+    // TODO,
+    // naw I think rep has to be about constraints
+    static class ToRepExtension {
+        public static Rep ToRep(this PrimitiveFlowNode2 primitiveFlowNode2) => 
+            new Rep(
+                new EqualableHashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>>(
+                    new HashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>>{
+                        new EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>(
+                            new HashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>{
+                                OrType.Make<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>(primitiveFlowNode2)})}));
+        
+        public static Rep ToRep(this ConcreteFlowNode2 concreteFlowNode2) => 
+            new Rep(
+                new EqualableHashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>>(
+                    new HashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>>{
+                        new EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>(
+                            new HashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>{
+                                OrType.Make<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>(concreteFlowNode2)})}));
+        public static Rep ToRep(this InferredFlowNode2 inferredFlowNode2)
+        {
+            //....... maybe InferredFlowNode2.constraints has to be the nodes... 
+            inferredFlowNode2.Select(x=>  x.)
+        }
+        public static Rep ToRep(this OrFlowNode2 orFlowNode2) =>
+            new Rep(
+                new EqualableHashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>>(
+                    orFlowNode2.or.SelectMany(x => x.ToRep().backing).ToHashSet()));
+
+        public static Rep ToRep(this IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2> orType) =>
+            orType.SwitchReturns(x => x.ToRep(), x => x.ToRep(), x => x.ToRep());
+        public static Rep ToRep(this IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2, OrFlowNode2> orType) =>
+            orType.SwitchReturns(x => x.ToRep(), x => x.ToRep(), x => x.ToRep(), x => x.ToRep());
+    }
 }
