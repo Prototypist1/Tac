@@ -3,6 +3,7 @@ using Prototypist.Toolbox;
 using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Tac.Frontend._3_Syntax_Model.Elements;
 using Tac.Frontend.SyntaxModel.Operations;
@@ -566,60 +567,318 @@ namespace Tac.Frontend.New.CrzayNamespace
     // extension because that could make these context dependent
     // you shoul only use this after the problem is solved
 
-    class Rep {
-        // it was an Or of Ands of (Primitives types and concrete types)
-        // but now it is an Or of Ands of (primitive types, concrete types, and intersection types)
-        // intersection types... this could be sourced off primitive types and orTypes.... I think that is ok....
-        public readonly EqualableHashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>> backing = new EqualableHashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>>();
+    //class Rep {
+    //    // it was an Or of Ands of (Primitives types and concrete types)
+    //    // but now it is an Or of Ands of (primitive types, concrete types, and intersection types)
+    //    // intersection types... this could be sourced off primitive types and orTypes.... I think that is ok....
+    //    public readonly EqualableHashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>> backing = new EqualableHashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>>();
 
-        public Rep(EqualableHashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>> backing)
-        {
-            this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
-        }
+    //    public Rep(EqualableHashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>> backing)
+    //    {
+    //        this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
+    //    }
 
-        public override bool Equals(object? obj)
-        {
-            return obj.SafeIs(out Rep rep) &&
-                   backing.Equals(rep.backing);
-        }
+    //    public override bool Equals(object? obj)
+    //    {
+    //        return obj.SafeIs(out Rep rep) &&
+    //               backing.Equals(rep.backing);
+    //    }
 
-        public override int GetHashCode()
-        {
-            return backing.GetHashCode();
-        }
-    }
+    //    public override int GetHashCode()
+    //    {
+    //        return backing.GetHashCode();
+    //    }
+    //}
 
     // TODO,
     // naw I think rep has to be about constraints
-    static class ToRepExtension {
-        public static Rep ToRep(this PrimitiveFlowNode2 primitiveFlowNode2) => 
-            new Rep(
-                new EqualableHashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>>(
-                    new HashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>>{
-                        new EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>(
-                            new HashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>{
-                                OrType.Make<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>(primitiveFlowNode2)})}));
-        
-        public static Rep ToRep(this ConcreteFlowNode2 concreteFlowNode2) => 
-            new Rep(
-                new EqualableHashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>>(
-                    new HashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>>{
-                        new EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>(
-                            new HashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>{
-                                OrType.Make<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>(concreteFlowNode2)})}));
-        public static Rep ToRep(this InferredFlowNode2 inferredFlowNode2)
-        {
-            //....... maybe InferredFlowNode2.constraints has to be the nodes... 
-            inferredFlowNode2.Select(x=>  x.)
-        }
-        public static Rep ToRep(this OrFlowNode2 orFlowNode2) =>
-            new Rep(
-                new EqualableHashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>>(
-                    orFlowNode2.or.SelectMany(x => x.ToRep().backing).ToHashSet()));
+    static class RepExtension {
 
-        public static Rep ToRep(this IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2> orType) =>
-            orType.SwitchReturns(x => x.ToRep(), x => x.ToRep(), x => x.ToRep());
-        public static Rep ToRep(this IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2, OrFlowNode2> orType) =>
-            orType.SwitchReturns(x => x.ToRep(), x => x.ToRep(), x => x.ToRep(), x => x.ToRep());
+        public static IOrType<IIsPossibly<Guid>, IError> Primitive(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> self) {
+            var primitives = self.SelectMany(x =>
+            {
+                if (x.Is2(out var v2))
+                {
+                    return new[] { v2 };
+                }
+                return Array.Empty<MustBePrimitive>();
+            }).ToArray();
+
+            if (primitives.Length == self.Count()) {
+                var groupedPrimitives = primitives.GroupBy(x => x.primitive).ToArray();
+                if (groupedPrimitives.Length == 1) {
+                    return OrType.Make<IIsPossibly<Guid>, IError>(Possibly.Is(groupedPrimitives.First().Key));
+                }
+                return OrType.Make<IIsPossibly<Guid>, IError>(Error.Other("multiple primitives types..."));
+            }
+
+            if (primitives.Any())
+            {
+                return OrType.Make<IIsPossibly<Guid>, IError>(Error.Other("primitives and non primitives"));
+            }
+            return OrType.Make<IIsPossibly<Guid>, IError>(Possibly.IsNot<Guid>());
+        }
+
+        public static IOrType<ICollection<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>>>, IError> Members(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> self)
+        {
+            if (self.ErrorCheck(out var error))
+            {
+                return OrType.Make<ICollection<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>>>, IError>(error);
+            }
+            
+            var givenPathDictionary = self
+                .SelectMany(x =>
+                {
+                    if (x.Is3(out var v3))
+                    {
+                        return new[] { v3 };
+                    }
+                    return Array.Empty<GivenPathThen>();
+                })
+                .Where(x => x.path.Is1(out var _))
+                .GroupBy(x => x.path.Is1OrThrow()).ToDictionary(x=>x.Key, x=>x);
+
+            var mustHaveGroup = self
+                .SelectMany(x =>
+                {
+                    if (x.Is1(out var v1))
+                    {
+                        return new[] { v1 };
+                    }
+                    return Array.Empty<MustHave>();
+                })
+                .Where(x => x.path.Is1(out var _))
+                .GroupBy(x => x.path.Is1OrThrow());
+
+            var list = new List<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>>>();
+            foreach (var mustHaves in mustHaveGroup)
+            {
+                var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>();
+                foreach (var mustHave in mustHaves)
+                {
+                    foreach (var constraint in mustHave.dependent.GetConstraints())
+                    {
+                        set.Add(constraint);
+                    }
+                }
+                if (givenPathDictionary.TryGetValue(mustHaves.Key, out var givenPaths)) {
+                    foreach (var givenPath in givenPaths)
+                    {
+                        foreach (var constraint in givenPath.dependent.GetConstraints())
+                        {
+                            set.Add(constraint);
+                        }
+                    }
+                }
+                var equalableSet = new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>(set);
+
+                list.Add(new KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>>(mustHaves.Key.key, equalableSet));
+            }
+
+            return OrType.Make<ICollection<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>>>, IError>(list);
+        }
+
+
+        public static IIsPossibly<IOrType<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>, IError>> Input(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> self)
+        {
+            if (self.ErrorCheck(out var error))
+            {
+                return Possibly.Is(OrType.Make<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>, IError>(error));
+            }
+
+            var mustHaves = self
+                .SelectMany(x =>
+                {
+                    if (x.Is1(out var v1))
+                    {
+                        return new[] { v1 };
+                    }
+                    return Array.Empty<MustHave>();
+                })
+                .Where(x => x.path.Is2(out var _))
+                .ToArray();
+
+
+            var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>();
+
+            if (mustHaves.Any()) {
+
+                foreach (var mustHave in mustHaves)
+                {
+                    foreach (var constraint in mustHave.dependent.GetConstraints())
+                    {
+                        set.Add(constraint);
+                    }
+                }
+
+                var givenPaths = self
+                    .SelectMany(x =>
+                    {
+                        if (x.Is3(out var v3))
+                        {
+                            return new[] { v3 };
+                        }
+                        return Array.Empty<GivenPathThen>();
+                    })
+                    .Where(x => x.path.Is2(out var _));
+
+                foreach (var givenPath in givenPaths)
+                {
+                    foreach (var constraint in givenPath.dependent.GetConstraints())
+                    {
+                        set.Add(constraint);
+                    }
+                }
+
+            }
+
+            return Possibly.Is(OrType.Make<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>, IError>(new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>( set)));
+        }
+
+
+        public static IIsPossibly<IOrType<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>, IError>> Output(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> self)
+        {
+            if (self.ErrorCheck(out var error))
+            {
+                return Possibly.Is(OrType.Make<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>, IError>(error));
+            }
+
+            var mustHaves = self
+                .SelectMany(x =>
+                {
+                    if (x.Is1(out var v1))
+                    {
+                        return new[] { v1 };
+                    }
+                    return Array.Empty<MustHave>();
+                })
+                .Where(x => x.path.Is3(out var _))
+                .ToArray();
+
+
+            var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>();
+
+            if (mustHaves.Any())
+            {
+
+                foreach (var mustHave in mustHaves)
+                {
+                    foreach (var constraint in mustHave.dependent.GetConstraints())
+                    {
+                        set.Add(constraint);
+                    }
+                }
+
+                var givenPaths = self
+                    .SelectMany(x =>
+                    {
+                        if (x.Is3(out var v3))
+                        {
+                            return new[] { v3 };
+                        }
+                        return Array.Empty<GivenPathThen>();
+                    })
+                    .Where(x => x.path.Is3(out var _));
+
+                foreach (var givenPath in givenPaths)
+                {
+                    foreach (var constraint in givenPath.dependent.GetConstraints())
+                    {
+                        set.Add(constraint);
+                    }
+                }
+
+            }
+
+            return Possibly.Is(OrType.Make<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>, IError>(new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>(set)));
+        }
+
+        public static IOrType<IReadOnlyList<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>>, IError> Generics(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> self) {
+
+            if (self.ErrorCheck(out var error))
+            {
+                return OrType.Make<IReadOnlyList<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>>, IError>(error);
+            }
+
+            var givenPathDictionary = self
+                .SelectMany(x =>
+                {
+                    if (x.Is3(out var v3))
+                    {
+                        return new[] { v3 };
+                    }
+                    return Array.Empty<GivenPathThen>();
+                })
+                .Where(x => x.path.Is4(out var _))
+                .GroupBy(x => x.path.Is4OrThrow()).ToDictionary(x => x.Key, x => x);
+
+            var mustHaveGroup = self
+                .SelectMany(x =>
+                {
+                    if (x.Is1(out var v1))
+                    {
+                        return new[] { v1 };
+                    }
+                    return Array.Empty<MustHave>();
+                })
+                .Where(x => x.path.Is4(out var _))
+                .GroupBy(x => x.path.Is4OrThrow());
+
+            var pairs = new List<(int, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>)>();
+            foreach (var mustHaves in mustHaveGroup)
+            {
+                var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>();
+                foreach (var mustHave in mustHaves)
+                {
+                    foreach (var constraint in mustHave.dependent.GetConstraints())
+                    {
+                        set.Add(constraint);
+                    }
+                }
+                if (givenPathDictionary.TryGetValue(mustHaves.Key, out var givenPaths))
+                {
+                    foreach (var givenPath in givenPaths)
+                    {
+                        foreach (var constraint in givenPath.dependent.GetConstraints())
+                        {
+                            set.Add(constraint);
+                        }
+                    }
+                }
+                var equalableSet = new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>(set);
+
+                pairs.Add((mustHaves.Key.index, equalableSet));
+            }
+
+            if (pairs.Select(x => x.Item1).Max() != pairs.Count() -1) {
+                // I think this is an exception and not an IError
+                // you really shouldn't be able to have disconunious generic constraints
+                throw new Exception("the generic constriants are discontinious...");
+            }
+
+            return OrType.Make<IReadOnlyList<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>>, IError>(pairs.OrderBy(x=>x.Item1).Select(x=>x.Item2).ToArray());
+        }
+        
+        private static bool ErrorCheck(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> self, [NotNullWhen(true)] out IError error) {
+            if (self.Any(x => x.Is2(out var _)) && !self.All(x => x.Is2(out var _)))
+            {
+                error = Error.Other("primitives and non primitives");
+                return true;
+            }
+
+            if (self.Any(x => x.Is1(out var mustHave) && mustHave.path.Is1(out var _)) &&
+                (
+                    self.Any(x => x.Is1(out var mustHave) && mustHave.path.Is2(out var _) ||
+                    self.Any(x => x.Is1(out var mustHave) && mustHave.path.Is3(out var _)))
+                ))
+            {
+                error = Error.Other("is it a method or is it an object");
+                return true;
+            }
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+            error = default;
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+            return false;
+        }
     }
 }
