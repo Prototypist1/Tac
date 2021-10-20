@@ -21,7 +21,7 @@ namespace Tac.Frontend
     }
 
     interface IConstraintSoruce {
-        IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> GetConstraints();
+        EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> GetConstraints();
     }
 
     // this originates at a ConcreteFlowNode2 
@@ -226,7 +226,7 @@ namespace Tac.Frontend
             this.or = or ?? throw new ArgumentNullException(nameof(or));
         }
 
-        public IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> GetConstraints()
+        public EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> GetConstraints()
         {
             // find if there is anything common
 
@@ -246,7 +246,7 @@ namespace Tac.Frontend
 
             // if any of the sets are empty return nothing
             if (sets.Any(x => !x.Any())) {
-                return new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> { };
+                return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>( new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> { });
             }
 
             // if all the sets are only MustBePrimitive
@@ -262,16 +262,16 @@ namespace Tac.Frontend
             })).GroupBy(x => x.primitive).ToArray();
 
             if (primitiveGroups.Count() == 1 && primitiveGroups.First().Count() == sets.Sum(x=>x.Length)) {
-                return new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> {
+                return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>( new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> {
                     OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>(
                     primitiveGroups.First().First())
-                };
+                });
             }
 
             // if any of the sets are MustBePrimitive
             if (sets.Any(x => x.Any(y=>y.Is2(out var _))))
             {
-                return new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> { };
+                return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>( new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> { });
             }
 
             var mustHaveGroups = sets.SelectMany(x => x.SelectMany(y =>
@@ -316,8 +316,7 @@ namespace Tac.Frontend
                 .Where(group => sets.All(set => group.Any(groupMember => set.Contains(OrType.Make<MustHave, MustBePrimitive, GivenPathThen>(groupMember)))))
                 .Select(x => (IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>)OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>(new GivenPathThen(x.Key, new IntersectionsConstraintSource(new EqualableHashSet<IConstraintSoruce>(x.Select(x => x.dependent).ToHashSet())))));
 
-
-            return intersectionMustHaves.Union(intersectionGivenPathThens).ToHashSet();
+            return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>(intersectionMustHaves.Union(intersectionGivenPathThens).ToHashSet());
         }
 
         public override int GetHashCode()
@@ -473,7 +472,7 @@ namespace Tac.Frontend
             this.guid = guid;
         }
 
-        public IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> GetConstraints()
+        public EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> GetConstraints()
         {
             return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>(new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> {
                 OrType.Make<MustHave, MustBePrimitive, GivenPathThen,OrConstraint> (new MustBePrimitive(guid))
@@ -498,12 +497,12 @@ namespace Tac.Frontend
         private readonly HashSet<OrFlowNode2> perviouslyAcceptedDownstream= new HashSet<OrFlowNode2>();
 
 
-        public IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> GetConstraints()
+        public EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> GetConstraints()
         {
-            return constraints.Select(x=>x.SwitchReturns(
+            return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>(constraints.Select(x=>x.SwitchReturns(
                 x => (IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>)OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>(x),
                 x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>(x),
-                x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>(x))).ToHashSet();
+                x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>(x))).ToHashSet());
         }
         public IOrType<NoChanges, Changes, FailedAction> AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> newConstraints)
         {
@@ -790,7 +789,7 @@ namespace Tac.Frontend
             }
             return sum;
         }
-        public IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> GetConstraints()
+        public EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> GetConstraints()
         {
             return constraints;
         }
@@ -824,7 +823,7 @@ namespace Tac.Frontend
             return sum;
         }
 
-        public IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> GetConstraints()
+        public EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> GetConstraints()
         {
             var res = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>();
             // make our orConstraint
@@ -834,7 +833,7 @@ namespace Tac.Frontend
             foreach (var source in intersectSource.GetConstraints()) {
                 res.Add(source);
             }
-            return res;
+            return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>(res);
 
             //// each set is either:
             //// - has members

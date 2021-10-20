@@ -30,19 +30,20 @@ namespace Tac.Frontend.New.CrzayNamespace
             //readonly Dictionary<TypeProblem2.Method, Scope> methodScopeCache = new Dictionary<TypeProblem2.Method, Scope>();
             //readonly Dictionary<TypeProblem2.Scope, Scope> scopeScopeCache = new Dictionary<TypeProblem2.Scope, Scope>();
 
-            private readonly ConcurrentIndexed<EqualableHashSet<Tpn.CombinedTypesAnd>, Yolo> cache = new ConcurrentIndexed<EqualableHashSet<CombinedTypesAnd>, Yolo>();
+            private readonly ConcurrentIndexed<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>, Yolo> cache = new ConcurrentIndexed<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>, Yolo>();
             private readonly Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodes;
+            private readonly Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2;
 
             private class Yolo
             {
-                internal IOrType<IReadOnlyList<(IKey, IOrType<Yolo, IError>)>, IError> members;
+                internal IOrType<IReadOnlyList<(IKey, Yolo)>, IError>? members;
 
-                internal IIsPossibly<IOrType<Yolo, IError>> output;
-                internal IIsPossibly<IOrType<Yolo, IError>> input;
+                internal IIsPossibly<IOrType<Yolo, IError>>? output;
+                internal IIsPossibly<IOrType<Yolo, IError>>? input;
 
                 // for or types
-                internal IIsPossibly<IOrType<Yolo, IError>> left;
-                internal IIsPossibly<IOrType<Yolo, IError>> right;
+                internal IIsPossibly<IOrType<Yolo, IError>>? left;
+                internal IIsPossibly<IOrType<Yolo, IError>>? right;
 
                 internal readonly Box<IOrType<IFrontendType<IVerifiableType>, IError>> type = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
                 
@@ -54,36 +55,37 @@ namespace Tac.Frontend.New.CrzayNamespace
                 internal IIsPossibly<Box<IOrType<IFrontendType<IVerifiableType>, IError>>> isGenericConstraintFroRealized = Possibly.IsNot<Box<IOrType<IFrontendType<IVerifiableType>, IError>>>();
 
                 internal IIsPossibly<IInterfaceType> external = Possibly.IsNot<IInterfaceType>();
-
             }
 
             public TypeSolution(
                 IReadOnlyList<IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, TypeProblem2.GenericTypeParameter, IError>> things,
-                Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodes) {
+                Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodes,
+                Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2) {
 
                 if (things is null)
                 {
                     throw new ArgumentNullException(nameof(things));
                 }
 
-                this.flowNodes = flowNodes ?? throw new ArgumentNullException(nameof(flowNodes));
+                //this.flowNodes = flowNodes ?? throw new ArgumentNullException(nameof(flowNodes));
+                this.flowNodes2 = flowNodes2 ?? throw new ArgumentNullException(nameof(flowNodes2));
 
                 var constrainsToGenerics = things.SelectMany(x => { if (x.Is6(out var genericTypeParameter)) { return new[] { genericTypeParameter }; } return Array.Empty<TypeProblem2.GenericTypeParameter>(); }).ToDictionary(x => x.constraint, x => x);
 
-                foreach (var flowNode in flowNodes)
+                foreach (var flowNode2 in flowNodes2)
                 {
-                    IOrType<EqualableHashSet<Tpn.CombinedTypesAnd>, IError> rep = flowNode.Value.GetValueAs(out IVirtualFlowNode _).ToRep();
+                    EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> rep = flowNode2.Value.GetValueAs(out IConstraintSoruce _).GetConstraints();
                     var yolo = GetOrAdd(rep);
 
                     // this feels a bit weird because it doesn't flow through the type problem
-                    if (yolo.Is1(out var realYolo) && flowNode.Key.Is1(out var typeProblemNode)) {
-                        realYolo.hasMemebers |= typeProblemNode.SafeIs<ITypeProblemNode, TypeProblem2.Object>();
+                    if (flowNode2.Key.Is1(out var typeProblemNode)) {
+                        yolo.hasMemebers |= typeProblemNode.SafeIs<ITypeProblemNode, TypeProblem2.Object>();
                         if (typeProblemNode.SafeIs(out TypeProblem2.Type type))
                         {
-                            realYolo.hasMemebers = true;
+                            yolo.hasMemebers = true;
                             if (type.External.Is(out var _))
                             {
-                                realYolo.external = type.External;
+                                yolo.external = type.External;
                             }
                         }
                         {
@@ -96,39 +98,36 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             if (typeProblemNode.SafeIs(out TypeProblem2.InferredType inferredType) && constrainsToGenerics.TryGetValue(inferredType, out var genericTypeParameter))
                             {
-                                realYolo.isGenericConstraintFor = Possibly.Is(genericTypeParameter);
+                                yolo.isGenericConstraintFor = Possibly.Is(genericTypeParameter);
                             }
                         }
                     }
                 }
 
-                IOrType < Yolo, IError> GetOrAdd(IOrType<EqualableHashSet<Tpn.CombinedTypesAnd>, IError>  rep){
+                Yolo GetOrAdd(EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> equalableHashSet)
+                {
+                    var myBox = new Yolo();
+                    var current = cache.GetOrAdd(equalableHashSet, myBox);
 
-                    return rep.TransformInner(equalableHashSet => {
-
-                        var myBox = new Yolo();
-                        var current = cache.GetOrAdd(equalableHashSet, myBox);
-
-                        // if we added it, fill it
-                        if (current == myBox) {
+                    // if we added it, fill it
+                    if (current == myBox) {
 
 
-                            if (equalableHashSet.Count() > 1)
-                            {
-                                myBox.left = Possibly.Is(GetOrAdd(OrType.Make<EqualableHashSet<Tpn.CombinedTypesAnd>, IError>(new EqualableHashSet<Tpn.CombinedTypesAnd>(equalableHashSet.Take(equalableHashSet.Count() - 1).ToHashSet()))));
-                                myBox.right = Possibly.Is( GetOrAdd(OrType.Make<EqualableHashSet<Tpn.CombinedTypesAnd>, IError>(new EqualableHashSet<Tpn.CombinedTypesAnd>(new HashSet<Tpn.CombinedTypesAnd>() { equalableHashSet.Last() }))));
-                            }
-                            else {
-                                myBox.left = Possibly.IsNot<IOrType<Yolo, IError>>();
-                                myBox.right = Possibly.IsNot<IOrType<Yolo, IError>>();
-                            }
-
-                            myBox.members = equalableHashSet.VirtualMembers().TransformInner(members => members.Select(virtualMember => (virtualMember.Key, GetOrAdd(virtualMember.Value.Value))).ToArray());
-                            myBox.input = equalableHashSet.VirtualInput().TransformInner(input => GetOrAdd(input));
-                            myBox.output = equalableHashSet.VirtualOutput().TransformInner(output => GetOrAdd(output));
+                        if (equalableHashSet.Count() > 1)
+                        {
+                            myBox.left = Possibly.Is(GetOrAdd(OrType.Make<EqualableHashSet<Tpn.CombinedTypesAnd>, IError>(new EqualableHashSet<Tpn.CombinedTypesAnd>(equalableHashSet.Take(equalableHashSet.Count() - 1).ToHashSet()))));
+                            myBox.right = Possibly.Is( GetOrAdd(OrType.Make<EqualableHashSet<Tpn.CombinedTypesAnd>, IError>(new EqualableHashSet<Tpn.CombinedTypesAnd>(new HashSet<Tpn.CombinedTypesAnd>() { equalableHashSet.Last() }))));
                         }
-                        return current;
-                    });
+                        else {
+                            myBox.left = Possibly.IsNot<IOrType<Yolo, IError>>();
+                            myBox.right = Possibly.IsNot<IOrType<Yolo, IError>>();
+                        }
+
+                        myBox.members = equalableHashSet.Members().TransformInner(members => members.Select(memberPair => (memberPair.Key, GetOrAdd(memberPair.Value))).ToArray());
+                        myBox.input = equalableHashSet.Input().TransformInner(inputOr => inputOr.TransformInner(input => GetOrAdd(input)));
+                        myBox.output = equalableHashSet.Output().TransformInner(outputOr => outputOr.TransformInner(output=> GetOrAdd(output)));
+                    }
+                    return current;
                 }
 
                 foreach (var (key, value) in cache)
@@ -163,7 +162,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
 
-                IOrType<IFrontendType<IVerifiableType>, IError> Convert2(Tpn.CombinedTypesAnd flowNode, Yolo yolo)
+                IOrType<IFrontendType<IVerifiableType>, IError> Convert2(EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> flowNode, Yolo yolo)
                 {
                     //if (yolo.isGeneric.Is(out var genericTypeParameter)) {
                     //    var res = new GenericTypeParameterPlacholder(genericTypeParameter.index,
@@ -176,7 +175,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     //    return OrType.Make<IFrontendType<IVerifiableType>, IError>(res);
                     //}
 
-                    if (flowNode.And.Count == 0)
+                    if (flowNode.Count == 0)
                     {
                         return OrType.Make<IFrontendType<IVerifiableType>, IError>(new AnyType());
                     }
@@ -203,7 +202,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                     var members = yolo.members.Is1OrThrow();
 
-                    if (flowNode.VirtualInput().Is(out var inputOr))
+                    if (flowNode.Input().Is(out var inputOr))
                     {
                         if (inputOr.Is2(out var e2))
                         {
@@ -213,7 +212,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var input = inputOr?.Is1OrThrow();
 
 
-                    if (flowNode.VirtualOutput().Is(out var outputOr))
+                    if (flowNode.Output().Is(out var outputOr))
                     {
                         if (outputOr.Is2(out var e3))
                         {
@@ -232,7 +231,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         throw new Exception("so... this is a type and a method?!");
                     }
 
-                    if (flowNode.VirtualGenerics().Is1(out var generics) && generics.Any()) {
+                    if (flowNode.Generics().Is1(out var generics) && generics.Any()) {
 
                         if (input != default && output != default)
                         {
@@ -566,35 +565,64 @@ namespace Tac.Frontend.New.CrzayNamespace
 
     // extension because that could make these context dependent
     // you shoul only use this after the problem is solved
-
-    //class Rep {
-    //    // it was an Or of Ands of (Primitives types and concrete types)
-    //    // but now it is an Or of Ands of (primitive types, concrete types, and intersection types)
-    //    // intersection types... this could be sourced off primitive types and orTypes.... I think that is ok....
-    //    public readonly EqualableHashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>> backing = new EqualableHashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>>();
-
-    //    public Rep(EqualableHashSet<EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, IntersectionsConstraintSource>>> backing)
-    //    {
-    //        this.backing = backing ?? throw new ArgumentNullException(nameof(backing));
-    //    }
-
-    //    public override bool Equals(object? obj)
-    //    {
-    //        return obj.SafeIs(out Rep rep) &&
-    //               backing.Equals(rep.backing);
-    //    }
-
-    //    public override int GetHashCode()
-    //    {
-    //        return backing.GetHashCode();
-    //    }
-    //}
-
-    // TODO,
-    // naw I think rep has to be about constraints
     static class RepExtension {
 
-        public static IOrType<IIsPossibly<Guid>, IError> Primitive(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> self) {
+        // this is basically
+        // A and B and (C or D) to (A and B and C) or (A and B and D)
+        // returns OR AND
+        public static EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>> Flatten(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> self) {
+            // AND OR AND 
+            var andOrAnd = self
+                .Where(x => x.Is4(out var _))
+                .Select(x => x.Is4OrThrow())
+                .SelectMany(x => x.source.or
+                    .Select(y => y.GetValueAs(out IConstraintSoruce _).GetConstraints().Flatten())
+                    .ToArray())
+                .ToHashSet();
+
+            var orAndRes = new List<List<IOrType<MustHave, MustBePrimitive, GivenPathThen>>>();
+
+            
+            foreach (var orAnd in andOrAnd)
+            {
+                var first = orAnd.First();
+                foreach (var item in first)
+                {
+                    foreach (var andRes in orAndRes)
+                    {
+                        andRes.Add(item);
+                    }
+                }
+
+                foreach (var and in orAnd.Skip(1))
+                {
+                    foreach (var andRes in orAndRes.ToArray())
+                    {
+                        var list = andRes.SkipLast(first.Count-1).ToList();
+                        list.AddRange(and);
+                        orAndRes.Add(list);
+                    }
+                }
+            }
+
+            var shared = self.Where(x => !x.Is4(out var _))
+                .Select(x => x.SwitchReturns(
+                    y => OrType.Make < MustHave, MustBePrimitive, GivenPathThen>(y),
+                    y => OrType.Make < MustHave, MustBePrimitive, GivenPathThen>(y),
+                    y => OrType.Make < MustHave, MustBePrimitive, GivenPathThen>(y),
+                    _ => throw new Exception("I just said not that!")))
+                .ToList();
+
+            foreach (var list in orAndRes)
+            {
+                list.AddRange(shared);
+            }
+
+            return new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>>(
+                orAndRes.Select(x => new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>(x.ToHashSet())).ToHashSet());
+        }
+
+        public static IOrType<IIsPossibly<Guid>, IError> Primitive(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>> self) {
             var primitives = self.SelectMany(x =>
             {
                 if (x.Is2(out var v2))
@@ -619,7 +647,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             return OrType.Make<IIsPossibly<Guid>, IError>(Possibly.IsNot<Guid>());
         }
 
-        public static IOrType<ICollection<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>>>, IError> Members(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> self)
+        public static IOrType<ICollection<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>>>, IError> Members(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>> self)
         {
             if (self.ErrorCheck(out var error))
             {
@@ -679,7 +707,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         }
 
 
-        public static IIsPossibly<IOrType<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>, IError>> Input(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> self)
+        public static IIsPossibly<IOrType<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>, IError>> Input(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>> self)
         {
             if (self.ErrorCheck(out var error))
             {
@@ -736,7 +764,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         }
 
 
-        public static IIsPossibly<IOrType<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>, IError>> Output(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> self)
+        public static IIsPossibly<IOrType<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>, IError>> Output(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>> self)
         {
             if (self.ErrorCheck(out var error))
             {
@@ -793,7 +821,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             return Possibly.Is(OrType.Make<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>, IError>(new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>(set)));
         }
 
-        public static IOrType<IReadOnlyList<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>>, IError> Generics(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> self) {
+        public static IOrType<IReadOnlyList<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>>, IError> Generics(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>> self) {
 
             if (self.ErrorCheck(out var error))
             {
@@ -859,7 +887,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             return OrType.Make<IReadOnlyList<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>>, IError>(pairs.OrderBy(x=>x.Item1).Select(x=>x.Item2).ToArray());
         }
         
-        private static bool ErrorCheck(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> self, [NotNullWhen(true)] out IError error) {
+        private static bool ErrorCheck(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>> self, [NotNullWhen(true)] out IError error) {
             if (self.Any(x => x.Is2(out var _)) && !self.All(x => x.Is2(out var _)))
             {
                 error = Error.Other("primitives and non primitives");

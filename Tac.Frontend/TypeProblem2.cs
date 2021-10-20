@@ -1119,7 +1119,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     } while (go);
                 }
 
-                return new TypeSolution(ors, orsToFlowNodesLookup);
+                return new TypeSolution(ors, orsToFlowNodesLookup, flowNodes2);
             }
 
 
