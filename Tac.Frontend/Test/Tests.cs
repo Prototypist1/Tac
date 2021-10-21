@@ -472,7 +472,7 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void GenericCircular()
         {
-
+            throw new Exception("stack overflow!");
             // type[left-t] left {  right[left-t] thing }
             // type[right-t] right {  left[right-t] thing }
             // type chicken {}
@@ -1333,6 +1333,7 @@ namespace Tac.Frontend.TypeProblem.Test
         public void UpAndDown() {
             var typeProblem = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope(), _ => { });
 
+            // TODO!
         }
 
 

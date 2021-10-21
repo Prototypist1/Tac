@@ -104,10 +104,12 @@ namespace Tac.Frontend
     class MustBePrimitive : IConstraint
     {
         public readonly Guid primitive;
+        public readonly PrimitiveFlowNode2 primitiveFlowNode2;
 
-        public MustBePrimitive(Guid primitive)
+        public MustBePrimitive(Guid primitive, PrimitiveFlowNode2 primitiveFlowNode2)
         {
             this.primitive = primitive;
+            this.primitiveFlowNode2 = primitiveFlowNode2 ?? throw new ArgumentNullException(nameof(primitiveFlowNode2));
         }
 
         public override bool Equals(object? obj)
@@ -466,16 +468,18 @@ namespace Tac.Frontend
     class PrimitiveFlowNode2: IFlowNode2
     {
         public readonly Guid guid;
+        public readonly Tpn.TypeProblem2.Type type;
 
-        public PrimitiveFlowNode2(Guid guid)
+        public PrimitiveFlowNode2(Guid guid, Tpn.TypeProblem2.Type type)
         {
             this.guid = guid;
+            this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         public EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> GetConstraints()
         {
             return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>(new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> {
-                OrType.Make<MustHave, MustBePrimitive, GivenPathThen,OrConstraint> (new MustBePrimitive(guid))
+                OrType.Make<MustHave, MustBePrimitive, GivenPathThen,OrConstraint> (new MustBePrimitive(guid,this))
             });
         }
         public IOrType<NoChanges, Changes, FailedAction> AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> newConstraints) {

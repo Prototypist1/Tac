@@ -39,7 +39,15 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public override int GetHashCode()
         {
-            return backing.Sum(x => x.GetHashCode());
+            unchecked
+            {
+                var res = 0;
+                foreach (var item in backing)
+                {
+                    res += item.GetHashCode();
+                }
+                return res;
+            }
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
