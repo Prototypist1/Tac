@@ -568,8 +568,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             var andOrAnd = self
                 .Where(x => x.Is4(out var _))
                 .Select(x => x.Is4OrThrow())
-                .SelectMany(x => x.source.or
-                    .Select(y => y.GetValueAs(out IConstraintSoruce _).GetConstraints().Flatten())
+                .Select(x => x.source.or
+                    // OR AND
+                    .SelectMany(y => y.GetValueAs(out IConstraintSoruce _).GetConstraints().Flatten())
                     .ToArray())
                 .ToHashSet();
 
@@ -593,7 +594,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     foreach (var andRes in orAndRes.ToArray())
                     {
-                        var list = andRes.SkipLast(first.Count-1).ToList();
+                        var list = andRes.SkipLast(first.Count).ToList();
                         list.AddRange(and);
                         orAndRes.Add(list);
                     }

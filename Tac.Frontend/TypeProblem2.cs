@@ -1206,7 +1206,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x)), out var right))
                 {
 
-                    res = new OrFlowNode2();
+                    res = new OrFlowNode2(left, right);
                     return true;
                 }
                 res = default;

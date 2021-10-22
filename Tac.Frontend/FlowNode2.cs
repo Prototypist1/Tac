@@ -346,6 +346,7 @@ namespace Tac.Frontend
             this.source = source ?? throw new ArgumentNullException(nameof(source));
         }
 
+
         public bool IsCompatible(
             IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint> constraint,
             List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>> assumeTrue)
@@ -372,6 +373,17 @@ namespace Tac.Frontend
                             .Any(thierSet => ourSet
                                 .All(ourItem => thierSet
                                     .All(theirItem => ourItem.GetValueAs(out IConstraint _).IsCompatible(theirItem, nextAssumeTrue.Value))))));
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is OrConstraint constraint &&
+                   EqualityComparer<OrFlowNode2>.Default.Equals(source, constraint.source);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(source);
         }
     }
 
@@ -554,7 +566,7 @@ namespace Tac.Frontend
                                 if (CouldApplyToMe(set)) {
                                     return new[] { sourceOr };
                                 }
-                                return Array.Empty<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2>>();
+                                return Array.Empty<IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>>();
                             }).ToArray();
 
                             if (couldApply.Length == 0) {
@@ -810,8 +822,12 @@ namespace Tac.Frontend
         // and disjoin constraints
         // do we calculate them from our sources?
 
-        public readonly EqualableHashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2>> or = new (new HashSet<IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2>>());
+        public readonly EqualableHashSet<IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> or;
 
+        public OrFlowNode2(IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2> left, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2> right)
+        {
+            or =  new (new HashSet<IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> { left,right});
+        }
 
         public IOrType<NoChanges, Changes, FailedAction> AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>> newConstraints)
         {
