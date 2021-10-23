@@ -57,43 +57,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 internal IIsPossibly<IInterfaceType> external = Possibly.IsNot<IInterfaceType>();
             }
 
-            private class Key {
-                public readonly bool hasMemebers;
-                public readonly IIsPossibly<TypeProblem2.GenericTypeParameter> isGenericConstraintFor;
-                public readonly IIsPossibly<IInterfaceType> external;
-                public readonly EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>> constraints;
-
-                public Key(bool hasMemebers, IIsPossibly<TypeProblem2.GenericTypeParameter> isGenericConstraintFor, IIsPossibly<IInterfaceType> external, EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>> constraints)
-                {
-                    this.hasMemebers = hasMemebers;
-                    this.isGenericConstraintFor = isGenericConstraintFor ?? throw new ArgumentNullException(nameof(isGenericConstraintFor));
-                    this.external = external ?? throw new ArgumentNullException(nameof(external));
-                    this.constraints = constraints ?? throw new ArgumentNullException(nameof(constraints));
-                }
-
-                public Key(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>> constraints) : this(
-                    false,
-                    Possibly.IsNot<TypeProblem2.GenericTypeParameter>(),
-                    Possibly.IsNot<IInterfaceType>(),
-                    constraints) { 
-                
-                }
-
-                public override bool Equals(object? obj)
-                {
-                    return obj is Key key &&
-                           hasMemebers == key.hasMemebers &&
-                           EqualityComparer<IIsPossibly<TypeProblem2.GenericTypeParameter>>.Default.Equals(isGenericConstraintFor, key.isGenericConstraintFor) &&
-                           EqualityComparer<IIsPossibly<IInterfaceType>>.Default.Equals(external, key.external) &&
-                           EqualityComparer<EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>>>.Default.Equals(constraints, key.constraints);
-                }
-
-                public override int GetHashCode()
-                {
-                    return HashCode.Combine(hasMemebers, isGenericConstraintFor, external, constraints);
-                }
-            }
-
             public TypeSolution(
                 IReadOnlyList<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, TypeProblem2.GenericTypeParameter, IError>> things,
                 //Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodes,
@@ -111,41 +74,10 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 foreach (var flowNode2 in flowNodes2)
                 {
-                    bool hasMemebers= false;
-                    IIsPossibly<TypeProblem2.GenericTypeParameter> isGenericConstraintFor = Possibly.IsNot<TypeProblem2.GenericTypeParameter>();
-                    IIsPossibly<IInterfaceType> external = Possibly.IsNot<IInterfaceType>();
-                    if (flowNode2.Key.Is1(out var typeProblemNode))
-                    {
-                        hasMemebers |= typeProblemNode.SafeIs<ITypeProblemNode, TypeProblem2.Object>();
-                        if (typeProblemNode.SafeIs(out TypeProblem2.Type type))
-                        {
-                            hasMemebers = true;
-                            if (type.External.Is(out var _))
-                            {
-                                external = type.External;
-                            }
-                        }
-                        {
-                            if (typeProblemNode.SafeIs(out TypeProblem2.GenericTypeParameter genericTypeParameter))
-                            {
-                                throw new Exception("we pass the constraint into the type problem, not the actual parameter");
-                                //realYolo.isGeneric = Possibly.Is(genericTypeParameter);
-                            }
-                        }
-                        {
-                            if (typeProblemNode.SafeIs(out TypeProblem2.InferredType inferredType) && constrainsToGenerics.TryGetValue(inferredType, out var genericTypeParameter))
-                            {
-                                isGenericConstraintFor = Possibly.Is(genericTypeParameter);
-                            }
-                        }
-                    }
-
                     var rep = flowNode2.Value.GetValueAs(out IConstraintSoruce _).GetConstraints().Flatten();
                     var yolo = GetOrAdd(rep);
 
                     // this feels a bit weird because it doesn't flow through the type problem
-
-
                     if (flowNode2.Key.Is1(out var typeProblemNode)) {
                         yolo.hasMemebers |= typeProblemNode.SafeIs<ITypeProblemNode, TypeProblem2.Object>();
                         if (typeProblemNode.SafeIs(out TypeProblem2.Type type))
@@ -172,7 +104,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
-                Yolo GetOrAdd(Key key)
+                Yolo GetOrAdd(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>> equalableHashSet)
                 {
                     var myBox = new Yolo();
                     var current = cache.GetOrAdd(equalableHashSet, myBox);
@@ -180,23 +112,20 @@ namespace Tac.Frontend.New.CrzayNamespace
                     // if we added it, fill it
                     if (current == myBox) {
 
-                        myBox.hasMemebers = key.hasMemebers;
-                        myBox.external = key.external;
-                        myBox.isGenericConstraintFor = key.isGenericConstraintFor;
 
-                        if (key.constraints.Count() > 1)
+                        if (equalableHashSet.Count() > 1)
                         {
-                            myBox.left = Possibly.Is(GetOrAdd(new Key(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>>(key.constraints.Take(key.constraints.Count() - 1).ToHashSet()))));
-                            myBox.right = Possibly.Is( GetOrAdd(new Key(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>>(new HashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>>() { key.constraints.Last() }))));
+                            myBox.left = Possibly.Is(GetOrAdd(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>>(equalableHashSet.Take(equalableHashSet.Count() - 1).ToHashSet())));
+                            myBox.right = Possibly.Is( GetOrAdd(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>>(new HashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>>>() { equalableHashSet.Last() })));
                         }
                         else {
                             myBox.left = Possibly.IsNot<Yolo>();
                             myBox.right = Possibly.IsNot<Yolo>();
                         }
 
-                        myBox.members = key.constraints.First().Members().TransformInner(members => members.Select(memberPair => (memberPair.Key, GetOrAdd(new Key(memberPair.Value.Flatten())))).ToArray());
-                        myBox.input = key.constraints.First().Input().TransformInner(inputOr => inputOr.TransformInner(input => GetOrAdd(new Key(input.Flatten()))));
-                        myBox.output = key.constraints.First().Output().TransformInner(outputOr => outputOr.TransformInner(output=> GetOrAdd(new Key(output.Flatten()))));
+                        myBox.members = equalableHashSet.First().Members().TransformInner(members => members.Select(memberPair => (memberPair.Key, GetOrAdd(memberPair.Value.Flatten()))).ToArray());
+                        myBox.input = equalableHashSet.First().Input().TransformInner(inputOr => inputOr.TransformInner(input => GetOrAdd(input.Flatten())));
+                        myBox.output = equalableHashSet.First().Output().TransformInner(outputOr => outputOr.TransformInner(output=> GetOrAdd(output.Flatten())));
                     }
                     return current;
                 }
