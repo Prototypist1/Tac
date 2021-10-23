@@ -647,15 +647,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 var nextOrAndRes = new List<List<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>>() { };
 
-                var first = orAnd.First();
-                foreach (var item in first)
-                {
-                    foreach (var andRes in orAndRes)
-                    {
-                        andRes.Add(item);
-                    }
-                }
-
                 foreach (var andRes in orAndRes)
                 {
                     foreach (var and in orAnd)
