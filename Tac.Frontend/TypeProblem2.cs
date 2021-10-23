@@ -812,7 +812,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                         //orsToFlowNodesLookup.Add(key, value);
 
                         var flowNode2 = new ConcreteFlowNode2();
+                        flowNode2.HasMembers();
                         flowNodes2.Add(key, ToOr2(flowNode2));
+
+                        if (type.External.Is(out var external))
+                        {
+                            var targetOr = flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(type)];
+                            targetOr.Is1OrThrow().IsExternal(external);
+                        }
                     }
                 }
                 foreach (var @object in ors.Select(x => (x.Is3(out var v), v)).Where(x => x.Item1).Select(x => x.v))
@@ -824,6 +831,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     //orsToFlowNodesLookup.Add(key, value);
 
                     var flowNode2 = new ConcreteFlowNode2();
+                    flowNode2.HasMembers();
                     flowNodes2.Add(key, ToOr2(flowNode2));
                 }
                 foreach (var inferred in ors.Select(x => (x.Is5(out var v), v)).Where(x => x.Item1).Select(x => x.v))
@@ -1042,6 +1050,10 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     target.AddGenerics(methodType.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray());
 
+                    foreach (var generic in methodType.Generics.Values)
+                    {
+                        flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(generic.constraint)].Is2OrThrow().IsConstraintFor(generic);
+                    }
 
                     //orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(methodType)].Is1OrThrow().Generics = methodType.Generics.Select(x => orsToFlowNodesLookup[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray();
                 }
@@ -1063,6 +1075,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
 
                     concreteFlowNode2.AddGenerics(inferredType.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray());
+
+                    foreach (var generic in inferredType.Generics.Values)
+                    {
+                        flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(generic.constraint)].Is2OrThrow().IsConstraintFor(generic);
+                    }
 
                     // orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(inferredType)].Is1OrThrow().Generics = inferredType.Generics.Select(x => orsToFlowNodesLookup[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray();
 

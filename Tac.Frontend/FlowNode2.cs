@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
+using Tac.Model.Elements;
 
 namespace Tac.Frontend
 {
@@ -441,6 +442,23 @@ namespace Tac.Frontend
     // it just pass through here
     class IsGenericRestraintFor: IConstraint
     {
+        internal Tpn.TypeProblem2.GenericTypeParameter genericTypeParameter;
+
+        public IsGenericRestraintFor(Tpn.TypeProblem2.GenericTypeParameter genericTypeParameter)
+        {
+            this.genericTypeParameter = genericTypeParameter ?? throw new ArgumentNullException(nameof(genericTypeParameter));
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is IsGenericRestraintFor @for &&
+                   EqualityComparer<Tpn.TypeProblem2.GenericTypeParameter>.Default.Equals(genericTypeParameter, @for.genericTypeParameter);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(genericTypeParameter);
+        }
 
         public bool IsCompatible(IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers> constraint, List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>>> assumeTrue) => true;
     }
@@ -450,6 +468,23 @@ namespace Tac.Frontend
     // it just pass through here
     class IsExternal: IConstraint
     {
+        public readonly Tac.Model.Elements.IInterfaceType interfaceType;
+
+        public IsExternal(IInterfaceType external)
+        {
+            this.interfaceType = external ?? throw new ArgumentNullException(nameof(external));
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is IsExternal external &&
+                   EqualityComparer<IInterfaceType>.Default.Equals(interfaceType, external.interfaceType);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(interfaceType);
+        }
 
         public bool IsCompatible(IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers> constraint, List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>>> assumeTrue) => true;
     }
@@ -585,7 +620,6 @@ namespace Tac.Frontend
         private readonly HashSet<OrFlowNode2> perviouslyAccepted = new HashSet<OrFlowNode2>();
         private readonly HashSet<OrFlowNode2> perviouslyAcceptedDownstream= new HashSet<OrFlowNode2>();
 
-        public IIsPossibly<IsGenericRestraintFor> isGenericRestraintFor = Possibly.IsNot<IsGenericRestraintFor>();
         public IIsPossibly<IsExternal> isExternal = Possibly.IsNot<IsExternal>();
 
         public EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>> GetConstraints()
@@ -791,9 +825,9 @@ namespace Tac.Frontend
         public EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>> GetExtendedConstraints()
         {
             var set = GetConstraints().Select(x => x.Broaden()).ToHashSet();
-            if (isGenericRestraintFor.Is(out var genericRestraintFor)) {
-                set.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>(genericRestraintFor));
-            }
+            //if (isGenericRestraintFor.Is(out var genericRestraintFor)) {
+            //    set.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>(genericRestraintFor));
+            //}
             if (isExternal.Is(out var external))
             {
                 set.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>(external));
@@ -891,6 +925,20 @@ namespace Tac.Frontend
                 constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new GivenPathThen(path, orType.GetValueAs(out IConstraintSoruce _))));
             }
         }
+
+        internal void IsExternal(IInterfaceType external)
+        {
+            if (isExternal.Is(out var _)) {
+                throw new Exception("already set, is that ok?");
+            }
+
+            isExternal = Possibly.Is(new IsExternal(external));
+        }
+
+        internal void HasMembers()
+        {
+            constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new HasMembers()));
+        }
     }
 
     class InferredFlowNode2 : IFlowNode2
@@ -898,7 +946,7 @@ namespace Tac.Frontend
         public readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>> constraints = new (new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>>());
 
         public IIsPossibly<IsGenericRestraintFor> isGenericRestraintFor = Possibly.IsNot<IsGenericRestraintFor>();
-        public IIsPossibly<IsExternal> isExternal = Possibly.IsNot<IsExternal>();
+        //public IIsPossibly<IsExternal> isExternal = Possibly.IsNot<IsExternal>();
 
         public IOrType<NoChanges, Changes, FailedAction> AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>> newConstraints)
         {
@@ -947,11 +995,20 @@ namespace Tac.Frontend
             {
                 set.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>(genericRestraintFor));
             }
-            if (isExternal.Is(out var external))
-            {
-                set.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>(external));
-            }
+            //if (isExternal.Is(out var external))
+            //{
+            //    set.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>(external));
+            //}
             return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>(set);
+        }
+
+        internal void IsConstraintFor(Tpn.TypeProblem2.GenericTypeParameter generic)
+        {
+            if (isGenericRestraintFor.Is(out var _)) {
+                throw new Exception("already set? that's suprising and worth thinking agout");
+            }
+
+            isGenericRestraintFor = Possibly.Is(new IsGenericRestraintFor(generic));
         }
     }
 

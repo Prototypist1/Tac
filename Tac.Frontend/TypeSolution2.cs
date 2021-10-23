@@ -53,12 +53,12 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 // sometimes thing have no member but really we know they are an object or a type
                 // if this is not set the yolo becomes an AnyType with it set the Yolo becomes a HasMembers with no members
-                internal bool hasMemebers = false;
+                //internal bool hasMemebers = false;
                 //internal IIsPossibly<TypeProblem2.GenericTypeParameter> isGeneric = Possibly.IsNot<TypeProblem2.GenericTypeParameter>();
                 internal IIsPossibly<TypeProblem2.GenericTypeParameter> isGenericConstraintFor = Possibly.IsNot<TypeProblem2.GenericTypeParameter>();
                 internal IIsPossibly<Box<IOrType<IFrontendType<IVerifiableType>, IError>>> isGenericConstraintFroRealized = Possibly.IsNot<Box<IOrType<IFrontendType<IVerifiableType>, IError>>>();
 
-                internal IIsPossibly<IInterfaceType> external = Possibly.IsNot<IInterfaceType>();
+                //internal IIsPossibly<IInterfaceType> external = Possibly.IsNot<IInterfaceType>();
             }
 
             public TypeSolution(
@@ -317,14 +317,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
 
                     // if it has members it must be a scope
-                    if (members.Any() || yolo.hasMemebers)
+                    if (members.Any() || constrains.Any(x=>x.Is4(out HasMembers _)))
                     {
-                        if (yolo.external.Is(out var interfaceType))
-                        {
+                        var external = constrains.Where(x => x.Is6(out IsExternal _)).Select(x => x.Is6OrThrow()).ToArray();
 
-                            // we have one member list from the type problem
-                            // and one member list from the external deffinition
-                            // we need to join them together
+                        if (external.Length > 1) {
+                            throw new Exception("what does that mean?!");
+                        }
+
+                        if (external.Length == 1) {
+                            var interfaceType= external.Single().interfaceType;
 
                             if (members.Count != interfaceType.Members.Count)
                             {
@@ -337,8 +339,28 @@ namespace Tac.Frontend.New.CrzayNamespace
                                new ExternalHasMembersType(interfaceType, interfaceType.Members.Select(x => new WeakExternslMemberDefinition(
                                    x,
                                    dict[x.Key].Item2.type)).ToList()));
-
                         }
+
+                        //if (yolo.external.Is(out var interfaceType))
+                        //{
+
+                        //    // we have one member list from the type problem
+                        //    // and one member list from the external deffinition
+                        //    // we need to join them together
+
+                        //    if (members.Count != interfaceType.Members.Count)
+                        //    {
+                        //        throw new Exception("these should have the same number of members!");
+                        //    }
+
+                        //    var dict = members.ToDictionary(x => x.Item1, x => x);
+
+                        //    return OrType.Make<IFrontendType<IVerifiableType>, IError>(
+                        //       new ExternalHasMembersType(interfaceType, interfaceType.Members.Select(x => new WeakExternslMemberDefinition(
+                        //           x,
+                        //           dict[x.Key].Item2.type)).ToList()));
+
+                        //}
 
                         return OrType.Make<IFrontendType<IVerifiableType>, IError>(
                             new HasMembersType(new WeakScope(members.Select(x => new WeakMemberDefinition(
@@ -358,20 +380,39 @@ namespace Tac.Frontend.New.CrzayNamespace
             Box<IOrType<IFrontendType<IVerifiableType>, IError>> GetFromCacheReplaceGenericConstrainsWithTheGeneric(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>> key)
             {
                 var res = cache[key];
-                if (res.isGenericConstraintFor.Is(out var genericTypeParameter))
+
+                if (res.isGenericConstraintFroRealized.Is(out var alreadyGotIt))
                 {
-
-                    if (res.isGenericConstraintFroRealized.Is(out var alreadyGotIt))
-                    {
-                        return alreadyGotIt;
-                    }
-
-                    var innerRes = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new GenericTypeParameterPlacholder(genericTypeParameter.index, res.type)));
-                    res.isGenericConstraintFroRealized = Possibly.Is(innerRes);
-                    return innerRes;
-
+                    return alreadyGotIt;
                 }
-                return res.type;
+
+                var justGenericConstraints = key.Select(x => x
+                        .Where(y => y.Is5(out IsGenericRestraintFor _))
+                        .Select(y => y.Is5OrThrow())
+                        .ToArray())
+                    .ToArray();
+
+                var intersect = justGenericConstraints.First();
+
+                foreach (var item in justGenericConstraints.Skip(1))
+                {
+                    intersect = item.Intersect(intersect).ToArray();
+                }
+
+                if (intersect.Length == 0) { 
+                    return res.type;
+                }
+
+                if (intersect.Length > 1)
+                {
+                    throw new Exception("uhh, we are move than one generic? 😬");
+                }
+
+                var genericTypeParameter= intersect.Single().genericTypeParameter; 
+
+                var innerRes = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new GenericTypeParameterPlacholder(genericTypeParameter.index, res.type)));
+                res.isGenericConstraintFroRealized = Possibly.Is(innerRes);
+                return innerRes;
             }
             //public static IIsPossibly<IOrType<NameKey, ImplicitKey>[]> HasPlacholders(TypeProblem2.Method type)
             //{
