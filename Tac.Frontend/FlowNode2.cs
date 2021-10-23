@@ -22,6 +22,7 @@ namespace Tac.Frontend
 
     interface IConstraintSoruce {
         EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>> GetConstraints();
+        EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>> GetExtendedConstraints();
     }
 
     // this originates at a ConcreteFlowNode2 
@@ -238,26 +239,6 @@ namespace Tac.Frontend
         }
     }
 
-
-
-    // this is a none flowing constrain
-    // it is used to uniquely identify types in the type solution
-    // it just pass through here
-    class IsGenericRestraintFor 
-    { 
-    
-    }
-
-    // this is a none flowing constrain
-    // it is used to uniquely identify types in the type solution
-    // it just pass through here
-    class IsExternal 
-    { 
-    
-    }
-
-
-
     // this is for {x;} concrete =: int | {{int a; } x;}| {{int a; int b;} x;} or
     // concrete is obviously not int
     // it is concrete so it is not {{ a; } x;}| {{ a; int b;} x;}
@@ -268,7 +249,6 @@ namespace Tac.Frontend
     // - a OrConstraint { a; } | { a; int b;}
     class IntersectionsConstraintSource : IConstraintSoruce
     {
-
         public readonly EqualableHashSet<IConstraintSoruce> or;
 
         public IntersectionsConstraintSource(EqualableHashSet<IConstraintSoruce> or)
@@ -343,7 +323,7 @@ namespace Tac.Frontend
                 // if a member has a must have from every set
                 .Where(group => sets.All(set => group.Any(groupMember => set.Contains(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(groupMember)))))
                 // {49950614-10F1-4ABF-851F-E9D1EA0BF24C}
-                // we assume there is only 1 must have per goup so we can just intersect them all 
+                // we assume there is only 1 must have per group so we can just intersect them all 
                 // if two came from the same source it would get more complex
                 // (a union b) intersection (c) interesection (d)
                 .Select(x => OrType.Make< MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>(new MustHave(x.Key,new IntersectionsConstraintSource(new EqualableHashSet<IConstraintSoruce>(x.Select(x=>x.dependent).ToHashSet())))));
@@ -370,6 +350,10 @@ namespace Tac.Frontend
             return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>>(intersectionMustHaves.Union(intersectionGivenPathThens).ToHashSet());
         }
 
+
+        public EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>> GetExtendedConstraints() {
+            return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>(GetConstraints().Select(x => x.Broaden()).ToHashSet());
+        }
         public override int GetHashCode()
         {
             return HashCode.Combine(or);
@@ -450,6 +434,24 @@ namespace Tac.Frontend
                 HasMembers => true);
         
     }
+
+
+    // this is a none flowing constrain
+    // it is used to uniquely identify types in the type solution
+    // it just pass through here
+    class IsGenericRestraintFor
+    {
+
+    }
+
+    // this is a none flowing constrain
+    // it is used to uniquely identify types in the type solution
+    // it just pass through here
+    class IsExternal
+    {
+
+    }
+
 
     //class IllegalActionException : Exception
     //{
@@ -565,6 +567,11 @@ namespace Tac.Frontend
         public bool CouldApplyToMe(IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>> constraint) =>
             constraint.All(x=>x.Is2(out var prim) && prim.primitive == guid);
 
+        public EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>> GetExtendedConstraints()
+        {
+            return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>(GetConstraints().Select(x => x.Broaden()).ToHashSet());
+        }
+
     }
 
     class ConcreteFlowNode2 : IFlowNode2
@@ -576,6 +583,8 @@ namespace Tac.Frontend
         private readonly HashSet<OrFlowNode2> perviouslyAccepted = new HashSet<OrFlowNode2>();
         private readonly HashSet<OrFlowNode2> perviouslyAcceptedDownstream= new HashSet<OrFlowNode2>();
 
+        public IIsPossibly<IsGenericRestraintFor> isGenericRestraintFor = Possibly.IsNot<IsGenericRestraintFor>();
+        public IIsPossibly<IsExternal> isExternal = Possibly.IsNot<IsExternal>();
 
         public EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>> GetConstraints()
         {
@@ -755,7 +764,7 @@ namespace Tac.Frontend
         }
 
         // but this could contain OrConstraint so we need to split it out
-        
+
         //private IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>[] Retarget(IOrType<MustHave, MustBePrimitive, GivenPathThen> constraint, KeyValuePair<IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>, IOrType<PrimitiveFlowNode2, ConcreteFlowNode2, InferredFlowNode2, OrFlowNode2>> dependent)
         //{
         //    return constraint.SwitchReturns(
@@ -776,6 +785,19 @@ namespace Tac.Frontend
         //            return Array.Empty<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>>();
         //        });
         //}
+
+        public EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>> GetExtendedConstraints()
+        {
+            var set = GetConstraints().Select(x => x.Broaden()).ToHashSet();
+            if (isGenericRestraintFor.Is(out var genericRestraintFor)) {
+                set.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>(genericRestraintFor));
+            }
+            if (isExternal.Is(out var external))
+            {
+                set.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>(external));
+            }
+            return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>(set);
+        }
 
         public bool CouldApplyToMe(IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>> constraints)
         {
@@ -873,6 +895,8 @@ namespace Tac.Frontend
     {
         public readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>> constraints = new (new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>>());
 
+        public IIsPossibly<IsGenericRestraintFor> isGenericRestraintFor = Possibly.IsNot<IsGenericRestraintFor>();
+        public IIsPossibly<IsExternal> isExternal = Possibly.IsNot<IsExternal>();
 
         public IOrType<NoChanges, Changes, FailedAction> AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>> newConstraints)
         {
@@ -913,6 +937,19 @@ namespace Tac.Frontend
         public bool CouldApplyToMe(IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>> constraint)
         {
             return true;
+        }
+        public EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>> GetExtendedConstraints()
+        {
+            var set = GetConstraints().Select(x => x.Broaden()).ToHashSet();
+            if (isGenericRestraintFor.Is(out var genericRestraintFor))
+            {
+                set.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>(genericRestraintFor));
+            }
+            if (isExternal.Is(out var external))
+            {
+                set.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>(external));
+            }
+            return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>(set);
         }
     }
 
@@ -998,6 +1035,11 @@ namespace Tac.Frontend
             //return res;
         }
 
+        public EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>> GetExtendedConstraints()
+        {
+            return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>(GetConstraints().Select(x => x.Broaden()).ToHashSet());
+        }
+
         public bool CouldApplyToMe(IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>> constraints)
             => or.Any(x => x.GetValueAs(out IFlowNode2 _).CouldApplyToMe(constraints));
     }
@@ -1069,6 +1111,13 @@ namespace Tac.Frontend
                 orType.SwitchReturns(x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>(x),
                     x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>(x));
 
+
+        public static IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal> Broaden(this IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers> self) =>
+           (IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>)self.SwitchReturns(x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>(x),
+                x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>(x),
+                x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>(x),
+                x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>(x),
+                x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>(x));
 
         // downstream we only send GivenPathThen and OrConstraint made entirely of GivenPathThen
         // {95C8B654-3AF5-42FD-A42B-A94165BEF7A3}

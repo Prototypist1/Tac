@@ -34,6 +34,8 @@ namespace Tac.Frontend.New.CrzayNamespace
             //private readonly Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodes;
             private readonly Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2;
 
+
+
             private class Yolo
             {
                 internal IOrType<IReadOnlyList<(IKey, Yolo)>, IError>? members;
@@ -887,7 +889,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             return OrType.Make<IReadOnlyList<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint>>>, IError>(pairs.OrderBy(x=>x.Item1).Select(x=>x.Item2).ToArray());
         }
-        
+
         private static bool ErrorCheck(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen>> self, [NotNullWhen(true)] out IError? error) {
             if (self.Any(x => x.Is2(out var _)) && !self.All(x => x.Is2(out var _)))
             {
