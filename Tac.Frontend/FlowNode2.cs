@@ -439,17 +439,19 @@ namespace Tac.Frontend
     // this is a none flowing constrain
     // it is used to uniquely identify types in the type solution
     // it just pass through here
-    class IsGenericRestraintFor
+    class IsGenericRestraintFor: IConstraint
     {
 
+        public bool IsCompatible(IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers> constraint, List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>>> assumeTrue) => true;
     }
 
     // this is a none flowing constrain
     // it is used to uniquely identify types in the type solution
     // it just pass through here
-    class IsExternal
+    class IsExternal: IConstraint
     {
 
+        public bool IsCompatible(IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers> constraint, List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>>> assumeTrue) => true;
     }
 
 
