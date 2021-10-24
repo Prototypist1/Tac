@@ -624,6 +624,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public IOrType<IReadOnlyList<Lazy<IOrType<VirtualNode, IError>>>, IError> VirtualGenerics()
             {
+                var i = 0;
                 return OrType.Make<IReadOnlyList<Lazy<IOrType<VirtualNode, IError>>>, IError>(
                     Generics
                         .Select(x =>
@@ -2579,6 +2580,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return Or.VirtualGenerics()
                     .TransformInner(list =>
                     {
+                        int i = 0;
                         return (IReadOnlyList<Lazy<IOrType<VirtualNode, IError>>>)(list.Select(value => new Lazy<IOrType<VirtualNode, IError>>(() => value.Value.TransformInner(ands => new VirtualNode(ands)))).ToArray());
                     });
             }
