@@ -56,7 +56,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 //internal bool hasMemebers = false;
                 //internal IIsPossibly<TypeProblem2.GenericTypeParameter> isGeneric = Possibly.IsNot<TypeProblem2.GenericTypeParameter>();
                 //internal IIsPossibly<TypeProblem2.GenericTypeParameter> isGenericConstraintFor = Possibly.IsNot<TypeProblem2.GenericTypeParameter>();
-                internal IIsPossibly<Box<IOrType<IFrontendType<IVerifiableType>, IError>>> isGenericConstraintFroRealized = Possibly.IsNot<Box<IOrType<IFrontendType<IVerifiableType>, IError>>>();
+                //internal IIsPossibly<Box<IOrType<IFrontendType<IVerifiableType>, IError>>> isGenericConstraintFroRealized = Possibly.IsNot<Box<IOrType<IFrontendType<IVerifiableType>, IError>>>();
 
                 //internal IIsPossibly<IInterfaceType> external = Possibly.IsNot<IInterfaceType>();
             }
@@ -376,7 +376,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             }
 
-            public IIsPossibly<Tpn.TypeProblem2.GenericTypeParameter> GetGenericTypeParameter(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>> key) {
+            public IIsPossibly<EqualableHashSet<Tpn.TypeProblem2.GenericTypeParameter>> GetGenericTypeParameter(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>> key) {
 
 
                 var justGenericConstraints = key.Select(x => x
@@ -394,31 +394,96 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 if (intersect.Length == 0)
                 {
-                    return Possibly.IsNot<Tpn.TypeProblem2.GenericTypeParameter>();
+                    return Possibly.IsNot<EqualableHashSet<Tpn.TypeProblem2.GenericTypeParameter>>();
                 }
 
-                if (intersect.Length > 1)
-                {
-                    throw new Exception("uhh, we are move than one generic? 😬");
-                }
+                //if (intersect.Length > 1)
+                //{
+                //    throw new Exception("uhh, we are move than one generic? 😬");
+                //}
 
-                return Possibly.Is(intersect.Single().genericTypeParameter);
+                return Possibly.Is(new EqualableHashSet<Tpn.TypeProblem2.GenericTypeParameter>(intersect.Select(x=>x.genericTypeParameter).ToHashSet()));
             }
+
+            private ConcurrentIndexed<EqualableHashSet<Tpn.TypeProblem2.GenericTypeParameter>, GenericTypeParameterPlacholder> genericCache = new ConcurrentIndexed<EqualableHashSet<TypeProblem2.GenericTypeParameter>, GenericTypeParameterPlacholder>();
 
             Box<IOrType<IFrontendType<IVerifiableType>, IError>> GetFromCacheReplaceGenericConstrainsWithTheGeneric(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>> key)
             {
                 var res = cache[key];
 
-                if (res.isGenericConstraintFroRealized.Is(out var alreadyGotIt))
-                {
-                    return alreadyGotIt;
-                }
+                //if (res.isGenericConstraintFroRealized.Is(out var alreadyGotIt))
+                //{
+                //    return alreadyGotIt;
+                //}
 
                 var possiblyGenericTypeParameter = GetGenericTypeParameter(key);
 
                 if (possiblyGenericTypeParameter.Is(out var genericTypeParameter)) {
-                    var innerRes = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new GenericTypeParameterPlacholder(genericTypeParameter.index, res.type)));
-                    res.isGenericConstraintFroRealized = Possibly.Is(innerRes);
+                    var groupedParms = genericTypeParameter.GroupBy(x => x.index).ToArray();
+                    if (groupedParms.Count() > 1) {
+                        // method [T] [T,T] a;
+                        // method [t1,t2] [t1, t2] b;
+                        // c =: a;
+                        // c =: b;
+                        //
+                        // pretty sure we have no idea what "c" is..
+                        // well probabaly method [T1,T2] [T1,T2] where T1: T,t1 and T2: T,t2 
+                        //
+                        // but...
+                        //
+                        // method [Ta, Tb] [Tb,Ta] a;
+                        // method [t1,t2] [t1, t2] b;
+                        // c =: a;
+                        // c =: b;
+                        //
+                        // "c" is method [T1,T2] [T1,T2] where T1: Tb, t1 and T2: Ta,t2 
+                        //
+                        // but I still don't know what index...
+                        // TODO, it's an error for now 
+                        //
+                        // any other pain point:
+                        //
+                        // method [Ta, Tb] [Tb,Ta] a;
+                        // method [t1,t2] [t1, t2] b;
+                        // c =: a;
+                        // c =: b;
+                        // o > c =: int x
+                        //
+                        // "c" is method [T1,T2] [T1,T2] where T1: Tb, t1 and T2: Ta,t2, int
+                        // but I have Ta, t2 and, int constraint on the output
+                        // while just Ta, t2 constring s on T2
+                        // how do I know that those collapse??
+                        //
+                        // 
+                        // I think it only works if the constraints are the same length
+                        // you can't do the assignment if you have different numbers of type parameters 
+                        //
+                        // method [Ta, Tb] [Tb,Ta] a;
+                        // method [t1,t2] [t1, t2] b;
+                        // c =: a;
+                        // c =: b;
+                        //
+                        // c is actually method [T1,T2] [??] where T1: Ta, t1  and T2 : Tb and t2 
+                        // c has an input of Tb, t1 
+                        // c has an output of Ta, t2
+                        //
+                        // c is actually method [T1,T2] [T1&T2,T1&T2]
+                        // once we assume c is method [T1,T2] [??]
+                        // from it's prospective 
+                        // "a" becomes: method [T1,T2] [T2,T1]
+                        // "b" becomes: method [T1,T2] [T1,T2]
+                        // now "c" has an input of T1, T2 
+                        // now "c" has an output of T1, T2
+                        
+                        //... anyway
+
+                        return new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(Error.Other("")));
+                    }
+
+                    genericCache.GetOrAdd(genericTypeParameter, )
+
+                    var innerRes = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new GenericTypeParameterPlacholder(groupedParms.First().Key, res.type)));
+                    //res.isGenericConstraintFroRealized = Possibly.Is(innerRes);
                     return innerRes;
                 }
 
@@ -551,7 +616,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
             internal IOrType<GenericTypeParameterPlacholder, IError> GetGenericPlaceholder(TypeProblem2.GenericTypeParameter from) =>
-                cache.Where(x => GetGenericTypeParameter(x.Key).Is(out var y) && y == from)
+                cache.Where(x => GetGenericTypeParameter(x.Key).Is(out var y) && y.Length == 1 && y.First() == from)
                 .Select(x => GetFromCacheReplaceGenericConstrainsWithTheGeneric(x.Key).GetValue().TransformInner(y => y.CastTo<GenericTypeParameterPlacholder>()))
                 .Single();
 
@@ -783,20 +848,41 @@ namespace Tac.Frontend.New.CrzayNamespace
             foreach (var mustHaves in mustHaveGroup)
             {
                 var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>();
+
+                var extened = false;
+                {
+                    var sources = mustHaves.Select(x => x.dependent).ToHashSet();
+                    if (givenPathDictionary.TryGetValue(mustHaves.Key, out var givenPaths))
+                    {
+                        foreach (var givenPath in givenPaths)
+                        {
+                            sources.Add(givenPath.dependent);
+                        }
+                    }
+
+                    if (sources.Count() == 1) {
+                        extened = true;
+                    }
+                }
+
                 foreach (var mustHave in mustHaves)
                 {
-                    foreach (var constraint in mustHave.dependent.GetExtendedConstraints())
+                    foreach (var constraint in extened ? mustHave.dependent.GetExtendedConstraints()
+                        : mustHave.dependent.GetConstraints().Select(x=>x.Broaden()))
                     {
                         set.Add(constraint);
                     }
                 }
-                if (givenPathDictionary.TryGetValue(mustHaves.Key, out var givenPaths))
                 {
-                    foreach (var givenPath in givenPaths)
+                    if (givenPathDictionary.TryGetValue(mustHaves.Key, out var givenPaths))
                     {
-                        foreach (var constraint in givenPath.dependent.GetExtendedConstraints())
+                        foreach (var givenPath in givenPaths)
                         {
-                            set.Add(constraint);
+                            foreach (var constraint in extened ? givenPath.dependent.GetExtendedConstraints()
+                                    :givenPath.dependent.GetConstraints().Select(x => x.Broaden()))
+                            {
+                                set.Add(constraint);
+                            }
                         }
                     }
                 }
@@ -834,14 +920,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>();
 
-                foreach (var mustHave in mustHaves)
-                {
-                    foreach (var constraint in mustHave.dependent.GetExtendedConstraints())
-                    {
-                        set.Add(constraint);
-                    }
-                }
-
                 var givenPaths = self
                     .SelectMany(x =>
                     {
@@ -853,9 +931,37 @@ namespace Tac.Frontend.New.CrzayNamespace
                     })
                     .Where(x => x.path.Is2(out var _));
 
+                
+                var extened = false;
+                {
+                    var sources = mustHaves.Select(x => x.dependent).ToHashSet();
+    
+                    foreach (var givenPath in givenPaths)
+                    {
+                        sources.Add(givenPath.dependent);
+                    }
+
+                    if (sources.Count() == 1)
+                    {
+                        extened = true;
+                    }
+                }
+                
+
+                foreach (var mustHave in mustHaves)
+                {
+                    foreach (var constraint in extened ? mustHave.dependent.GetExtendedConstraints()
+                                    : mustHave.dependent.GetConstraints().Select(x => x.Broaden()))
+                    {
+                        set.Add(constraint);
+                    }
+                }
+
+
                 foreach (var givenPath in givenPaths)
                 {
-                    foreach (var constraint in givenPath.dependent.GetExtendedConstraints())
+                    foreach (var constraint in extened ? givenPath.dependent.GetExtendedConstraints()
+                                    : givenPath.dependent.GetConstraints().Select(x => x.Broaden()))
                     {
                         set.Add(constraint);
                     }
@@ -893,13 +999,6 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>();
 
-                foreach (var mustHave in mustHaves)
-                {
-                    foreach (var constraint in mustHave.dependent.GetExtendedConstraints())
-                    {
-                        set.Add(constraint);
-                    }
-                }
 
                 var givenPaths = self
                     .SelectMany(x =>
@@ -912,9 +1011,35 @@ namespace Tac.Frontend.New.CrzayNamespace
                     })
                     .Where(x => x.path.Is3(out var _));
 
+                var extened = false;
+                {
+                    var sources = mustHaves.Select(x => x.dependent).ToHashSet();
+
+                    foreach (var givenPath in givenPaths)
+                    {
+                        sources.Add(givenPath.dependent);
+                    }
+
+                    if (sources.Count() == 1)
+                    {
+                        extened = true;
+                    }
+                }
+
+                foreach (var mustHave in mustHaves)
+                {
+                    foreach (var constraint in extened ? mustHave.dependent.GetExtendedConstraints()
+                                    : mustHave.dependent.GetConstraints().Select(x => x.Broaden()))
+                    {
+                        set.Add(constraint);
+                    }
+                }
+
+
                 foreach (var givenPath in givenPaths)
                 {
-                    foreach (var constraint in givenPath.dependent.GetExtendedConstraints())
+                    foreach (var constraint in extened ? givenPath.dependent.GetExtendedConstraints()
+                                    : givenPath.dependent.GetConstraints().Select(x => x.Broaden()))
                     {
                         set.Add(constraint);
                     }
@@ -961,20 +1086,42 @@ namespace Tac.Frontend.New.CrzayNamespace
             foreach (var mustHaves in mustHaveGroup)
             {
                 var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>();
+
+                var extened = false;
+                {
+                    var sources = mustHaves.Select(x => x.dependent).ToHashSet();
+                    if (givenPathDictionary.TryGetValue(mustHaves.Key, out var givenPaths))
+                    {
+                        foreach (var givenPath in givenPaths)
+                        {
+                            sources.Add(givenPath.dependent);
+                        }
+                    }
+
+                    if (sources.Count() == 1)
+                    {
+                        extened = true;
+                    }
+                }
+
                 foreach (var mustHave in mustHaves)
                 {
-                    foreach (var constraint in mustHave.dependent.GetExtendedConstraints())
+                    foreach (var constraint in extened ? mustHave.dependent.GetExtendedConstraints()
+                                    : mustHave.dependent.GetConstraints().Select(x => x.Broaden()))
                     {
                         set.Add(constraint);
                     }
                 }
-                if (givenPathDictionary.TryGetValue(mustHaves.Key, out var givenPaths))
                 {
-                    foreach (var givenPath in givenPaths)
+                    if (givenPathDictionary.TryGetValue(mustHaves.Key, out var givenPaths))
                     {
-                        foreach (var constraint in givenPath.dependent.GetExtendedConstraints())
+                        foreach (var givenPath in givenPaths)
                         {
-                            set.Add(constraint);
+                            foreach (var constraint in extened ? givenPath.dependent.GetExtendedConstraints()
+                                    : givenPath.dependent.GetConstraints().Select(x => x.Broaden()))
+                            {
+                                set.Add(constraint);
+                            }
                         }
                     }
                 }

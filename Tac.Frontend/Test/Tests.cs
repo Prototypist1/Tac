@@ -1969,9 +1969,9 @@ namespace Tac.Frontend.TypeProblem.Test
             var solution = typeProblem.Solve();
 
             var zType = solution.GetType(z).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+            var zParameter = Assert.IsType<GenericTypeParameterPlacholder>(Assert.Single(zType.typeParameterDefinitions).GetValue().Is1OrThrow());
             var zInput = Assert.IsType<GenericTypeParameterPlacholder>(zType.inputType.GetValue().Is1OrThrow());
             var zOutput = Assert.IsType<GenericTypeParameterPlacholder>(zType.outputType.GetValue().Is1OrThrow());
-            var zParameter = Assert.IsType<GenericTypeParameterPlacholder>(Assert.Single(zType.typeParameterDefinitions).GetValue().Is1OrThrow());
 
             var yType = solution.GetType(y).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
 
@@ -2221,5 +2221,25 @@ namespace Tac.Frontend.TypeProblem.Test
 
             Equal(thingResultType, nextResult);
         }
+
+        // TODO
+        //
+        // generic-method [T] [T,T] input {
+        //      object { x = 5; } =: input;
+        //      input return; 
+        // } =: test
+        //
+        // 2 > (test realzie [int])
+        // doesn't go well
+        // there is really a constraint on T that is has to accept {x;}
+        //
+        // does "has members" flow down stream?
+        // {} =: a
+        // 5 =: a
+        // no.. "a" is any
+        //
+        // maybe there is a "could have members" that flows down stream....
+        //
+        // or maybe the "given path then" actually constrains a generic in some way 
     }
 }
