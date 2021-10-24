@@ -641,9 +641,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             var andOrAnd = self
                 .Where(x => x.Is4(out var _))
                 .Select(x => x.Is4OrThrow())
-                .Select(x => x.source.or
+                .Select(x => x.Sources
                     // OR AND
-                    .SelectMany(y => y.GetValueAs(out IConstraintSoruce _).GetExtendedConstraints().Flatten())
+                    .SelectMany(y => y.GetExtendedConstraints().Flatten())
                     .ToArray())
                 .ToHashSet();
 
