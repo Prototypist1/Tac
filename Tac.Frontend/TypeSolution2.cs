@@ -55,7 +55,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // if this is not set the yolo becomes an AnyType with it set the Yolo becomes a HasMembers with no members
                 //internal bool hasMemebers = false;
                 //internal IIsPossibly<TypeProblem2.GenericTypeParameter> isGeneric = Possibly.IsNot<TypeProblem2.GenericTypeParameter>();
-                internal IIsPossibly<TypeProblem2.GenericTypeParameter> isGenericConstraintFor = Possibly.IsNot<TypeProblem2.GenericTypeParameter>();
+                //internal IIsPossibly<TypeProblem2.GenericTypeParameter> isGenericConstraintFor = Possibly.IsNot<TypeProblem2.GenericTypeParameter>();
                 internal IIsPossibly<Box<IOrType<IFrontendType<IVerifiableType>, IError>>> isGenericConstraintFroRealized = Possibly.IsNot<Box<IOrType<IFrontendType<IVerifiableType>, IError>>>();
 
                 //internal IIsPossibly<IInterfaceType> external = Possibly.IsNot<IInterfaceType>();
@@ -376,15 +376,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             }
 
+            public IIsPossibly<Tpn.TypeProblem2.GenericTypeParameter> GetGenericTypeParameter(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>> key) {
 
-            Box<IOrType<IFrontendType<IVerifiableType>, IError>> GetFromCacheReplaceGenericConstrainsWithTheGeneric(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>> key)
-            {
-                var res = cache[key];
-
-                if (res.isGenericConstraintFroRealized.Is(out var alreadyGotIt))
-                {
-                    return alreadyGotIt;
-                }
 
                 var justGenericConstraints = key.Select(x => x
                         .Where(y => y.Is5(out IsGenericRestraintFor _))
@@ -399,8 +392,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                     intersect = item.Intersect(intersect).ToArray();
                 }
 
-                if (intersect.Length == 0) { 
-                    return res.type;
+                if (intersect.Length == 0)
+                {
+                    return Possibly.IsNot<Tpn.TypeProblem2.GenericTypeParameter>();
                 }
 
                 if (intersect.Length > 1)
@@ -408,11 +402,27 @@ namespace Tac.Frontend.New.CrzayNamespace
                     throw new Exception("uhh, we are move than one generic? 😬");
                 }
 
-                var genericTypeParameter= intersect.Single().genericTypeParameter; 
+                return Possibly.Is(intersect.Single().genericTypeParameter);
+            }
 
-                var innerRes = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new GenericTypeParameterPlacholder(genericTypeParameter.index, res.type)));
-                res.isGenericConstraintFroRealized = Possibly.Is(innerRes);
-                return innerRes;
+            Box<IOrType<IFrontendType<IVerifiableType>, IError>> GetFromCacheReplaceGenericConstrainsWithTheGeneric(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>> key)
+            {
+                var res = cache[key];
+
+                if (res.isGenericConstraintFroRealized.Is(out var alreadyGotIt))
+                {
+                    return alreadyGotIt;
+                }
+
+                var possiblyGenericTypeParameter = GetGenericTypeParameter(key);
+
+                if (possiblyGenericTypeParameter.Is(out var genericTypeParameter)) {
+                    var innerRes = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new GenericTypeParameterPlacholder(genericTypeParameter.index, res.type)));
+                    res.isGenericConstraintFroRealized = Possibly.Is(innerRes);
+                    return innerRes;
+                }
+
+                return res.type;
             }
             //public static IIsPossibly<IOrType<NameKey, ImplicitKey>[]> HasPlacholders(TypeProblem2.Method type)
             //{
@@ -541,7 +551,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
             internal IOrType<GenericTypeParameterPlacholder, IError> GetGenericPlaceholder(TypeProblem2.GenericTypeParameter from) =>
-                cache.Where(x => x.Value.isGenericConstraintFor.Is(out var y) && y == from)
+                cache.Where(x => GetGenericTypeParameter(x.Key).Is(out var y) && y == from)
                 .Select(x => GetFromCacheReplaceGenericConstrainsWithTheGeneric(x.Key).GetValue().TransformInner(y => y.CastTo<GenericTypeParameterPlacholder>()))
                 .Single();
 
@@ -662,7 +672,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            var shared = self.Where(x => !x.Is4(out var _) && !x.Is6(out var _) && !x.Is7(out var _))
+            var shared = self.Where(x => !x.Is4(out var _))
                 .Select(x => x.SwitchReturns(
                     y => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>(y),
                     y => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>(y),

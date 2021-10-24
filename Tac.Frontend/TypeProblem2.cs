@@ -1050,13 +1050,14 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     target.AddGenerics(methodType.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray());
 
-                    foreach (var generic in methodType.Generics.Values)
-                    {
-                        flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(generic.constraint)].Is2OrThrow().IsConstraintFor(generic);
-                    }
+                    //foreach (var generic in methodType.Generics.Values)
+                    //{
+                    //    flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(generic.constraint)].Is2OrThrow().IsConstraintFor(generic);
+                    //}
 
                     //orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(methodType)].Is1OrThrow().Generics = methodType.Generics.Select(x => orsToFlowNodesLookup[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray();
                 }
+
                 // infered types as well, they are probably methods
                 foreach (var inferredType in ors.Select(x => (x.Is5(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
@@ -1076,14 +1077,20 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     concreteFlowNode2.AddGenerics(inferredType.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray());
 
-                    foreach (var generic in inferredType.Generics.Values)
-                    {
-                        flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(generic.constraint)].Is2OrThrow().IsConstraintFor(generic);
-                    }
+                    //foreach (var generic in inferredType.Generics.Values)
+                    //{
+                    //    flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(generic.constraint)].Is2OrThrow().IsConstraintFor(generic);
+                    //}
 
                     // orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(inferredType)].Is1OrThrow().Generics = inferredType.Generics.Select(x => orsToFlowNodesLookup[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray();
+                }
 
-
+                foreach (var genericTypeParameter in typeProblemNodes.Where(x=>x.SafeIs(out GenericTypeParameter _)).Select(x=> (GenericTypeParameter)x))
+                {
+                    if (flowNodes2.TryGetValue(Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(genericTypeParameter.constraint), out var or)) 
+                    {
+                        or.Is2OrThrow().IsConstraintFor(genericTypeParameter);
+                    }
                 }
 
                 //{
