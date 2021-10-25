@@ -474,8 +474,23 @@ namespace Tac.Frontend.New.CrzayNamespace
                         // "b" becomes: method [T1,T2] [T1,T2]
                         // now "c" has an input of T1, T2 
                         // now "c" has an output of T1, T2
-                        
+
                         //... anyway
+                        //... I don't even have AND types 
+
+                        // I think probably a flow from a generic is consider to be from your own generic
+                        // 
+                        // so what about this one?
+                        // 
+                        // method [Ta, Tb] [Tb,Ta] a;
+                        // method [t1,t2] [t1, t2] b;
+                        // c =: a;
+                        // c =: b;
+                        // o > c =: int x
+                        //
+                        // is "c" method [T1:int,T2:int] [T1&T2,T1&T2] ?
+                        // they both don't need the "int" but how would I know which one?
+                        // or maybe "c" is method [T1,T2] [T1 & T2,T1 & T2 & int]
 
                         return new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(Error.Other("")));
                     }
