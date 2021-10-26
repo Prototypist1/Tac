@@ -1182,3 +1182,77 @@ namespace Tac.Frontend.New.CrzayNamespace
         }
     }
 }
+
+
+// this generic thing is pretty complex
+// I think they do flow
+
+// there is sort of two contexts
+// 1 - 
+//
+// method [T] [T,T] a;
+// c =: a;
+//
+// c is method [T] [T,T] but it has it's own T
+// 
+// 2 - 
+// 
+// method [T] [T,T] input {
+//  a =: input
+//  return input;
+// }
+//
+// a is T
+//
+// in both cases the genericness flows
+
+// are these two case different constraint?
+//
+// I need to think through a few more cases...
+//
+// method [T1] [T1, method [T] [T, T1]] input {
+//      method[T][T, T1] a;
+//      c =: a;
+//      a return;
+// }
+//
+// c is method [T] [T,T1] it has it's own T but T1 is shared
+// so..
+// if I am generic, I make other things the same generic
+// if I have a generic I make other things have their own gernic
+// but those are just different ways of saying the same thing...
+// from the prospective of a's input, I'm generic
+// from the prospective of a, I have a generic
+//
+// I need to name my cases "has" vs "is"
+// 
+// I think the key this is how they look up where they come from
+// it is sort of a inverse path
+// a's input looks up to [input] and then takes the first generic
+// a's output looks up to [output, a] and then takes the first generic ... except it is actually just a different kind of constraint
+//
+// so really we have relationships
+// like a's input is it's first generic
+// maybe the constrait defining this relationship live on "a"?
+// the thing about how it works now is: it can't flow very far
+// a generic method has to be realized for befor you can call it
+// so it can only flow by assigning to "a"
+// 
+// 
+// a's output is just T1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// what about external types?
+// 
