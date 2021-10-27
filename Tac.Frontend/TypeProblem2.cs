@@ -283,6 +283,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public class GenericTypeParameter : TypeProblemNode
             {
+                /// <param name="index">zero indexed</param>
                 public GenericTypeParameter(Builder problem, string debugName, int index) : base(problem, debugName)
                 {
                     constraint = new InferredType(problem, "constraint-for-" + debugName);
@@ -290,6 +291,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 public readonly InferredType constraint;
+                /// <summary>
+                /// zero indexed 
+                /// </summary>
                 public readonly int index;
             }
 
@@ -780,7 +784,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 foreach (var methodType in ors.Select(x => (x.Is1(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
                     var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(methodType);
-                    var inner = new ConcreteFlowNode<Tpn.TypeProblem2.MethodType>(methodType);
+                    //var inner = new ConcreteFlowNode<Tpn.TypeProblem2.MethodType>(methodType);
                     //var value = ToOr(inner);
 
                     //orsToFlowNodesBuild.Add(key, value);
@@ -838,7 +842,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     // duplicate {DCDB88BC-5843-448D-8E6B-673ECD445250}
                     var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(inferred);
-                    var concrete = new ConcreteFlowNode<Tpn.TypeProblem2.InferredType>(inferred);
+                    //var concrete = new ConcreteFlowNode<Tpn.TypeProblem2.InferredType>(inferred);
 
                     //orsToFlowNodesBuild.Add(key, ToOr(concrete));
 
@@ -1183,32 +1187,32 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return res;
             }
 
-            private static bool TryToOuterFlowNode(Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> orsToFlowNodes, Tpn.TypeProblem2.OrType or, out IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> res)
-            {
-                if (orsToFlowNodes.TryGetValue(GetType(or.Left.GetOrThrow()).SwitchReturns(
-                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x)), out var left) &&
-                           orsToFlowNodes.TryGetValue(GetType(or.Right.GetOrThrow()).SwitchReturns(
-                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                                           x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x)), out var right))
-                {
+            //private static bool TryToOuterFlowNode(Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> orsToFlowNodes, Tpn.TypeProblem2.OrType or, out IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> res)
+            //{
+            //    if (orsToFlowNodes.TryGetValue(GetType(or.Left.GetOrThrow()).SwitchReturns(
+            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x)), out var left) &&
+            //               orsToFlowNodes.TryGetValue(GetType(or.Right.GetOrThrow()).SwitchReturns(
+            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
+            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x)), out var right))
+            //    {
 
-                    res = ToOr(new OrFlowNode(new[] { left, right }, Possibly.Is(or)));
-                    return true;
-                }
-                res = default;
-                return false;
-            }
+            //        res = ToOr(new OrFlowNode(new[] { left, right }, Possibly.Is(or)));
+            //        return true;
+            //    }
+            //    res = default;
+            //    return false;
+            //}
 
             private static bool TryToOuterFlowNode2(Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> orsToFlowNodes, Tpn.TypeProblem2.OrType or, out OrFlowNode2 res)
             {

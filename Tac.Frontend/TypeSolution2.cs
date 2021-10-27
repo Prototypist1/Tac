@@ -32,7 +32,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             //readonly Dictionary<TypeProblem2.Method, Scope> methodScopeCache = new Dictionary<TypeProblem2.Method, Scope>();
             //readonly Dictionary<TypeProblem2.Scope, Scope> scopeScopeCache = new Dictionary<TypeProblem2.Scope, Scope>();
 
-            private readonly ConcurrentIndexed<EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>>, Yolo> cache = new();
+            private readonly ConcurrentIndexed<EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>, Yolo> cache = new();
             //private readonly Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodes;
             private readonly Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2;
 
@@ -40,6 +40,8 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             private class Yolo
             {
+                public readonly EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> key;
+
                 internal IOrType<IReadOnlyList<(IKey, Yolo)>, IError>? members;
 
                 internal IIsPossibly<IOrType<Yolo, IError>>? output;
@@ -48,8 +50,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // for or types
                 internal IIsPossibly<Yolo>? left;
                 internal IIsPossibly<Yolo>? right;
-
+                internal IOrType<Yolo[], IError> generics;
+                internal IIsDefinately<IOrType<Yolo, IError>> looksUp;
                 internal readonly Box<IOrType<IFrontendType<IVerifiableType>, IError>> type = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
+
+                public Yolo(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> key)
+                {
+                    this.key = key ?? throw new ArgumentNullException(nameof(key));
+                }
 
                 // sometimes thing have no member but really we know they are an object or a type
                 // if this is not set the yolo becomes an AnyType with it set the Yolo becomes a HasMembers with no members
@@ -110,32 +118,190 @@ namespace Tac.Frontend.New.CrzayNamespace
                     //}
                 }
 
-                Yolo GetOrAdd(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>> equalableHashSet)
+                Yolo GetOrAdd(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> equalableHashSet)
                 {
-                    var myBox = new Yolo();
+                    var myBox = new Yolo(equalableHashSet);
                     var current = cache.GetOrAdd(equalableHashSet, myBox);
 
                     // if we added it, fill it
                     if (current == myBox)
                     {
-
-
                         if (equalableHashSet.Count() > 1)
                         {
-                            myBox.left = Possibly.Is(GetOrAdd(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>>(equalableHashSet.Take(equalableHashSet.Count() - 1).ToHashSet())));
-                            myBox.right = Possibly.Is(GetOrAdd(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>>(new HashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>>() { equalableHashSet.Last() })));
+                            myBox.left = Possibly.Is(GetOrAdd(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>(equalableHashSet.Take(equalableHashSet.Count() - 1).ToHashSet())));
+                            myBox.right = Possibly.Is(GetOrAdd(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>(new HashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>() { equalableHashSet.Last() })));
                         }
                         else
                         {
                             myBox.left = Possibly.IsNot<Yolo>();
                             myBox.right = Possibly.IsNot<Yolo>();
-                        }
 
-                        myBox.members = equalableHashSet.First().Members().TransformInner(members => members.Select(memberPair => (memberPair.Key, GetOrAdd(memberPair.Value.Flatten()))).ToArray());
-                        myBox.input = equalableHashSet.First().Input().TransformInner(inputOr => inputOr.TransformInner(input => GetOrAdd(input.Flatten())));
-                        myBox.output = equalableHashSet.First().Output().TransformInner(outputOr => outputOr.TransformInner(output => GetOrAdd(output.Flatten())));
+                            myBox.generics = equalableHashSet.First().Generics().TransformInner(generics => generics.Select(generic => GetOrAdd(generic.Flatten())).ToArray());
+
+                            myBox.members = equalableHashSet.First().Members().TransformInner(members => members.Select(memberPair => (memberPair.Key, GetOrAdd(memberPair.Value.Flatten()))).ToArray());
+                            myBox.input = equalableHashSet.First().Input().TransformInner(inputOr => inputOr.TransformInner(input => GetOrAdd(input.Flatten())));
+                            myBox.output = equalableHashSet.First().Output().TransformInner(outputOr => outputOr.TransformInner(output => GetOrAdd(output.Flatten())));
+                        }
+                        
                     }
                     return current;
+                }
+
+                // match generics with what they look up to
+                foreach (var (key, value) in cache) {
+                    if (value.generics.Is1(out var yolos) && yolos.Any()) { 
+                        
+                    }
+                }
+
+                // this is probably slow a dumb
+                IEnumerable<T> Add<T>(IEnumerable<T> current, T next) {
+                    foreach (var item in current)
+                    {
+                        yield return item;
+                    }
+                    yield return next;
+                }
+
+                void Walk(Yolo toWalk, IEnumerable<Yolo> stack, IEnumerable<IOrType<Member, Input, Output, Left, Right>> path) {
+                    if (stack.SkipLast(1).Contains(toWalk)) {
+                        return;
+                    }
+
+                    var justGenericConstraints = toWalk.key.Select(x => x
+                        .Where(y => y.Is5(out IsGeneric _))
+                        .Select(y => y.Is5OrThrow())
+                        .ToArray())
+                    .ToArray();
+
+                    var intersect = justGenericConstraints.First();
+
+                    foreach (var item in justGenericConstraints.Skip(1))
+                    {
+                        intersect = item.Intersect(intersect).ToArray();
+                    }
+
+                    if (intersect.Length == 1) {
+                        var genericConstraint = intersect.First();
+
+                        var ourPathArray = path.ToArray();
+
+                        if (genericConstraint.pathFromOwner.Length > ourPathArray.Length) {
+
+                            goto notMatched;
+                        }
+
+                        for (int i = genericConstraint.pathFromOwner.Length - 1; i >= 0; i--)
+                        {
+                            if (!genericConstraint.pathFromOwner[i].Equals(ourPathArray[(ourPathArray.Length - genericConstraint.pathFromOwner.Length) + i]) ) {
+                                goto notMatched;
+                            }
+                        }
+
+                        var target = stack.SkipLast(genericConstraint.pathFromOwner.Length).Last();
+
+                        target.looksUp = Possibly.Is( target.generics.TransformInner(x => x[genericConstraint.index]));
+                        
+                    }
+                    else if (intersect.Length > 1) {
+                        // method [T] [T,T] a;
+                        // method [t1,t2] [t1, t2] b;
+                        // c =: a;
+                        // c =: b;
+                        //
+                        // pretty sure we have no idea what "c" is..
+                        // well probabaly method [T1,T2] [T1,T2] where T1: T,t1 and T2: T,t2 
+                        //
+                        // but...
+                        //
+                        // method [Ta, Tb] [Tb,Ta] a;
+                        // method [t1,t2] [t1, t2] b;
+                        // c =: a;
+                        // c =: b;
+                        //
+                        // "c" is method [T1,T2] [T1,T2] where T1: Tb, t1 and T2: Ta,t2 
+                        //
+                        // but I still don't know what index...
+                        // TODO, it's an error for now 
+                        //
+                        // any other pain point:
+                        //
+                        // method [Ta, Tb] [Tb,Ta] a;
+                        // method [t1,t2] [t1, t2] b;
+                        // c =: a;
+                        // c =: b;
+                        // o > c =: int x
+                        //
+                        // "c" is method [T1,T2] [T1,T2] where T1: Tb, t1 and T2: Ta,t2, int
+                        // but I have Ta, t2 and, int constraint on the output
+                        // while just Ta, t2 constring s on T2
+                        // how do I know that those collapse??
+                        //
+                        // 
+                        // I think it only works if the constraints are the same length
+                        // you can't do the assignment if you have different numbers of type parameters 
+                        //
+                        // method [Ta, Tb] [Tb,Ta] a;
+                        // method [t1,t2] [t1, t2] b;
+                        // c =: a;
+                        // c =: b;
+                        //
+                        // c is actually method [T1,T2] [??] where T1: Ta, t1  and T2 : Tb and t2 
+                        // c has an input of Tb, t1 
+                        // c has an output of Ta, t2
+                        //
+                        // c is actually method [T1,T2] [T1&T2,T1&T2]
+                        // once we assume c is method [T1,T2] [??]
+                        // from it's prospective 
+                        // "a" becomes: method [T1,T2] [T2,T1]
+                        // "b" becomes: method [T1,T2] [T1,T2]
+                        // now "c" has an input of T1, T2 
+                        // now "c" has an output of T1, T2
+
+                        //... anyway
+                        //... I don't even have AND types 
+
+                        // I think probably a flow from a generic is consider to be from your own generic
+                        // 
+                        // so what about this one?
+                        // 
+                        // method [Ta, Tb] [Tb,Ta] a;
+                        // method [t1,t2] [t1, t2] b;
+                        // c =: a;
+                        // c =: b;
+                        // o > c =: int x
+                        //
+                        // is "c" method [T1:int,T2:int] [T1&T2,T1&T2] ?
+                        // they both don't need the "int" but how would I know which one?
+                        // or maybe "c" is method [T1,T2] [T1 & T2,T1 & T2 & int]
+                        throw new NotImplementedException("I think this should be an AND type, I don't really have those yet");
+                    }
+
+
+                notMatched:
+
+
+                    if (toWalk.left.Is(out var leftYolo)) {
+                        Walk(leftYolo, Add(stack, leftYolo), Add(path, OrType.Make<Member, Input, Output, Left, Right>(new Left())));
+                    }
+                    if (toWalk.right.Is(out var rightYolo))
+                    {
+                        Walk(leftYolo, Add(stack, leftYolo), Add(path, OrType.Make<Member, Input, Output, Left, Right>(new Right())));
+                    }
+                    if (toWalk.input.Is(out var inputOrError) && inputOrError.Is1(out var inputYolo))
+                    {
+                        Walk(inputYolo, Add(stack, inputYolo), Add(path, OrType.Make<Member, Input, Output, Left, Right>(new Input())));
+                    }
+                    if (toWalk.output.Is(out var outputOrError) && inputOrError.Is1(out var outputYolo))
+                    {
+                        Walk(outputYolo, Add(stack, outputYolo), Add(path, OrType.Make<Member, Input, Output, Left, Right>(new Output())));
+                    }
+                    if (toWalk.members.Is1(out var members)) {
+                        foreach (var member in members)
+                        {
+                            Walk(member.Item2, Add(stack, member.Item2), Add(path, OrType.Make<Member, Input, Output, Left, Right>(new Member(member.Item1))));
+                        }
+                    }
                 }
 
                 foreach (var (key, value) in cache)
@@ -164,7 +330,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
 
-                IOrType<IFrontendType<IVerifiableType>, IError> Convert2(EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>> constrains, Yolo yolo)
+                IOrType<IFrontendType<IVerifiableType>, IError> Convert2(EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>> constrains, Yolo yolo)
                 {
                     //if (yolo.isGeneric.Is(out var genericTypeParameter)) {
                     //    var res = new GenericTypeParameterPlacholder(genericTypeParameter.index,
@@ -376,133 +542,146 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             }
 
-            public IIsPossibly<EqualableHashSet<Tpn.TypeProblem2.GenericTypeParameter>> GetGenericTypeParameter(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>> key) {
+            //public IIsPossibly<EqualableHashSet<Tpn.TypeProblem2.GenericTypeParameter>> GetGenericTypeParameter(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> key) {
 
 
-                var justGenericConstraints = key.Select(x => x
-                        .Where(y => y.Is5(out IsGenericRestraintFor _))
-                        .Select(y => y.Is5OrThrow())
-                        .ToArray())
-                    .ToArray();
+            //    var justGenericConstraints = key.Select(x => x
+            //            .Where(y => y.Is5(out IsGeneric _))
+            //            .Select(y => y.Is5OrThrow())
+            //            .ToArray())
+            //        .ToArray();
 
-                var intersect = justGenericConstraints.First();
+            //    var intersect = justGenericConstraints.First();
 
-                foreach (var item in justGenericConstraints.Skip(1))
-                {
-                    intersect = item.Intersect(intersect).ToArray();
-                }
+            //    foreach (var item in justGenericConstraints.Skip(1))
+            //    {
+            //        intersect = item.Intersect(intersect).ToArray();
+            //    }
 
-                if (intersect.Length == 0)
-                {
-                    return Possibly.IsNot<EqualableHashSet<Tpn.TypeProblem2.GenericTypeParameter>>();
-                }
+            //    if (intersect.Length == 0)
+            //    {
+            //        return Possibly.IsNot<EqualableHashSet<Tpn.TypeProblem2.GenericTypeParameter>>();
+            //    }
 
-                //if (intersect.Length > 1)
-                //{
-                //    throw new Exception("uhh, we are move than one generic? 😬");
-                //}
+            //    //if (intersect.Length > 1)
+            //    //{
+            //    //    throw new Exception("uhh, we are move than one generic? 😬");
+            //    //}
 
-                return Possibly.Is(new EqualableHashSet<Tpn.TypeProblem2.GenericTypeParameter>(intersect.Select(x=>x.genericTypeParameter).ToHashSet()));
-            }
+            //    return Possibly.Is(new EqualableHashSet<Tpn.TypeProblem2.GenericTypeParameter>(intersect.Select(x=>x.genericTypeParameter).ToHashSet()));
+            //}
 
-            private ConcurrentIndexed<EqualableHashSet<Tpn.TypeProblem2.GenericTypeParameter>, GenericTypeParameterPlacholder> genericCache = new ConcurrentIndexed<EqualableHashSet<TypeProblem2.GenericTypeParameter>, GenericTypeParameterPlacholder>();
+            //private ConcurrentIndexed<EqualableHashSet<Tpn.TypeProblem2.GenericTypeParameter>, GenericTypeParameterPlacholder> genericCache = new ConcurrentIndexed<EqualableHashSet<TypeProblem2.GenericTypeParameter>, GenericTypeParameterPlacholder>();
 
-            Box<IOrType<IFrontendType<IVerifiableType>, IError>> GetFromCacheReplaceGenericConstrainsWithTheGeneric(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>> key)
+            Box<IOrType<IFrontendType<IVerifiableType>, IError>> GetFromCacheReplaceGenericConstrainsWithTheGeneric(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> key)
             {
                 var res = cache[key];
+                if (res.looksUp.Is(out var orType)) {
+                    return orType.SwitchReturns(x => x.type,
+                        error => new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(error)));
+                    //orType.TransformInner(x => );
+                }
+                return res.type;
+                //var justGenericConstraints = key.Select(x => x
+                //        .Where(y => y.Is5(out IsGeneric _))
+                //        .Select(y => y.Is5OrThrow())
+                //        .ToArray())
+                //    .ToArray();
 
-                //if (res.isGenericConstraintFroRealized.Is(out var alreadyGotIt))
-                //{
-                //    return alreadyGotIt;
+
+
+                ////if (res.isGenericConstraintFroRealized.Is(out var alreadyGotIt))
+                ////{
+                ////    return alreadyGotIt;
+                ////}
+
+                //var possiblyGenericTypeParameter = GetGenericTypeParameter(key);
+
+                //if (possiblyGenericTypeParameter.Is(out var genericTypeParameter)) {
+                //    var groupedParms = genericTypeParameter.GroupBy(x => x.index).ToArray();
+                //    if (groupedParms.Count() > 1) {
+                //        // method [T] [T,T] a;
+                //        // method [t1,t2] [t1, t2] b;
+                //        // c =: a;
+                //        // c =: b;
+                //        //
+                //        // pretty sure we have no idea what "c" is..
+                //        // well probabaly method [T1,T2] [T1,T2] where T1: T,t1 and T2: T,t2 
+                //        //
+                //        // but...
+                //        //
+                //        // method [Ta, Tb] [Tb,Ta] a;
+                //        // method [t1,t2] [t1, t2] b;
+                //        // c =: a;
+                //        // c =: b;
+                //        //
+                //        // "c" is method [T1,T2] [T1,T2] where T1: Tb, t1 and T2: Ta,t2 
+                //        //
+                //        // but I still don't know what index...
+                //        // TODO, it's an error for now 
+                //        //
+                //        // any other pain point:
+                //        //
+                //        // method [Ta, Tb] [Tb,Ta] a;
+                //        // method [t1,t2] [t1, t2] b;
+                //        // c =: a;
+                //        // c =: b;
+                //        // o > c =: int x
+                //        //
+                //        // "c" is method [T1,T2] [T1,T2] where T1: Tb, t1 and T2: Ta,t2, int
+                //        // but I have Ta, t2 and, int constraint on the output
+                //        // while just Ta, t2 constring s on T2
+                //        // how do I know that those collapse??
+                //        //
+                //        // 
+                //        // I think it only works if the constraints are the same length
+                //        // you can't do the assignment if you have different numbers of type parameters 
+                //        //
+                //        // method [Ta, Tb] [Tb,Ta] a;
+                //        // method [t1,t2] [t1, t2] b;
+                //        // c =: a;
+                //        // c =: b;
+                //        //
+                //        // c is actually method [T1,T2] [??] where T1: Ta, t1  and T2 : Tb and t2 
+                //        // c has an input of Tb, t1 
+                //        // c has an output of Ta, t2
+                //        //
+                //        // c is actually method [T1,T2] [T1&T2,T1&T2]
+                //        // once we assume c is method [T1,T2] [??]
+                //        // from it's prospective 
+                //        // "a" becomes: method [T1,T2] [T2,T1]
+                //        // "b" becomes: method [T1,T2] [T1,T2]
+                //        // now "c" has an input of T1, T2 
+                //        // now "c" has an output of T1, T2
+
+                //        //... anyway
+                //        //... I don't even have AND types 
+
+                //        // I think probably a flow from a generic is consider to be from your own generic
+                //        // 
+                //        // so what about this one?
+                //        // 
+                //        // method [Ta, Tb] [Tb,Ta] a;
+                //        // method [t1,t2] [t1, t2] b;
+                //        // c =: a;
+                //        // c =: b;
+                //        // o > c =: int x
+                //        //
+                //        // is "c" method [T1:int,T2:int] [T1&T2,T1&T2] ?
+                //        // they both don't need the "int" but how would I know which one?
+                //        // or maybe "c" is method [T1,T2] [T1 & T2,T1 & T2 & int]
+
+                //        return new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(Error.Other("")));
+                //    }
+
+                //    genericCache.GetOrAdd(genericTypeParameter, )
+
+                //    var innerRes = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new GenericTypeParameterPlacholder(groupedParms.First().Key, res.type)));
+                //    //res.isGenericConstraintFroRealized = Possibly.Is(innerRes);
+                //    return innerRes;
                 //}
 
-                var possiblyGenericTypeParameter = GetGenericTypeParameter(key);
-
-                if (possiblyGenericTypeParameter.Is(out var genericTypeParameter)) {
-                    var groupedParms = genericTypeParameter.GroupBy(x => x.index).ToArray();
-                    if (groupedParms.Count() > 1) {
-                        // method [T] [T,T] a;
-                        // method [t1,t2] [t1, t2] b;
-                        // c =: a;
-                        // c =: b;
-                        //
-                        // pretty sure we have no idea what "c" is..
-                        // well probabaly method [T1,T2] [T1,T2] where T1: T,t1 and T2: T,t2 
-                        //
-                        // but...
-                        //
-                        // method [Ta, Tb] [Tb,Ta] a;
-                        // method [t1,t2] [t1, t2] b;
-                        // c =: a;
-                        // c =: b;
-                        //
-                        // "c" is method [T1,T2] [T1,T2] where T1: Tb, t1 and T2: Ta,t2 
-                        //
-                        // but I still don't know what index...
-                        // TODO, it's an error for now 
-                        //
-                        // any other pain point:
-                        //
-                        // method [Ta, Tb] [Tb,Ta] a;
-                        // method [t1,t2] [t1, t2] b;
-                        // c =: a;
-                        // c =: b;
-                        // o > c =: int x
-                        //
-                        // "c" is method [T1,T2] [T1,T2] where T1: Tb, t1 and T2: Ta,t2, int
-                        // but I have Ta, t2 and, int constraint on the output
-                        // while just Ta, t2 constring s on T2
-                        // how do I know that those collapse??
-                        //
-                        // 
-                        // I think it only works if the constraints are the same length
-                        // you can't do the assignment if you have different numbers of type parameters 
-                        //
-                        // method [Ta, Tb] [Tb,Ta] a;
-                        // method [t1,t2] [t1, t2] b;
-                        // c =: a;
-                        // c =: b;
-                        //
-                        // c is actually method [T1,T2] [??] where T1: Ta, t1  and T2 : Tb and t2 
-                        // c has an input of Tb, t1 
-                        // c has an output of Ta, t2
-                        //
-                        // c is actually method [T1,T2] [T1&T2,T1&T2]
-                        // once we assume c is method [T1,T2] [??]
-                        // from it's prospective 
-                        // "a" becomes: method [T1,T2] [T2,T1]
-                        // "b" becomes: method [T1,T2] [T1,T2]
-                        // now "c" has an input of T1, T2 
-                        // now "c" has an output of T1, T2
-
-                        //... anyway
-                        //... I don't even have AND types 
-
-                        // I think probably a flow from a generic is consider to be from your own generic
-                        // 
-                        // so what about this one?
-                        // 
-                        // method [Ta, Tb] [Tb,Ta] a;
-                        // method [t1,t2] [t1, t2] b;
-                        // c =: a;
-                        // c =: b;
-                        // o > c =: int x
-                        //
-                        // is "c" method [T1:int,T2:int] [T1&T2,T1&T2] ?
-                        // they both don't need the "int" but how would I know which one?
-                        // or maybe "c" is method [T1,T2] [T1 & T2,T1 & T2 & int]
-
-                        return new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(Error.Other("")));
-                    }
-
-                    genericCache.GetOrAdd(genericTypeParameter, )
-
-                    var innerRes = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new GenericTypeParameterPlacholder(groupedParms.First().Key, res.type)));
-                    //res.isGenericConstraintFroRealized = Possibly.Is(innerRes);
-                    return innerRes;
-                }
-
-                return res.type;
+                //return res.type;
             }
             //public static IIsPossibly<IOrType<NameKey, ImplicitKey>[]> HasPlacholders(TypeProblem2.Method type)
             //{
@@ -715,7 +894,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         // this is basically
         // A and B and (C or D) to (A and B and C) or (A and B and D)
         // returns OR AND
-        public static EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>> Flatten(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>> self)
+        public static EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> Flatten(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>> self)
         {
             // AND OR AND 
             var andOrAnd = self
@@ -727,15 +906,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                     .ToArray())
                 .ToHashSet();
 
-            var orAndRes = new List<List<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>>() {
-                new List<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>()
+            var orAndRes = new List<List<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>() {
+                new List<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>()
             };
 
 
             foreach (var orAnd in andOrAnd)
             {
 
-                var nextOrAndRes = new List<List<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>>() { };
+                var nextOrAndRes = new List<List<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>() { };
 
                 foreach (var andRes in orAndRes)
                 {
@@ -754,16 +933,16 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             var shared = self.Where(x => !x.Is4(out var _))
                 .Select(x => x.SwitchReturns(
-                    y => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>(y),
-                    y => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>(y),
-                    y => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>(y),
+                    y => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>(y),
+                    y => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>(y),
+                    y => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>(y),
                     _ => throw new Exception("I just said not that!"),
-                    y => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>(y),
-                    y => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>(y),
-                    y => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>(y)))
+                    y => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>(y),
+                    y => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>(y),
+                    y => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>(y)))
                 .ToList();
             {
-                var nextOrAndRes = new List<List<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>>() { };
+                var nextOrAndRes = new List<List<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>() { };
 
                 foreach (var andRes in orAndRes)
                 {
@@ -776,31 +955,31 @@ namespace Tac.Frontend.New.CrzayNamespace
                 orAndRes = nextOrAndRes;
             }
 
-            return new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>>(
-                orAndRes.Select(x => new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>>(x.ToHashSet())).ToHashSet());
+            return new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>(
+                orAndRes.Select(x => new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>(x.ToHashSet())).ToHashSet());
         }
 
-        public static bool ExtendedIsCompatible(this IConstraint constraint, IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal> item) {
+        public static bool ExtendedIsCompatible(this IConstraint constraint, IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal> item) {
             return item.SwitchReturns(
-                x => constraint.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>(x), new List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>>>()),
-                x => constraint.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>(x), new List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>>>()),
-                x => constraint.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>(x), new List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>>>()),
-                x => constraint.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>(x), new List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>>>()),
+                x => constraint.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x), new List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>>()),
+                x => constraint.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x), new List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>>()),
+                x => constraint.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x), new List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>>()),
+                x => constraint.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x), new List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>>()),
                 x => true,
                 x => true);
         }
 
-        //public static IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers> Broaden(this IOrType<MustHave, MustBePrimitive, GivenPathThen,  HasMembers, IsGenericRestraintFor, IsExternal> self) {
+        //public static IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric> Broaden(this IOrType<MustHave, MustBePrimitive, GivenPathThen,  HasMembers, IsGenericRestraintFor, IsExternal> self) {
         //    return self.SwitchReturns(
-        //        x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>(x),
-        //        x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>(x),
-        //        x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>(x),
-        //        x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>(x),
-        //        x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>(x),
-        //        x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers>(x));
+        //        x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x),
+        //        x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x),
+        //        x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x),
+        //        x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x),
+        //        x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x),
+        //        x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x));
         //}
 
-        public static IOrType<IIsPossibly<Guid>, IError> Primitive(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>> self)
+        public static IOrType<IIsPossibly<Guid>, IError> Primitive(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>> self)
         {
             var primitives = self.SelectMany(x =>
             {
@@ -828,11 +1007,11 @@ namespace Tac.Frontend.New.CrzayNamespace
             return OrType.Make<IIsPossibly<Guid>, IError>(Possibly.IsNot<Guid>());
         }
 
-        public static IOrType<ICollection<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>>>, IError> Members(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>> self)
+        public static IOrType<ICollection<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>>, IError> Members(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>> self)
         {
             if (self.ErrorCheck(out var error))
             {
-                return OrType.Make<ICollection<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>>>, IError>(error);
+                return OrType.Make<ICollection<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>>, IError>(error);
             }
 
             var givenPathDictionary = self
@@ -859,10 +1038,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 .Where(x => x.path.Is1(out var _))
                 .GroupBy(x => x.path.Is1OrThrow());
 
-            var list = new List<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>>>();
+            var list = new List<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>>();
             foreach (var mustHaves in mustHaveGroup)
             {
-                var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>();
+                var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>();
 
                 var extened = false;
                 {
@@ -901,20 +1080,20 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                     }
                 }
-                var equalableSet = new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>(set);
+                var equalableSet = new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>(set);
 
-                list.Add(new KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>>(mustHaves.Key.key, equalableSet));
+                list.Add(new KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>(mustHaves.Key.key, equalableSet));
             }
 
-            return OrType.Make<ICollection<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>>>, IError>(list);
+            return OrType.Make<ICollection<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>>, IError>(list);
         }
 
 
-        public static IIsPossibly<IOrType<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>, IError>> Input(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>> self)
+        public static IIsPossibly<IOrType<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>, IError>> Input(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>> self)
         {
             if (self.ErrorCheck(out var error))
             {
-                return Possibly.Is(OrType.Make<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>, IError>(error));
+                return Possibly.Is(OrType.Make<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>, IError>(error));
             }
 
             var mustHaves = self
@@ -933,7 +1112,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             if (mustHaves.Any())
             {
-                var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>();
+                var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>();
 
                 var givenPaths = self
                     .SelectMany(x =>
@@ -981,19 +1160,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                         set.Add(constraint);
                     }
                 }
-                return Possibly.Is(OrType.Make<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>, IError>(new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>(set)));
+                return Possibly.Is(OrType.Make<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>, IError>(new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>(set)));
 
             }
 
-            return Possibly.IsNot<IOrType<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>, IError>>();
+            return Possibly.IsNot<IOrType<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>, IError>>();
         }
 
 
-        public static IIsPossibly<IOrType<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>, IError>> Output(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>> self)
+        public static IIsPossibly<IOrType<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>, IError>> Output(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>> self)
         {
             if (self.ErrorCheck(out var error))
             {
-                return Possibly.Is(OrType.Make<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>, IError>(error));
+                return Possibly.Is(OrType.Make<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>, IError>(error));
             }
 
             var mustHaves = self
@@ -1008,11 +1187,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 .Where(x => x.path.Is3(out var _))
                 .ToArray();
 
-
-
             if (mustHaves.Any())
             {
-                var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>();
+                var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>();
 
 
                 var givenPaths = self
@@ -1059,18 +1236,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                         set.Add(constraint);
                     }
                 }
-                return Possibly.Is(OrType.Make<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>, IError>(new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>(set)));
+                return Possibly.Is(OrType.Make<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>, IError>(new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>(set)));
 
             }
-            return Possibly.IsNot<IOrType<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>, IError>>();
+            return Possibly.IsNot<IOrType<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>, IError>>();
         }
 
-        public static IOrType<IReadOnlyList<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>>, IError> Generics(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>> self)
+        public static IOrType<IReadOnlyList<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>, IError> Generics(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>> self)
         {
 
             if (self.ErrorCheck(out var error))
             {
-                return OrType.Make<IReadOnlyList<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>>, IError>(error);
+                return OrType.Make<IReadOnlyList<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>, IError>(error);
             }
 
             var givenPathDictionary = self
@@ -1097,10 +1274,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 .Where(x => x.path.Is4(out var _))
                 .GroupBy(x => x.path.Is4OrThrow());
 
-            var pairs = new List<(int, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>)>();
+            var pairs = new List<(int, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>)>();
             foreach (var mustHaves in mustHaveGroup)
             {
-                var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>();
+                var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>();
 
                 var extened = false;
                 {
@@ -1140,14 +1317,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                     }
                 }
-                var equalableSet = new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>(set);
+                var equalableSet = new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>(set);
 
                 pairs.Add((mustHaves.Key.index, equalableSet));
             }
 
             if (!pairs.Any())
             {
-                return OrType.Make<IReadOnlyList<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>>, IError>(Array.Empty<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>>());
+                return OrType.Make<IReadOnlyList<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>, IError>(Array.Empty<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>());
             }
 
             if (pairs.Select(x => x.Item1).Max() != pairs.Count() - 1)
@@ -1157,10 +1334,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 throw new Exception("the generic constriants are discontinious...");
             }
 
-            return OrType.Make<IReadOnlyList<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor, IsExternal>>>, IError>(pairs.OrderBy(x => x.Item1).Select(x => x.Item2).ToArray());
+            return OrType.Make<IReadOnlyList<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>, IError>(pairs.OrderBy(x => x.Item1).Select(x => x.Item2).ToArray());
         }
 
-        private static bool ErrorCheck(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGenericRestraintFor, IsExternal>> self, [NotNullWhen(true)] out IError? error)
+        private static bool ErrorCheck(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>> self, [NotNullWhen(true)] out IError? error)
         {
             if (self.Any(x => x.Is2(out var _)) && !self.All(x => x.Is2(out var _)))
             {
@@ -1237,7 +1414,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 // the thing about how it works now is: it can't flow very far
 // a generic method has to be realized for befor you can call it
 // so it can only flow by assigning to "a"
-// 
 // 
 // a's output is just T1
 

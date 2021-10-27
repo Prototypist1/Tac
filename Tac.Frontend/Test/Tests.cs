@@ -2241,5 +2241,17 @@ namespace Tac.Frontend.TypeProblem.Test
         // maybe there is a "could have members" that flows down stream....
         //
         // or maybe the "given path then" actually constrains a generic in some way 
+        //
+        
+        // what about 
+        // generic-method [T] [T,T] input {
+        //      y =: input;
+        //      y =: { number x; } z
+        //      input return; 
+        // } =: test
+        //
+        // y is assignable to T and { number x } 
+        // is T assignable to { number x }
+        // ... no 
     }
 }
