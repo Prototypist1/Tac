@@ -50,7 +50,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // for or types
                 internal IIsPossibly<Yolo>? left;
                 internal IIsPossibly<Yolo>? right;
-                internal IOrType<Yolo[], IError> generics;
+                internal IOrType<Yolo[], IError>? generics;
                 internal IIsDefinately<IOrType<Yolo, IError>> looksUp;
                 internal readonly Box<IOrType<IFrontendType<IVerifiableType>, IError>> type = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
 
@@ -130,6 +130,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             myBox.left = Possibly.Is(GetOrAdd(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>(equalableHashSet.Take(equalableHashSet.Count() - 1).ToHashSet())));
                             myBox.right = Possibly.Is(GetOrAdd(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>(new HashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>() { equalableHashSet.Last() })));
+
+                            myBox.generics = OrType.Make<Yolo[], IError>(Array.Empty<Yolo>());
+
+                            myBox.members = OrType.Make<IReadOnlyList<(IKey, Yolo)>, IError>(Array.Empty<(IKey, Yolo)>());
+                            myBox.input = Possibly.IsNot<IOrType<Yolo, IError>>();
+                            myBox.output = Possibly.IsNot<IOrType<Yolo, IError>>();
                         }
                         else
                         {
@@ -142,20 +148,23 @@ namespace Tac.Frontend.New.CrzayNamespace
                             myBox.input = equalableHashSet.First().Input().TransformInner(inputOr => inputOr.TransformInner(input => GetOrAdd(input.Flatten())));
                             myBox.output = equalableHashSet.First().Output().TransformInner(outputOr => outputOr.TransformInner(output => GetOrAdd(output.Flatten())));
                         }
-                        
+
                     }
                     return current;
                 }
 
                 // match generics with what they look up to
-                foreach (var (key, value) in cache) {
-                    if (value.generics.Is1(out var yolos) && yolos.Any()) { 
-                        
+                foreach (var (key, value) in cache)
+                {
+                    if (value.generics.Is1(out var yolos) && yolos.Any())
+                    {
+                        Walk(value, new Yolo[] { value, }, Array.Empty<IOrType<Member, Input, Output, Left, Right>>());
                     }
                 }
 
                 // this is probably slow a dumb
-                IEnumerable<T> Add<T>(IEnumerable<T> current, T next) {
+                IEnumerable<T> Add<T>(IEnumerable<T> current, T next)
+                {
                     foreach (var item in current)
                     {
                         yield return item;
@@ -163,8 +172,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                     yield return next;
                 }
 
-                void Walk(Yolo toWalk, IEnumerable<Yolo> stack, IEnumerable<IOrType<Member, Input, Output, Left, Right>> path) {
-                    if (stack.SkipLast(1).Contains(toWalk)) {
+                void Walk(Yolo toWalk, IEnumerable<Yolo> stack, IEnumerable<IOrType<Member, Input, Output, Left, Right>> path)
+                {
+                    if (stack.SkipLast(1).Contains(toWalk))
+                    {
                         return;
                     }
 
@@ -181,29 +192,37 @@ namespace Tac.Frontend.New.CrzayNamespace
                         intersect = item.Intersect(intersect).ToArray();
                     }
 
-                    if (intersect.Length == 1) {
-                        var genericConstraint = intersect.First();
-
+                    var lookups = intersect.SelectMany(genericConstraint =>
+                    {
                         var ourPathArray = path.ToArray();
 
-                        if (genericConstraint.pathFromOwner.Length > ourPathArray.Length) {
-
-                            goto notMatched;
+                        if (genericConstraint.pathFromOwner.Length > ourPathArray.Length)
+                        {
+                            return Array.Empty<IOrType<Yolo, IError>>();
+                            //goto notMatched;
                         }
 
                         for (int i = genericConstraint.pathFromOwner.Length - 1; i >= 0; i--)
                         {
-                            if (!genericConstraint.pathFromOwner[i].Equals(ourPathArray[(ourPathArray.Length - genericConstraint.pathFromOwner.Length) + i]) ) {
-                                goto notMatched;
+                            if (!genericConstraint.pathFromOwner[i].Equals(ourPathArray[(ourPathArray.Length - genericConstraint.pathFromOwner.Length) + i]))
+                            {
+                                return Array.Empty<IOrType<Yolo, IError>>();
+                                //goto notMatched;
                             }
                         }
 
                         var target = stack.SkipLast(genericConstraint.pathFromOwner.Length).Last();
 
-                        target.looksUp = Possibly.Is( target.generics.TransformInner(x => x[genericConstraint.index]));
-                        
+                        return new[] { target.generics.TransformInner(x => x[genericConstraint.index]) };
+
+                    }).Distinct().ToArray();
+
+                    if (lookups.Length == 1)
+                    {
+                        toWalk.looksUp = Possibly.Is(lookups.First());
                     }
-                    else if (intersect.Length > 1) {
+                    else if (lookups.Length > 1)
+                    {
                         // method [T] [T,T] a;
                         // method [t1,t2] [t1, t2] b;
                         // c =: a;
@@ -281,7 +300,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 notMatched:
 
 
-                    if (toWalk.left.Is(out var leftYolo)) {
+                    if (toWalk.left.Is(out var leftYolo))
+                    {
                         Walk(leftYolo, Add(stack, leftYolo), Add(path, OrType.Make<Member, Input, Output, Left, Right>(new Left())));
                     }
                     if (toWalk.right.Is(out var rightYolo))
@@ -296,7 +316,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         Walk(outputYolo, Add(stack, outputYolo), Add(path, OrType.Make<Member, Input, Output, Left, Right>(new Output())));
                     }
-                    if (toWalk.members.Is1(out var members)) {
+                    if (toWalk.members.Is1(out var members))
+                    {
                         foreach (var member in members)
                         {
                             Walk(member.Item2, Add(stack, member.Item2), Add(path, OrType.Make<Member, Input, Output, Left, Right>(new Member(member.Item1))));
@@ -483,16 +504,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
 
                     // if it has members it must be a scope
-                    if (members.Any() || constrains.Any(x=>x.Is4(out HasMembers _)))
+                    if (members.Any() || constrains.Any(x => x.Is4(out HasMembers _)))
                     {
                         var external = constrains.Where(x => x.Is6(out IsExternal _)).Select(x => x.Is6OrThrow()).ToArray();
 
-                        if (external.Length > 1) {
+                        if (external.Length > 1)
+                        {
                             throw new Exception("what does that mean?!");
                         }
 
-                        if (external.Length == 1) {
-                            var interfaceType= external.Single().interfaceType;
+                        if (external.Length == 1)
+                        {
+                            var interfaceType = external.Single().interfaceType;
 
                             if (members.Count != interfaceType.Members.Count)
                             {
@@ -576,7 +599,8 @@ namespace Tac.Frontend.New.CrzayNamespace
             Box<IOrType<IFrontendType<IVerifiableType>, IError>> GetFromCacheReplaceGenericConstrainsWithTheGeneric(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> key)
             {
                 var res = cache[key];
-                if (res.looksUp.Is(out var orType)) {
+                if (res.looksUp.Is(out var orType))
+                {
                     return orType.SwitchReturns(x => x.type,
                         error => new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(error)));
                     //orType.TransformInner(x => );
@@ -810,9 +834,12 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
             internal IOrType<GenericTypeParameterPlacholder, IError> GetGenericPlaceholder(TypeProblem2.GenericTypeParameter from) =>
-                cache.Where(x => GetGenericTypeParameter(x.Key).Is(out var y) && y.Length == 1 && y.First() == from)
-                .Select(x => GetFromCacheReplaceGenericConstrainsWithTheGeneric(x.Key).GetValue().TransformInner(y => y.CastTo<GenericTypeParameterPlacholder>()))
-                .Single();
+                 GetFromCacheReplaceGenericConstrainsWithTheGeneric(flowNodes2[OrType.Make<ITypeProblemNode, IError>(from.constraint)]
+                   .GetValueAs(out IConstraintSoruce _)
+                   .GetExtendedConstraints()
+                   .Flatten())
+                .GetValue()
+                .TransformInner(y => y.CastTo<GenericTypeParameterPlacholder>());
 
             // this also ends up managing weak scopes that aren't types
             private readonly ConcurrentIndexed<Tpn.IHavePrivateMembers, WeakScope> nonTypeScopes = new ConcurrentIndexed<IHavePrivateMembers, WeakScope>();
@@ -959,7 +986,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 orAndRes.Select(x => new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>(x.ToHashSet())).ToHashSet());
         }
 
-        public static bool ExtendedIsCompatible(this IConstraint constraint, IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal> item) {
+        public static bool ExtendedIsCompatible(this IConstraint constraint, IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal> item)
+        {
             return item.SwitchReturns(
                 x => constraint.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x), new List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>>()),
                 x => constraint.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x), new List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>>()),
@@ -1054,7 +1082,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                     }
 
-                    if (sources.Count() == 1) {
+                    if (sources.Count() == 1)
+                    {
                         extened = true;
                     }
                 }
@@ -1062,7 +1091,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 foreach (var mustHave in mustHaves)
                 {
                     foreach (var constraint in extened ? mustHave.dependent.GetExtendedConstraints()
-                        : mustHave.dependent.GetConstraints().Select(x=>x.Broaden()))
+                        : mustHave.dependent.GetConstraints().Select(x => x.Broaden()))
                     {
                         set.Add(constraint);
                     }
@@ -1073,7 +1102,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         foreach (var givenPath in givenPaths)
                         {
                             foreach (var constraint in extened ? givenPath.dependent.GetExtendedConstraints()
-                                    :givenPath.dependent.GetConstraints().Select(x => x.Broaden()))
+                                    : givenPath.dependent.GetConstraints().Select(x => x.Broaden()))
                             {
                                 set.Add(constraint);
                             }
@@ -1125,11 +1154,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                     })
                     .Where(x => x.path.Is2(out var _));
 
-                
+
                 var extened = false;
                 {
                     var sources = mustHaves.Select(x => x.dependent).ToHashSet();
-    
+
                     foreach (var givenPath in givenPaths)
                     {
                         sources.Add(givenPath.dependent);
@@ -1140,7 +1169,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         extened = true;
                     }
                 }
-                
+
 
                 foreach (var mustHave in mustHaves)
                 {

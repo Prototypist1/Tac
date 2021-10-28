@@ -993,7 +993,7 @@ namespace Tac.Frontend
     {
         public readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> constraints = new (new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>());
 
-        public IIsPossibly<IsGeneric> isGenericRestraintFor = Possibly.IsNot<IsGeneric>();
+        public List<IsGeneric> isGenericRestraintFor = new List<IsGeneric>();
         //public IIsPossibly<IsExternal> isExternal = Possibly.IsNot<IsExternal>();
 
         public IOrType<NoChanges, Changes, FailedAction> AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> newConstraints)
@@ -1039,9 +1039,9 @@ namespace Tac.Frontend
         public EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>> GetExtendedConstraints()
         {
             var set = GetConstraints().Select(x => x.Broaden()).ToHashSet();
-            if (isGenericRestraintFor.Is(out var genericRestraintFor))
+            foreach (var item in isGenericRestraintFor)
             {
-                set.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>(genericRestraintFor));
+                set.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>(item));
             }
             //if (isExternal.Is(out var external))
             //{
@@ -1052,11 +1052,11 @@ namespace Tac.Frontend
 
         internal void IsConstraintFor(IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Left, Tpn.Right>[] pathFromOwner, int index)
         {
-            if (isGenericRestraintFor.Is(out var _)) {
-                throw new Exception("already set? that's suprising and worth thinking agout");
-            }
+            //if (isGenericRestraintFor.Is(out var _)) {
+            //    throw new Exception("already set? that's suprising and worth thinking agout");
+            //}
 
-            isGenericRestraintFor = Possibly.Is(new IsGeneric(pathFromOwner, index));
+            isGenericRestraintFor.Add(new IsGeneric(pathFromOwner, index));
         }
     }
 
