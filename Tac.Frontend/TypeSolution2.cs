@@ -52,6 +52,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 internal IIsPossibly<Yolo>? right;
                 internal IOrType<Yolo[], IError>? generics;
                 internal IIsDefinately<IOrType<Yolo, IError>> looksUp;
+                internal GenericTypeParameterPlacholder? genericTypeParameterPlaceholder;
                 internal readonly Box<IOrType<IFrontendType<IVerifiableType>, IError>> type = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
 
                 public Yolo(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> key)
@@ -153,6 +154,29 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return current;
                 }
 
+                foreach (var (key, value) in cache)
+                {
+                    if (value.generics.Is1(out var hasGenerics))
+                    {
+                        var i = 0;
+                        foreach (var generic in hasGenerics)
+                        {
+                            // you are here
+                            // this happen like
+                            // method [T1] [T1,T1] y =: x
+                            // y's input and x's input have the same constraints so they show up as one node here
+                            // 
+                            if (generic.genericTypeParameterPlaceholder != null)
+                            {
+                                throw new Exception("is that ok? can something be the generic on more than one thing?");
+                            }
+
+                            generic.genericTypeParameterPlaceholder = new GenericTypeParameterPlacholder(i, generic.type);
+                            i++;
+                        }
+                    }
+                }
+
                 // match generics with what they look up to
                 foreach (var (key, value) in cache)
                 {
@@ -178,6 +202,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         return;
                     }
+                    
 
                     var justGenericConstraints = toWalk.key.Select(x => x
                         .Where(y => y.Is5(out IsGeneric _))
@@ -296,8 +321,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                         throw new NotImplementedException("I think this should be an AND type, I don't really have those yet");
                     }
 
-
-                notMatched:
 
 
                     if (toWalk.left.Is(out var leftYolo))
@@ -601,10 +624,20 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var res = cache[key];
                 if (res.looksUp.Is(out var orType))
                 {
-                    return orType.SwitchReturns(x => x.type,
+                    return orType.SwitchReturns(x => {
+                            if (res.genericTypeParameterPlaceholder != null)
+                            {
+                                return new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<GenericTypeParameterPlacholder, IError>(x.genericTypeParameterPlaceholder));
+                            }
+                            throw new Exception("is that ok? if it looks up to something that something should be a generic, right?");
+                        },
                         error => new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(error)));
                     //orType.TransformInner(x => );
                 }
+                if (res.genericTypeParameterPlaceholder!= null) {
+                    return new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<GenericTypeParameterPlacholder, IError>(res.genericTypeParameterPlaceholder));
+                }
+
                 return res.type;
                 //var justGenericConstraints = key.Select(x => x
                 //        .Where(y => y.Is5(out IsGeneric _))
