@@ -52,7 +52,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 internal IIsPossibly<Yolo>? right;
                 internal IOrType<Yolo[], IError>? generics;
                 internal IIsDefinately<IOrType<Yolo, IError>> looksUp;
-                internal GenericTypeParameterPlacholder? genericTypeParameterPlaceholder;
                 internal readonly Box<IOrType<IFrontendType<IVerifiableType>, IError>> type = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
 
                 public Yolo(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> key)
@@ -154,28 +153,30 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return current;
                 }
 
-                foreach (var (key, value) in cache)
-                {
-                    if (value.generics.Is1(out var hasGenerics))
-                    {
-                        var i = 0;
-                        foreach (var generic in hasGenerics)
-                        {
-                            // you are here
-                            // this happen like
-                            // method [T1] [T1,T1] y =: x
-                            // y's input and x's input have the same constraints so they show up as one node here
-                            // 
-                            if (generic.genericTypeParameterPlaceholder != null)
-                            {
-                                throw new Exception("is that ok? can something be the generic on more than one thing?");
-                            }
+                //foreach (var (key, value) in cache)
+                //{
+                //    if (value.generics.Is1(out var hasGenerics))
+                //    {
+                //        var i = 0;
+                //        foreach (var generic in hasGenerics)
+                //        {
+                //            // you are here
+                //            // this happen like
+                //            // method [T1] [T1,T1] y =: x
+                //            // y's input and x's input have the same constraints so they show up as one node here
+                //            // but aren't x and y the same type...
+                //            // 
+                //            // 
+                //            if (generic.genericTypeParameterPlaceholder != null)
+                //            {
+                //                throw new Exception("is that ok? can something be the generic on more than one thing?");
+                //            }
 
-                            generic.genericTypeParameterPlaceholder = new GenericTypeParameterPlacholder(i, generic.type);
-                            i++;
-                        }
-                    }
-                }
+                //            generic.genericTypeParameterPlaceholder = new GenericTypeParameterPlacholder(i, generic.type);
+                //            i++;
+                //        }
+                //    }
+                //}
 
                 // match generics with what they look up to
                 foreach (var (key, value) in cache)
@@ -202,7 +203,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         return;
                     }
-                    
+
 
                     var justGenericConstraints = toWalk.key.Select(x => x
                         .Where(y => y.Is5(out IsGeneric _))
@@ -447,6 +448,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     if (constrains.Generics().Is1(out var generics) && generics.Any())
                     {
 
+                        var convertedGenerics = generics.Select(x => GetFromCacheReplaceGenericConstrainsWithTheGeneric(x.Flatten())).ToArray();
+
                         if (input != default && output != default)
                         {
                             // I don't think this is safe see:
@@ -454,9 +457,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                             return
                                  OrType.Make<IFrontendType<IVerifiableType>, IError>(
                                 new GenericMethodType(
-                                    GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten()),
-                                    GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten()),
-                                    generics.Select(x => GetFromCacheReplaceGenericConstrainsWithTheGeneric(x.Flatten())).ToArray()));
+                                    GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten(), convertedGenerics),
+                                    GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten(), convertedGenerics),
+                                    convertedGenerics));
                         }
 
 
@@ -469,7 +472,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     new GenericMethodType(
                                         GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten()),
                                         new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                        generics.Select(x => GetFromCacheReplaceGenericConstrainsWithTheGeneric(x.Flatten())).ToArray()));
+                                        convertedGenerics));
                         }
 
                         if (output != default)
@@ -481,7 +484,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     new GenericMethodType(
                                         new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
                                         GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten()),
-                                        generics.Select(x => GetFromCacheReplaceGenericConstrainsWithTheGeneric(x.Flatten())).ToArray()));
+                                        convertedGenerics);
                         }
 
                         return
@@ -489,7 +492,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 new GenericMethodType(
                                     new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
                                     new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                    generics.Select(x => GetFromCacheReplaceGenericConstrainsWithTheGeneric(x.Flatten())).ToArray()));
+                                    convertedGenerics));
                     }
 
                     if (input != default && output != default)
@@ -617,24 +620,92 @@ namespace Tac.Frontend.New.CrzayNamespace
             //    return Possibly.Is(new EqualableHashSet<Tpn.TypeProblem2.GenericTypeParameter>(intersect.Select(x=>x.genericTypeParameter).ToHashSet()));
             //}
 
-            //private ConcurrentIndexed<EqualableHashSet<Tpn.TypeProblem2.GenericTypeParameter>, GenericTypeParameterPlacholder> genericCache = new ConcurrentIndexed<EqualableHashSet<TypeProblem2.GenericTypeParameter>, GenericTypeParameterPlacholder>();
+            //private ConcurrentIndexed<IOrType<ITypeProblemNode, IError>, GenericTypeParameterPlacholder> genericCache = new ConcurrentIndexed<IOrType<ITypeProblemNode, IError>, GenericTypeParameterPlacholder>();
+
+            //Box<IOrType<IFrontendType<IVerifiableType>, IError>> Untitled(IOrType<ITypeProblemNode, IError> problemNode) {
+            //    {
+            //        if (genericCache.TryGetValue(problemNode, out var res)) {
+            //            return new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<GenericTypeParameterPlacholder, IError>(res));
+            //        } 
+            //    }
+
+
+            //    var key = this.flowNodes2[problemNode].GetValueAs(out IConstraintSoruce _).GetExtendedConstraints().Flatten();
+
+            //    var justGenericConstraints = key
+            //        .Select(x => x
+            //            .Where(y => y.Is5(out IsGeneric _))
+            //            .Select(y => y.Is5OrThrow())
+            //            .ToArray())
+            //        .ToArray();
+
+            //    var intersect = justGenericConstraints.First();
+
+            //    foreach (var item in justGenericConstraints.Skip(1))
+            //    {
+            //        intersect = item.Intersect(intersect).ToArray();
+            //    }
+
+            //    if (intersect.Length == 0) { 
+
+            //    } 
+            //    else if (intersect.Length == 1)
+            //    {
+            //        var res = genericCache.GetOrAdd(problemNode, new GenericTypeParameterPlacholder(intersect.Single().index, cache[key].type));
+            //        return new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<GenericTypeParameterPlacholder, IError>(res));
+            //    }
+            //    else 
+            //    { 
+
+            //    }
+            //}
+
+            Box<IOrType<IFrontendType<IVerifiableType>, IError>> GetFromCacheReplaceGenericConstrainsWithTheGeneric(
+                EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> key, 
+                IOrType<GenericTypeParameterPlacholder, IError>[] convertedGenerics) {
+
+                var justGenericConstraints = key.Select(x => x
+                    .Where(y => y.Is5(out IsGeneric _))
+                    .Select(y => y.Is5OrThrow())
+                    .ToArray())
+                .ToArray();
+
+                var intersect = justGenericConstraints.First();
+
+                foreach (var item in justGenericConstraints.Skip(1))
+                {
+                    intersect = item.Intersect(intersect).ToArray();
+                }
+
+                if (intersect.Length == 0) {
+                    return cache[key].type;
+                }
+                if (intersect.Length == 1) {
+                    var constraint = intersect[0];
+
+
+                    return  convertedGenerics[]
+                }
+            }
 
             Box<IOrType<IFrontendType<IVerifiableType>, IError>> GetFromCacheReplaceGenericConstrainsWithTheGeneric(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> key)
             {
                 var res = cache[key];
                 if (res.looksUp.Is(out var orType))
                 {
-                    return orType.SwitchReturns(x => {
-                            if (res.genericTypeParameterPlaceholder != null)
-                            {
-                                return new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<GenericTypeParameterPlacholder, IError>(x.genericTypeParameterPlaceholder));
-                            }
-                            throw new Exception("is that ok? if it looks up to something that something should be a generic, right?");
-                        },
+                    return orType.SwitchReturns(x =>
+                    {
+                        if (res.genericTypeParameterPlaceholder != null)
+                        {
+                            return new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<GenericTypeParameterPlacholder, IError>(x.genericTypeParameterPlaceholder));
+                        }
+                        throw new Exception("is that ok? if it looks up to something that something should be a generic, right?");
+                    },
                         error => new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(error)));
                     //orType.TransformInner(x => );
                 }
-                if (res.genericTypeParameterPlaceholder!= null) {
+                if (res.genericTypeParameterPlaceholder != null)
+                {
                     return new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<GenericTypeParameterPlacholder, IError>(res.genericTypeParameterPlaceholder));
                 }
 
@@ -866,13 +937,42 @@ namespace Tac.Frontend.New.CrzayNamespace
                 .GetValue();
 
 
-            internal IOrType<GenericTypeParameterPlacholder, IError> GetGenericPlaceholder(TypeProblem2.GenericTypeParameter from) =>
-                 GetFromCacheReplaceGenericConstrainsWithTheGeneric(flowNodes2[OrType.Make<ITypeProblemNode, IError>(from.constraint)]
-                   .GetValueAs(out IConstraintSoruce _)
-                   .GetExtendedConstraints()
-                   .Flatten())
-                .GetValue()
-                .TransformInner(y => y.CastTo<GenericTypeParameterPlacholder>());
+            //private ConcurrentIndexed<TypeProblem2.GenericTypeParameter, IOrType<GenericTypeParameterPlacholder, IError>> genericCache = new ConcurrentIndexed<TypeProblem2.GenericTypeParameter, IOrType<GenericTypeParameterPlacholder, IError>>();
+
+            //internal IOrType<GenericTypeParameterPlacholder, IError> GetGenericPlaceholder(TypeProblem2.GenericTypeParameter from) =>
+            //     GetFromCacheReplaceGenericConstrainsWithTheGeneric(flowNodes2[OrType.Make<ITypeProblemNode, IError>(from.constraint)]
+            //       .GetValueAs(out IConstraintSoruce _)
+            //       .GetExtendedConstraints()
+            //       .Flatten())
+            //    .GetValue()
+            //    .TransformInner(y => y.CastTo<GenericTypeParameterPlacholder>());
+            //GenericTypeParameter
+
+            private ConcurrentIndexed<TypeProblem2.GenericTypeParameter, GenericTypeParameterPlacholder> genericCache = new ConcurrentIndexed<TypeProblem2.GenericTypeParameter, GenericTypeParameterPlacholder>();
+
+            internal IOrType<GenericTypeParameterPlacholder, IError> GetGenericPlaceholder(TypeProblem2.GenericTypeParameter from)
+            {
+                if (genericCache.TryGetValue(from, out var res))
+                {
+                    return OrType.Make<GenericTypeParameterPlacholder, IError>(res);
+                }
+
+                var constraint = cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(from.constraint)]
+                  .GetValueAs(out IConstraintSoruce _)
+                  .GetExtendedConstraints()
+                  .Flatten()].type.GetValue();
+
+                return constraint.SwitchReturns(
+                    type => {
+                        var genericTypeParameterPlacholder = new GenericTypeParameterPlacholder(from.index, new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(constraint));
+                        genericTypeParameterPlacholder = genericCache.GetOrAdd(from, genericTypeParameterPlacholder);
+                        return OrType.Make<GenericTypeParameterPlacholder, IError>(genericTypeParameterPlacholder);
+                    },
+                    error => OrType.Make<GenericTypeParameterPlacholder, IError>(error));
+
+
+            }
+
 
             // this also ends up managing weak scopes that aren't types
             private readonly ConcurrentIndexed<Tpn.IHavePrivateMembers, WeakScope> nonTypeScopes = new ConcurrentIndexed<IHavePrivateMembers, WeakScope>();
