@@ -180,8 +180,14 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public class InferredType : TypeProblemNode, IHaveInputAndOutput, IHavePublicMembers //, IScope
             {
+                public readonly IIsPossibly<GenericTypeParameter> constraintFor = Possibly.IsNot<GenericTypeParameter>();
+
                 public InferredType(Builder problem, string debugName) : base(problem, debugName)
                 {
+                }
+                public InferredType(Builder problem, string debugName, GenericTypeParameter constraintFor) : base(problem, debugName)
+                {
+                    this.constraintFor = Possibly.Is(constraintFor);
                 }
                 public Dictionary<IKey, Member> PublicMembers { get; } = new Dictionary<IKey, Member>();
                 public IIsPossibly<Member> Input { get; set; } = Possibly.IsNot<Member>();
@@ -284,10 +290,11 @@ namespace Tac.Frontend.New.CrzayNamespace
             public class GenericTypeParameter : TypeProblemNode
             {
                 /// <param name="index">zero indexed</param>
-                public GenericTypeParameter(Builder problem, string debugName, int index) : base(problem, debugName)
+                public GenericTypeParameter(Builder problem, string debugName, int index, IOrType<MethodType, Type, Method, InferredType> owner) : base(problem, debugName)
                 {
-                    constraint = new InferredType(problem, "constraint-for-" + debugName);
+                    constraint = new InferredType(problem, "constraint-for-" + debugName,this);
                     this.index = index;
+                    this.owner = owner ?? throw new ArgumentNullException(nameof(owner));
                 }
 
                 public readonly InferredType constraint;
@@ -295,6 +302,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 /// zero indexed 
                 /// </summary>
                 public readonly int index;
+                public readonly IOrType<MethodType, Type, Method, InferredType> owner;
             }
 
             // basic stuff
@@ -1530,7 +1538,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                             new GenericTypeParameter(
                                 builder,
                                 $"generic-parameter-{item}",
-                                i++));
+                                i++,
+                                newType.SwitchReturns(
+                                    x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Method, InferredType>(x),
+                                    x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Method, InferredType>(x))));
                     }
 
                     // ThisThenThose because we need to beable to look up the generics we defined above
@@ -2271,7 +2282,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var i = 0;
                 foreach (var placeholder in placeholders)
                 {
-                    var placeholderType = new GenericTypeParameter(this.builder, $"generic-parameter-{placeholder.key}", i++);
+                    var placeholderType = new GenericTypeParameter(this.builder, $"generic-parameter-{placeholder.key}", i++, Prototypist.Toolbox.OrType.Make<MethodType, Type, Method, InferredType>(rootMethod));
                     //var placeholderType = new Type(this.builder, $"generic-parameter-{placeholder.key}", Possibly.Is(placeholder.key), placeholder.converter, Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>());
                     builder.HasGenericType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(rootMethod), placeholder.key, placeholderType);
                 }

@@ -319,7 +319,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var i = 0;
                     foreach (var placeholder in placeholders)
                     {
-                        var placeholderType = new TypeProblem2.GenericTypeParameter(this, $"generic-parameter-{placeholder.key}", i++);
+                        var placeholderType = new TypeProblem2.GenericTypeParameter(this, $"generic-parameter-{placeholder.key}", i++, Prototypist.Toolbox.OrType.Make<MethodType, Type, Method,InferredType>(res));
                         //var placeholderType = new Type(
                         //    this,
                         //    $"generic-parameter-{placeholder.key}",
@@ -361,7 +361,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var i = 0;
                     foreach (var placeholder in placeholders)
                     {
-                        var placeholderType = new GenericTypeParameter(this, $"generic-parameter-{placeholder.key}", i++);
+                        var placeholderType = new GenericTypeParameter(this, $"generic-parameter-{placeholder.key}", i++, Prototypist.Toolbox.OrType.Make<MethodType, Type, Method,InferredType>(method));
 
                         HasGenericType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(method), placeholder.key, placeholderType);
                     }
@@ -655,7 +655,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var i = 0;
                     foreach (var key in keys)
                     {
-                        inferredType.Generics.Add(key, new GenericTypeParameter(this, $"generic-parameter-{key}", i++));
+                        inferredType.Generics.Add(key, new GenericTypeParameter(this, $"generic-parameter-{key}", i++, Prototypist.Toolbox.OrType.Make<MethodType, Type, Method, InferredType>(inferredType)));
                     }
                     return inferredType.Generics;
                 }

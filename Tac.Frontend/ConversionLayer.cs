@@ -51,7 +51,7 @@ namespace Tac.Frontend
                     new WeakGenericTypeDefinition(
                         from.Key,
                         typeSolution.GetHasMemberType(from), // wrapping in a box here is weird 
-                        from.Generics.Select(x => typeSolution.GetGenericPlaceholder(x.Value)).ToArray()));// from.Generics.Select(x=>Possibly.Is< IGenericTypeParameterPlacholder>(x.Value.Converter.Convert(typeSolution,x.Value))).ToArray()));
+                        from.Generics.Select(x => typeSolution.GetGenericPlaceholder(x.Value, from)).ToArray()));// from.Generics.Select(x=>Possibly.Is< IGenericTypeParameterPlacholder>(x.Value.Converter.Convert(typeSolution,x.Value))).ToArray()));
             }
 
             return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>(
@@ -125,7 +125,7 @@ namespace Tac.Frontend
                         body,
                         OrType.Make<WeakScope, IError>(scope),
                         Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>(),
-                        from.Generics.Select(x => typeSolution.GetGenericPlaceholder(x.Value)).ToArray()));
+                        from.Generics.Select(x => typeSolution.GetGenericPlaceholder(x.Value, from)).ToArray()));
             }
 
             return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>(new WeakMethodDefinition(

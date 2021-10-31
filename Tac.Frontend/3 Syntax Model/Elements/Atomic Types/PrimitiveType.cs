@@ -668,7 +668,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
         public readonly IBox<IOrType<IFrontendType<IVerifiableType>, IError>> outputType;
         public readonly IBox<IOrType<IFrontendType<IVerifiableType>, IError>>[] typeParameterDefinitions;
 
-        public GenericMethodType(IBox<IOrType<IFrontendType<IVerifiableType>, IError>> inputType, Box<IOrType<IFrontendType<IVerifiableType>, IError>> outputType, IBox<IOrType<IFrontendType<IVerifiableType>, IError>>[] typeParameterDefinitions)
+        public GenericMethodType(IBox<IOrType<IFrontendType<IVerifiableType>, IError>> inputType, Box<IOrType<IFrontendType<IVerifiableType>, IError>> outputType, GenericTypeParameterPlacholder[] typeParameterDefinitions)
         {
             this.inputType = inputType;
             this.outputType = outputType;
