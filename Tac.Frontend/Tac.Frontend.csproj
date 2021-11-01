@@ -14,9 +14,9 @@
     <PackageReference Include="FunctionFlow" Version="1.0.0" />
     <PackageReference Include="FunctionFlow.Strong" Version="1.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="Prototypist.TaskChain" Version="1.0.12" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
-    <PackageReference Include="Prototypist.Toolbox" Version="1.0.0.29" />
+    <PackageReference Include="Prototypist.TaskChain" Version="1.0.17" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
+    <PackageReference Include="Prototypist.Toolbox" Version="1.0.0.30" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <PrivateAssets>all</PrivateAssets>

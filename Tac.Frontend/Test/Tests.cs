@@ -1748,7 +1748,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var xType = solution.GetType(x).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
             var xInput = Assert.IsType<GenericTypeParameterPlacholder>(xType.inputType.GetValue().Is1OrThrow());
             var xOutput = Assert.IsType<GenericTypeParameterPlacholder>(xType.outputType.GetValue().Is1OrThrow());
-            var xParameter = Assert.IsType<GenericTypeParameterPlacholder>(Assert.Single(xType.typeParameterDefinitions).GetValue().Is1OrThrow());
+            var xParameter = Assert.IsType<GenericTypeParameterPlacholder>(Assert.Single(xType.typeParameterDefinitions).Is1OrThrow());
 
             Assert.Equal(xInput, xOutput);
             Assert.Equal(xInput, xParameter);
@@ -1969,7 +1969,7 @@ namespace Tac.Frontend.TypeProblem.Test
             var solution = typeProblem.Solve();
 
             var zType = solution.GetType(z).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
-            var zParameter = Assert.IsType<GenericTypeParameterPlacholder>(Assert.Single(zType.typeParameterDefinitions).GetValue().Is1OrThrow());
+            var zParameter = Assert.IsType<GenericTypeParameterPlacholder>(Assert.Single(zType.typeParameterDefinitions).Is1OrThrow());
             var zInput = Assert.IsType<GenericTypeParameterPlacholder>(zType.inputType.GetValue().Is1OrThrow());
             var zOutput = Assert.IsType<GenericTypeParameterPlacholder>(zType.outputType.GetValue().Is1OrThrow());
 
@@ -2080,11 +2080,11 @@ namespace Tac.Frontend.TypeProblem.Test
             Assert.False(parameter.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
             Assert.True(parameter.TheyAreUs(hasEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
 
-            var myMethodReturns = result.GetType(myMethod).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _).typeParameterDefinitions.Single().GetValue().Is1OrThrow();
+            var myMethodReturns = result.GetType(myMethod).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _).typeParameterDefinitions.Single().Is1OrThrow();
             Assert.False(myMethodReturns.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
             Assert.True(myMethodReturns.TheyAreUs(hasEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
 
-            var yoloReturns = result.GetType(yolo).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _).typeParameterDefinitions.Single().GetValue().Is1OrThrow();
+            var yoloReturns = result.GetType(yolo).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _).typeParameterDefinitions.Single().Is1OrThrow();
             Assert.True(yoloReturns.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
             Assert.True(yoloReturns.TheyAreUs(hasEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
         }

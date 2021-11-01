@@ -2757,6 +2757,29 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
         }
 
+        public class PrivateMember
+        {
+            public readonly IKey key;
+
+            public PrivateMember(IKey key)
+            {
+                this.key = key ?? throw new ArgumentNullException(nameof(key));
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return obj != null && obj is PrivateMember member && member.key.Equals(this.key);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    return key.GetHashCode() + Guid.Parse("{AE1C5BE0-C236-4D42-95FC-9108A71C702A}").GetHashCode();
+                }
+            }
+        }
+
         public class Left
         {
             public override bool Equals(object? obj)
@@ -2766,6 +2789,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             public override int GetHashCode()
             {
+                // why do I do this? it is probably really slow 
                 return Guid.Parse("{5BACE1D7-5A10-4B9E-8565-4897D4929545}").GetHashCode();
             }
         }

@@ -53,11 +53,7 @@ namespace Tac.SemanticModel
             type = OrType.Make<SyntaxModel.Elements.AtomicTypes.GenericMethodType, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType(
                 InputType,
                 new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OutputType),
-                TypeParameterDefinitions.Select(x=> {
-                    IBox<IOrType<IFrontendType<IVerifiableType>, IError>> y = new Box<IOrType<IGenericTypeParameterPlacholder, IError>>(x);
-                    return y;
-                }).ToArray()
-                ));
+                TypeParameterDefinitions));
             this.TypeParameterDefinitions = TypeParameterDefinitions ?? throw new ArgumentNullException(nameof(TypeParameterDefinitions));
         }
 

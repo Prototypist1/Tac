@@ -666,9 +666,9 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
     {
         public readonly IBox<IOrType<IFrontendType<IVerifiableType>, IError>> inputType;
         public readonly IBox<IOrType<IFrontendType<IVerifiableType>, IError>> outputType;
-        public readonly IBox<IOrType<IFrontendType<IVerifiableType>, IError>>[] typeParameterDefinitions;
+        public readonly IOrType<IGenericTypeParameterPlacholder, IError>[] typeParameterDefinitions;
 
-        public GenericMethodType(IBox<IOrType<IFrontendType<IVerifiableType>, IError>> inputType, Box<IOrType<IFrontendType<IVerifiableType>, IError>> outputType, GenericTypeParameterPlacholder[] typeParameterDefinitions)
+        public GenericMethodType(IBox<IOrType<IFrontendType<IVerifiableType>, IError>> inputType, Box<IOrType<IFrontendType<IVerifiableType>, IError>> outputType, IOrType<IGenericTypeParameterPlacholder, IError>[] typeParameterDefinitions)
         {
             this.inputType = inputType;
             this.outputType = outputType;
@@ -729,7 +729,7 @@ namespace Tac.SyntaxModel.Elements.AtomicTypes
                         inputType.GetValue().Is1OrThrow().SafeCastTo<IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>>().Convert(context),
                         outputType.GetValue().Is1OrThrow().SafeCastTo<IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>>().Convert(context),
                         typeParameterDefinitions
-                            .Select(x=> x.GetValue().Is1OrThrow().Convert(context).SafeCastTo(out GenericTypeParameter _)/* can I push this earlier? it would be nice to cast earlier. it's a little painful becuase of the unwrapping, I don't know if I was careful with the types the whole way */)
+                            .Select(x=> x.Is1OrThrow().Convert(context).SafeCastTo(out GenericTypeParameter _)/* can I push this earlier? it would be nice to cast earlier. it's a little painful becuase of the unwrapping, I don't know if I was careful with the types the whole way */)
                             .ToArray()));
         }
     }

@@ -36,7 +36,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             //private readonly Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodes;
             private readonly Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2;
 
-
+            private readonly Dictionary<(Yolo, IOrType<Member, Input, Output, Left, Right, PrivateMember>), List<Yolo>> positions;
 
             private class Yolo
             {
@@ -71,7 +71,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             public TypeSolution(
-                IReadOnlyList<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, TypeProblem2.GenericTypeParameter, IError>> things,
+                IReadOnlyList<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, TypeProblem2.GenericTypeParameter, TypeProblem2.Method, IError>> things,
                 //Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> flowNodes,
                 Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
             {
@@ -154,6 +154,74 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                     return current;
                 }
+
+                // child, path -> parent 
+                positions = new ();
+                // we build a hierarchy
+                foreach (var item in cache)
+                {
+                    if (item.Value.input.Is(out var inputOrError) && inputOrError.Is1(out var input)) {
+                        var key = (input, OrType.Make<Member, Input, Output, Left, Right, PrivateMember>(new Input()));
+                        if (positions.TryGetValue(key, out var list)) {
+                            list.Add(item.Value);
+                        }
+                        else {
+                            positions[key] = new List<Yolo> { item.Value };
+                        }
+                    }
+                    if (item.Value.output.Is(out var outputOrError) && outputOrError.Is1(out var output))
+                    {
+                        var key = (output, OrType.Make<Member, Input, Output, Left, Right, PrivateMember>(new Output()));
+                        if (positions.TryGetValue(key, out var list))
+                        {
+                            list.Add(item.Value);
+                        }
+                        else
+                        {
+                            positions[key] = new List<Yolo> { item.Value };
+                        }
+                    }
+                    if (item.Value.left.Is(out var left))
+                    {
+                        var key = (left, OrType.Make<Member, Input, Output, Left, Right, PrivateMember>(new Left()));
+                        if (positions.TryGetValue(key, out var list))
+                        {
+                            list.Add(item.Value);
+                        }
+                        else
+                        {
+                            positions[key] = new List<Yolo> { item.Value };
+                        }
+                    }
+                    if (item.Value.right.Is(out var right))
+                    {
+                        var key = (right, OrType.Make<Member, Input, Output, Left, Right, PrivateMember>(new Right()));
+                        if (positions.TryGetValue(key, out var list))
+                        {
+                            list.Add(item.Value);
+                        }
+                        else
+                        {
+                            positions[key] = new List<Yolo> { item.Value };
+                        }
+                    }
+                    if (item.Value.members.Is1(out var members))
+                    {
+                        foreach (var memberPair in members)
+                        {
+                            var key = (memberPair.Item2, OrType.Make<Member, Input, Output, Left, Right, PrivateMember>(new Member(memberPair.Item1)));
+                            if (positions.TryGetValue(key, out var list))
+                            {
+                                list.Add(item.Value);
+                            }
+                            else
+                            {
+                                positions[key] = new List<Yolo> { item.Value };
+                            }
+                        }
+                    }
+                }
+
 
                 //foreach (var (key, value) in cache)
                 //{
@@ -458,9 +526,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                             return
                                  OrType.Make<IFrontendType<IVerifiableType>, IError>(
                                 new GenericMethodType(
-                                    GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten()),
-                                    GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten()),
-                                    convertedGenerics));
+                                    GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten(), positions),
+                                    GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten(), positions),
+                                    convertedGenerics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
                         }
 
 
@@ -471,9 +539,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                             return
                                 OrType.Make<IFrontendType<IVerifiableType>, IError>(
                                     new GenericMethodType(
-                                        GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten()),
+                                        GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten(), positions),
                                         new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                        convertedGenerics));
+                                        convertedGenerics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
                         }
 
                         if (output != default)
@@ -484,8 +552,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 OrType.Make<IFrontendType<IVerifiableType>, IError>(
                                     new GenericMethodType(
                                         new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                        GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten()),
-                                        convertedGenerics));
+                                        GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten(), positions),
+                                        convertedGenerics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
                         }
 
                         return
@@ -493,7 +561,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 new GenericMethodType(
                                     new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
                                     new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                    convertedGenerics));
+                                    convertedGenerics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
                     }
 
                     if (input != default && output != default)
@@ -503,8 +571,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                         return
                              OrType.Make<IFrontendType<IVerifiableType>, IError>(
                             new MethodType(
-                                GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten()),
-                                GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten())));
+                                GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten(), positions),
+                                GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten(), positions)));
                     }
 
 
@@ -515,7 +583,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         return
                              OrType.Make<IFrontendType<IVerifiableType>, IError>(
                             new MethodType(
-                                GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten()),
+                                GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten(), positions),
                                 new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType()))));
                     }
 
@@ -527,7 +595,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                              OrType.Make<IFrontendType<IVerifiableType>, IError>(
                             new MethodType(
                                 new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten())));
+                                GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten(), positions)));
                     }
 
                     // if it has members it must be a scope
@@ -625,8 +693,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             Box<IOrType<IFrontendType<IVerifiableType>, IError>> GetFromCacheReplaceGenericConstrainsWithTheGeneric(
                 EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> key,
-                IEnumerable<Yolo> stack, 
-                IEnumerable<IOrType<Member, Input, Output, Left, Right>> path)
+                Dictionary<(Yolo, IOrType<Member, Input, Output, Left, Right, PrivateMember>), List<Yolo>> positions)
             {
 
                 var justGenericConstraints = key.Select(x => x
@@ -642,28 +709,47 @@ namespace Tac.Frontend.New.CrzayNamespace
                     intersect = item.Intersect(intersect).ToArray();
                 }
 
+                var yolo = cache[key];
+
                 var lookups = intersect.SelectMany(genericConstraint =>
                 {
-                    var ourPathArray = path.ToArray();
 
-                    if (genericConstraint.pathFromOwner.Length > ourPathArray.Length)
-                    {
-                        return Array.Empty<IOrType<GenericTypeParameterPlacholder, IError>>();
-                        //goto notMatched;
-                    }
+                    var currents = new List<Yolo> { yolo };
 
-                    for (int i = genericConstraint.pathFromOwner.Length - 1; i >= 0; i--)
+                    foreach (var pathPart in genericConstraint.pathFromOwner.Reverse())
                     {
-                        if (!genericConstraint.pathFromOwner[i].Equals(ourPathArray[(ourPathArray.Length - genericConstraint.pathFromOwner.Length) + i]))
+                        var next = new List<Yolo>();
+                        foreach (var item in currents)
                         {
-                            return Array.Empty<IOrType<GenericTypeParameterPlacholder, IError>>();
-                            //goto notMatched;
+                            next.AddRange(positions[(item, pathPart)]);
                         }
+                        currents = next;
                     }
 
-                    var target = stack.SkipLast(genericConstraint.pathFromOwner.Length).Last();
+                    // I am curious to see if there is a case wehre Is1OrThrow will hit
+                    // seems like it shouldn't happen we walked up the generic look up path, there should a type parameter defined there 
+                    return currents.Select(current => current.generics.Is1OrThrow()[genericConstraint.index]);
 
-                    return new[] { target.generics.TransformInner(x => x[genericConstraint.index]) };
+                    //var ourPathArray = path.ToArray();
+
+                    //if (genericConstraint.pathFromOwner.Length > ourPathArray.Length)
+                    //{
+                    //    return Array.Empty<IOrType<GenericTypeParameterPlacholder, IError>>();
+                    //    //goto notMatched;
+                    //}
+
+                    //for (int i = genericConstraint.pathFromOwner.Length - 1; i >= 0; i--)
+                    //{
+                    //    if (!genericConstraint.pathFromOwner[i].Equals(ourPathArray[(ourPathArray.Length - genericConstraint.pathFromOwner.Length) + i]))
+                    //    {
+                    //        return Array.Empty<IOrType<GenericTypeParameterPlacholder, IError>>();
+                    //        //goto notMatched;
+                    //    }
+                    //}
+
+                    //var target = stack.SkipLast(genericConstraint.pathFromOwner.Length).Last();
+
+                    //return new[] { target.generics.TransformInner(x => x[genericConstraint.index]) };
 
                 }).Distinct().ToArray();
 
@@ -672,7 +758,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 if (lookups.Length == 1)
                 {
-                    return new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(lookups.First());
+                    return new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<GenericTypeParameterPlacholder, IError > (lookups.First()));
                 }
                 else 
                 {
@@ -940,7 +1026,12 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 return from.LooksUp.GetOrThrow()
                     .SwitchReturns<IOrType<IFrontendType<IVerifiableType>, IError>>(
-                        x => GetMethodType(x),
+                        x => {
+                            if (x.Generics.Any()) {
+                                return GetGenericMethodType(x);
+                            }
+                            return GetMethodType(x);
+                        },
                         x => GetHasMemberType(x),
                         x => GetObjectType(x),
                         x => GetOrType(x),
@@ -964,6 +1055,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                    .Flatten()].type
                 .GetValue()
                 .TransformInner(y => y.CastTo<MethodType>());
+
+            //GenericMethodType
+            internal IOrType<GenericMethodType, IError> GetGenericMethodType(TypeProblem2.MethodType from) =>
+               cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(from)]
+                   .GetValueAs(out IConstraintSoruce _)
+                   .GetExtendedConstraints()
+                   .Flatten()].type
+                .GetValue()
+                .TransformInner(y => y.CastTo<GenericMethodType>());
 
             internal IOrType<HasMembersType, IError> GetHasMemberType(TypeProblem2.Type from) =>
                 cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(from)]
@@ -1012,7 +1112,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 if (flowNodes2.TryGetValue(OrType.Make<ITypeProblemNode, IError>(scope), out var flowNode))
                 {
                     var rep = flowNode.GetValueAs(out IConstraintSoruce _).GetExtendedConstraints().Flatten();
-                    var type = GetFromCacheReplaceGenericConstrainsWithTheGeneric(rep).GetValue();
+                    var type = GetFromCacheReplaceGenericConstrainsWithTheGeneric(rep, positions).GetValue();
                     if (type.Is1(out var reallyType))
                     {
                         var maybeMember = reallyType.TryGetMember(key, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>());

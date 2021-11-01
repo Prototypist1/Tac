@@ -31,10 +31,10 @@ namespace Tac.Frontend
     //
     // this could also come from an or node
     class MustHave : IConstraint {
-        public readonly IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic> path;
+        public readonly IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember> path;
         public readonly IConstraintSoruce dependent;
 
-        public MustHave(IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic> path, IConstraintSoruce dependent)
+        public MustHave(IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember> path, IConstraintSoruce dependent)
         {
             this.path = path ?? throw new ArgumentNullException(nameof(path));
             this.dependent = dependent ?? throw new ArgumentNullException(nameof(dependent));
@@ -180,10 +180,10 @@ namespace Tac.Frontend
     // so (GivenPathThen .x.y implies int ) is (GivenPathThen .x implies  GivenPathThen .y implies int) 
     class GivenPathThen : IConstraint
     {
-        public readonly IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic> path;
+        public readonly IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember> path;
         public readonly IConstraintSoruce dependent;
 
-        public GivenPathThen(IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic> path, IConstraintSoruce dependent)
+        public GivenPathThen(IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember> path, IConstraintSoruce dependent)
         {
             this.path = path ?? throw new ArgumentNullException(nameof(path));
             this.dependent = dependent ?? throw new ArgumentNullException(nameof(dependent));
@@ -450,23 +450,26 @@ namespace Tac.Frontend
     {
         // method [T] [T,T] output with have a constraint with
         // a path of input and a index of 0
-        public readonly IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Left, Tpn.Right>[] pathFromOwner;
+        public readonly IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Left, Tpn.Right, Tpn.PrivateMember>[] pathFromOwner;
         /// <summary>
         /// zero indexed
         /// </summary>
         public readonly int index;
+        public IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Method, Tpn.TypeProblem2.InferredType> owner;
 
-        public IsGeneric(IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Left, Tpn.Right>[] pathFromOwner, int index)
+        public IsGeneric(IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Left, Tpn.Right, Tpn.PrivateMember>[] pathFromOwner, int index, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Method, Tpn.TypeProblem2.InferredType> owner)
         {
             this.pathFromOwner = pathFromOwner ?? throw new ArgumentNullException(nameof(pathFromOwner));
             this.index = index;
+            this.owner = owner;
         }
 
         public override bool Equals(object? obj)
         {
             return obj.SafeIs(out IsGeneric other) &&
                    pathFromOwner.SequenceEqual(other.pathFromOwner) &&
-                   index == other.index;
+                   index == other.index &&
+                   owner.Equals(other.owner);
         }
 
         public override int GetHashCode()
@@ -478,6 +481,7 @@ namespace Tac.Frontend
                 {
                     res += item.GetHashCode();
                 }
+                res += owner.GetHashCode();
                 return res;
             }
 
@@ -661,7 +665,7 @@ namespace Tac.Frontend
     { 
         // doesn't have OrConstraints
         private readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers>> constraints = new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers>>(new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers>>());
-        private readonly Dictionary<IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> dependents = new ();
+        private readonly Dictionary<IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> dependents = new ();
 
         private readonly HashSet<OrFlowNode2> perviouslyAccepted = new HashSet<OrFlowNode2>();
         private readonly HashSet<OrFlowNode2> perviouslyAcceptedDownstream= new HashSet<OrFlowNode2>();
@@ -939,16 +943,23 @@ namespace Tac.Frontend
 
         internal void AddMember(IKey key, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2> orType)
         {
-            var path = OrType.Make<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>(new Tpn.Member(key));
+            var path = OrType.Make<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember>(new Tpn.Member(key));
             dependents[path] = orType;
             constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new MustHave(path, orType.GetValueAs(out IConstraintSoruce _))));
             constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new GivenPathThen(path, orType.GetValueAs(out IConstraintSoruce _))));
 
         }
+        internal void AddPrivateMember(IKey key, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2> orType)
+        {
+            var path = OrType.Make<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember>(new Tpn.PrivateMember(key));
+            dependents[path] = orType;
+            constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new MustHave(path, orType.GetValueAs(out IConstraintSoruce _))));
+            constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new GivenPathThen(path, orType.GetValueAs(out IConstraintSoruce _))));
+        }
 
         internal void AddInput(IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2> orType)
         {
-            var path = OrType.Make<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>(new Tpn.Input());
+            var path = OrType.Make<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember>(new Tpn.Input());
             dependents[path] = orType;
             constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new MustHave(path, orType.GetValueAs(out IConstraintSoruce _))));
             constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new GivenPathThen(path, orType.GetValueAs(out IConstraintSoruce _))));
@@ -956,7 +967,7 @@ namespace Tac.Frontend
 
         internal void AddOutput(IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2> orType)
         {
-            var path = OrType.Make<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>(new Tpn.Output());
+            var path = OrType.Make<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember>(new Tpn.Output());
             dependents[path] = orType;
             constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new MustHave(path, orType.GetValueAs(out IConstraintSoruce _))));
             constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new GivenPathThen(path, orType.GetValueAs(out IConstraintSoruce _))));
@@ -967,7 +978,7 @@ namespace Tac.Frontend
             for (int i = 0; i < orTypes.Length; i++)
             {
                 var orType = orTypes[i];
-                var path = OrType.Make<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic>(new Tpn.Generic(i));
+                var path = OrType.Make<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember>(new Tpn.Generic(i));
                 dependents[path] = orType;
                 constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new MustHave(path, orType.GetValueAs(out IConstraintSoruce _))));
                 constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new GivenPathThen(path, orType.GetValueAs(out IConstraintSoruce _))));
@@ -1050,13 +1061,13 @@ namespace Tac.Frontend
             return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>(set);
         }
 
-        internal void IsConstraintFor(IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Left, Tpn.Right>[] pathFromOwner, int index)
+        internal void IsConstraintFor(IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Left, Tpn.Right, Tpn.PrivateMember>[] pathFromOwner, int index, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Method, Tpn.TypeProblem2.InferredType> owner)
         {
             //if (isGenericRestraintFor.Is(out var _)) {
             //    throw new Exception("already set? that's suprising and worth thinking agout");
             //}
 
-            isGenericRestraintFor.Add(new IsGeneric(pathFromOwner, index));
+            isGenericRestraintFor.Add(new IsGeneric(pathFromOwner, index, owner));
         }
     }
 
