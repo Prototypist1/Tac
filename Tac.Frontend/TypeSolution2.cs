@@ -43,6 +43,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public readonly EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> key;
 
                 internal IOrType<IReadOnlyList<(IKey, Yolo)>, IError>? members;
+                internal IOrType<IReadOnlyList<(IKey, Yolo)>, IError>? privateMembers;
 
                 internal IIsPossibly<IOrType<Yolo, IError>>? output;
                 internal IIsPossibly<IOrType<Yolo, IError>>? input;
@@ -133,8 +134,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                             myBox.right = Possibly.Is(GetOrAdd(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>(new HashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>() { equalableHashSet.Last() })));
 
                             myBox.generics = OrType.Make<GenericTypeParameterPlacholder[], IError>(Array.Empty<GenericTypeParameterPlacholder>());
-
+                            
                             myBox.members = OrType.Make<IReadOnlyList<(IKey, Yolo)>, IError>(Array.Empty<(IKey, Yolo)>());
+                            myBox.privateMembers = OrType.Make<IReadOnlyList<(IKey, Yolo)>, IError>(Array.Empty<(IKey, Yolo)>());
                             myBox.input = Possibly.IsNot<IOrType<Yolo, IError>>();
                             myBox.output = Possibly.IsNot<IOrType<Yolo, IError>>();
                         }
@@ -147,6 +149,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             myBox.generics = equalableHashSet.First().Generics().TransformInner(generics => generics.Select(generic => new GenericTypeParameterPlacholder(i++,  GetOrAdd(generic.Flatten()).type)).ToArray());
 
                             myBox.members = equalableHashSet.First().Members().TransformInner(members => members.Select(memberPair => (memberPair.Key, GetOrAdd(memberPair.Value.Flatten()))).ToArray());
+                            myBox.privateMembers = equalableHashSet.First().PrivateMembers().TransformInner(members => members.Select(memberPair => (memberPair.Key, GetOrAdd(memberPair.Value.Flatten()))).ToArray());
                             myBox.input = equalableHashSet.First().Input().TransformInner(inputOr => inputOr.TransformInner(input => GetOrAdd(input.Flatten())));
                             myBox.output = equalableHashSet.First().Output().TransformInner(outputOr => outputOr.TransformInner(output => GetOrAdd(output.Flatten())));
                         }
@@ -220,8 +223,22 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                         }
                     }
+                    if (item.Value.privateMembers.Is1(out var privateMembers))
+                    {
+                        foreach (var memberPair in privateMembers)
+                        {
+                            var key = (memberPair.Item2, OrType.Make<Member, Input, Output, Left, Right, PrivateMember>(new PrivateMember(memberPair.Item1)));
+                            if (positions.TryGetValue(key, out var list))
+                            {
+                                list.Add(item.Value);
+                            }
+                            else
+                            {
+                                positions[key] = new List<Yolo> { item.Value };
+                            }
+                        }
+                    }
                 }
-
 
                 //foreach (var (key, value) in cache)
                 //{
@@ -513,10 +530,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                         throw new Exception("so... this is a type and a method?!");
                     }
 
-                    if (constrains.Generics().Is1(out var generics) && generics.Any())
+                    if (yolo.generics.Is1(out var generics) && generics.Any())
                     {
-                        var i = 0;
-                        var convertedGenerics = generics.Select(x => new GenericTypeParameterPlacholder(i++, cache[x.Flatten()].type)).ToArray();
+                        //var i = 0;
+                        //var convertedGenerics = generics.Select(x => new GenericTypeParameterPlacholder(i++, cache[x.Flatten()].type)).ToArray();
 
 
                         if (input != default && output != default)
@@ -525,10 +542,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                             //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
                             return
                                  OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                                new GenericMethodType(
-                                    GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten(), positions),
-                                    GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten(), positions),
-                                    convertedGenerics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
+                                    new GenericMethodType(
+                                        GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten(), positions),
+                                        GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten(), positions),
+                                        generics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
                         }
 
 
@@ -541,7 +558,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     new GenericMethodType(
                                         GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten(), positions),
                                         new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                        convertedGenerics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
+                                        generics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
                         }
 
                         if (output != default)
@@ -553,7 +570,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     new GenericMethodType(
                                         new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
                                         GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten(), positions),
-                                        convertedGenerics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
+                                        generics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
                         }
 
                         return
@@ -561,7 +578,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 new GenericMethodType(
                                     new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
                                     new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                    convertedGenerics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
+                                    generics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
                     }
 
                     if (input != default && output != default)
@@ -1377,6 +1394,88 @@ namespace Tac.Frontend.New.CrzayNamespace
         }
 
 
+        public static IOrType<ICollection<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>>, IError> PrivateMembers(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>> self)
+        {
+            if (self.ErrorCheck(out var error))
+            {
+                return OrType.Make<ICollection<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>>, IError>(error);
+            }
+
+            var givenPathDictionary = self
+                .SelectMany(x =>
+                {
+                    if (x.Is3(out var v3))
+                    {
+                        return new[] { v3 };
+                    }
+                    return Array.Empty<GivenPathThen>();
+                })
+                .Where(x => x.path.Is5(out var _))
+                .GroupBy(x => x.path.Is5OrThrow()).ToDictionary(x => x.Key, x => x);
+
+            var mustHaveGroup = self
+                .SelectMany(x =>
+                {
+                    if (x.Is1(out var v1))
+                    {
+                        return new[] { v1 };
+                    }
+                    return Array.Empty<MustHave>();
+                })
+                .Where(x => x.path.Is5(out var _))
+                .GroupBy(x => x.path.Is5OrThrow());
+
+            var list = new List<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>>();
+            foreach (var mustHaves in mustHaveGroup)
+            {
+                var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>();
+
+                var extened = false;
+                {
+                    var sources = mustHaves.Select(x => x.dependent).ToHashSet();
+                    if (givenPathDictionary.TryGetValue(mustHaves.Key, out var givenPaths))
+                    {
+                        foreach (var givenPath in givenPaths)
+                        {
+                            sources.Add(givenPath.dependent);
+                        }
+                    }
+
+                    if (sources.Count() == 1)
+                    {
+                        extened = true;
+                    }
+                }
+
+                foreach (var mustHave in mustHaves)
+                {
+                    foreach (var constraint in extened ? mustHave.dependent.GetExtendedConstraints()
+                        : mustHave.dependent.GetConstraints().Select(x => x.Broaden()))
+                    {
+                        set.Add(constraint);
+                    }
+                }
+                {
+                    if (givenPathDictionary.TryGetValue(mustHaves.Key, out var givenPaths))
+                    {
+                        foreach (var givenPath in givenPaths)
+                        {
+                            foreach (var constraint in extened ? givenPath.dependent.GetExtendedConstraints()
+                                    : givenPath.dependent.GetConstraints().Select(x => x.Broaden()))
+                            {
+                                set.Add(constraint);
+                            }
+                        }
+                    }
+                }
+                var equalableSet = new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>(set);
+
+                list.Add(new KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>(mustHaves.Key.key, equalableSet));
+            }
+
+            return OrType.Make<ICollection<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>>, IError>(list);
+        }
+
         public static IIsPossibly<IOrType<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>, IError>> Input(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>> self)
         {
             if (self.ErrorCheck(out var error))
@@ -1396,8 +1495,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 .Where(x => x.path.Is2(out var _))
                 .ToArray();
 
-
-
             if (mustHaves.Any())
             {
                 var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>();
@@ -1413,7 +1510,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     })
                     .Where(x => x.path.Is2(out var _));
 
-
+                // I don't really think I got this right 
                 var extened = false;
                 {
                     var sources = mustHaves.Select(x => x.dependent).ToHashSet();
