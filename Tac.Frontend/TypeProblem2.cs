@@ -1238,6 +1238,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                     } while (go);
                 }
 
+                var db = "";
+
+                foreach (var item in flowNodes2)
+                {
+                    var key = item.Key.ToString();
+                    db += key + string.Join("", new string[Math.Max(1, 300 - key.Length)].Select(x => " ")) + item.Value.ToString() + Environment.NewLine;
+                }
+
                 return new TypeSolution(ors, flowNodes2);
             }
 

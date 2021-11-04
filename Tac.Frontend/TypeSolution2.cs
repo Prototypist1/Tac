@@ -745,7 +745,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     // I am curious to see if there is a case wehre Is1OrThrow will hit
                     // seems like it shouldn't happen we walked up the generic look up path, there should a type parameter defined there 
-                    return currents.Select(current => current.generics.Is1OrThrow()[genericConstraint.index]);
+                    return currents.Select(current => current.generics.Is1OrThrow()[genericConstraint.index]).ToArray();
 
                     //var ourPathArray = path.ToArray();
 
@@ -1347,27 +1347,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>();
 
-                var extened = false;
-                {
-                    var sources = mustHaves.Select(x => x.dependent).ToHashSet();
-                    if (givenPathDictionary.TryGetValue(mustHaves.Key, out var givenPaths))
-                    {
-                        foreach (var givenPath in givenPaths)
-                        {
-                            sources.Add(givenPath.dependent);
-                        }
-                    }
-
-                    if (sources.Count() == 1)
-                    {
-                        extened = true;
-                    }
-                }
-
                 foreach (var mustHave in mustHaves)
                 {
-                    foreach (var constraint in extened ? mustHave.dependent.GetExtendedConstraints()
-                        : mustHave.dependent.GetConstraints().Select(x => x.Broaden()))
+                    foreach (var constraint in  mustHave.dependent.GetExtendedConstraints())
                     {
                         set.Add(constraint);
                     }
@@ -1377,8 +1359,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         foreach (var givenPath in givenPaths)
                         {
-                            foreach (var constraint in extened ? givenPath.dependent.GetExtendedConstraints()
-                                    : givenPath.dependent.GetConstraints().Select(x => x.Broaden()))
+                            foreach (var constraint in givenPath.dependent.GetExtendedConstraints())
                             {
                                 set.Add(constraint);
                             }
@@ -1430,27 +1411,9 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>();
 
-                var extened = false;
-                {
-                    var sources = mustHaves.Select(x => x.dependent).ToHashSet();
-                    if (givenPathDictionary.TryGetValue(mustHaves.Key, out var givenPaths))
-                    {
-                        foreach (var givenPath in givenPaths)
-                        {
-                            sources.Add(givenPath.dependent);
-                        }
-                    }
-
-                    if (sources.Count() == 1)
-                    {
-                        extened = true;
-                    }
-                }
-
                 foreach (var mustHave in mustHaves)
                 {
-                    foreach (var constraint in extened ? mustHave.dependent.GetExtendedConstraints()
-                        : mustHave.dependent.GetConstraints().Select(x => x.Broaden()))
+                    foreach (var constraint in mustHave.dependent.GetExtendedConstraints())
                     {
                         set.Add(constraint);
                     }
@@ -1460,8 +1423,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         foreach (var givenPath in givenPaths)
                         {
-                            foreach (var constraint in extened ? givenPath.dependent.GetExtendedConstraints()
-                                    : givenPath.dependent.GetConstraints().Select(x => x.Broaden()))
+                            foreach (var constraint in givenPath.dependent.GetExtendedConstraints())
                             {
                                 set.Add(constraint);
                             }
@@ -1510,27 +1472,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                     })
                     .Where(x => x.path.Is2(out var _));
 
-                // I don't really think I got this right 
-                var extened = false;
-                {
-                    var sources = mustHaves.Select(x => x.dependent).ToHashSet();
-
-                    foreach (var givenPath in givenPaths)
-                    {
-                        sources.Add(givenPath.dependent);
-                    }
-
-                    if (sources.Count() == 1)
-                    {
-                        extened = true;
-                    }
-                }
-
-
                 foreach (var mustHave in mustHaves)
                 {
-                    foreach (var constraint in extened ? mustHave.dependent.GetExtendedConstraints()
-                                    : mustHave.dependent.GetConstraints().Select(x => x.Broaden()))
+                    foreach (var constraint in  mustHave.dependent.GetExtendedConstraints())
                     {
                         set.Add(constraint);
                     }
@@ -1539,8 +1483,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 foreach (var givenPath in givenPaths)
                 {
-                    foreach (var constraint in extened ? givenPath.dependent.GetExtendedConstraints()
-                                    : givenPath.dependent.GetConstraints().Select(x => x.Broaden()))
+                    foreach (var constraint in givenPath.dependent.GetExtendedConstraints())
                     {
                         set.Add(constraint);
                     }
@@ -1588,25 +1531,24 @@ namespace Tac.Frontend.New.CrzayNamespace
                     })
                     .Where(x => x.path.Is3(out var _));
 
-                var extened = false;
-                {
-                    var sources = mustHaves.Select(x => x.dependent).ToHashSet();
+                //var extened = false;
+                //{
+                //    var sources = mustHaves.Select(x => x.dependent).ToHashSet();
 
-                    foreach (var givenPath in givenPaths)
-                    {
-                        sources.Add(givenPath.dependent);
-                    }
+                //    foreach (var givenPath in givenPaths)
+                //    {
+                //        sources.Add(givenPath.dependent);
+                //    }
 
-                    if (sources.Count() == 1)
-                    {
-                        extened = true;
-                    }
-                }
+                //    if (sources.Count() == 1)
+                //    {
+                //        extened = true;
+                //    }
+                //}
 
                 foreach (var mustHave in mustHaves)
                 {
-                    foreach (var constraint in extened ? mustHave.dependent.GetExtendedConstraints()
-                                    : mustHave.dependent.GetConstraints().Select(x => x.Broaden()))
+                    foreach (var constraint in mustHave.dependent.GetExtendedConstraints())
                     {
                         set.Add(constraint);
                     }
@@ -1615,8 +1557,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 foreach (var givenPath in givenPaths)
                 {
-                    foreach (var constraint in extened ? givenPath.dependent.GetExtendedConstraints()
-                                    : givenPath.dependent.GetConstraints().Select(x => x.Broaden()))
+                    foreach (var constraint in  givenPath.dependent.GetExtendedConstraints())
                     {
                         set.Add(constraint);
                     }
@@ -1664,27 +1605,26 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>();
 
-                var extened = false;
-                {
-                    var sources = mustHaves.Select(x => x.dependent).ToHashSet();
-                    if (givenPathDictionary.TryGetValue(mustHaves.Key, out var givenPaths))
-                    {
-                        foreach (var givenPath in givenPaths)
-                        {
-                            sources.Add(givenPath.dependent);
-                        }
-                    }
+                //var extened = false;
+                //{
+                //    var sources = mustHaves.Select(x => x.dependent).ToHashSet();
+                //    if (givenPathDictionary.TryGetValue(mustHaves.Key, out var givenPaths))
+                //    {
+                //        foreach (var givenPath in givenPaths)
+                //        {
+                //            sources.Add(givenPath.dependent);
+                //        }
+                //    }
 
-                    if (sources.Count() == 1)
-                    {
-                        extened = true;
-                    }
-                }
+                //    if (sources.Count() == 1)
+                //    {
+                //        extened = true;
+                //    }
+                //}
 
                 foreach (var mustHave in mustHaves)
                 {
-                    foreach (var constraint in extened ? mustHave.dependent.GetExtendedConstraints()
-                                    : mustHave.dependent.GetConstraints().Select(x => x.Broaden()))
+                    foreach (var constraint in mustHave.dependent.GetExtendedConstraints())
                     {
                         set.Add(constraint);
                     }
@@ -1694,8 +1634,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         foreach (var givenPath in givenPaths)
                         {
-                            foreach (var constraint in extened ? givenPath.dependent.GetExtendedConstraints()
-                                    : givenPath.dependent.GetConstraints().Select(x => x.Broaden()))
+                            foreach (var constraint in givenPath.dependent.GetExtendedConstraints())
                             {
                                 set.Add(constraint);
                             }

@@ -34,10 +34,14 @@ namespace Tac.Frontend
         public readonly IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember> path;
         public readonly IConstraintSoruce dependent;
 
+        private static int index = 0;
+        private int myIndex;
+
         public MustHave(IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember> path, IConstraintSoruce dependent)
         {
             this.path = path ?? throw new ArgumentNullException(nameof(path));
             this.dependent = dependent ?? throw new ArgumentNullException(nameof(dependent));
+            myIndex = index++;
         }
 
         public override bool Equals(object? obj)
@@ -118,6 +122,11 @@ namespace Tac.Frontend
         }
         //public readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGenericRestraintFor>> constraints;
 
+        public override string ToString()
+        {
+            return $"{nameof(MustHave)}-{myIndex}({path}, {dependent})";
+        }
+
     }
 
     // this orginates at a primitive flow node
@@ -130,10 +139,14 @@ namespace Tac.Frontend
         public readonly Guid primitive;
         public readonly PrimitiveFlowNode2 primitiveFlowNode2;
 
+        private static int index = 0;
+        private int myIndex;
+
         public MustBePrimitive(Guid primitive, PrimitiveFlowNode2 primitiveFlowNode2)
         {
             this.primitive = primitive;
             this.primitiveFlowNode2 = primitiveFlowNode2 ?? throw new ArgumentNullException(nameof(primitiveFlowNode2));
+            myIndex = index++;
         }
 
         public override bool Equals(object? obj)
@@ -168,6 +181,11 @@ namespace Tac.Frontend
                 or => or.source.or.Select(x => x.GetValueAs(out IConstraintSoruce _).GetConstraints()).Any(oneOf => oneOf.All(item => this.IsCompatible(item, nextAssumeTrue.Value))),
                 HasMembers => false,
                 generic => false);
+        }
+
+        public override string ToString()
+        {
+            return $"{nameof(MustBePrimitive)}-{myIndex}({primitive})";
         }
     }
 
@@ -244,6 +262,11 @@ namespace Tac.Frontend
                 isGeneric => {
                     return true;
                 });
+        }
+
+        public override string ToString()
+        {
+            return $"{nameof(GivenPathThen)}({path}, {dependent})";
         }
     }
 
@@ -374,6 +397,10 @@ namespace Tac.Frontend
                    EqualityComparer<EqualableHashSet<IConstraintSoruce>>.Default.Equals(or, source.or);
         }
 
+        public override string ToString()
+        {
+            return $"{nameof(IntersectionsConstraintSource)}({or})";
+        }
     }
 
     // this comes from on or
@@ -429,6 +456,10 @@ namespace Tac.Frontend
         {
             return HashCode.Combine(source);
         }
+        public override string ToString()
+        {
+            return $"{nameof(OrConstraint)}({source})";
+        }
     }
 
     // x =: type {} y
@@ -443,7 +474,12 @@ namespace Tac.Frontend
                 or => or.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(this), assumeTrue),// reverse it - use og assumeTrue
                 HasMembers => true,
                 generic => true);
-        
+
+        public override string ToString()
+        {
+            return $"{nameof(HasMembers)}()";
+        }
+
     }
 
     class IsGeneric: IConstraint
@@ -496,21 +532,27 @@ namespace Tac.Frontend
                 HasMembers => HasMembers.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(this), assumeTrue),// reverse it - use og assumeTrue
                 generic =>
                 {
-                    if (!pathFromOwner.SequenceEqual(generic.pathFromOwner)) {
-                        // I don't think this can happen
-                        // these only exist on generic methods
-                        // and those those can only be assigned
-                        // you can't call them or anything
+                    //if (!pathFromOwner.SequenceEqual(generic.pathFromOwner))
+                    //{
+                    //    // I don't think this can happen
+                    //    // these only exist on generic methods
+                    //    // and those those can only be assigned
+                    //    // you can't call them or anything
 
-                        // can you have two generics of different paths?
-                        // I can't come up with an example of this happening
-                        // throw if is happens so we can think about it 
-                        throw new Exception("I don't know how this could happen");
-                    }
+                    //    // can you have two generics of different paths?
+                    //    // I can't come up with an example of this happening
+                    //    // throw if is happens so we can think about it 
+                    //    throw new Exception("I don't know how this could happen");
+                    //}
                     // I know same path different index is ok
                     // and clearly same path same index is ok
                     return true;
                 });
+
+        public override string ToString()
+        {
+            return $"{nameof(IsGeneric)}(new []{{{String.Join(", ", pathFromOwner.Select(x=>x.ToString()).ToArray())}}},{index},{owner})";
+        }
     }
 
     // this is a none flowing constrain
@@ -537,6 +579,12 @@ namespace Tac.Frontend
         }
 
         public bool IsCompatible(IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric> constraint, List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>> assumeTrue) => true;
+
+
+        public override string ToString()
+        {
+            return $"{nameof(IsExternal)}({interfaceType})";
+        }
     }
 
 
@@ -659,6 +707,12 @@ namespace Tac.Frontend
             return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>(GetConstraints().Select(x => x.Broaden()).ToHashSet());
         }
 
+
+        public override string ToString()
+        {
+            return $"{nameof(PrimitiveFlowNode2)}({guid}, {type})";
+        }
+
     }
 
     class ConcreteFlowNode2 : IFlowNode2
@@ -666,6 +720,8 @@ namespace Tac.Frontend
         // doesn't have OrConstraints
         private readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers>> constraints = new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers>>(new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers>>());
         private readonly Dictionary<IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> dependents = new ();
+        // private members don't flow
+        private readonly List<MustHave> privateMembers = new List<MustHave>();
 
         private readonly HashSet<OrFlowNode2> perviouslyAccepted = new HashSet<OrFlowNode2>();
         private readonly HashSet<OrFlowNode2> perviouslyAcceptedDownstream= new HashSet<OrFlowNode2>();
@@ -883,6 +939,10 @@ namespace Tac.Frontend
             {
                 set.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>(external));
             }
+            foreach (var privateMember in privateMembers)
+            {
+                set.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>(privateMember));
+            }
             return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>(set);
         }
 
@@ -953,8 +1013,7 @@ namespace Tac.Frontend
         {
             var path = OrType.Make<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember>(new Tpn.PrivateMember(key));
             dependents[path] = orType;
-            constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new MustHave(path, orType.GetValueAs(out IConstraintSoruce _))));
-            constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new GivenPathThen(path, orType.GetValueAs(out IConstraintSoruce _))));
+            privateMembers.Add(new MustHave(path, orType.GetValueAs(out IConstraintSoruce _)));
         }
 
         internal void AddInput(IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2> orType)
@@ -997,6 +1056,12 @@ namespace Tac.Frontend
         internal void HasMembers()
         {
             constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new HasMembers()));
+        }
+
+
+        public override string ToString()
+        {
+            return $"{nameof(ConcreteFlowNode2)}{{{String.Join(", ", GetExtendedConstraints().Select(x=>x.ToString()).ToArray())}}}";
         }
     }
 
@@ -1068,6 +1133,11 @@ namespace Tac.Frontend
             //}
 
             isGenericRestraintFor.Add(new IsGeneric(pathFromOwner, index, owner));
+        }
+
+        public override string ToString()
+        {
+            return $"{nameof(InferredFlowNode2)}{{{String.Join(", ", GetExtendedConstraints().Select(x => x.ToString()).ToArray())}}}";
         }
     }
 
@@ -1160,6 +1230,12 @@ namespace Tac.Frontend
 
         public bool CouldApplyToMe(IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> constraints)
             => or.Any(x => x.GetValueAs(out IFlowNode2 _).CouldApplyToMe(constraints));
+
+
+        public override string ToString()
+        {
+            return $"{nameof(OrFlowNode2)}({or})";
+        }
     }
 
 

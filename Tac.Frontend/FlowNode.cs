@@ -63,7 +63,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public override string? ToString()
         {
-            return $"EqualibleHashSet<{typeof(T).Name}>({string.Join(", ", backing.Take(10).Select(x => x.ToString())) + ((backing.Count > 10) ? "..." : "")})";
+            return $"EqualibleHashSet<{typeof(T).Name}>{{{string.Join(", ", backing.Take(10).Select(x => x.ToString())) + ((backing.Count > 10) ? "..." : "")}}}";
         }
 
         public bool Contains(T item)
@@ -2703,6 +2703,11 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 return Guid.Parse("{41BEF862-F911-45AA-A7FA-BF53F455B6E5}").GetHashCode();
             }
+
+            public override string ToString()
+            {
+                return nameof(Input)+"()"; 
+            }
         }
         public class Output
         {
@@ -2714,6 +2719,11 @@ namespace Tac.Frontend.New.CrzayNamespace
             public override int GetHashCode()
             {
                 return Guid.Parse("{C3BA31B3-0779-4073-AB6F-E8965DD83F7A}").GetHashCode();
+            }
+
+            public override string ToString()
+            {
+                return nameof(Output) + "()";
             }
         }
 
@@ -2735,6 +2745,11 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 return index;
             }
+
+            public override string ToString()
+            {
+                return $"{nameof(Generic)}({index})";
+            }
         }
 
         public class Member
@@ -2754,6 +2769,11 @@ namespace Tac.Frontend.New.CrzayNamespace
             public override int GetHashCode()
             {
                 return key.GetHashCode();
+            }
+
+            public override string ToString()
+            {
+                return $"{nameof(Member)}({key})";
             }
         }
 
@@ -2778,6 +2798,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return key.GetHashCode() + Guid.Parse("{AE1C5BE0-C236-4D42-95FC-9108A71C702A}").GetHashCode();
                 }
             }
+
+            public override string ToString()
+            {
+                return $"{nameof(PrivateMember)}({key})";
+            }
         }
 
         public class Left
@@ -2791,6 +2816,11 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 // why do I do this? it is probably really slow 
                 return Guid.Parse("{5BACE1D7-5A10-4B9E-8565-4897D4929545}").GetHashCode();
+            }
+
+            public override string ToString()
+            {
+                return $"{nameof(Left)}()";
             }
         }
 
@@ -2809,6 +2839,10 @@ namespace Tac.Frontend.New.CrzayNamespace
             public override int GetHashCode()
             {
                 return Guid.Parse("{F4CE4BAA-93D1-4D6D-986B-D543DD5DD6E7}").GetHashCode();
+            }
+            public override string ToString()
+            {
+                return $"{nameof(Right)}()";
             }
         }
 

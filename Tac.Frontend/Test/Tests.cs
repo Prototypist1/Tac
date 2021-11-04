@@ -1992,14 +1992,14 @@ namespace Tac.Frontend.TypeProblem.Test
         //  input =: chicken x;
         // } =: my-method
         //
-        // my-method =: method [T] [T,T] z
+        // my-method =: method [Tz] [Tz,Tz] z
         //
-        // method [T] [T,T] yolo 
+        // method [Tyolo] [Tyolo,Tyolo] yolo 
         //
         // my-method and yolo are not the same type
         // my-method is really method [T:chicken] [T,T]
-        // but I think probably the types will unify 
-        // we don't know the constraint until we flow
+        // [probably out of date] but I think probably the types will unify 
+        // [probably out of date] we don't know the constraint until we flow
         [Fact]
         public void GenericMethodDoesUnifyWithGenericMethodType()
         {
@@ -2051,10 +2051,10 @@ namespace Tac.Frontend.TypeProblem.Test
                 OrType.Make<IKey, IError>(
                     new DoubleGenericNameKey(
                         new NameKey("method"),
-                        new[] { new NameKey("T") },
+                        new[] { new NameKey("Tz") },
                         new[] {
-                            OrType.Make<IKey,IError>(new NameKey("T")),
-                            OrType.Make<IKey,IError>(new NameKey("T"))})));
+                            OrType.Make<IKey,IError>(new NameKey("Tz")),
+                            OrType.Make<IKey,IError>(new NameKey("Tz"))})));
             problem.builder.IsAssignedTo(myMethod, z);
 
             var yolo = problem.builder.CreatePublicMember(
@@ -2064,10 +2064,10 @@ namespace Tac.Frontend.TypeProblem.Test
                 OrType.Make<IKey, IError>(
                     new DoubleGenericNameKey(
                         new NameKey("method"),
-                        new[] { new NameKey("T") },
+                        new[] { new NameKey("Tyolo") },
                         new[] {
-                            OrType.Make<IKey,IError>(new NameKey("T")),
-                            OrType.Make<IKey,IError>(new NameKey("T"))})));
+                            OrType.Make<IKey,IError>(new NameKey("Tyolo")),
+                            OrType.Make<IKey,IError>(new NameKey("Tyolo"))})));
 
             var result = problem.Solve();
 
