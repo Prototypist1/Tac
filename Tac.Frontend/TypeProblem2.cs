@@ -1385,7 +1385,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             {
                 // we found something to constain
                 var count = 0;
-                foreach (var stackItem in stack.Reverse())
+                foreach (var stackItem in stack.Reverse().Skip(1)/*the last element is "self"*/)
                 {
                     count++;
                     if (stackItem.SwitchReturns(
