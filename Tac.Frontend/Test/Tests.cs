@@ -1424,8 +1424,6 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void XisAofX()
         {
-            throw new Exception("stackoverflow");
-
             var typeProblem = new Tpn.TypeProblem2(
                 new WeakScopeConverter(),
                 DefaultRootScopePopulateScope(), _ => { });
