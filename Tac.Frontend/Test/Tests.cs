@@ -1424,6 +1424,8 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void XisAofX()
         {
+            throw new Exception("stackoverflow");
+
             var typeProblem = new Tpn.TypeProblem2(
                 new WeakScopeConverter(),
                 DefaultRootScopePopulateScope(), _ => { });
@@ -1898,8 +1900,8 @@ namespace Tac.Frontend.TypeProblem.Test
             // method [T] [T,T] input {
             var (method,_,_) = problem.builder.CreateGenericMethod(
                 problem.ModuleRoot,
-                x => OrType.Make<Tpn.TypeProblem2.TypeReference,IError>( problem.builder.CreateTypeReference(problem.ModuleRoot, new NameKey("T"), new WeakTypeReferenceConverter())),
-                x => OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(problem.builder.CreateTypeReference(problem.ModuleRoot, new NameKey("T"), new WeakTypeReferenceConverter())),
+                x => OrType.Make<Tpn.TypeProblem2.TypeReference,IError>( problem.builder.CreateTypeReference(x, new NameKey("T"), new WeakTypeReferenceConverter())),
+                x => OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(problem.builder.CreateTypeReference(x, new NameKey("T"), new WeakTypeReferenceConverter())),
                 "input",
                 new WeakMethodDefinitionConverter(new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>(new List<IOrType<IBox<IFrontendCodeElement>, IError>>())),
                 new[] {
@@ -2012,8 +2014,8 @@ namespace Tac.Frontend.TypeProblem.Test
             // method [T] [T,T] input {
             var (method, _, _) = problem.builder.CreateGenericMethod(
                 problem.ModuleRoot,
-                x => OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(problem.builder.CreateTypeReference(problem.ModuleRoot, new NameKey("T"), new WeakTypeReferenceConverter())),
-                x => OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(problem.builder.CreateTypeReference(problem.ModuleRoot, new NameKey("T"), new WeakTypeReferenceConverter())),
+                x => OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(problem.builder.CreateTypeReference(x, new NameKey("T"), new WeakTypeReferenceConverter())),
+                x => OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(problem.builder.CreateTypeReference(x, new NameKey("T"), new WeakTypeReferenceConverter())),
                 "input",
                 new WeakMethodDefinitionConverter(new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>(new List<IOrType<IBox<IFrontendCodeElement>, IError>>())),
                 new[] {

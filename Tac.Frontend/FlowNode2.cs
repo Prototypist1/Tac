@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Tac.Frontend.New.CrzayNamespace;
 using Tac.Model;
@@ -34,14 +35,10 @@ namespace Tac.Frontend
         public readonly IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember> path;
         public readonly IConstraintSoruce dependent;
 
-        private static int index = 0;
-        private int myIndex;
-
         public MustHave(IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember> path, IConstraintSoruce dependent)
         {
             this.path = path ?? throw new ArgumentNullException(nameof(path));
             this.dependent = dependent ?? throw new ArgumentNullException(nameof(dependent));
-            myIndex = index++;
         }
 
         public override bool Equals(object? obj)
@@ -124,7 +121,7 @@ namespace Tac.Frontend
 
         public override string ToString()
         {
-            return $"{nameof(MustHave)}-{myIndex}({path}, {dependent})";
+            return $"{nameof(MustHave)}({path}, {dependent})";
         }
 
     }
@@ -139,14 +136,10 @@ namespace Tac.Frontend
         public readonly Guid primitive;
         public readonly PrimitiveFlowNode2 primitiveFlowNode2;
 
-        private static int index = 0;
-        private int myIndex;
-
         public MustBePrimitive(Guid primitive, PrimitiveFlowNode2 primitiveFlowNode2)
         {
             this.primitive = primitive;
             this.primitiveFlowNode2 = primitiveFlowNode2 ?? throw new ArgumentNullException(nameof(primitiveFlowNode2));
-            myIndex = index++;
         }
 
         public override bool Equals(object? obj)
@@ -185,7 +178,7 @@ namespace Tac.Frontend
 
         public override string ToString()
         {
-            return $"{nameof(MustBePrimitive)}-{myIndex}({primitive})";
+            return $"{nameof(MustBePrimitive)}({primitive})";
         }
     }
 
@@ -682,6 +675,8 @@ namespace Tac.Frontend
     {
         public readonly Guid guid;
         public readonly Tpn.TypeProblem2.Type type;
+        private static int index = 0;
+        private int myIndex = Interlocked.Increment(ref  index);
 
         public PrimitiveFlowNode2(Guid guid, Tpn.TypeProblem2.Type type)
         {
@@ -710,7 +705,7 @@ namespace Tac.Frontend
 
         public override string ToString()
         {
-            return $"{nameof(PrimitiveFlowNode2)}({guid}, {type})";
+            return $"{nameof(PrimitiveFlowNode2)}-{myIndex}({guid}, {type})";
         }
 
     }
@@ -727,6 +722,9 @@ namespace Tac.Frontend
         private readonly HashSet<OrFlowNode2> perviouslyAcceptedDownstream= new HashSet<OrFlowNode2>();
 
         public IIsPossibly<IsExternal> isExternal = Possibly.IsNot<IsExternal>();
+
+        private static int index = 0;
+        private int myIndex = Interlocked.Increment(ref index);
 
         public EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> GetConstraints()
         {
@@ -1061,7 +1059,7 @@ namespace Tac.Frontend
 
         public override string ToString()
         {
-            return $"{nameof(ConcreteFlowNode2)}{{{String.Join(", ", GetExtendedConstraints().Select(x=>x.ToString()).ToArray())}}}";
+            return $"{nameof(ConcreteFlowNode2)}-{myIndex}{{{String.Join(", ", GetExtendedConstraints().Select(x=>x.ToString()).ToArray())}}}";
         }
     }
 
@@ -1071,6 +1069,9 @@ namespace Tac.Frontend
 
         public List<IsGeneric> isGenericRestraintFor = new List<IsGeneric>();
         //public IIsPossibly<IsExternal> isExternal = Possibly.IsNot<IsExternal>();
+
+        private static int index = 0;
+        private int myIndex = Interlocked.Increment(ref index);
 
         public IOrType<NoChanges, Changes, FailedAction> AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> newConstraints)
         {
@@ -1137,7 +1138,7 @@ namespace Tac.Frontend
 
         public override string ToString()
         {
-            return $"{nameof(InferredFlowNode2)}{{{String.Join(", ", GetExtendedConstraints().Select(x => x.ToString()).ToArray())}}}";
+            return $"{nameof(InferredFlowNode2)}-{myIndex}{{{String.Join(", ", GetExtendedConstraints().Select(x => x.ToString()).ToArray())}}}";
         }
     }
 
@@ -1146,6 +1147,9 @@ namespace Tac.Frontend
         // we have shared constrains
         // and disjoin constraints
         // do we calculate them from our sources?
+
+        private static int index = 0;
+        private int myIndex = Interlocked.Increment(ref index);
 
         public readonly EqualableHashSet<IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> or;
 
@@ -1234,7 +1238,7 @@ namespace Tac.Frontend
 
         public override string ToString()
         {
-            return $"{nameof(OrFlowNode2)}({or})";
+            return $"{nameof(OrFlowNode2)}-{myIndex}({or})";
         }
     }
 
