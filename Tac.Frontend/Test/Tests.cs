@@ -2242,7 +2242,7 @@ namespace Tac.Frontend.TypeProblem.Test
         //
         // or maybe the "given path then" actually constrains a generic in some way 
         //
-        
+
         // what about 
         // generic-method [T] [T,T] input {
         //      y =: input;
@@ -2253,5 +2253,16 @@ namespace Tac.Frontend.TypeProblem.Test
         // y is assignable to T and { number x } 
         // is T assignable to { number x }
         // ... no 
+
+
+        // TODO 
+        //
+        // what about an object insdie a generic method?
+        //  generic-method [T] [T,T] input {
+        //      object { T t = input;  }
+        //      ...
+        //  }
+        // if the object depends on the generic its a generic-object
+        // I don't think I support this...
     }
 }

@@ -152,6 +152,8 @@ namespace Tac.Frontend.New.CrzayNamespace
             // but you can't really access their members
 
             // is a method type really a scope??
+            // I don't think so, I don't think this should have IScope or IHavePossibleMembers
+            // it's input and output sort of count as members and I think that is why it is like this 
             public class MethodType : TypeProblemNode<MethodType, Tac.SyntaxModel.Elements.AtomicTypes.MethodType>, IHaveInputAndOutput, IScope, IHavePossibleMembers
             {
                 public MethodType(Builder problem, string debugName, IConvertTo<MethodType, Tac.SyntaxModel.Elements.AtomicTypes.MethodType> converter) : base(problem, debugName, converter)
@@ -1001,13 +1003,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
-                // private members
-                foreach (var hasPublicMembers in ors.Select(x => (x.Is(out IHavePrivateMembers members), members)).Where(x => x.Item1).Select(x => x.members))
+                // private members - but just for methods 
+                foreach (var method in ors.Select(x => (x.Is7(out Method v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
-                    var concreteFlowNode2 = flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasPublicMembers)].Is1OrThrow();
+                    var concreteFlowNode2 = flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(method)].Is1OrThrow();
 
 
-                    foreach (var member in hasPublicMembers.PrivateMembers)
+                    foreach (var member in method.PrivateMembers)
                     {
                         //orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasPublicMembers)].Is1OrThrow().AddMember(
                         //    member.Key,
