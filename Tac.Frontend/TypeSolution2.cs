@@ -595,8 +595,319 @@ namespace Tac.Frontend.New.CrzayNamespace
                         throw new NotImplementedException("I think this should be an AND type, I don't really have those yet");
                     }
 
+                    else
+                    {
 
-                    Convert3(yolo, context);
+                        var constrains = yolo.key.Single();
+
+
+                        if (constrains.Count == 0)
+                        {
+                            var list = new EqualableReadOnlyList<Yolo>(Array.Empty<Yolo>());
+                            var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new AnyType()));
+                            typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                            return (res, list);
+                        }
+
+                        var prim = constrains.Primitive();
+
+                        if (prim.Is2(out var error))
+                        {
+                            var list = new EqualableReadOnlyList<Yolo>(Array.Empty<Yolo>());
+                            var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(error));
+                            typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                            return (res, list);
+                        }
+
+                        if (prim.Is1OrThrow().Is(out var _))
+                        {
+                            // I'd like to not pass "this" here
+                            // the primitive convert willn't use it
+                            // but... this isn't really ready to use
+                            // it's method are not defined at this point in time
+                            var source = constrains.Single().Is2OrThrow().primitiveFlowNode2.type;
+
+                            var list = new EqualableReadOnlyList<Yolo>(Array.Empty<Yolo>());
+                            var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(source.Converter.Convert(this, source).Is3OrThrow()));
+                            typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                            return (res, list);
+
+                        }
+
+                        if (yolo.members.Is2(out var e4))
+                        {
+                            var list = new EqualableReadOnlyList<Yolo>(Array.Empty<Yolo>());
+                            var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(e4));
+                            typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                            return (res, list);
+                        }
+                        var members = yolo.members.Is1OrThrow();
+
+                        if (constrains.Input().Is(out var inputOr))
+                        {
+                            if (inputOr.Is2(out var e2))
+                            {
+                                var list = new EqualableReadOnlyList<Yolo>(Array.Empty<Yolo>());
+                                var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(e2));
+                                typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                                return (res, list);
+                            }
+                        }
+                        var input = inputOr?.Is1OrThrow();
+
+
+                        if (constrains.Output().Is(out var outputOr))
+                        {
+                            if (outputOr.Is2(out var e3))
+                            {
+                                var list = new EqualableReadOnlyList<Yolo>(Array.Empty<Yolo>());
+                                var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(e3));
+                                typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                                return (res, list);
+                            }
+
+                        }
+                        var output = outputOr?.Is1OrThrow();
+
+                        if ((input != default || output != default) && members.Count > 1)
+                        {
+                            // this might be wrong
+                            // methods might end up with more than one member
+                            // input counts as a member but it is really something different
+                            // todo
+                            throw new Exception("so... this is a type and a method?!");
+                        }
+
+                        if (yolo.generics.Is1(out var generics) && generics.Any())
+                        {
+                            //var i = 0;
+                            //var convertedGenerics = generics.Select(x => new GenericTypeParameterPlacholder(i++, cache[x.Flatten()].type)).ToArray();
+
+
+                            if (input != default && output != default)
+                            {
+
+                                var (inputBox, inputContext) = CachedConvert3(cache[input.Flatten()], Add(context, yolo));
+                                var (outputBox, outputContext) = CachedConvert3(cache[output.Flatten()], Add(context, yolo));
+
+                                IReadOnlyList<Yolo> resContext = new Yolo[] { };
+
+                                if (inputContext.Count > resContext.Count)
+                                {
+                                    resContext = inputContext;
+                                }
+                                if (outputContext.Count > resContext.Count)
+                                {
+                                    resContext = outputContext;
+                                }
+
+                                // I don't think this is safe see:
+                                //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
+                                var list = new EqualableReadOnlyList<Yolo>(resContext.ToArray());
+                                var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(
+                                        new GenericMethodType(
+                                            inputBox,
+                                            outputBox,
+                                            generics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray())));
+                                typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                                return (res, list);
+                            }
+
+
+                            if (input != default)
+                            {
+
+
+                                var (inputBox, inputContext) = CachedConvert3(cache[input.Flatten()], Add(context, yolo));
+
+                                // I don't think this is safe see:
+                                //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
+                                var list = new EqualableReadOnlyList<Yolo>(inputContext.ToArray());
+                                var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(
+                                        new GenericMethodType(
+                                            inputBox,
+                                            new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
+                                            generics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray())));
+                                typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                                return (res, list);
+                            }
+
+                            if (output != default)
+                            {
+
+                                var (outputBox, outputContext) = CachedConvert3(cache[output.Flatten()], Add(context, yolo));
+
+                                // I don't think this is safe see:
+                                //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
+                                var list = new EqualableReadOnlyList<Yolo>(outputContext.ToArray());
+                                var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(
+                                        new GenericMethodType(
+                                            new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
+                                            outputBox,
+                                            generics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray())));
+                                typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                                return (res, list);
+                            }
+
+                            {
+                                var list = new EqualableReadOnlyList<Yolo>(Array.Empty<Yolo>());
+                                var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(
+                                        new GenericMethodType(
+                                            new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
+                                            new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
+                                            generics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray())));
+                                typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                                return (res, list);
+                            }
+                        }
+
+                        if (input != default && output != default)
+                        {
+                            var (inputBox, inputContext) = CachedConvert3(cache[input.Flatten()], Add(context, yolo));
+                            var (outputBox, outputContext) = CachedConvert3(cache[output.Flatten()], Add(context, yolo));
+
+                            IReadOnlyList<Yolo> resContext = new Yolo[] { };
+
+                            if (inputContext.Count > resContext.Count)
+                            {
+                                resContext = inputContext;
+                            }
+                            if (outputContext.Count > resContext.Count)
+                            {
+                                resContext = outputContext;
+                            }
+
+                            // I don't think this is safe see:
+                            //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
+                            var list = new EqualableReadOnlyList<Yolo>(resContext.ToArray());
+                            var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(
+                                new MethodType(
+                                    inputBox,
+                                    outputBox)));
+                            typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                            return (res, list);
+                        }
+
+
+                        if (input != default)
+                        {
+
+                            var (inputBox, inputContext) = CachedConvert3(cache[input.Flatten()], Add(context, yolo));
+
+                            // I don't think this is safe see:
+                            //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
+                            var list = new EqualableReadOnlyList<Yolo>(inputContext.ToArray());
+                            var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(
+                                    new MethodType(
+                                        inputBox,
+                                        new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())))));
+                            typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                            return (res, list);
+                        }
+
+                        if (output != default)
+                        {
+
+                            var (outputBox, outputContext) = CachedConvert3(cache[output.Flatten()], Add(context, yolo));
+
+                            // I don't think this is safe see:
+                            //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
+                            var list = new EqualableReadOnlyList<Yolo>(outputContext.ToArray());
+                            var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(
+                                    new MethodType(
+                                        new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
+                                        outputBox)));
+                            typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                            return (res, list);
+                        }
+
+                        // if it has members it must be a scope
+                        if (members.Any() || constrains.Any(x => x.Is4(out HasMembers _)))
+                        {
+                            var external = constrains.Where(x => x.Is6(out IsExternal _)).Select(x => x.Is6OrThrow()).ToArray();
+
+                            var membersAndContexts = members.Select(member => {
+                                var (memberType, memberContext) = CachedConvert3(member.Item2, Add(context, yolo));
+                                return (memberType, memberContext, member.Item1);
+                            }).ToArray();
+
+                            IReadOnlyList<Yolo> resContext = new Yolo[] { };
+
+                            foreach (var (_, memberContext, _) in membersAndContexts)
+                            {
+                                if (memberContext.Count > resContext.Count)
+                                {
+                                    resContext = memberContext;
+                                }
+                            }
+
+                            if (external.Length > 1)
+                            {
+                                throw new Exception("what does that mean?!");
+                            }
+
+                            if (external.Length == 1)
+                            {
+                                var interfaceType = external.Single().interfaceType;
+
+                                if (members.Count != interfaceType.Members.Count)
+                                {
+                                    throw new Exception("these should have the same number of members!");
+                                }
+
+                                var dict = membersAndContexts.ToDictionary(x => x.Item3, x => x.Item1);
+
+
+
+                                var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(
+                                   new ExternalHasMembersType(interfaceType, interfaceType.Members.Select(x => new WeakExternslMemberDefinition(
+                                       x,
+                                       dict[x.Key])).ToList())));
+                                var list = new EqualableReadOnlyList<Yolo>(resContext.ToArray());
+                                typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                                return (res, list);
+
+                            }
+
+                            //if (yolo.external.Is(out var interfaceType))
+                            //{
+
+                            //    // we have one member list from the type problem
+                            //    // and one member list from the external deffinition
+                            //    // we need to join them together
+
+                            //    if (members.Count != interfaceType.Members.Count)
+                            //    {
+                            //        throw new Exception("these should have the same number of members!");
+                            //    }
+
+                            //    var dict = members.ToDictionary(x => x.Item1, x => x);
+
+                            //    return OrType.Make<IFrontendType<IVerifiableType>, IError>(
+                            //       new ExternalHasMembersType(interfaceType, interfaceType.Members.Select(x => new WeakExternslMemberDefinition(
+                            //           x,
+                            //           dict[x.Key].Item2.type)).ToList()));
+
+                            //}
+                            {
+                                var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(
+                                    new HasMembersType(new WeakScope(membersAndContexts.Select(memberAndContext => new WeakMemberDefinition(
+                                         Model.Elements.Access.ReadWrite,
+                                         memberAndContext.Item3,
+                                         memberAndContext.Item1)).ToList()))));
+                                var list = new EqualableReadOnlyList<Yolo>(resContext.ToArray());
+                                typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                                return (res, list);
+                            }
+                        }
+
+                        {
+                            var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new AnyType()));
+                            var list = new EqualableReadOnlyList<Yolo>(Array.Empty<Yolo>());
+                            typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                            return (res, list);
+                        }
+                    }
                 }
                 else {
                     // an or type..
@@ -666,231 +977,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
             }
 
-            private IOrType<IFrontendType<IVerifiableType>, IError> Convert3(Yolo yolo, IEnumerable<Yolo> context) {
-
-                //TODO handle Ors
-
-
-
-
-                var constrains = yolo.key.Single();
-                //if (yolo.isGeneric.Is(out var genericTypeParameter)) {
-                //    var res = new GenericTypeParameterPlacholder(genericTypeParameter.index,
-                //       flowNodes[OrType.Make<ITypeProblemNode, IError>(genericTypeParameter.constraint)]
-                //       .GetValueAs(out IVirtualFlowNode _).ToRep()
-                //       .SwitchReturns(
-                //           x=> cache[x].type,
-                //           error=> { IBox<IOrType<IFrontendType<IVerifiableType>, IError>> x = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(error)); return x; }
-                //       ));
-                //    return OrType.Make<IFrontendType<IVerifiableType>, IError>(res);
-                //}
-
-                if (constrains.Count == 0)
-                {
-                    return OrType.Make<IFrontendType<IVerifiableType>, IError>(new AnyType());
-                }
-
-                var prim = constrains.Primitive();
-
-                if (prim.Is2(out var error))
-                {
-                    return OrType.Make<IFrontendType<IVerifiableType>, IError>(error);
-                }
-
-                if (prim.Is1OrThrow().Is(out var _))
-                {
-                    // I'd like to not pass "this" here
-                    // the primitive convert willn't use it
-                    // but... this isn't really ready to use
-                    // it's method are not defined at this point in time
-                    var source = constrains.Single().Is2OrThrow().primitiveFlowNode2.type;
-                    return OrType.Make<IFrontendType<IVerifiableType>, IError>(source.Converter.Convert(this, source).Is3OrThrow());
-                }
-
-                if (yolo.members.Is2(out var e4))
-                {
-                    return OrType.Make<IFrontendType<IVerifiableType>, IError>(e4);
-                }
-                var members = yolo.members.Is1OrThrow();
-
-                if (constrains.Input().Is(out var inputOr))
-                {
-                    if (inputOr.Is2(out var e2))
-                    {
-                        return OrType.Make<IFrontendType<IVerifiableType>, IError>(e2);
-                    }
-                }
-                var input = inputOr?.Is1OrThrow();
-
-
-                if (constrains.Output().Is(out var outputOr))
-                {
-                    if (outputOr.Is2(out var e3))
-                    {
-                        return OrType.Make<IFrontendType<IVerifiableType>, IError>(e3);
-                    }
-
-                }
-                var output = outputOr?.Is1OrThrow();
-
-                if ((input != default || output != default) && members.Count > 1)
-                {
-                    // this might be wrong
-                    // methods might end up with more than one member
-                    // input counts as a member but it is really something different
-                    // todo
-                    throw new Exception("so... this is a type and a method?!");
-                }
-
-                if (yolo.generics.Is1(out var generics) && generics.Any())
-                {
-                    //var i = 0;
-                    //var convertedGenerics = generics.Select(x => new GenericTypeParameterPlacholder(i++, cache[x.Flatten()].type)).ToArray();
-
-
-                    if (input != default && output != default)
-                    {
-
-
-                        // I don't think this is safe see:
-                        //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
-                        return OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                                new GenericMethodType(
-                                    GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten(), positions, Add(context, yolo)),
-                                    GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten(), positions, Add(context, yolo)),
-                                    generics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
-                    }
-
-
-                    if (input != default)
-                    {
-
-
-                        // I don't think this is safe see:
-                        //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
-                        return OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                                new GenericMethodType(
-                                    GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten(), positions, Add(context, yolo)),
-                                    new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                    generics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
-                    }
-
-                    if (output != default)
-                    {
-
-
-                        // I don't think this is safe see:
-                        //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
-                        return OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                                new GenericMethodType(
-                                    new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                    GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten(), positions, Add(context, yolo)),
-                                    generics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
-                    }
-
-                    return OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                            new GenericMethodType(
-                                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                generics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
-                }
-
-                if (input != default && output != default)
-                {
-
-                    // I don't think this is safe see:
-                    //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
-                    return OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                            new GenericMethodType(
-                                    GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten(), positions, Add(context, yolo)),
-                                    GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten(), positions, Add(context, yolo)),
-                                generics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
-                }
-
-
-                if (input != default)
-                {
-
-                    // I don't think this is safe see:
-                    //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
-                    return OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                            new GenericMethodType(
-                                GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten(), positions, Add(context, yolo)),
-                                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                generics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
-                }
-
-                if (output != default)
-                {
-                    
-                    // I don't think this is safe see:
-                    //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
-                    return OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                            new GenericMethodType(
-                                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten(), positions, Add(context, yolo)),
-                                generics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
-                }
-
-                // if it has members it must be a scope
-                if (members.Any() || constrains.Any(x => x.Is4(out HasMembers _)))
-                {
-                    var external = constrains.Where(x => x.Is6(out IsExternal _)).Select(x => x.Is6OrThrow()).ToArray();
-
-                    if (external.Length > 1)
-                    {
-                        throw new Exception("what does that mean?!");
-                    }
-
-                    if (external.Length == 1)
-                    {
-                        var interfaceType = external.Single().interfaceType;
-
-                        if (members.Count != interfaceType.Members.Count)
-                        {
-                            throw new Exception("these should have the same number of members!");
-                        }
-
-                        var dict = members.ToDictionary(x => x.Item1, x => x);
-
-                        return OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                           new ExternalHasMembersType(interfaceType, interfaceType.Members.Select(x => new WeakExternslMemberDefinition(
-                               x,
-                               dict[x.Key].Item2.type)).ToList()));
-                    }
-
-                    //if (yolo.external.Is(out var interfaceType))
-                    //{
-
-                    //    // we have one member list from the type problem
-                    //    // and one member list from the external deffinition
-                    //    // we need to join them together
-
-                    //    if (members.Count != interfaceType.Members.Count)
-                    //    {
-                    //        throw new Exception("these should have the same number of members!");
-                    //    }
-
-                    //    var dict = members.ToDictionary(x => x.Item1, x => x);
-
-                    //    return OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                    //       new ExternalHasMembersType(interfaceType, interfaceType.Members.Select(x => new WeakExternslMemberDefinition(
-                    //           x,
-                    //           dict[x.Key].Item2.type)).ToList()));
-
-                    //}
-
-                    return OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                        new HasMembersType(new WeakScope(members.Select(x => new WeakMemberDefinition(
-                            Access.ReadWrite,
-                            x.Item1,
-                            GetFromCacheReplaceGenericConstrainsWithTheGeneric(x.Item2.key, positions, Add(context, yolo)))).ToList())));
-                }
-
-                return OrType.Make<IFrontendType<IVerifiableType>, IError>(new AnyType());
-
-            }
-
             private IEnumerable<T> Add<T>(IEnumerable<T> context, T yolo)
             {
                 foreach (var item in context)
@@ -899,37 +985,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 yield return yolo;
             }
-
-            //public IIsPossibly<EqualableHashSet<Tpn.TypeProblem2.GenericTypeParameter>> GetGenericTypeParameter(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> key) {
-
-
-            //    var justGenericConstraints = key.Select(x => x
-            //            .Where(y => y.Is5(out IsGeneric _))
-            //            .Select(y => y.Is5OrThrow())
-            //            .ToArray())
-            //        .ToArray();
-
-            //    var intersect = justGenericConstraints.First();
-
-            //    foreach (var item in justGenericConstraints.Skip(1))
-            //    {
-            //        intersect = item.Intersect(intersect).ToArray();
-            //    }
-
-            //    if (intersect.Length == 0)
-            //    {
-            //        return Possibly.IsNot<EqualableHashSet<Tpn.TypeProblem2.GenericTypeParameter>>();
-            //    }
-
-            //    //if (intersect.Length > 1)
-            //    //{
-            //    //    throw new Exception("uhh, we are move than one generic? 😬");
-            //    //}
-
-            //    return Possibly.Is(new EqualableHashSet<Tpn.TypeProblem2.GenericTypeParameter>(intersect.Select(x=>x.genericTypeParameter).ToHashSet()));
-            //}
-
-            //private ConcurrentIndexed<EqualableHashSet<Tpn.TypeProblem2.GenericTypeParameter>, GenericTypeParameterPlacholder> genericCache = new ConcurrentIndexed<EqualableHashSet<TypeProblem2.GenericTypeParameter>, GenericTypeParameterPlacholder>();
 
 
             // list of paths
@@ -977,15 +1032,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 return currents;
             }
-
-            //Box<IOrType<IFrontendType<IVerifiableType>, IError>> GetFromCacheReplaceGenericConstrainsWithTheGeneric2(
-            //    Yolo yolo,
-            //    IEnumerable<Yolo> context)
-            //{
-
-                
-
-            //}
 
             Box<IOrType<IFrontendType<IVerifiableType>, IError>> GetFromCacheReplaceGenericConstrainsWithTheGeneric(
                 EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> key,
