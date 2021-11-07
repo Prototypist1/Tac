@@ -57,7 +57,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 internal IOrType<GenericTypeParameterPlacholder[], IError>? generics;
                 internal IIsDefinately<IOrType<Yolo, IError>> looksUp;
                 internal GenericTypeParameterPlacholder? genericTypeParameterPlaceholder;
-                internal readonly Box<IOrType<IFrontendType<IVerifiableType>, IError>> type = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
+                //internal readonly Box<IOrType<IFrontendType<IVerifiableType>, IError>> type = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
 
                 public Yolo(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> key)
                 {
@@ -156,7 +156,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                             myBox.input = equalableHashSet.First().Input().TransformInner(inputOr => inputOr.TransformInner(input => GetOrAdd(input.Flatten())));
                             myBox.output = equalableHashSet.First().Output().TransformInner(outputOr => outputOr.TransformInner(output => GetOrAdd(output.Flatten())));
                         }
-
                     }
                     return current;
                 }
@@ -246,249 +245,21 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
 
+                var simplifiedPositions = positions.GroupBy(x => x.Key.Item1).ToDictionary(x => x.Key, x => x.SelectMany(y => y.Value).ToList());
+
                 foreach (var (key, value) in cache)
                 {
-                    if (key.Count() == 1)
+                    var paths = Paths(value, simplifiedPositions);
+                    foreach (var path in paths)
                     {
-                        value.type.Fill(Convert2(key.First(), value));
-                    }
-                    else
-                    {
-                        value.type.Fill(OrType.Make<IFrontendType<IVerifiableType>, IError>(new FrontEndOrType(
-                            value.left.IfElseReturn(x => x, () => throw new Exception("better have a left")).type,
-                            value.right.IfElseReturn(x => x, () => throw new Exception("better have a right")).type,
-                            value.members.TransformInner(actually => actually.Select(x => new WeakMemberDefinition(
-                                Model.Elements.Access.ReadWrite,
-                                x.Item1,
-                                x.Item2.type)).ToList()),
-                            value.input.TransformInner(x => x.SwitchReturns(
-                                    y => y.type,
-                                    error => (IBox<IOrType<IFrontendType<IVerifiableType>, IError>>)new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(error)))),
-                            value.output.TransformInner(x => x.SwitchReturns(
-                                    y => y.type,
-                                    error => (IBox<IOrType<IFrontendType<IVerifiableType>, IError>>)new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(error))))
-                            )));
+                        CachedConvert3(value, path);
                     }
                 }
-
-
-                IOrType<IFrontendType<IVerifiableType>, IError> Convert2(EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>> constrains, Yolo yolo)
-                {
-                    //if (yolo.isGeneric.Is(out var genericTypeParameter)) {
-                    //    var res = new GenericTypeParameterPlacholder(genericTypeParameter.index,
-                    //       flowNodes[OrType.Make<ITypeProblemNode, IError>(genericTypeParameter.constraint)]
-                    //       .GetValueAs(out IVirtualFlowNode _).ToRep()
-                    //       .SwitchReturns(
-                    //           x=> cache[x].type,
-                    //           error=> { IBox<IOrType<IFrontendType<IVerifiableType>, IError>> x = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(error)); return x; }
-                    //       ));
-                    //    return OrType.Make<IFrontendType<IVerifiableType>, IError>(res);
-                    //}
-
-                    if (constrains.Count == 0)
-                    {
-                        return OrType.Make<IFrontendType<IVerifiableType>, IError>(new AnyType());
-                    }
-
-                    var prim = constrains.Primitive();
-
-                    if (prim.Is2(out var error))
-                    {
-                        return OrType.Make<IFrontendType<IVerifiableType>, IError>(error);
-                    }
-
-                    if (prim.Is1OrThrow().Is(out var _))
-                    {
-                        // I'd like to not pass "this" here
-                        // the primitive convert willn't use it
-                        // but... this isn't really ready to use
-                        // it's method are not defined at this point in time
-                        var source = constrains.Single().Is2OrThrow().primitiveFlowNode2.type;
-                        return OrType.Make<IFrontendType<IVerifiableType>, IError>(source.Converter.Convert(this, source).Is3OrThrow());
-                    }
-
-                    if (yolo.members.Is2(out var e4))
-                    {
-                        return OrType.Make<IFrontendType<IVerifiableType>, IError>(e4);
-                    }
-                    var members = yolo.members.Is1OrThrow();
-
-                    if (constrains.Input().Is(out var inputOr))
-                    {
-                        if (inputOr.Is2(out var e2))
-                        {
-                            return OrType.Make<IFrontendType<IVerifiableType>, IError>(e2);
-                        }
-                    }
-                    var input = inputOr?.Is1OrThrow();
-
-
-                    if (constrains.Output().Is(out var outputOr))
-                    {
-                        if (outputOr.Is2(out var e3))
-                        {
-                            return OrType.Make<IFrontendType<IVerifiableType>, IError>(e3);
-                        }
-
-                    }
-                    var output = outputOr?.Is1OrThrow();
-
-                    if ((input != default || output != default) && members.Count > 1)
-                    {
-                        // this might be wrong
-                        // methods might end up with more than one member
-                        // input counts as a member but it is really something different
-                        // todo
-                        throw new Exception("so... this is a type and a method?!");
-                    }
-
-                    if (yolo.generics.Is1(out var generics) && generics.Any())
-                    {
-                        //var i = 0;
-                        //var convertedGenerics = generics.Select(x => new GenericTypeParameterPlacholder(i++, cache[x.Flatten()].type)).ToArray();
-
-
-                        if (input != default && output != default)
-                        {
-                            // I don't think this is safe see:
-                            //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
-                            return
-                                 OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                                    new GenericMethodType(
-                                        GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten(), positions),
-                                        GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten(), positions),
-                                        generics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
-                        }
-
-
-                        if (input != default)
-                        {
-                            // I don't think this is safe see:
-                            //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
-                            return
-                                OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                                    new GenericMethodType(
-                                        GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten(), positions),
-                                        new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                        generics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
-                        }
-
-                        if (output != default)
-                        {
-                            // I don't think this is safe see:
-                            //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
-                            return
-                                OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                                    new GenericMethodType(
-                                        new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                        GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten(), positions),
-                                        generics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
-                        }
-
-                        return
-                            OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                                new GenericMethodType(
-                                    new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                    new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                    generics.Select(x => OrType.Make<IGenericTypeParameterPlacholder, IError>(x)).ToArray()));
-                    }
-
-                    if (input != default && output != default)
-                    {
-                        // I don't think this is safe see:
-                        //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
-                        return
-                             OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                            new MethodType(
-                                GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten(), positions),
-                                GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten(), positions)));
-                    }
-
-
-                    if (input != default)
-                    {
-                        // I don't think this is safe see:
-                        //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
-                        return
-                             OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                            new MethodType(
-                                GetFromCacheReplaceGenericConstrainsWithTheGeneric(input.Flatten(), positions),
-                                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType()))));
-                    }
-
-                    if (output != default)
-                    {
-                        // I don't think this is safe see:
-                        //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
-                        return
-                             OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                            new MethodType(
-                                new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
-                                GetFromCacheReplaceGenericConstrainsWithTheGeneric(output.Flatten(), positions)));
-                    }
-
-                    // if it has members it must be a scope
-                    if (members.Any() || constrains.Any(x => x.Is4(out HasMembers _)))
-                    {
-                        var external = constrains.Where(x => x.Is6(out IsExternal _)).Select(x => x.Is6OrThrow()).ToArray();
-
-                        if (external.Length > 1)
-                        {
-                            throw new Exception("what does that mean?!");
-                        }
-
-                        if (external.Length == 1)
-                        {
-                            var interfaceType = external.Single().interfaceType;
-
-                            if (members.Count != interfaceType.Members.Count)
-                            {
-                                throw new Exception("these should have the same number of members!");
-                            }
-
-                            var dict = members.ToDictionary(x => x.Item1, x => x);
-
-                            return OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                               new ExternalHasMembersType(interfaceType, interfaceType.Members.Select(x => new WeakExternslMemberDefinition(
-                                   x,
-                                   dict[x.Key].Item2.type)).ToList()));
-                        }
-
-                        //if (yolo.external.Is(out var interfaceType))
-                        //{
-
-                        //    // we have one member list from the type problem
-                        //    // and one member list from the external deffinition
-                        //    // we need to join them together
-
-                        //    if (members.Count != interfaceType.Members.Count)
-                        //    {
-                        //        throw new Exception("these should have the same number of members!");
-                        //    }
-
-                        //    var dict = members.ToDictionary(x => x.Item1, x => x);
-
-                        //    return OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                        //       new ExternalHasMembersType(interfaceType, interfaceType.Members.Select(x => new WeakExternslMemberDefinition(
-                        //           x,
-                        //           dict[x.Key].Item2.type)).ToList()));
-
-                        //}
-
-                        return OrType.Make<IFrontendType<IVerifiableType>, IError>(
-                            new HasMembersType(new WeakScope(members.Select(x => new WeakMemberDefinition(
-                                Access.ReadWrite,
-                                x.Item1,
-                                x.Item2.type)).ToList())));
-                    }
-
-                    return OrType.Make<IFrontendType<IVerifiableType>, IError>(new AnyType());
-                }
-
-
 
             }
 
+            // I think I need a seprate generic cache
+            // souce, index, context -> 
 
             private (Box<IOrType<IFrontendType<IVerifiableType>, IError>>, IReadOnlyList<Yolo>) CachedConvert3(Yolo yolo, IEnumerable<Yolo> context) {
                 for (int i = 0; i < context.Count(); i++)
@@ -1033,131 +804,131 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return currents;
             }
 
-            Box<IOrType<IFrontendType<IVerifiableType>, IError>> GetFromCacheReplaceGenericConstrainsWithTheGeneric(
-                EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> key,
-                Dictionary<(Yolo, IOrType<Member, Input, Output, Left, Right, PrivateMember>), List<Yolo>> positions)
-            {
+            //Box<IOrType<IFrontendType<IVerifiableType>, IError>> GetFromCacheReplaceGenericConstrainsWithTheGeneric(
+            //    EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> key,
+            //    Dictionary<(Yolo, IOrType<Member, Input, Output, Left, Right, PrivateMember>), List<Yolo>> positions)
+            //{
 
-                var justGenericConstraints = key.Select(x => x
-                    .Where(y => y.Is5(out IsGeneric _))
-                    .Select(y => y.Is5OrThrow())
-                    .ToArray())
-                .ToArray();
+            //    var justGenericConstraints = key.Select(x => x
+            //        .Where(y => y.Is5(out IsGeneric _))
+            //        .Select(y => y.Is5OrThrow())
+            //        .ToArray())
+            //    .ToArray();
 
-                var intersect = justGenericConstraints.First();
+            //    var intersect = justGenericConstraints.First();
 
-                foreach (var item in justGenericConstraints.Skip(1))
-                {
-                    intersect = item.Intersect(intersect).ToArray();
-                }
+            //    foreach (var item in justGenericConstraints.Skip(1))
+            //    {
+            //        intersect = item.Intersect(intersect).ToArray();
+            //    }
 
-                var yolo = cache[key];
+            //    var yolo = cache[key];
 
-                var lookups = intersect.SelectMany(genericConstraint =>
-                {
+            //    var lookups = intersect.SelectMany(genericConstraint =>
+            //    {
 
-                    var currents = new List<Yolo> { yolo };
+            //        var currents = new List<Yolo> { yolo };
 
-                    foreach (var pathPart in genericConstraint.pathFromOwner.Reverse())
-                    {
-                        var next = new List<Yolo>();
-                        foreach (var item in currents)
-                        {
-                            next.AddRange(positions[(item, pathPart)]);
-                        }
-                        currents = next;
-                    }
+            //        foreach (var pathPart in genericConstraint.pathFromOwner.Reverse())
+            //        {
+            //            var next = new List<Yolo>();
+            //            foreach (var item in currents)
+            //            {
+            //                next.AddRange(positions[(item, pathPart)]);
+            //            }
+            //            currents = next;
+            //        }
 
-                    // I am curious to see if there is a case wehre Is1OrThrow will hit
-                    // seems like it shouldn't happen we walked up the generic look up path, there should a type parameter defined there 
-                    return currents.Select(current => current.generics.Is1OrThrow()[genericConstraint.index]).ToArray();
+            //        // I am curious to see if there is a case wehre Is1OrThrow will hit
+            //        // seems like it shouldn't happen we walked up the generic look up path, there should a type parameter defined there 
+            //        return currents.Select(current => current.generics.Is1OrThrow()[genericConstraint.index]).ToArray();
 
 
-                }).Distinct().ToArray();
+            //    }).Distinct().ToArray();
 
-                if (lookups.Length == 0) {
-                    return cache[key].type;
-                }
-                if (lookups.Length == 1)
-                {
-                    return new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<GenericTypeParameterPlacholder, IError > (lookups.First()));
-                }
-                else 
-                {
-                    // method [T] [T,T] a;
-                    // method [t1,t2] [t1, t2] b;
-                    // c =: a;
-                    // c =: b;
-                    //
-                    // pretty sure we have no idea what "c" is..
-                    // well probabaly method [T1,T2] [T1,T2] where T1: T,t1 and T2: T,t2 
-                    //
-                    // but...
-                    //
-                    // method [Ta, Tb] [Tb,Ta] a;
-                    // method [t1,t2] [t1, t2] b;
-                    // c =: a;
-                    // c =: b;
-                    //
-                    // "c" is method [T1,T2] [T1,T2] where T1: Tb, t1 and T2: Ta,t2 
-                    //
-                    // but I still don't know what index...
-                    // TODO, it's an error for now 
-                    //
-                    // any other pain point:
-                    //
-                    // method [Ta, Tb] [Tb,Ta] a;
-                    // method [t1,t2] [t1, t2] b;
-                    // c =: a;
-                    // c =: b;
-                    // o > c =: int x
-                    //
-                    // "c" is method [T1,T2] [T1,T2] where T1: Tb, t1 and T2: Ta,t2, int
-                    // but I have Ta, t2 and, int constraint on the output
-                    // while just Ta, t2 constring s on T2
-                    // how do I know that those collapse??
-                    //
-                    // 
-                    // I think it only works if the constraints are the same length
-                    // you can't do the assignment if you have different numbers of type parameters 
-                    //
-                    // method [Ta, Tb] [Tb,Ta] a;
-                    // method [t1,t2] [t1, t2] b;
-                    // c =: a;
-                    // c =: b;
-                    //
-                    // c is actually method [T1,T2] [??] where T1: Ta, t1  and T2 : Tb and t2 
-                    // c has an input of Tb, t1 
-                    // c has an output of Ta, t2
-                    //
-                    // c is actually method [T1,T2] [T1&T2,T1&T2]
-                    // once we assume c is method [T1,T2] [??]
-                    // from it's prospective 
-                    // "a" becomes: method [T1,T2] [T2,T1]
-                    // "b" becomes: method [T1,T2] [T1,T2]
-                    // now "c" has an input of T1, T2 
-                    // now "c" has an output of T1, T2
+            //    if (lookups.Length == 0) {
+            //        return cache[key].type;
+            //    }
+            //    if (lookups.Length == 1)
+            //    {
+            //        return new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<GenericTypeParameterPlacholder, IError > (lookups.First()));
+            //    }
+            //    else 
+            //    {
+            //        // method [T] [T,T] a;
+            //        // method [t1,t2] [t1, t2] b;
+            //        // c =: a;
+            //        // c =: b;
+            //        //
+            //        // pretty sure we have no idea what "c" is..
+            //        // well probabaly method [T1,T2] [T1,T2] where T1: T,t1 and T2: T,t2 
+            //        //
+            //        // but...
+            //        //
+            //        // method [Ta, Tb] [Tb,Ta] a;
+            //        // method [t1,t2] [t1, t2] b;
+            //        // c =: a;
+            //        // c =: b;
+            //        //
+            //        // "c" is method [T1,T2] [T1,T2] where T1: Tb, t1 and T2: Ta,t2 
+            //        //
+            //        // but I still don't know what index...
+            //        // TODO, it's an error for now 
+            //        //
+            //        // any other pain point:
+            //        //
+            //        // method [Ta, Tb] [Tb,Ta] a;
+            //        // method [t1,t2] [t1, t2] b;
+            //        // c =: a;
+            //        // c =: b;
+            //        // o > c =: int x
+            //        //
+            //        // "c" is method [T1,T2] [T1,T2] where T1: Tb, t1 and T2: Ta,t2, int
+            //        // but I have Ta, t2 and, int constraint on the output
+            //        // while just Ta, t2 constring s on T2
+            //        // how do I know that those collapse??
+            //        //
+            //        // 
+            //        // I think it only works if the constraints are the same length
+            //        // you can't do the assignment if you have different numbers of type parameters 
+            //        //
+            //        // method [Ta, Tb] [Tb,Ta] a;
+            //        // method [t1,t2] [t1, t2] b;
+            //        // c =: a;
+            //        // c =: b;
+            //        //
+            //        // c is actually method [T1,T2] [??] where T1: Ta, t1  and T2 : Tb and t2 
+            //        // c has an input of Tb, t1 
+            //        // c has an output of Ta, t2
+            //        //
+            //        // c is actually method [T1,T2] [T1&T2,T1&T2]
+            //        // once we assume c is method [T1,T2] [??]
+            //        // from it's prospective 
+            //        // "a" becomes: method [T1,T2] [T2,T1]
+            //        // "b" becomes: method [T1,T2] [T1,T2]
+            //        // now "c" has an input of T1, T2 
+            //        // now "c" has an output of T1, T2
 
-                    //... anyway
-                    //... I don't even have AND types 
+            //        //... anyway
+            //        //... I don't even have AND types 
 
-                    // I think probably a flow from a generic is consider to be from your own generic
-                    // 
-                    // so what about this one?
-                    // 
-                    // method [Ta, Tb] [Tb,Ta] a;
-                    // method [t1,t2] [t1, t2] b;
-                    // c =: a;
-                    // c =: b;
-                    // o > c =: int x
-                    //
-                    // is "c" method [T1:int,T2:int] [T1&T2,T1&T2] ?
-                    // they both don't need the "int" but how would I know which one?
-                    // or maybe "c" is method [T1,T2] [T1 & T2,T1 & T2 & int]
-                    throw new NotImplementedException("I think this should be an AND type, I don't really have those yet");
-                }
+            //        // I think probably a flow from a generic is consider to be from your own generic
+            //        // 
+            //        // so what about this one?
+            //        // 
+            //        // method [Ta, Tb] [Tb,Ta] a;
+            //        // method [t1,t2] [t1, t2] b;
+            //        // c =: a;
+            //        // c =: b;
+            //        // o > c =: int x
+            //        //
+            //        // is "c" method [T1:int,T2:int] [T1&T2,T1&T2] ?
+            //        // they both don't need the "int" but how would I know which one?
+            //        // or maybe "c" is method [T1,T2] [T1 & T2,T1 & T2 & int]
+            //        throw new NotImplementedException("I think this should be an AND type, I don't really have those yet");
+            //    }
 
-            }
+            //}
 
             internal IOrType<IFrontendType<IVerifiableType>, IError> GetType(Tpn.ILookUpType from)
             {
