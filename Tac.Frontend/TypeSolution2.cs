@@ -40,6 +40,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
 
             private readonly ConcurrentIndexed<(Yolo,EqualableReadOnlyList<Yolo>), Box<IOrType<IFrontendType<IVerifiableType>, IError>>> typeByYoloAndContext = new();
+            private readonly ConcurrentIndexed<(Yolo, EqualableReadOnlyList<Yolo>, int), IOrType<IFrontendType<IVerifiableType>, IError>> genericByYoloContextAndIndex = new();
 
             private class Yolo
             {
@@ -54,7 +55,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // for or types
                 internal IIsPossibly<Yolo>? left;
                 internal IIsPossibly<Yolo>? right;
-                internal IOrType<GenericTypeParameterPlacholder[], IError>? generics;
+                internal IOrType<Yolo[], IError>? genericsConstraints;
                 internal IIsDefinately<IOrType<Yolo, IError>> looksUp;
                 internal GenericTypeParameterPlacholder? genericTypeParameterPlaceholder;
                 //internal readonly Box<IOrType<IFrontendType<IVerifiableType>, IError>> type = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
@@ -136,7 +137,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             myBox.left = Possibly.Is(GetOrAdd(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>(equalableHashSet.Take(equalableHashSet.Count() - 1).ToHashSet())));
                             myBox.right = Possibly.Is(GetOrAdd(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>(new HashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>() { equalableHashSet.Last() })));
 
-                            myBox.generics = OrType.Make<GenericTypeParameterPlacholder[], IError>(Array.Empty<GenericTypeParameterPlacholder>());
+                            myBox.genericsConstraints = OrType.Make<Yolo[], IError>(Array.Empty<Yolo>());
                             
                             myBox.members = OrType.Make<IReadOnlyList<(IKey, Yolo)>, IError>(Array.Empty<(IKey, Yolo)>());
                             myBox.privateMembers = OrType.Make<IReadOnlyList<(IKey, Yolo)>, IError>(Array.Empty<(IKey, Yolo)>());
@@ -148,8 +149,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             myBox.left = Possibly.IsNot<Yolo>();
                             myBox.right = Possibly.IsNot<Yolo>();
 
-                            var i = 0;
-                            myBox.generics = equalableHashSet.First().Generics().TransformInner(generics => generics.Select(generic => new GenericTypeParameterPlacholder(i++,  GetOrAdd(generic.Flatten()).type)).ToArray());
+                            myBox.genericsConstraints = equalableHashSet.First().Generics().TransformInner(generics => generics.Select(generic => GetOrAdd(generic.Flatten())).ToArray());
 
                             myBox.members = equalableHashSet.First().Members().TransformInner(members => members.Select(memberPair => (memberPair.Key, GetOrAdd(memberPair.Value.Flatten()))).ToArray());
                             myBox.privateMembers = equalableHashSet.First().PrivateMembers().TransformInner(members => members.Select(memberPair => (memberPair.Key, GetOrAdd(memberPair.Value.Flatten()))).ToArray());
@@ -261,6 +261,25 @@ namespace Tac.Frontend.New.CrzayNamespace
             // I think I need a seprate generic cache
             // souce, index, context -> 
 
+            private IOrType<IFrontendType<IVerifiableType>, IError> LookUpGeneric(Yolo from, IEnumerable<Yolo> context, int index) {
+                // myBox.generics = equalableHashSet.First().Generics().TransformInner(generics => generics.Select(generic => new GenericTypeParameterPlacholder(i++,  GetOrAdd(generic.Flatten()).type)).ToArray());
+                //
+                for (int i = 0; i < context.Count(); i++)
+                {
+                    var list = new EqualableReadOnlyList<Yolo>(context.Take(i).ToArray());
+                    if (genericByYoloContextAndIndex.TryGetValue((from, list, index), out var res))
+                    {
+                        return res;
+                    }
+                }
+
+                if (from.genericsConstraints.Is1(out var genericsConstraints)) 
+                {
+                    var res = new GenericTypeParameterPlacholder(index, CachedConvert3(genericsConstraints[index], context).Item1);
+                }
+
+            }
+
             private (Box<IOrType<IFrontendType<IVerifiableType>, IError>>, IReadOnlyList<Yolo>) CachedConvert3(Yolo yolo, IEnumerable<Yolo> context) {
                 for (int i = 0; i < context.Count(); i++)
                 {
@@ -280,7 +299,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         .Select(y => y.Is5OrThrow())
                         .ToArray();
 
-                    var lookups = justGenericConstraints.Select(genericConstraint => context.SkipLast(genericConstraint.pathFromOwner.Length - 1).Last().generics.Is1OrThrow()[genericConstraint.index]).Distinct().ToArray();
+                    var lookups = justGenericConstraints.Select(genericConstraint => context.SkipLast(genericConstraint.pathFromOwner.Length - 1).Last().genericsConstraints.Is1OrThrow()[genericConstraint.index]).Distinct().ToArray();
 
                     if (lookups.Length == 1)
                     {
@@ -449,7 +468,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             throw new Exception("so... this is a type and a method?!");
                         }
 
-                        if (yolo.generics.Is1(out var generics) && generics.Any())
+                        if (yolo.genericsConstraints.Is1(out var generics) && generics.Any())
                         {
                             //var i = 0;
                             //var convertedGenerics = generics.Select(x => new GenericTypeParameterPlacholder(i++, cache[x.Flatten()].type)).ToArray();
@@ -1021,7 +1040,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                    .GetValueAs(out IConstraintSoruce _)
                    .GetExtendedConstraints()
                    .Flatten()];
-                return yolo.generics.TransformInner(array=> array[from.index]);
+                return yolo.genericsConstraints.TransformInner(array=> array[from.index]);
             }
 
             // this also ends up managing weak scopes that aren't types
