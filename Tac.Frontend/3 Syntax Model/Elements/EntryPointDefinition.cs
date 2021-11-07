@@ -181,9 +181,9 @@ namespace Tac.SemanticModel
             this.converted = converted ?? throw new ArgumentNullException(nameof(converted));
         }
 
-        public IBox<WeakEntryPointDefinition> Run(Tpn.TypeSolution context)
+        public IBox<WeakEntryPointDefinition> Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack)
         {
-            var finalForm=  converted.Select(x => x.TransformInner(y => y.Run(context))).ToArray();
+            var finalForm=  converted.Select(x => x.TransformInner(y => y.Run(context, stack.Add(scope)))).ToArray();
             box.Fill(finalForm);
             var res = scope.Converter.Convert(context, scope);
             if (res.Is3(out var v3))

@@ -188,12 +188,12 @@ namespace Tac.SemanticModel
 
         // do these really need to be IBox? they seeme to generally be filled...
         // mayble IPossibly...
-        public IBox<WeakObjectDefinition> Run(Tpn.TypeSolution context)
+        public IBox<WeakObjectDefinition> Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack)
         {
 
             var finalElements = nextElements.Select(x => x.SwitchReturns<IOrType<IBox<WeakAssignOperation>, IError>>(
                     y => {
-                        var res = y.Run(context).GetValue();
+                        var res = y.Run(context, stack.Add(myScope)).GetValue();
                         if (res is WeakAssignOperation weakAssign)
                         {
                             return OrType.Make<IBox<WeakAssignOperation>, IError>(new Box<WeakAssignOperation>(weakAssign));

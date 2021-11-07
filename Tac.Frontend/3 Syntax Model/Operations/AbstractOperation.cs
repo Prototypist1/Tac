@@ -297,11 +297,11 @@ namespace Tac.SemanticModel.CodeStuff
         }
 
 
-        public IBox<TFrontendCodeElement> Run(Tpn.TypeSolution context)
+        public IBox<TFrontendCodeElement> Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack)
         {
             var res = make(
-                left.TransformInner(x => x.Run(context)),
-                right.TransformInner(x => x.Run(context)));
+                left.TransformInner(x => x.Run(context, stack)),
+                right.TransformInner(x => x.Run(context, stack)));
             return res;
         }
     }
@@ -459,14 +459,14 @@ namespace Tac.SemanticModel.CodeStuff
 
         // I think IResolve<TCodeElement> should return TCodeElement instead of IBox<TCodeElement>
         // that will be expensive but I think it gives me more control
-        public IBox<IFrontendType<IVerifiableType>> Run(Tpn.TypeSolution context)
+        public IBox<IFrontendType<IVerifiableType>> Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack)
         {
 
             //var res = make(
             //    new BoxThenOr(left.Run(context)),
             //    new BoxThenOr(right.Run(context)));
 
-            return new Box<IFrontendType<IVerifiableType>>( context.GetType(type).Is1OrThrow());
+            return new Box<IFrontendType<IVerifiableType>>( context.GetType(type, stack).Is1OrThrow());
         }
     }
 

@@ -148,10 +148,10 @@ namespace Tac.SemanticModel
         }
 
 
-        public IBox<WeakGenericTypeDefinition> Run(Tpn.TypeSolution context)
+        public IBox<WeakGenericTypeDefinition> Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack)
         {
             // uhhh it is werid that I have to do this
-            lines.Select(x => x.TransformInner(y => y.Run(context))).ToArray();
+            lines.Select(x => x.TransformInner(y => y.Run(context, stack.Add(myScope)))).ToArray();
 
             return new Box<WeakGenericTypeDefinition>(myScope.Converter.Convert(context, myScope).Is2OrThrow());
         }

@@ -114,7 +114,7 @@ namespace Tac.SemanticModel.Operations
             this.dub = dub;
         }
 
-        public IBox<WeakConstantNumber> Run(Tpn.TypeSolution context)
+        public IBox<WeakConstantNumber> Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack)
         {
             return new Box<WeakConstantNumber>(new WeakConstantNumber(Possibly.Is(dub)));
         }

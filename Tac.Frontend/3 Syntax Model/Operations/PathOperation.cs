@@ -190,9 +190,9 @@ namespace Tac.SemanticModel.Operations
             this.key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-        public IBox<WeakPathOperation> Run(Tpn.TypeSolution context)
+        public IBox<WeakPathOperation> Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack)
         {
-            var leftRes = left.TransformInner(x => x.Run(context));
+            var leftRes = left.TransformInner(x => x.Run(context, stack));
 
             var res = new Box<WeakPathOperation>(new WeakPathOperation(
                 leftRes,

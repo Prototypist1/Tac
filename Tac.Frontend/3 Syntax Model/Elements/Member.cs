@@ -13,6 +13,8 @@ using Tac.Frontend.SyntaxModel.Operations;
 using Prototypist.Toolbox;
 using Tac.Frontend.Parser;
 using System.Collections.Generic;
+using System.Linq;
+using Prototypist.Toolbox.Object;
 
 namespace Tac.Parser
 {
@@ -88,20 +90,9 @@ namespace Tac.SemanticModel
                 throw new NotImplementedException("this should be an IError");
             }
 
-            var scopeList = new List<Tpn.IStaticScope>();
-
-            scopeList.Add(scope);
-
-            var at = scope;
-            while (at.Parent.Is(out var nextScope))
-            {
-                at = nextScope;
-                scopeList.Add(at);
-            }
-
             var nameKey = new NameKey(memberName);
             var member = GetMember(scope, context, possibleScope, nameKey);
-            return new SetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>(new MemberResolveReferance(nameKey, scopeList), OrType.Make<Tpn.TypeProblem2.Member, IError>(member));
+            return new SetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>(new MemberResolveReferance(nameKey), OrType.Make<Tpn.TypeProblem2.Member, IError>(member));
         }
 
         private static Tpn.TypeProblem2.Member GetMember(Tpn.IStaticScope scope, ISetUpContext context, Tpn.IHavePossibleMembers possibleScope, NameKey nameKey)
@@ -144,20 +135,23 @@ namespace Tac.SemanticModel
     internal class MemberResolveReferance : IResolve<IBox<WeakMemberReference>>
     {
         private readonly IKey key;
-        private readonly List<Tpn.IStaticScope> staticScopes;
 
-        public MemberResolveReferance(IKey key, List<Tpn.IStaticScope> staticScopes)
+        public MemberResolveReferance(IKey key)
         {
             this.key = key ?? throw new ArgumentNullException(nameof(key));
-            this.staticScopes = staticScopes ?? throw new ArgumentNullException(nameof(staticScopes));
         }
 
-        public IBox<WeakMemberReference> Run(Tpn.TypeSolution context)
+        public IBox<WeakMemberReference> Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack)
         {
-            foreach (var scope in staticScopes)
+            for (int i = 0; i < stack.Count(); i++)
             {
-                if (context.TryGetMember(scope, key, out var res)) {
-                    return new Box<WeakMemberReference>(new WeakMemberReference(new Box<WeakMemberDefinition>(res.Is1OrThrow())));
+                var target = stack.SkipLast(i).Last();
+                if (target.SafeIs(out Tpn.IStaticScope scope))
+                {
+                    if (context.TryGetMember(scope, key, stack.SkipLast(i), out var res))
+                    {
+                        return new Box<WeakMemberReference>(new WeakMemberReference(new Box<WeakMemberDefinition>(res.Is1OrThrow())));
+                    }
                 }
             }
             throw new Exception("should have found that!");

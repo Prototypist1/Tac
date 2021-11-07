@@ -85,7 +85,7 @@ namespace Tac.Infastructure
 
     internal interface IResolve<out TCodeElement> 
     {
-        TCodeElement Run(Tpn.TypeSolution context);
+        TCodeElement Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack);
     }
     
 }

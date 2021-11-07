@@ -153,7 +153,7 @@ namespace Tac.SemanticModel.Operations
             this.dub = dub;
         }
 
-        public IBox<WeakConstantBool> Run(Tpn.TypeSolution context)
+        public IBox<WeakConstantBool> Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack)
         {
             return new Box<WeakConstantBool>(new WeakConstantBool(Possibly.Is(dub)));
         }

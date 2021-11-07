@@ -229,28 +229,27 @@ namespace Tac.SemanticModel
             var member = context.TypeProblem.CreateMember(scope, memberName, type.SetUpSideNode.TransformInner(x => x.Key()));
 
 
-            return new SetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>(new MemberDefinitionResolveReferance(
-                scope, access, memberName), OrType.Make<Tpn.TypeProblem2.Member, IError>(member));
+            return new SetUpResult<IBox<WeakMemberReference>, Tpn.TypeProblem2.Member>(new MemberDefinitionResolveReferance(access, memberName), OrType.Make<Tpn.TypeProblem2.Member, IError>(member));
         }
 
     }
 
     internal class MemberDefinitionResolveReferance : IResolve<IBox<WeakMemberReference>>
     {
-        private readonly Tpn.IStaticScope scope;
+        //private readonly Tpn.IStaticScope scope;
         private readonly Access access;
         private readonly IKey memberName;
 
-        public MemberDefinitionResolveReferance(Tpn.IStaticScope scope, Access access, IKey memberName)
+        public MemberDefinitionResolveReferance(/*Tpn.IStaticScope scope,*/ Access access, IKey memberName)
         {
-            this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            //this.scope = scope ?? throw new ArgumentNullException(nameof(scope));
             this.access = access;
             this.memberName = memberName ?? throw new ArgumentNullException(nameof(memberName));
         }
 
-        public IBox<WeakMemberReference> Run(Tpn.TypeSolution context)
+        public IBox<WeakMemberReference> Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack)
         {
-            if (context.TryGetMember(scope, memberName, out var member)) {
+            if (context.TryGetMember(stack.Last().SafeCastTo(out Tpn.IStaticScope _)/* this is a lazy cast*/ , memberName, stack, out var member)) {
                 return new Box<WeakMemberReference>(new WeakMemberReference(new Box<WeakMemberDefinition>(member.Is1OrThrow()))); // don't love the Is1OrThrow here
             }
             throw new Exception("I don't think this should happen, if it does I guess we need to put an IError somewhere");

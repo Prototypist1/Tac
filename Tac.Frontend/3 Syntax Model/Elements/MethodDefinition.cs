@@ -212,9 +212,9 @@ namespace Tac.SemanticModel
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public IBox<WeakMethodDefinition> Run(Tpn.TypeSolution context)
+        public IBox<WeakMethodDefinition> Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack)
         {
-            box.Fill(nextElements.Select(x => x.TransformInner(y => y.Run(context))).ToArray());
+            box.Fill(nextElements.Select(x => x.TransformInner(y => y.Run(context, stack.Add(method)))).ToArray());
             var res = method.Converter.Convert(context, method);
             if (res.Is1(out var v1))
             {

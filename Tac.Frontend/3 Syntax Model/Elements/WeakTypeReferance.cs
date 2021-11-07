@@ -226,11 +226,11 @@ namespace Tac.SemanticModel
             this.type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
-        public IBox<IFrontendType<IVerifiableType>> Run(Tpn.TypeSolution context)
+        public IBox<IFrontendType<IVerifiableType>> Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack)
         {
             // Is1OrThrow is wrong here! 
             // this has to pass the or type onwards
-            return new FuncBox<IFrontendType<IVerifiableType>>(()=> context.GetType(type).Is1OrThrow());
+            return new FuncBox<IFrontendType<IVerifiableType>>(()=> context.GetType(type, stack).Is1OrThrow());
         }
     }
 

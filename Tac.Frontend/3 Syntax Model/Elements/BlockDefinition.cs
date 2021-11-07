@@ -117,11 +117,21 @@ namespace Tac.SemanticModel
             this.box = box ?? throw new ArgumentNullException(nameof(box));
         }
 
-        public IBox<WeakBlockDefinition> Run(Tpn.TypeSolution context)
+        public IBox<WeakBlockDefinition> Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack)
         {
-            box.Fill(nextElements.Select(x => x.TransformInner(y => y.Run(context))).ToArray());
+            box.Fill(nextElements.Select(x => x.TransformInner(y => y.Run(context, stack.Add(myScope)))).ToArray());
 
             return new Box<WeakBlockDefinition>( myScope.Converter.Convert(context, myScope).Is1OrThrow());
+        }
+    }
+
+    public static class IEnumerableExtensions {
+        public static IEnumerable<T> Add<T>(this IEnumerable<T> list, T toAdd) {
+            foreach (var item in list)
+            {
+                yield return item;
+            }
+            yield return toAdd;
         }
     }
 }

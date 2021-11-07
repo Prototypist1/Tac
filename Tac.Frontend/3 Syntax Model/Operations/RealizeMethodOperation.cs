@@ -138,7 +138,7 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
 
     internal class RealizeMethodOperationResolveReferance : IResolve<IBox<WeakRealizeMethodOperation>>
     {
-        public IBox<WeakRealizeMethodOperation> Run(Tpn.TypeSolution context)
+        public IBox<WeakRealizeMethodOperation> Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack)
         {
             throw new NotImplementedException();
         }

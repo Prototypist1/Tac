@@ -237,6 +237,7 @@ namespace Tac.SemanticModel
                 Possibly.IsNot<(IOrType<TypeProblem2.TypeReference, IError>, IOrType<TypeProblem2.TypeReference, IError>, IOrType<TypeProblem2.TypeReference, IError>)>();
 
             var innerBox = new Box<Tpn.TypeProblem2.Method>();
+            Tpn.TypeProblem2.Method? myInner =null;
 
             var linesBox = new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>();
 
@@ -255,7 +256,7 @@ namespace Tac.SemanticModel
                         parameterName,
                         new WeakMethodDefinitionConverter(
                             linesBox));
-
+                    myInner = inner;
                     innerBox.Fill(inner);
                     nextElements = elements.Select(z => z.TransformInner(w => w.Run(inner, context.CreateChildContext(this)).Resolve)).ToArray();
 
@@ -286,6 +287,10 @@ namespace Tac.SemanticModel
             {
                 throw new NullReferenceException(nameof(nextElements));
             }
+            if (myInner == null)
+            {
+                throw new NullReferenceException(nameof(myInner));
+            }
 
             var innerValue = context.TypeProblem.CreateValue(outer,
                  new GenericNameKey(new NameKey("method"), new[] {
@@ -305,26 +310,28 @@ namespace Tac.SemanticModel
                 }));
 
             return new SetUpResult<IBox<WeakImplementationDefinition>, Tpn.IValue>(new ImplementationDefinitionResolveReferance(
-                outer, nextElements, linesBox), OrType.Make<Tpn.IValue, IError>(value));
+                outer, myInner, nextElements, linesBox), OrType.Make<Tpn.IValue, IError>(value));
         }
     }
 
     internal class ImplementationDefinitionResolveReferance : IResolve<IBox<WeakImplementationDefinition>>
     {
         private readonly Tpn.TypeProblem2.Method outer;
+        private readonly TypeProblem2.Method inner;
         private readonly IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextElements;
         private readonly Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> linesBox;
 
-        public ImplementationDefinitionResolveReferance(Tpn.TypeProblem2.Method outer, IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextElements, Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> linesBox)
+        public ImplementationDefinitionResolveReferance(Tpn.TypeProblem2.Method outer, Tpn.TypeProblem2.Method inner, IOrType<IResolve<IBox<IFrontendCodeElement>>, IError>[] nextElements, Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>> linesBox)
         {
             this.outer = outer ?? throw new ArgumentNullException(nameof(outer));
+            this.inner = inner;
             this.nextElements = nextElements ?? throw new ArgumentNullException(nameof(nextElements));
             this.linesBox = linesBox ?? throw new ArgumentNullException(nameof(linesBox));
         }
 
-        public IBox<WeakImplementationDefinition> Run(Tpn.TypeSolution context)
+        public IBox<WeakImplementationDefinition> Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack)
         {
-            linesBox.Fill(nextElements.Select(x => x.TransformInner(y => y.Run(context))).ToArray());
+            linesBox.Fill(nextElements.Select(x => x.TransformInner(y => y.Run(context, stack.Add(outer).Add(inner)))).ToArray());
             var res = outer.Converter.Convert(context, outer);
             if (res.Is2(out var v2))
             {

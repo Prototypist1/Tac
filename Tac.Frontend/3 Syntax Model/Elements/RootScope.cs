@@ -191,14 +191,14 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
 
         // do these really need to be IBox? they seeme to generally be filled...
         // mayble IPossibly...
-        public IBox<WeakRootScope> Run(Tpn.TypeSolution context)
+        public IBox<WeakRootScope> Run(Tpn.TypeSolution context , IEnumerable<Tpn.ITypeProblemNode> stack)
         {
-            assignmentsBox.Fill(nextElements.Select(x => x.TransformInner(y => y.Run(context))).ToArray());
+            assignmentsBox.Fill(nextElements.Select(x => x.TransformInner(y => y.Run(context, stack.Add(myScope)))).ToArray());
 
-            entryBox.Fill(nextEntry.TransformInner(x => x.Run(context)));
+            entryBox.Fill(nextEntry.TransformInner(x => x.Run(context, stack.Add(myScope))));
 
-            ranTypes.Select(x => x.TransformInner(y => y.Run(context))).ToArray();
-            ranGenericTypes.Select(x => x.TransformInner(y => y.Run(context))).ToArray();
+            ranTypes.Select(x => x.TransformInner(y => y.Run(context, stack.Add(myScope)))).ToArray();
+            ranGenericTypes.Select(x => x.TransformInner(y => y.Run(context, stack.Add(myScope)))).ToArray();
             var objectOr = myScope.Converter.Convert(context,myScope);
             if (objectOr.Is2(out var v2))
             {

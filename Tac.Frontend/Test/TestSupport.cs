@@ -50,7 +50,7 @@ namespace Tac.Tests
 
             var solution = problem.Solve();
 
-            var res = referanceResolver.Run(solution);
+            var res = referanceResolver.Run(solution, new List<Tpn.ITypeProblemNode>());
 
             return res.GetValue();
         }

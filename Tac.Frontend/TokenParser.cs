@@ -65,7 +65,7 @@ namespace Tac.Frontend
 
             var solution = problem.Solve();
 
-            var rootScope = referanceResolver.Run(solution).GetValue();
+            var rootScope = referanceResolver.Run(solution,new List<Tpn.ITypeProblemNode>()).GetValue();
 
             var errors = rootScope.Validate().ToArray();
 
