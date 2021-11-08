@@ -215,7 +215,7 @@ namespace Tac.SemanticModel
         public IBox<WeakMethodDefinition> Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack)
         {
             box.Fill(nextElements.Select(x => x.TransformInner(y => y.Run(context, stack.Add(method)))).ToArray());
-            var res = method.Converter.Convert(context, method);
+            var res = method.Converter.Convert(context, method, stack);
             if (res.Is1(out var v1))
             {
                 return new Box<WeakMethodDefinition>(v1);

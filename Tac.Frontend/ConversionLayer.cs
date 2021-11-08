@@ -38,7 +38,7 @@ namespace Tac.Frontend
             //this.typeParmereIndex = typeParmereIndex ?? throw new ArgumentNullException(nameof(typeParmereIndex));
         }
 
-        public IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Type from)
+        public IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Type from, IEnumerable<Tpn.ITypeProblemNode> context)
         {
             //if (typeParmereIndex.Is(out var index)) {
             //    new GenericTypeParameterPlacholder(index, typeSolution.);
@@ -50,12 +50,12 @@ namespace Tac.Frontend
                 return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>(
                     new WeakGenericTypeDefinition(
                         from.Key,
-                        typeSolution.GetHasMemberType(from), // wrapping in a box here is weird 
-                        from.Generics.Select(x => typeSolution.GetGenericPlaceholder(x.Value)).ToArray()));// from.Generics.Select(x=>Possibly.Is< IGenericTypeParameterPlacholder>(x.Value.Converter.Convert(typeSolution,x.Value))).ToArray()));
+                        typeSolution.GetHasMemberType(from, context), // wrapping in a box here is weird 
+                        from.Generics.Select(x => typeSolution.GetGenericPlaceholder(x.Value, context)).ToArray()));// from.Generics.Select(x=>Possibly.Is< IGenericTypeParameterPlacholder>(x.Value.Converter.Convert(typeSolution,x.Value))).ToArray()));
             }
 
             return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>(
-                    new WeakTypeDefinition(typeSolution.GetHasMemberType(from)));//, key ?
+                    new WeakTypeDefinition(typeSolution.GetHasMemberType(from, context)));//, key ?
 
         }
     }
@@ -79,7 +79,7 @@ namespace Tac.Frontend
 
         public Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType PrimitiveType { get; }
 
-        public IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Type from)
+        public IOrType<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Type from, IEnumerable<Tpn.ITypeProblemNode> context)
         {
             return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>(PrimitiveType);
         }
@@ -91,9 +91,9 @@ namespace Tac.Frontend
         {
         }
 
-        public MethodType Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.MethodType from)
+        public MethodType Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.MethodType from, IEnumerable<Tpn.ITypeProblemNode> context)
         {
-            return typeSolution.GetMethodType(from).Is1OrThrow();
+            return typeSolution.GetMethodType(from, context).Is1OrThrow();
             // I don't think this is safe see:
             //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
             //return
@@ -112,24 +112,24 @@ namespace Tac.Frontend
             this.body = body ?? throw new ArgumentNullException(nameof(body));
         }
 
-        public IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from)
+        public IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from, IEnumerable<Tpn.ITypeProblemNode> context)
         {
             var inputKey = from.PrivateMembers.Single(x => x.Value == from.Input.GetOrThrow());
 
-            var scope = typeSolution.GetWeakScope(from);
+            var scope = typeSolution.GetWeakScope(from, context);
 
             if (from.Generics.Any()) {
                 return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>(new WeakGenericMethodDefinition(
-                        typeSolution.GetType(from.Returns.GetOrThrow()),
+                        typeSolution.GetType(from.Returns.GetOrThrow(), context),
                         scope.membersList.Single(x => x.Key.Equals(inputKey.Key)),
                         body,
                         OrType.Make<WeakScope, IError>(scope),
                         Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>(),
-                        from.Generics.Select(x => typeSolution.GetGenericPlaceholder(x.Value)).ToArray()));
+                        from.Generics.Select(x => typeSolution.GetGenericPlaceholder(x.Value, context)).ToArray()));
             }
 
             return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>(new WeakMethodDefinition(
-                typeSolution.GetType(from.Returns.GetOrThrow()),
+                typeSolution.GetType(from.Returns.GetOrThrow(), context),
                 scope.membersList.Single(x => x.Key.Equals(inputKey.Key)),
                 body,
                 OrType.Make<WeakScope, IError>(scope),
@@ -175,19 +175,19 @@ namespace Tac.Frontend
             this.inner = inner ?? throw new ArgumentNullException(nameof(inner));
         }
 
-        public IOrType<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition, WeakGenericMethodDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from)
+        public IOrType<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition, WeakGenericMethodDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from, IEnumerable<Tpn.ITypeProblemNode> context)
         {
             //
 
             var inputKey = from.PrivateMembers.Single(x => x.Value == from.Input.GetOrThrow());
             var innerInputKey = inner.GetValue().PrivateMembers.Single(x => x.Value == inner.GetValue().Input.GetOrThrow());
-            var scope = typeSolution.GetWeakScope(from); 
-            var innerScope = typeSolution.GetWeakScope(inner.GetValue());
+            var scope = typeSolution.GetWeakScope(from, context); 
+            var innerScope = typeSolution.GetWeakScope(inner.GetValue(), context);
 
             return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition,WeakEntryPointDefinition, WeakGenericMethodDefinition>(new WeakImplementationDefinition(
                 scope.membersList.Single(x => x.Key.Equals(inputKey.Key)),
                 innerScope.membersList.Single(x => x.Key.Equals(innerInputKey.Key)),
-                typeSolution.GetType(inner.GetValue().Returns.GetOrThrow()),
+                typeSolution.GetType(inner.GetValue().Returns.GetOrThrow(), context),
                 body,
                 new Box<WeakScope>(scope),
                 Array.Empty<IFrontendCodeElement>()));
@@ -217,19 +217,19 @@ namespace Tac.Frontend
 
     internal class WeakTypeReferenceConverter : Tpn.IConvertTo<Tpn.TypeProblem2.TypeReference, IFrontendType<IVerifiableType>>
     {
-        public IFrontendType<IVerifiableType> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.TypeReference from)
+        public IFrontendType<IVerifiableType> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.TypeReference from, IEnumerable<Tpn.ITypeProblemNode> context)
         {
             // I don't think this is safe see:
             // {D27D98BA-96CF-402C-824C-744DACC63FEE}
-            return new WeakTypeReference(typeSolution.GetType(from));
+            return new WeakTypeReference(typeSolution.GetType(from, context));
         }
     }
 
     internal class WeakTypeOrOperationConverter : Tpn.IConvertTo<Tpn.TypeProblem2.OrType, WeakTypeOrOperation>
     {
-        public WeakTypeOrOperation Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.OrType from)
+        public WeakTypeOrOperation Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.OrType from, IEnumerable<Tpn.ITypeProblemNode> context)
         {
-            return new WeakTypeOrOperation(typeSolution.GetOrType(from));
+            return new WeakTypeOrOperation(typeSolution.GetOrType(from, context));
         }
     }
 
@@ -244,12 +244,12 @@ namespace Tac.Frontend
             this.body = body ?? throw new ArgumentNullException(nameof(body));
         }
 
-        public IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Scope from)
+        public IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Scope from, IEnumerable<Tpn.ITypeProblemNode> context)
         {
             return OrType.Make<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>(
                 new WeakBlockDefinition(
                     body,
-                    OrType.Make<WeakScope, IError>(typeSolution.GetWeakScope(from)),
+                    OrType.Make<WeakScope, IError>(typeSolution.GetWeakScope(from, context)),
                     Array.Empty<IIsPossibly<IFrontendCodeElement>>()));
         }
     }
@@ -266,15 +266,15 @@ namespace Tac.Frontend
             this.body = body ?? throw new ArgumentNullException(nameof(body));
         }
 
-        public IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from)
+        public IOrType<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Method from, IEnumerable<Tpn.ITypeProblemNode> context)
         {
 
             var inputKey = from.PrivateMembers.Single(x => x.Value == from.Input.GetOrThrow());
 
-            var scope = typeSolution.GetWeakScope(from);
+            var scope = typeSolution.GetWeakScope(from, context);
 
             return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>(new WeakEntryPointDefinition(
-                typeSolution.GetType(from.Returns.GetOrThrow()),
+                typeSolution.GetType(from.Returns.GetOrThrow(), context),
                 scope.membersList.Single(x => x.Key.Equals(inputKey.Key)), 
                 body,
                 OrType.Make<WeakScope, IError>(scope),
@@ -289,9 +289,9 @@ namespace Tac.Frontend
         {
         }
 
-        public IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Scope from)
+        public IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Scope from, IEnumerable<Tpn.ITypeProblemNode> context)
         {
-            return OrType.Make<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>(typeSolution.GetWeakScope(from));
+            return OrType.Make<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>(typeSolution.GetWeakScope(from,context));
         }
     }
 
@@ -304,10 +304,10 @@ namespace Tac.Frontend
             this.box = box;
         }
 
-        public IOrType<WeakObjectDefinition, WeakRootScope> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Object from)
+        public IOrType<WeakObjectDefinition, WeakRootScope> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Object from, IEnumerable<Tpn.ITypeProblemNode> context)
         {
             return OrType.Make<WeakObjectDefinition,  WeakRootScope>(new WeakObjectDefinition(
-                typeSolution.GetObjectType(from),
+                typeSolution.GetObjectType(from, context),
                 box));
         }
     }
@@ -325,10 +325,10 @@ namespace Tac.Frontend
             entryPoint = EntryPoint ?? throw new ArgumentNullException(nameof(EntryPoint));
         }
 
-        public IOrType<WeakObjectDefinition, WeakRootScope> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Object from)
+        public IOrType<WeakObjectDefinition, WeakRootScope> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.Object from, IEnumerable<Tpn.ITypeProblemNode> context)
         {
             return OrType.Make<WeakObjectDefinition, WeakRootScope>(new WeakRootScope(
-                typeSolution.GetObjectType(from),
+                typeSolution.GetObjectType(from, context),
                 assigns,
                 entryPoint));
         }

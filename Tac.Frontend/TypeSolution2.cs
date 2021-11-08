@@ -436,7 +436,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             var source = constrains.Single().Is2OrThrow().primitiveFlowNode2.type;
 
                             var list = new EqualableReadOnlyList<Yolo>(Array.Empty<Yolo>());
-                            var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(source.Converter.Convert(this, source).Is3OrThrow()));
+                            var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(source.Converter.Convert(this, source, Array.Empty<Tpn.ITypeProblemNode>() /*this is a little sloppy, but a primitive converter better not depend on context*/ ).Is3OrThrow()));
                             typeByYoloAndContext.AddOrThrow((yolo, list), res);
                             return (res, list);
 

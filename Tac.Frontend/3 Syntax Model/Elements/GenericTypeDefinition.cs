@@ -153,7 +153,7 @@ namespace Tac.SemanticModel
             // uhhh it is werid that I have to do this
             lines.Select(x => x.TransformInner(y => y.Run(context, stack.Add(myScope)))).ToArray();
 
-            return new Box<WeakGenericTypeDefinition>(myScope.Converter.Convert(context, myScope).Is2OrThrow());
+            return new Box<WeakGenericTypeDefinition>(myScope.Converter.Convert(context, myScope, stack).Is2OrThrow());
         }
     }
 }

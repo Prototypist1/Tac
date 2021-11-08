@@ -121,7 +121,7 @@ namespace Tac.SemanticModel
         {
             box.Fill(nextElements.Select(x => x.TransformInner(y => y.Run(context, stack.Add(myScope)))).ToArray());
 
-            return new Box<WeakBlockDefinition>( myScope.Converter.Convert(context, myScope).Is1OrThrow());
+            return new Box<WeakBlockDefinition>( myScope.Converter.Convert(context, myScope, stack).Is1OrThrow());
         }
     }
 

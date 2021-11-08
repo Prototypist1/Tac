@@ -73,7 +73,7 @@ namespace Tac.Frontend
                 return OrType.Make<IProject<TAssembly, TBacking>, IReadOnlyList<IError>>(errors);
             }
 
-            var dependencyScope = problem.Dependency.Converter.Convert(solution, problem.Dependency).Is2OrThrow();
+            var dependencyScope = problem.Dependency.Converter.Convert(solution, problem.Dependency, Array.Empty<Tpn.ITypeProblemNode>()).Is2OrThrow();
 
 
             var context = TransformerExtensions.NewConversionContext();

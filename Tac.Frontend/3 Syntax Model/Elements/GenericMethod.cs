@@ -247,7 +247,7 @@ namespace Tac.SemanticModel
         public IBox<WeakGenericMethodDefinition> Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack)
         {
             box.Fill(nextElements.Select(x => x.TransformInner(y => y.Run(context, stack.Add(method)))).ToArray());
-            var res = method.Converter.Convert(context, method);
+            var res = method.Converter.Convert(context, method, stack);
             if (res.Is4(out var v4))
             {
                 return new Box<WeakGenericMethodDefinition>(v4);

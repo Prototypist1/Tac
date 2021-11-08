@@ -185,7 +185,7 @@ namespace Tac.SemanticModel
         {
             var finalForm=  converted.Select(x => x.TransformInner(y => y.Run(context, stack.Add(scope)))).ToArray();
             box.Fill(finalForm);
-            var res = scope.Converter.Convert(context, scope);
+            var res = scope.Converter.Convert(context, scope, stack);
             if (res.Is3(out var v3))
             {
                 return new Box<WeakEntryPointDefinition>(v3);

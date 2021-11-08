@@ -88,7 +88,14 @@ namespace Tac.Frontend.TypeProblem.Test
             x.builder.CreatePublicMember(hello, hello, new NameKey("y"));
             var solution = x.Solve();
 
-            var resultHello = hello.Converter.Convert(solution, hello).Is1OrThrow();
+            var scope = new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot,
+                hello
+            };
+
+            var resultHello = hello.Converter.Convert(solution, hello, scope).Is1OrThrow();
 
             HasMember(resultHello.FrontendType().Is1OrThrow(), new NameKey("x"));
             HasMember(resultHello.FrontendType().Is1OrThrow(), new NameKey("y"));
@@ -131,7 +138,12 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var result = x.Solve();
 
-            var methodResult = method.Converter.Convert(result,method).Is1OrThrow();
+            var methodResult = method.Converter.Convert(result,method, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot,
+                method
+            }).Is1OrThrow();
 
             var HackToLookAtScope = new HasMembersType(methodResult.Scope.Is1OrThrow());
 
@@ -144,7 +156,12 @@ namespace Tac.Frontend.TypeProblem.Test
             HasMember(inputResult, new NameKey("y"));
 
             
-            var helloResult = hello.Converter.Convert(result, hello).Is1OrThrow().FrontendType();
+            var helloResult = hello.Converter.Convert(result, hello, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot,
+                hello
+            }).Is1OrThrow().FrontendType();
             HasMember(helloResult.Is1OrThrow(), new NameKey("x"));
             HasMember(helloResult.Is1OrThrow(), new NameKey("y"));
 
@@ -180,7 +197,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot).Is2OrThrow().Scope.Is1OrThrow();
+            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot
+            }).Is2OrThrow().Scope.Is1OrThrow();
 
             var m1t = MemberToType(obj.membersList.Single(x => x.Key.Equals(new NameKey("m1"))));
             HasMember(m1t, new NameKey("x"));
@@ -233,7 +254,11 @@ namespace Tac.Frontend.TypeProblem.Test
             //HasCount(1, MemberToType(solution.GetMemberFromType(m4).GetValue()));
             //HasCount(1, MemberToType(solution.GetMemberFromType(m5).GetValue()));
 
-            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot).Is2OrThrow().Scope.Is1OrThrow();
+            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot
+            }).Is2OrThrow().Scope.Is1OrThrow();
 
 
             var m1t = MemberToType(obj.membersList.Single(x => x.Key.Equals(new NameKey("m1"))));
@@ -278,7 +303,11 @@ namespace Tac.Frontend.TypeProblem.Test
             m2.AssignTo(m1);
 
             var solution = x.Solve();
-            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot).Is2OrThrow().Scope.Is1OrThrow();
+            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot
+            }).Is2OrThrow().Scope.Is1OrThrow();
 
 
 
@@ -310,7 +339,11 @@ namespace Tac.Frontend.TypeProblem.Test
             m2.AssignTo(m1);
 
             var solution = x.Solve();
-            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot).Is2OrThrow().Scope.Is1OrThrow();
+            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot
+            }).Is2OrThrow().Scope.Is1OrThrow();
 
 
 
@@ -353,7 +386,11 @@ namespace Tac.Frontend.TypeProblem.Test
             var chickenPair = x.builder.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("x"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("pair"), new IOrType<IKey, IError>[] { OrType.Make<IKey, IError>(new NameKey("chicken")) })));
 
             var solution = x.Solve();
-            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot).Is2OrThrow().Scope.Is1OrThrow();
+            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot
+            }).Is2OrThrow().Scope.Is1OrThrow();
 
 
             var chickenPairResult = obj.membersList.Single(x => x.Key.Equals(new NameKey("x")));
@@ -371,6 +408,8 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void GenericContainsSelf()
         {
+
+            throw new Exception("breaks the test runner");
 
             // type[node-t] node {node[node-t] next}
             // type chicken {}
@@ -400,7 +439,11 @@ namespace Tac.Frontend.TypeProblem.Test
             })));
 
             var solution = x.Solve();
-            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot).Is2OrThrow().Scope.Is1OrThrow();
+            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot
+            }).Is2OrThrow().Scope.Is1OrThrow();
 
 
             var thingResult = obj.membersList.Single(x => x.Key.Equals(new NameKey("thing")));
@@ -418,6 +461,9 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void GenericContainsSelfWithInferred()
         {
+            throw new Exception("breaks the test runner");
+
+
             // type[node-t] node {node[node-t] next}
             // type chicken {}
             // node[chicken] thing;
@@ -451,7 +497,11 @@ namespace Tac.Frontend.TypeProblem.Test
             x.builder.IsAssignedTo(xMember, thing);
 
             var solution = x.Solve();
-            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot).Is2OrThrow().Scope.Is1OrThrow();
+            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot
+            }).Is2OrThrow().Scope.Is1OrThrow();
 
             var thingResult = obj.membersList.Single(x => x.Key.Equals(new NameKey("thing")));
             var thingResultType = MemberToType(thingResult);
@@ -517,7 +567,11 @@ namespace Tac.Frontend.TypeProblem.Test
             x.builder.IsAssignedTo(rightMember, leftMember);
 
             var solution = x.Solve();
-            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot).Is2OrThrow().Scope.Is1OrThrow();
+            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot
+            }).Is2OrThrow().Scope.Is1OrThrow();
 
             var leftResult = obj.membersList.Single(x => x.Key.Equals(new NameKey("left-member")));
             var rightResult = obj.membersList.Single(x => x.Key.Equals(new NameKey("right-member")));
@@ -572,7 +626,11 @@ namespace Tac.Frontend.TypeProblem.Test
             var xMember = x.builder.CreatePublicMember(x.ModuleRoot, x.ModuleRoot, new NameKey("x"), OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("pair"), new IOrType<IKey, IError>[] { OrType.Make<IKey, IError>(new GenericNameKey(new NameKey("pair"), new IOrType<IKey, IError>[] { OrType.Make<IKey, IError>(new NameKey("chicken")) })) })));
 
             var solution = x.Solve();
-            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot).Is2OrThrow().Scope.Is1OrThrow();
+            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot
+            }).Is2OrThrow().Scope.Is1OrThrow();
 
             var xMemberResult = obj.membersList.Single(x => x.Key.Equals(new NameKey("x")));
             var xMemberResultType = MemberToType(xMemberResult);
@@ -630,11 +688,21 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var aTypeSolution = aType.Converter.Convert(solution, aType).Is1OrThrow();
+            var aTypeSolution = aType.Converter.Convert(solution, aType, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot,
+                aType,
+            }).Is1OrThrow();
             var aMember = HasMember(aTypeSolution.FrontendType().Is1OrThrow(), new NameKey("x"));
             Assert.True(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType().TheyAreUs(aMember, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
 
-            var bTypeSolution = bType.Converter.Convert(solution, bType).Is1OrThrow();
+            var bTypeSolution = bType.Converter.Convert(solution, bType, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot,
+                bType,
+            }).Is1OrThrow();
             var bMember = HasMember(bTypeSolution.FrontendType().Is1OrThrow(), new NameKey("x"));
             Assert.True(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType().TheyAreUs(bMember, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
         }
@@ -678,7 +746,11 @@ namespace Tac.Frontend.TypeProblem.Test
             x.builder.IsAssignedTo(c, ab);
 
             var solution = x.Solve();
-            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot).Is2OrThrow().Scope.Is1OrThrow();
+            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot
+            }).Is2OrThrow().Scope.Is1OrThrow();
 
             var member = obj.membersList.Single(x => x.Key.Equals(new NameKey("c")));
 
@@ -716,7 +788,11 @@ namespace Tac.Frontend.TypeProblem.Test
             x.builder.IsAssignedTo(c, b);
 
             var solution = x.Solve();
-            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot).Is2OrThrow().Scope.Is1OrThrow();
+            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot
+            }).Is2OrThrow().Scope.Is1OrThrow();
 
             var cType = obj.membersList.Single(x => x.Key.Equals(new NameKey("c"))).Type.GetValue().Is1OrThrow();
 
@@ -759,7 +835,11 @@ namespace Tac.Frontend.TypeProblem.Test
             x.builder.IsAssignedTo(c, d);
 
             var solution = x.Solve();
-            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot).Is2OrThrow().Scope.Is1OrThrow();
+            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot
+            }).Is2OrThrow().Scope.Is1OrThrow();
 
             var cType = obj.membersList.Single(x => x.Key.Equals(new NameKey("c"))).Type.GetValue().Is1OrThrow();
 
@@ -830,7 +910,11 @@ namespace Tac.Frontend.TypeProblem.Test
             x.builder.IsAssignedTo(c, b);
 
             var solution = x.Solve();
-            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot).Is2OrThrow().Scope.Is1OrThrow();
+            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot
+            }).Is2OrThrow().Scope.Is1OrThrow();
 
             var cTypeResult = obj.membersList.Single(x => x.Key.Equals(new NameKey("c"))).Type.GetValue().Is1OrThrow();
 
@@ -924,7 +1008,11 @@ namespace Tac.Frontend.TypeProblem.Test
             x.builder.IsAssignedTo(c, b);
 
             var solution = x.Solve();
-            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot).Is2OrThrow().Scope.Is1OrThrow();
+            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot
+            }).Is2OrThrow().Scope.Is1OrThrow();
 
             var cTypeResult = obj.membersList.Single(x => x.Key.Equals(new NameKey("c"))).Type.GetValue().Is1OrThrow();
 
@@ -987,7 +1075,12 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var aTypeSolution = aType.Converter.Convert(solution, aType).Is1OrThrow();
+            var aTypeSolution = aType.Converter.Convert(solution, aType, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot,
+                aType
+            }).Is1OrThrow();
             var aMember = HasMember(aTypeSolution.FrontendType().Is1OrThrow(), new NameKey("x"));
             Assert.True(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType().TheyAreUs(aMember, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
         }
@@ -1075,7 +1168,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = problem.Solve();
 
-            var res = solution.GetType(a);
+            var res = solution.GetType(a, new List<Tpn.ITypeProblemNode>
+            {
+                problem.Dependency,
+                problem.ModuleRoot
+            });
             var method = Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.MethodType>(res.Is1OrThrow());
             Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(method.OutputType.GetValue().Is1OrThrow());
         }
@@ -1128,7 +1225,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var cType = solution.GetType(c);
+            var cType = solution.GetType(c, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot
+            });
 
             var hasMembers = Assert.IsType<HasMembersType>(cType.Is1OrThrow());
             var member = hasMembers.TryGetMember(new NameKey("x"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow();
@@ -1168,7 +1269,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = x.Solve();
 
-            var aType = solution.GetType(a).Is1OrThrow();
+            var aType = solution.GetType(a, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot
+            }).Is1OrThrow();
             var a_xType = aType.TryGetMember(new NameKey("x"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Type.GetValue().Is1OrThrow();
             a_xType.TryGetMember(new NameKey("y"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow();
         }
@@ -1261,7 +1366,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
             // currently we have: 
             // method<any|number, any> | method<number, number> 
-            var resType = solution.GetType(res).Is1OrThrow();
+            var resType = solution.GetType(res, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot
+            }).Is1OrThrow();
 
             Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(resType.TryGetInput().Is1OrThrow().Is1OrThrow());
             Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(resType.TryGetReturn().Is1OrThrow().Is1OrThrow());
@@ -1307,13 +1416,21 @@ namespace Tac.Frontend.TypeProblem.Test
 
             // currently we have: 
             // method<any|number, any> | method<number, number> 
-            var resType = solution.GetType(res).Is1OrThrow();
+            var resType = solution.GetType(res, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow();
 
             Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(resType.TryGetInput().Is1OrThrow().Is1OrThrow());
             Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(resType.TryGetReturn().Is1OrThrow().Is1OrThrow());
 
 
-            var xType = solution.GetType(x).Is1OrThrow();
+            var xType = solution.GetType(x, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow();
 
             Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(xType.TryGetInput().Is1OrThrow().Is1OrThrow());
             Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(xType.TryGetReturn().Is1OrThrow().Is1OrThrow());
@@ -1381,11 +1498,19 @@ namespace Tac.Frontend.TypeProblem.Test
             var solution = typeProblem.Solve();
 
 
-            var bType = solution.GetType(b).Is1OrThrow();
+            var bType = solution.GetType(b, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow();
             Assert.True(bType.TheyAreUs(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType(), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
             Assert.True(bType.TheyAreUs(new Tac.SyntaxModel.Elements.AtomicTypes.BooleanType(), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
 
-            var aType = solution.GetType(a).Is1OrThrow();
+            var aType = solution.GetType(a, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow();
             Assert.True(aType.TheyAreUs(new Tac.SyntaxModel.Elements.AtomicTypes.NumberType(), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
             Assert.True(aType.TheyAreUs(new Tac.SyntaxModel.Elements.AtomicTypes.BooleanType(), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
         }
@@ -1412,7 +1537,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = typeProblem.Solve();
 
-            var xType = solution.GetType(x).Is1OrThrow();
+            var xType = solution.GetType(x, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow();
             var aType = xType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Type.GetValue().Is1OrThrow();
 
             Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.AnyType>(aType);
@@ -1424,6 +1553,8 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void XisAofX()
         {
+            throw new Exception("breaks the test runner");
+
             var typeProblem = new Tpn.TypeProblem2(
                 new WeakScopeConverter(),
                 DefaultRootScopePopulateScope(), _ => { });
@@ -1440,7 +1571,11 @@ namespace Tac.Frontend.TypeProblem.Test
             var solution = typeProblem.Solve();
 
 
-            var xType = solution.GetType(x).Is1OrThrow();
+            var xType = solution.GetType(x, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow();
             var aType = xType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Type.GetValue().Is1OrThrow(); ;
             var aaType = aType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Type.GetValue().Is1OrThrow(); ;
             var aaaType = aaType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Type.GetValue().Is1OrThrow(); ;
@@ -1453,6 +1588,8 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void XisAofXandAofXisX()
         {
+            throw new Exception("breaks the test runner");
+
             var typeProblem = new Tpn.TypeProblem2(
                 new WeakScopeConverter(),
                 DefaultRootScopePopulateScope(), _ => { });
@@ -1470,7 +1607,11 @@ namespace Tac.Frontend.TypeProblem.Test
             var solution = typeProblem.Solve();
 
 
-            var xType = solution.GetType(x).Is1OrThrow();
+            var xType = solution.GetType(x, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow();
             var aType = xType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Type.GetValue().Is1OrThrow(); ;
             var aaType = aType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Type.GetValue().Is1OrThrow(); ;
             var aaaType = aaType.TryGetMember(new NameKey("a"), new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow().Is1OrThrow().Type.GetValue().Is1OrThrow(); ;
@@ -1521,7 +1662,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = typeProblem.Solve();
 
-            var yType = solution.GetType(y).Is1OrThrow();
+            var yType = solution.GetType(y, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow();
             Assert.IsType<Tac.SyntaxModel.Elements.AtomicTypes.NumberType>(yType);
 
         }
@@ -1568,7 +1713,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = typeProblem.Solve();
 
-            var xType = solution.GetType(x).Is1OrThrow();
+            var xType = solution.GetType(x, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow();
             Assert.IsType<FrontEndOrType>(xType);
         }
 
@@ -1626,7 +1775,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = typeProblem.Solve();
 
-            var zType = solution.GetType(z).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.MethodType _);
+            var zType = solution.GetType(z, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.MethodType _);
             var zInput = zType.InputType.GetValue().Is1OrThrow();
             HasMember(zInput, new NameKey("a"));
             HasMember(zInput, new NameKey("b"));
@@ -1695,7 +1848,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = typeProblem.Solve();
 
-            var zType = solution.GetType(z).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.MethodType _);
+            var zType = solution.GetType(z, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.MethodType _);
             var zInput = zType.InputType.GetValue().Is1OrThrow();
             var inputItem = HasMember(zInput, new NameKey("item"));
             HasMember(inputItem, new NameKey("a"));
@@ -1745,7 +1902,11 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = typeProblem.Solve();
 
-            var xType = solution.GetType(x).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+            var xType = solution.GetType(x, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
             var xInput = Assert.IsType<GenericTypeParameterPlacholder>(xType.inputType.GetValue().Is1OrThrow());
             var xOutput = Assert.IsType<GenericTypeParameterPlacholder>(xType.outputType.GetValue().Is1OrThrow());
             var xParameter = Assert.IsType<GenericTypeParameterPlacholder>(Assert.Single(xType.typeParameterDefinitions).Is1OrThrow());
@@ -1754,7 +1915,11 @@ namespace Tac.Frontend.TypeProblem.Test
             Assert.Equal(xInput, xParameter);
             Assert.Equal(xOutput, xParameter);
 
-            var yType = solution.GetType(y).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+            var yType = solution.GetType(y, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
 
             Assert.True(xType.TheyAreUs(yType, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
             Assert.True(yType.TheyAreUs(xType, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
@@ -1808,8 +1973,16 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = typeProblem.Solve();
 
-            var xType = solution.GetType(x).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
-            var yType = solution.GetType(y).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+            var xType = solution.GetType(x, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+            var yType = solution.GetType(y, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
 
             Assert.True(xType.TheyAreUs(yType, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
         }
@@ -1870,8 +2043,16 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = typeProblem.Solve();
 
-            var x1Type = solution.GetType(x1).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
-            var x2Type = solution.GetType(x2).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+            var x1Type = solution.GetType(x1, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+            var x2Type = solution.GetType(x2, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
 
             Assert.NotEqual(x1Type, x2Type);
             Assert.True(x1Type.TheyAreUs(x2Type, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
@@ -1912,7 +2093,12 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var result = problem.Solve();
 
-            var methodResult = method.Converter.Convert(result, method).Is4OrThrow();
+            var methodResult = method.Converter.Convert(result, method, new List<Tpn.ITypeProblemNode>
+            {
+                problem.Dependency,
+                problem.ModuleRoot,
+                method
+            }).Is4OrThrow();
             var parameter = Assert.Single(methodResult.TypeParameterDefinitions).Is1OrThrow();
 
             var noEggs = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { }));
@@ -1968,12 +2154,20 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = typeProblem.Solve();
 
-            var zType = solution.GetType(z).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+            var zType = solution.GetType(z, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
             var zParameter = Assert.IsType<GenericTypeParameterPlacholder>(Assert.Single(zType.typeParameterDefinitions).Is1OrThrow());
             var zInput = Assert.IsType<GenericTypeParameterPlacholder>(zType.inputType.GetValue().Is1OrThrow());
             var zOutput = Assert.IsType<GenericTypeParameterPlacholder>(zType.outputType.GetValue().Is1OrThrow());
 
-            var yType = solution.GetType(y).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+            var yType = solution.GetType(y, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
 
 
             Assert.True(zType.TheyAreUs(yType, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
@@ -2019,7 +2213,6 @@ namespace Tac.Frontend.TypeProblem.Test
                 new[] {
                     new Tpn.TypeAndConverter(new NameKey("T"), new WeakTypeDefinitionConverter())
                 });
-
 
             // input =: chicken x;
             var x = problem.builder.CreatePrivateMember(method, method, new NameKey("x"), OrType.Make<IKey, Error>(new NameKey("chicken")));
@@ -2075,16 +2268,30 @@ namespace Tac.Frontend.TypeProblem.Test
             var hasEggs = new HasMembersType(new WeakScope(new List<WeakMemberDefinition> { new WeakMemberDefinition(Access.ReadWrite, new NameKey("eggs"), new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new Tac.SyntaxModel.Elements.AtomicTypes.AnyType()))) }));
 
 
-            var methodResult = method.Converter.Convert(result, method).Is4OrThrow();
+            var methodResult = method.Converter.Convert(result, method, new List<Tpn.ITypeProblemNode>
+            {
+                problem.Dependency,
+                problem.ModuleRoot,
+                method
+            }).Is4OrThrow();
             var parameter = Assert.Single(methodResult.TypeParameterDefinitions).Is1OrThrow();
             Assert.False(parameter.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
             Assert.True(parameter.TheyAreUs(hasEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
 
-            var myMethodReturns = result.GetType(myMethod).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _).typeParameterDefinitions.Single().Is1OrThrow();
+            var myMethodReturns = result.GetType(myMethod,  new List<Tpn.ITypeProblemNode>
+            {
+                problem.Dependency,
+                problem.ModuleRoot,
+                myMethod
+            }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _).typeParameterDefinitions.Single().Is1OrThrow();
             Assert.False(myMethodReturns.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
             Assert.True(myMethodReturns.TheyAreUs(hasEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
 
-            var yoloReturns = result.GetType(yolo).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _).typeParameterDefinitions.Single().Is1OrThrow();
+            var yoloReturns = result.GetType(yolo, new List<Tpn.ITypeProblemNode>
+            {
+                problem.Dependency,
+                problem.ModuleRoot
+            }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _).typeParameterDefinitions.Single().Is1OrThrow();
             Assert.True(yoloReturns.TheyAreUs(noEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
             Assert.True(yoloReturns.TheyAreUs(hasEggs, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
         }
@@ -2157,9 +2364,21 @@ namespace Tac.Frontend.TypeProblem.Test
 
             var solution = typeProblem.Solve();
 
-            var xType = solution.GetType(x).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
-            var yType = solution.GetType(y).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
-            var zType = solution.GetType(z).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+            var xType = solution.GetType(x, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+            var yType = solution.GetType(y, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
+            var zType = solution.GetType(z, new List<Tpn.ITypeProblemNode>
+            {
+                typeProblem.Dependency,
+                typeProblem.ModuleRoot
+            }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
             Assert.False(xType.TheyAreUs(yType, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
 
         }
@@ -2167,6 +2386,8 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void GenericContainsSelfContainsDoubleGeneric()
         {
+
+            throw new Exception("breaks the test runner");
 
             // type[node-t] node {node[node-t] next; method [T] [T,T] z}
             // type chicken {}
@@ -2207,7 +2428,11 @@ namespace Tac.Frontend.TypeProblem.Test
             })));
 
             var solution = x.Solve();
-            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot).Is2OrThrow().Scope.Is1OrThrow();
+            var obj = x.ModuleRoot.Converter.Convert(solution, x.ModuleRoot, new List<Tpn.ITypeProblemNode>
+            {
+                x.Dependency,
+                x.ModuleRoot
+            }).Is2OrThrow().Scope.Is1OrThrow();
 
 
             var thingResult = obj.membersList.Single(x => x.Key.Equals(new NameKey("thing")));

@@ -38,7 +38,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         internal interface IConvertTo<in TConvertFrom, out TConvertsTo>
         {
-            TConvertsTo Convert(TypeSolution typeSolution, TConvertFrom from);
+            TConvertsTo Convert(TypeSolution typeSolution, TConvertFrom from, IEnumerable<ITypeProblemNode> context);
         }
 
         // the simple model of or-types:

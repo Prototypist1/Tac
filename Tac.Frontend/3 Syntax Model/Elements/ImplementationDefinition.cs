@@ -332,7 +332,7 @@ namespace Tac.SemanticModel
         public IBox<WeakImplementationDefinition> Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack)
         {
             linesBox.Fill(nextElements.Select(x => x.TransformInner(y => y.Run(context, stack.Add(outer).Add(inner)))).ToArray());
-            var res = outer.Converter.Convert(context, outer);
+            var res = outer.Converter.Convert(context, outer, stack);
             if (res.Is2(out var v2))
             {
                 return new Box<WeakImplementationDefinition>(v2);

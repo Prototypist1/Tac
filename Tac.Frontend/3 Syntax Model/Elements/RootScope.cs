@@ -199,7 +199,7 @@ namespace Tac.Frontend._3_Syntax_Model.Elements
 
             ranTypes.Select(x => x.TransformInner(y => y.Run(context, stack.Add(myScope)))).ToArray();
             ranGenericTypes.Select(x => x.TransformInner(y => y.Run(context, stack.Add(myScope)))).ToArray();
-            var objectOr = myScope.Converter.Convert(context,myScope);
+            var objectOr = myScope.Converter.Convert(context,myScope, stack);
             if (objectOr.Is2(out var v2))
             {
                 return new Box<WeakRootScope>(v2);

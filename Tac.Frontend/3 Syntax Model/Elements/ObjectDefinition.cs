@@ -207,7 +207,7 @@ namespace Tac.SemanticModel
 
             box.Fill(finalElements);
 
-            var objectOr = myScope.Converter.Convert(context, myScope);//;  context.GetObject(myScope);
+            var objectOr = myScope.Converter.Convert(context, myScope, stack);//;  context.GetObject(myScope);
             if (objectOr.Is1(out var v1))
             {
                 return new Box<WeakObjectDefinition>(v1);
