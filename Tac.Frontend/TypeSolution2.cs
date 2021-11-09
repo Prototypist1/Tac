@@ -67,6 +67,17 @@ namespace Tac.Frontend.New.CrzayNamespace
                     this.key = key ?? throw new ArgumentNullException(nameof(key));
                 }
 
+                public override bool Equals(object? obj)
+                {
+                    return obj is Yolo yolo &&
+                           key.Equals(yolo.key);
+                }
+
+                public override int GetHashCode()
+                {
+                    return key.GetHashCode();
+                }
+
                 public override string ToString()
                 {
                     return debugName;
