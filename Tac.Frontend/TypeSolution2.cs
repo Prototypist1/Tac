@@ -52,6 +52,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 internal IIsPossibly<IOrType<Yolo, IError>>? output;
                 internal IIsPossibly<IOrType<Yolo, IError>>? input;
 
+                internal string? debugName;
+
                 // for or types
                 internal IIsPossibly<Yolo>? left;
                 internal IIsPossibly<Yolo>? right;
@@ -63,6 +65,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Yolo(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> key)
                 {
                     this.key = key ?? throw new ArgumentNullException(nameof(key));
+                }
+
+                public override string ToString()
+                {
+                    return debugName;
                 }
 
                 // sometimes thing have no member but really we know they are an object or a type
@@ -95,6 +102,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     var rep = flowNode2.Value.GetValueAs(out IConstraintSoruce _).GetExtendedConstraints().Flatten();
                     var yolo = GetOrAdd(rep);
+
+                    if (flowNode2.Key.Is1(out var typeProblemNode)) {
+                        yolo.debugName += " " + typeProblemNode.DebugName;
+                    }
 
                     // this feels a bit weird because it doesn't flow through the type problem
                     //if (flowNode2.Key.Is1(out var typeProblemNode))
@@ -307,115 +318,118 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 if (yolo.key.Count() == 1)
                 {
-
-                    var justGenericConstraints = yolo.key.First()
-                        .Where(y => y.Is5(out IsGeneric _))
-                        .Select(y => y.Is5OrThrow())
-                        .ToArray();
-
-                    var lookups = justGenericConstraints.Select(genericConstraint => context.SkipLast(genericConstraint.pathFromOwner.Length - 1).Last().genericsConstraints.Is1OrThrow()[genericConstraint.index]).Distinct().ToArray();
-                    var indexs = justGenericConstraints.Select(genericConstraint => genericConstraint.index).Distinct().ToArray();
-                    var froms = justGenericConstraints.Select(genericConstraint => context.SkipLast(genericConstraint.pathFromOwner.Length - 1).Last()).Distinct().ToArray();
-
-                    if (lookups.Length == 1 && couldBeGeneric)
+                    if (couldBeGeneric)
                     {
-                        // are we exactly the generic? 
-                        // if not that is a probablem
-                        if (!lookups.First().key.Equals(yolo.key)) {
-                            // x =: T a
-                            // x =: {number n;} b
-                            // x is T AND {number n;}
-                            // I don't support AND-types tho
-                            // TODO                        
-                            // {4C0E59B1-11EC-404B-9D57-760F2205E50C}
-                            throw new Exception("I don't support this yet");
+                        var justGenericConstraints = yolo.key.First()
+                            .Where(y => y.Is5(out IsGeneric _))
+                            .Select(y => y.Is5OrThrow())
+                            .ToArray();
+
+                        var lookups = justGenericConstraints.Select(genericConstraint => context.SkipLast(genericConstraint.pathFromOwner.Length - 1).Last().genericsConstraints.Is1OrThrow()[genericConstraint.index]).Distinct().ToArray();
+                        var indexs = justGenericConstraints.Select(genericConstraint => genericConstraint.index).Distinct().ToArray();
+                        var froms = justGenericConstraints.Select(genericConstraint => context.SkipLast(genericConstraint.pathFromOwner.Length - 1).Last()).Distinct().ToArray();
+
+                        if (lookups.Length == 1)
+                        {
+                            // are we exactly the generic? 
+                            // if not that is a probablem
+                            if (!lookups.First().key.Equals(yolo.key))
+                            {
+                                // x =: T a
+                                // x =: {number n;} b
+                                // x is T AND {number n;}
+                                // I don't support AND-types tho
+                                // TODO                        
+                                // {4C0E59B1-11EC-404B-9D57-760F2205E50C}
+                                throw new Exception("I don't support this yet");
+                            }
+
+                            // we need to insert this a the right level
+                            // we insert it at the level the generic was defined at 
+                            var list = new EqualableReadOnlyList<Yolo>(context.SkipLast(justGenericConstraints.First().pathFromOwner.Length - 1).ToArray());
+                            var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
+                            alreadyConverting.Add((yolo, couldBeGeneric), res);
+                            res.Fill(LookUpGeneric(froms.First(), context, indexs.First(), alreadyConverting));
+                            typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                            return (res, list);
                         }
+                        else if (lookups.Length > 1)
+                        {
+                            // method [T] [T,T] a;
+                            // method [t1,t2] [t1, t2] b;
+                            // c =: a;
+                            // c =: b;
+                            //
+                            // pretty sure we have no idea what "c" is..
+                            // well probabaly method [T1,T2] [T1,T2] where T1: T,t1 and T2: T,t2 
+                            //
+                            // but...
+                            //
+                            // method [Ta, Tb] [Tb,Ta] a;
+                            // method [t1,t2] [t1, t2] b;
+                            // c =: a;
+                            // c =: b;
+                            //
+                            // "c" is method [T1,T2] [T1,T2] where T1: Tb, t1 and T2: Ta,t2 
+                            //
+                            // but I still don't know what index...
+                            // TODO, it's an error for now 
+                            //
+                            // any other pain point:
+                            //
+                            // method [Ta, Tb] [Tb,Ta] a;
+                            // method [t1,t2] [t1, t2] b;
+                            // c =: a;
+                            // c =: b;
+                            // o > c =: int x
+                            //
+                            // "c" is method [T1,T2] [T1,T2] where T1: Tb, t1 and T2: Ta,t2, int
+                            // but I have Ta, t2 and, int constraint on the output
+                            // while just Ta, t2 constring s on T2
+                            // how do I know that those collapse??
+                            //
+                            // 
+                            // I think it only works if the constraints are the same length
+                            // you can't do the assignment if you have different numbers of type parameters 
+                            //
+                            // method [Ta, Tb] [Tb,Ta] a;
+                            // method [t1,t2] [t1, t2] b;
+                            // c =: a;
+                            // c =: b;
+                            //
+                            // c is actually method [T1,T2] [??] where T1: Ta, t1  and T2 : Tb and t2 
+                            // c has an input of Tb, t1 
+                            // c has an output of Ta, t2
+                            //
+                            // c is actually method [T1,T2] [T1&T2,T1&T2]
+                            // once we assume c is method [T1,T2] [??]
+                            // from it's prospective 
+                            // "a" becomes: method [T1,T2] [T2,T1]
+                            // "b" becomes: method [T1,T2] [T1,T2]
+                            // now "c" has an input of T1, T2 
+                            // now "c" has an output of T1, T2
 
-                        // we need to insert this a the right level
-                        // we insert it at the level the generic was defined at 
-                        var list = new EqualableReadOnlyList<Yolo>(context.SkipLast(justGenericConstraints.First().pathFromOwner.Length - 1).ToArray());
-                        var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
-                        alreadyConverting.Add((yolo,couldBeGeneric), res);
-                        res.Fill( LookUpGeneric(froms.First(), context, indexs.First(), alreadyConverting));
-                        typeByYoloAndContext.AddOrThrow((yolo, list), res);
-                        return (res, list);
+                            //... anyway
+                            //... I don't even have AND types 
+
+                            // I think probably a flow from a generic is consider to be from your own generic
+                            // 
+                            // so what about this one?
+                            // 
+                            // method [Ta, Tb] [Tb,Ta] a;
+                            // method [t1,t2] [t1, t2] b;
+                            // c =: a;
+                            // c =: b;
+                            // o > c =: int x
+                            //
+                            // is "c" method [T1:int,T2:int] [T1&T2,T1&T2] ?
+                            // they both don't need the "int" but how would I know which one?
+                            // or maybe "c" is method [T1,T2] [T1 & T2,T1 & T2 & int]
+                            // {4C0E59B1-11EC-404B-9D57-760F2205E50C}
+                            throw new NotImplementedException("I think this should be an AND type, I don't really have those yet");
+                        }
                     }
-                    else if (lookups.Length > 1 && couldBeGeneric)
-                    {
-                        // method [T] [T,T] a;
-                        // method [t1,t2] [t1, t2] b;
-                        // c =: a;
-                        // c =: b;
-                        //
-                        // pretty sure we have no idea what "c" is..
-                        // well probabaly method [T1,T2] [T1,T2] where T1: T,t1 and T2: T,t2 
-                        //
-                        // but...
-                        //
-                        // method [Ta, Tb] [Tb,Ta] a;
-                        // method [t1,t2] [t1, t2] b;
-                        // c =: a;
-                        // c =: b;
-                        //
-                        // "c" is method [T1,T2] [T1,T2] where T1: Tb, t1 and T2: Ta,t2 
-                        //
-                        // but I still don't know what index...
-                        // TODO, it's an error for now 
-                        //
-                        // any other pain point:
-                        //
-                        // method [Ta, Tb] [Tb,Ta] a;
-                        // method [t1,t2] [t1, t2] b;
-                        // c =: a;
-                        // c =: b;
-                        // o > c =: int x
-                        //
-                        // "c" is method [T1,T2] [T1,T2] where T1: Tb, t1 and T2: Ta,t2, int
-                        // but I have Ta, t2 and, int constraint on the output
-                        // while just Ta, t2 constring s on T2
-                        // how do I know that those collapse??
-                        //
-                        // 
-                        // I think it only works if the constraints are the same length
-                        // you can't do the assignment if you have different numbers of type parameters 
-                        //
-                        // method [Ta, Tb] [Tb,Ta] a;
-                        // method [t1,t2] [t1, t2] b;
-                        // c =: a;
-                        // c =: b;
-                        //
-                        // c is actually method [T1,T2] [??] where T1: Ta, t1  and T2 : Tb and t2 
-                        // c has an input of Tb, t1 
-                        // c has an output of Ta, t2
-                        //
-                        // c is actually method [T1,T2] [T1&T2,T1&T2]
-                        // once we assume c is method [T1,T2] [??]
-                        // from it's prospective 
-                        // "a" becomes: method [T1,T2] [T2,T1]
-                        // "b" becomes: method [T1,T2] [T1,T2]
-                        // now "c" has an input of T1, T2 
-                        // now "c" has an output of T1, T2
 
-                        //... anyway
-                        //... I don't even have AND types 
-
-                        // I think probably a flow from a generic is consider to be from your own generic
-                        // 
-                        // so what about this one?
-                        // 
-                        // method [Ta, Tb] [Tb,Ta] a;
-                        // method [t1,t2] [t1, t2] b;
-                        // c =: a;
-                        // c =: b;
-                        // o > c =: int x
-                        //
-                        // is "c" method [T1:int,T2:int] [T1&T2,T1&T2] ?
-                        // they both don't need the "int" but how would I know which one?
-                        // or maybe "c" is method [T1,T2] [T1 & T2,T1 & T2 & int]
-                        // {4C0E59B1-11EC-404B-9D57-760F2205E50C}
-                        throw new NotImplementedException("I think this should be an AND type, I don't really have those yet");
-                    }
-                    else
                     {
 
                         var constrains = yolo.key.Single();
@@ -835,6 +849,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             // list of paths
             // each path has the outer items towards the start
+            // does not include at
             List<List<Yolo>> Paths(Yolo at,
                 Dictionary<Yolo,  List<Yolo>> positions) 
             {
@@ -876,7 +891,22 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                     currents = next;
                 }
-                return currents;
+                return currents.Select(x=>x.SkipLast(1).ToList()).ToList();
+            }
+
+            IEnumerable<Yolo> ConvertContext(IEnumerable<ITypeProblemNode> context) {
+                return context
+                        .SelectMany(x =>
+                        {
+                            if (flowNodes2.TryGetValue(OrType.Make<ITypeProblemNode, IError>(x), out var orType))
+                            {
+                                return new[]{ cache[orType
+                                    .GetValueAs(out IConstraintSoruce _)
+                                    .GetExtendedConstraints()
+                                    .Flatten()]};
+                            }
+                            return Array.Empty<Yolo>();
+                        });
             }
 
             internal IOrType<IFrontendType<IVerifiableType>, IError> GetType(Tpn.ILookUpType from, IEnumerable<ITypeProblemNode> context)
@@ -918,11 +948,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 return CachedConvert3(
                     cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IConstraintSoruce _)
                         .GetExtendedConstraints()
-                        .Flatten()], 
-                    context.Select(x => cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(x)]
-                        .GetValueAs(out IConstraintSoruce _)
-                        .GetExtendedConstraints()
-                        .Flatten()]).ToArray(),
+                        .Flatten()],
+                    ConvertContext(context),
                     new Dictionary<(Yolo, bool couldBeGeneric), Box<IOrType<IFrontendType<IVerifiableType>, IError>>>()).Item1.GetValue().TransformInner(y => y.CastTo<FrontEndOrType>());
             }
 
@@ -932,10 +959,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IConstraintSoruce _)
                         .GetExtendedConstraints()
                         .Flatten()],
-                    context.Select(x => cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(x)]
-                        .GetValueAs(out IConstraintSoruce _)
-                        .GetExtendedConstraints()
-                        .Flatten()]).ToArray(),
+                    ConvertContext(context),
                     new Dictionary<(Yolo, bool couldBeGeneric), Box<IOrType<IFrontendType<IVerifiableType>, IError>>>()).Item1.GetValue().TransformInner(y => y.CastTo<MethodType>());
             }
 
@@ -947,10 +971,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IConstraintSoruce _)
                         .GetExtendedConstraints()
                         .Flatten()],
-                    context.Select(x => cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(x)]
-                        .GetValueAs(out IConstraintSoruce _)
-                        .GetExtendedConstraints()
-                        .Flatten()]).ToArray(),
+                    ConvertContext(context),
                     new Dictionary<(Yolo, bool couldBeGeneric), Box<IOrType<IFrontendType<IVerifiableType>, IError>>>()).Item1.GetValue().TransformInner(y => y.CastTo<GenericMethodType>());
             }
 
@@ -960,10 +981,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IConstraintSoruce _)
                         .GetExtendedConstraints()
                         .Flatten()],
-                    context.Select(x => cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(x)]
-                        .GetValueAs(out IConstraintSoruce _)
-                        .GetExtendedConstraints()
-                        .Flatten()]).ToArray(),
+                    ConvertContext(context),
                     new Dictionary<(Yolo, bool couldBeGeneric), Box<IOrType<IFrontendType<IVerifiableType>, IError>>>()).Item1.GetValue().TransformInner(y => y.CastTo<HasMembersType>());
             }
 
@@ -973,10 +991,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IConstraintSoruce _)
                         .GetExtendedConstraints()
                         .Flatten()],
-                    context.Select(x => cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(x)]
-                        .GetValueAs(out IConstraintSoruce _)
-                        .GetExtendedConstraints()
-                        .Flatten()]).ToArray(),
+                    ConvertContext(context),
                     new Dictionary<(Yolo, bool couldBeGeneric), Box<IOrType<IFrontendType<IVerifiableType>, IError>>>()).Item1.GetValue().TransformInner(y => y.CastTo<HasMembersType>());
             }
 
@@ -986,10 +1001,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IConstraintSoruce _)
                         .GetExtendedConstraints()
                         .Flatten()],
-                    context.Select(x => cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(x)]
-                        .GetValueAs(out IConstraintSoruce _)
-                        .GetExtendedConstraints()
-                        .Flatten()]).ToArray(),
+                    ConvertContext(context),
                     new Dictionary<(Yolo, bool couldBeGeneric), Box<IOrType<IFrontendType<IVerifiableType>, IError>>>()).Item1.GetValue();
             }
 
@@ -999,10 +1011,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IConstraintSoruce _)
                         .GetExtendedConstraints()
                         .Flatten()],
-                    context.Select(x => cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(x)]
-                        .GetValueAs(out IConstraintSoruce _)
-                        .GetExtendedConstraints()
-                        .Flatten()]).ToArray(),
+                    ConvertContext(context),
                     new Dictionary<(Yolo, bool couldBeGeneric), Box<IOrType<IFrontendType<IVerifiableType>, IError>>>()).Item1.GetValue().TransformInner(y => y.CastTo<GenericTypeParameterPlacholder>());
             }
 
@@ -1019,11 +1028,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     var rep = flowNode.GetValueAs(out IConstraintSoruce _).GetExtendedConstraints().Flatten();
                     var type = CachedConvert3(
-                        cache[rep], 
-                        context.Select(x => cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(x)]
-                            .GetValueAs(out IConstraintSoruce _)
-                            .GetExtendedConstraints()
-                            .Flatten()]).ToArray(),
+                        cache[rep],
+                        ConvertContext(context),
                         new Dictionary<(Yolo, bool couldBeGeneric), Box<IOrType<IFrontendType<IVerifiableType>, IError>>>()).Item1.GetValue();
                     if (type.Is1(out var reallyType))
                     {
