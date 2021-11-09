@@ -408,9 +408,6 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void GenericContainsSelf()
         {
-
-            throw new Exception("breaks the test runner");
-
             // type[node-t] node {node[node-t] next}
             // type chicken {}
             // node[chicken] thing;
@@ -461,9 +458,6 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void GenericContainsSelfWithInferred()
         {
-            throw new Exception("breaks the test runner");
-
-
             // type[node-t] node {node[node-t] next}
             // type chicken {}
             // node[chicken] thing;
@@ -1553,8 +1547,6 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void XisAofX()
         {
-            throw new Exception("breaks the test runner");
-
             var typeProblem = new Tpn.TypeProblem2(
                 new WeakScopeConverter(),
                 DefaultRootScopePopulateScope(), _ => { });
@@ -1588,8 +1580,6 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void XisAofXandAofXisX()
         {
-            throw new Exception("breaks the test runner");
-
             var typeProblem = new Tpn.TypeProblem2(
                 new WeakScopeConverter(),
                 DefaultRootScopePopulateScope(), _ => { });
@@ -2386,9 +2376,6 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void GenericContainsSelfContainsDoubleGeneric()
         {
-
-            throw new Exception("breaks the test runner");
-
             // type[node-t] node {node[node-t] next; method [T] [T,T] z}
             // type chicken {}
             // node[chicken] thing;
