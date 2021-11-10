@@ -68,6 +68,17 @@ namespace Tac.Frontend.TypeProblem.Test
                 Array.Empty<IOrType<GenericTypeDefinitionPopulateScope, IError>>()
                 );
 
+        private static Tpn.ITypeProblemNode ToTypProblemNode(IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Object, Tpn.TypeProblem2.OrType, Tpn.TypeProblem2.InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError> orType)
+        {
+            return orType.SwitchReturns(
+                x => { Tpn.ITypeProblemNode res = x; return res; },
+                x => x,
+                x => x,
+                x => x,
+                x => x,
+                x => x,
+                x => throw new Exception("expected it to be a type problem node"));
+        }
 
         #endregion
 
@@ -1895,7 +1906,8 @@ namespace Tac.Frontend.TypeProblem.Test
             var xType = solution.GetType(x, new List<Tpn.ITypeProblemNode>
             {
                 typeProblem.Dependency,
-                typeProblem.ModuleRoot
+                typeProblem.ModuleRoot,
+                ToTypProblemNode(x.LooksUp.GetOrThrow())
             }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
             var xInput = Assert.IsType<GenericTypeParameterPlacholder>(xType.inputType.GetValue().Is1OrThrow());
             var xOutput = Assert.IsType<GenericTypeParameterPlacholder>(xType.outputType.GetValue().Is1OrThrow());
@@ -1908,7 +1920,8 @@ namespace Tac.Frontend.TypeProblem.Test
             var yType = solution.GetType(y, new List<Tpn.ITypeProblemNode>
             {
                 typeProblem.Dependency,
-                typeProblem.ModuleRoot
+                typeProblem.ModuleRoot,
+                ToTypProblemNode(y.LooksUp.GetOrThrow())
             }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
 
             Assert.True(xType.TheyAreUs(yType, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
@@ -1966,12 +1979,14 @@ namespace Tac.Frontend.TypeProblem.Test
             var xType = solution.GetType(x, new List<Tpn.ITypeProblemNode>
             {
                 typeProblem.Dependency,
-                typeProblem.ModuleRoot
+                typeProblem.ModuleRoot,
+                ToTypProblemNode(x.LooksUp.GetOrThrow())
             }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
             var yType = solution.GetType(y, new List<Tpn.ITypeProblemNode>
             {
                 typeProblem.Dependency,
-                typeProblem.ModuleRoot
+                typeProblem.ModuleRoot,
+                ToTypProblemNode(y.LooksUp.GetOrThrow())
             }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
 
             Assert.True(xType.TheyAreUs(yType, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
@@ -2036,12 +2051,14 @@ namespace Tac.Frontend.TypeProblem.Test
             var x1Type = solution.GetType(x1, new List<Tpn.ITypeProblemNode>
             {
                 typeProblem.Dependency,
-                typeProblem.ModuleRoot
+                typeProblem.ModuleRoot,
+                ToTypProblemNode(x1.LooksUp.GetOrThrow())
             }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
             var x2Type = solution.GetType(x2, new List<Tpn.ITypeProblemNode>
             {
                 typeProblem.Dependency,
-                typeProblem.ModuleRoot
+                typeProblem.ModuleRoot,
+                ToTypProblemNode(x2.LooksUp.GetOrThrow())
             }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
 
             Assert.NotEqual(x1Type, x2Type);
@@ -2147,7 +2164,8 @@ namespace Tac.Frontend.TypeProblem.Test
             var zType = solution.GetType(z, new List<Tpn.ITypeProblemNode>
             {
                 typeProblem.Dependency,
-                typeProblem.ModuleRoot
+                typeProblem.ModuleRoot,
+                ToTypProblemNode(z.LooksUp.GetOrThrow())
             }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
             var zParameter = Assert.IsType<GenericTypeParameterPlacholder>(Assert.Single(zType.typeParameterDefinitions).Is1OrThrow());
             var zInput = Assert.IsType<GenericTypeParameterPlacholder>(zType.inputType.GetValue().Is1OrThrow());
@@ -2156,12 +2174,15 @@ namespace Tac.Frontend.TypeProblem.Test
             var yType = solution.GetType(y, new List<Tpn.ITypeProblemNode>
             {
                 typeProblem.Dependency,
-                typeProblem.ModuleRoot
+                typeProblem.ModuleRoot,
+                ToTypProblemNode(y.LooksUp.GetOrThrow())
             }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
 
 
             Assert.True(zType.TheyAreUs(yType, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
         }
+
+
 
         // .. I think I need more tests around this... but I'm failing to come up with one
         // method [T] [method [T1,T2] [T1,T2], method [T3] [T3, T1]]
@@ -2357,17 +2378,20 @@ namespace Tac.Frontend.TypeProblem.Test
             var xType = solution.GetType(x, new List<Tpn.ITypeProblemNode>
             {
                 typeProblem.Dependency,
-                typeProblem.ModuleRoot
+                typeProblem.ModuleRoot,
+                ToTypProblemNode(x.LooksUp.GetOrThrow())
             }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
             var yType = solution.GetType(y, new List<Tpn.ITypeProblemNode>
             {
                 typeProblem.Dependency,
-                typeProblem.ModuleRoot
+                typeProblem.ModuleRoot,
+                ToTypProblemNode(y.LooksUp.GetOrThrow())
             }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
             var zType = solution.GetType(z, new List<Tpn.ITypeProblemNode>
             {
                 typeProblem.Dependency,
-                typeProblem.ModuleRoot
+                typeProblem.ModuleRoot,
+                ToTypProblemNode(z.LooksUp.GetOrThrow())
             }).Is1OrThrow().SafeCastTo(out Tac.SyntaxModel.Elements.AtomicTypes.GenericMethodType _);
             Assert.False(xType.TheyAreUs(yType, new List<(IFrontendType<IVerifiableType>, IFrontendType<IVerifiableType>)>()).Is1OrThrow());
 

@@ -39,7 +39,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             private readonly Dictionary<(Yolo, IOrType<Member, Input, Output, Left, Right, PrivateMember>), List<Yolo>> positions;
 
 
-            private readonly ConcurrentIndexed<(Yolo,EqualableReadOnlyList<Yolo>), Box<IOrType<IFrontendType<IVerifiableType>, IError>>> typeByYoloAndContext = new();
+            private readonly ConcurrentIndexed<(Yolo,EqualableReadOnlyList<Yolo>, bool isConstraint), Box<IOrType<IFrontendType<IVerifiableType>, IError>>> typeByYoloAndContext = new();
             private readonly ConcurrentIndexed<(Yolo, EqualableReadOnlyList<Yolo>, int), IOrType<GenericTypeParameterPlacholder, IError>> genericByYoloContextAndIndex = new();
 
             private class Yolo
@@ -286,7 +286,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             private IOrType<GenericTypeParameterPlacholder, IError> LookUpGeneric(Yolo from, IEnumerable<Yolo> context, int index, Dictionary<(Yolo, bool couldBeGeneric), Box<IOrType<IFrontendType<IVerifiableType>, IError>>> alreadyConverting) {
                 // myBox.generics = equalableHashSet.First().Generics().TransformInner(generics => generics.Select(generic => new GenericTypeParameterPlacholder(i++,  GetOrAdd(generic.Flatten()).type)).ToArray());
                 //
-                for (int i = 0; i < context.Count(); i++)
+                for (int i = 0; i < context.Count() +1; i++)
                 {
                     var list = new EqualableReadOnlyList<Yolo>(context.Take(i).ToArray());
                     if (genericByYoloContextAndIndex.TryGetValue((from, list, index), out var res))
@@ -296,31 +296,38 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
                 return from.genericsConstraints.SwitchReturns(
-                    genericsConstraints => OrType.Make<GenericTypeParameterPlacholder, IError>(new GenericTypeParameterPlacholder(index, CachedConvert3(genericsConstraints[index], context, alreadyConverting, false).Item1)),
+                    genericsConstraints => 
+                    {
+                        var res = OrType.Make<GenericTypeParameterPlacholder, IError>(new GenericTypeParameterPlacholder(index, CachedConvert3(genericsConstraints[index], context, alreadyConverting, true).Item1));
+
+                        genericByYoloContextAndIndex.AddOrThrow((from, new EqualableReadOnlyList<Yolo>(context.ToArray()), index), res);
+                        return res;
+                    },
                     error => OrType.Make<GenericTypeParameterPlacholder, IError>(error));
             }
+
             /// <summary>
-            /// <param name="couldBeGeneric">by default this will return GenericTypeParameterPlacholder when you look up a constrain. set this to true to true the constraint.</param>
+            /// <param name="isConstraint">by default this will return GenericTypeParameterPlacholder when you look up a constrain. set this to true to true the constraint.</param>
             /// <returns></returns>
             private (Box<IOrType<IFrontendType<IVerifiableType>, IError>>, IReadOnlyList<Yolo>) CachedConvert3(
                 Yolo yolo,
                 IEnumerable<Yolo> context,
                 Dictionary<(Yolo,bool couldBeGeneric), Box<IOrType<IFrontendType<IVerifiableType>, IError>>> alreadyConverting, // this is to stop stack overflows 
-                bool couldBeGeneric = true 
+                bool isConstraint = false 
                 ) {
 
                 // we don't need to track the context of what we are already converting
                 // they are bound to be a more specific context than what we are converting
                 // but they should be defined at our context or able
                 // a.a.a.a is just something reference itself, if I track context these would all have different contexts
-                if (alreadyConverting.TryGetValue((yolo, couldBeGeneric), out var alreadyBox)) {
+                if (alreadyConverting.TryGetValue((yolo, !isConstraint), out var alreadyBox)) {
                     return (alreadyBox, Array.Empty<Yolo>()/*we return the empty this, not to say this is really exists at the root, but just what we don't offer an opion where it exists*/);
                 }
 
                 for (int i = 0; i < context.Count()+1; i++)
                 {
                     var list = new EqualableReadOnlyList<Yolo>(context.Take(i).ToArray());
-                    if (typeByYoloAndContext.TryGetValue((yolo, list), out var res))
+                    if (typeByYoloAndContext.TryGetValue((yolo, list, isConstraint), out var res))
                     {
                         return (res, list);
                     }
@@ -329,16 +336,16 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 if (yolo.key.Count() == 1)
                 {
-                    if (couldBeGeneric)
+                    if (!isConstraint)
                     {
                         var justGenericConstraints = yolo.key.First()
                             .Where(y => y.Is5(out IsGeneric _))
                             .Select(y => y.Is5OrThrow())
                             .ToArray();
 
-                        var lookups = justGenericConstraints.Select(genericConstraint => context.SkipLast(genericConstraint.pathFromOwner.Length - 1).Last().genericsConstraints.Is1OrThrow()[genericConstraint.index]).Distinct().ToArray();
+                        var lookups = justGenericConstraints.Select(genericConstraint => context.SkipLast(genericConstraint.pathFromOwner.Length).Last().genericsConstraints.Is1OrThrow()[genericConstraint.index]).Distinct().ToArray();
                         var indexs = justGenericConstraints.Select(genericConstraint => genericConstraint.index).Distinct().ToArray();
-                        var froms = justGenericConstraints.Select(genericConstraint => context.SkipLast(genericConstraint.pathFromOwner.Length - 1).Last()).Distinct().ToArray();
+                        var froms = justGenericConstraints.Select(genericConstraint => context.SkipLast(genericConstraint.pathFromOwner.Length).Last()).Distinct().ToArray();
 
                         if (lookups.Length == 1)
                         {
@@ -357,11 +364,11 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                             // we need to insert this a the right level
                             // we insert it at the level the generic was defined at 
-                            var list = new EqualableReadOnlyList<Yolo>(context.SkipLast(justGenericConstraints.First().pathFromOwner.Length - 1).ToArray());
+                            var list = new EqualableReadOnlyList<Yolo>(context.SkipLast(justGenericConstraints.First().pathFromOwner.Length).ToArray());
                             var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
-                            alreadyConverting.Add((yolo, couldBeGeneric), res);
+                            alreadyConverting.Add((yolo, !isConstraint), res);
                             res.Fill(LookUpGeneric(froms.First(), context, indexs.First(), alreadyConverting));
-                            typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                            typeByYoloAndContext.AddOrThrow((yolo, list, isConstraint), res);
                             return (res, list);
                         }
                         else if (lookups.Length > 1)
@@ -450,7 +457,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             var list = new EqualableReadOnlyList<Yolo>(Array.Empty<Yolo>());
                             var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new AnyType()));
-                            typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                            typeByYoloAndContext.AddOrThrow((yolo, list, isConstraint), res);
                             return (res, list);
                         }
 
@@ -460,7 +467,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             var list = new EqualableReadOnlyList<Yolo>(Array.Empty<Yolo>());
                             var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(error));
-                            typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                            typeByYoloAndContext.AddOrThrow((yolo, list, isConstraint), res);
                             return (res, list);
                         }
 
@@ -474,7 +481,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                             var list = new EqualableReadOnlyList<Yolo>(Array.Empty<Yolo>());
                             var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(source.Converter.Convert(this, source, Array.Empty<Tpn.ITypeProblemNode>() /*this is a little sloppy, but a primitive converter better not depend on context*/ ).Is3OrThrow()));
-                            typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                            typeByYoloAndContext.AddOrThrow((yolo, list, isConstraint), res);
                             return (res, list);
 
                         }
@@ -483,7 +490,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             var list = new EqualableReadOnlyList<Yolo>(Array.Empty<Yolo>());
                             var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(e4));
-                            typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                            typeByYoloAndContext.AddOrThrow((yolo, list, isConstraint), res);
                             return (res, list);
                         }
                         var members = yolo.members.Is1OrThrow();
@@ -494,7 +501,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 var list = new EqualableReadOnlyList<Yolo>(Array.Empty<Yolo>());
                                 var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(e2));
-                                typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                                typeByYoloAndContext.AddOrThrow((yolo, list, isConstraint), res);
                                 return (res, list);
                             }
                         }
@@ -507,7 +514,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             {
                                 var list = new EqualableReadOnlyList<Yolo>(Array.Empty<Yolo>());
                                 var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(e3));
-                                typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                                typeByYoloAndContext.AddOrThrow((yolo, list, isConstraint), res);
                                 return (res, list);
                             }
 
@@ -540,9 +547,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                             if (input != default && output != default)
                             {
                                 var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
-                                alreadyConverting.Add((yolo, couldBeGeneric), res);
-                                var (inputBox, inputContext) = CachedConvert3(cache[input.Flatten()], Add(context, yolo),alreadyConverting);
-                                var (outputBox, outputContext) = CachedConvert3(cache[output.Flatten()], Add(context, yolo), alreadyConverting);
+                                alreadyConverting.Add((yolo, !isConstraint), res);
+                                var (inputBox, inputContext) = CachedConvert3(cache[input.Flatten()], Add(context, cache[input.Flatten()]),alreadyConverting);
+                                var (outputBox, outputContext) = CachedConvert3(cache[output.Flatten()], Add(context, cache[output.Flatten()]), alreadyConverting);
 
                                 IReadOnlyList<Yolo> resContext = new Yolo[] { };
 
@@ -563,7 +570,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                             inputBox,
                                             outputBox,
                                             genericsArray)));
-                                typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                                typeByYoloAndContext.AddOrThrow((yolo, list, isConstraint), res);
                                 return (res, list);
                             }
 
@@ -571,9 +578,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                             if (input != default)
                             {
                                 var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
-                                alreadyConverting.Add((yolo, couldBeGeneric), res);
+                                alreadyConverting.Add((yolo, !isConstraint), res);
 
-                                var (inputBox, inputContext) = CachedConvert3(cache[input.Flatten()], Add(context, yolo), alreadyConverting);
+                                var (inputBox, inputContext) = CachedConvert3(cache[input.Flatten()], Add(context, cache[input.Flatten()]), alreadyConverting);
 
                                 // I don't think this is safe see:
                                 //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
@@ -583,16 +590,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                                             inputBox,
                                             new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
                                             genericsArray)));
-                                typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                                typeByYoloAndContext.AddOrThrow((yolo, list, isConstraint), res);
                                 return (res, list);
                             }
 
                             if (output != default)
                             {
                                 var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
-                                alreadyConverting.Add((yolo, couldBeGeneric), res);
+                                alreadyConverting.Add((yolo, !isConstraint), res);
 
-                                var (outputBox, outputContext) = CachedConvert3(cache[output.Flatten()], Add(context, yolo), alreadyConverting);
+                                var (outputBox, outputContext) = CachedConvert3(cache[output.Flatten()], Add(context, cache[output.Flatten()]), alreadyConverting);
 
                                 // I don't think this is safe see:
                                 //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
@@ -602,13 +609,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                                             new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
                                             outputBox,
                                             genericsArray)));
-                                typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                                typeByYoloAndContext.AddOrThrow((yolo, list, isConstraint), res);
                                 return (res, list);
                             }
 
                             {
                                 var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
-                                alreadyConverting.Add((yolo, couldBeGeneric), res);
+                                alreadyConverting.Add((yolo, !isConstraint), res);
 
                                 var list = new EqualableReadOnlyList<Yolo>(Array.Empty<Yolo>());
                                 res.Fill(OrType.Make<IFrontendType<IVerifiableType>, IError>(
@@ -616,7 +623,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                             new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
                                             new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
                                             genericsArray)));
-                                typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                                typeByYoloAndContext.AddOrThrow((yolo, list, isConstraint), res);
                                 return (res, list);
                             }
                         }
@@ -624,10 +631,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                         if (input != default && output != default)
                         {
                             var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
-                            alreadyConverting.Add((yolo, couldBeGeneric), res);
+                            alreadyConverting.Add((yolo, !isConstraint), res);
 
-                            var (inputBox, inputContext) = CachedConvert3(cache[input.Flatten()], Add(context, yolo), alreadyConverting);
-                            var (outputBox, outputContext) = CachedConvert3(cache[output.Flatten()], Add(context, yolo), alreadyConverting);
+                            var (inputBox, inputContext) = CachedConvert3(cache[input.Flatten()], Add(context, cache[input.Flatten()]), alreadyConverting);
+                            var (outputBox, outputContext) = CachedConvert3(cache[output.Flatten()], Add(context, cache[output.Flatten()]), alreadyConverting);
 
                             IReadOnlyList<Yolo> resContext = new Yolo[] { };
 
@@ -647,7 +654,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 new MethodType(
                                     inputBox,
                                     outputBox)));
-                            typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                            typeByYoloAndContext.AddOrThrow((yolo, list, isConstraint), res);
                             return (res, list);
                         }
 
@@ -655,9 +662,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                         if (input != default)
                         {
                             var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
-                            alreadyConverting.Add((yolo, couldBeGeneric), res);
+                            alreadyConverting.Add((yolo, !isConstraint), res);
 
-                            var (inputBox, inputContext) = CachedConvert3(cache[input.Flatten()], Add(context, yolo), alreadyConverting);
+                            var (inputBox, inputContext) = CachedConvert3(cache[input.Flatten()], Add(context, cache[input.Flatten()]), alreadyConverting);
 
                             // I don't think this is safe see:
                             //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
@@ -666,16 +673,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     new MethodType(
                                         inputBox,
                                         new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())))));
-                            typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                            typeByYoloAndContext.AddOrThrow((yolo, list, isConstraint), res);
                             return (res, list);
                         }
 
                         if (output != default)
                         {
                             var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
-                            alreadyConverting.Add((yolo, couldBeGeneric), res);
+                            alreadyConverting.Add((yolo, !isConstraint), res);
 
-                            var (outputBox, outputContext) = CachedConvert3(cache[output.Flatten()], Add(context, yolo), alreadyConverting);
+                            var (outputBox, outputContext) = CachedConvert3(cache[output.Flatten()], Add(context, cache[output.Flatten()]), alreadyConverting);
 
                             // I don't think this is safe see:
                             //  {D27D98BA-96CF-402C-824C-744DACC63FEE}
@@ -684,7 +691,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                     new MethodType(
                                         new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new EmptyType())),
                                         outputBox)));
-                            typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                            typeByYoloAndContext.AddOrThrow((yolo, list, isConstraint), res);
                             return (res, list);
                         }
 
@@ -692,12 +699,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                         if (members.Any() || constrains.Any(x => x.Is4(out HasMembers _)))
                         {
                             var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
-                            alreadyConverting.Add((yolo, couldBeGeneric), res);
+                            alreadyConverting.Add((yolo, !isConstraint), res);
 
                             var external = constrains.Where(x => x.Is6(out IsExternal _)).Select(x => x.Is6OrThrow()).ToArray();
 
                             var membersAndContexts = members.Select(member => {
-                                var (memberType, memberContext) = CachedConvert3(member.Item2, Add(context, yolo), alreadyConverting);
+                                var (memberType, memberContext) = CachedConvert3(member.Item2, Add(context, member.Item2), alreadyConverting);
                                 return (memberType, memberContext, member.Item1);
                             }).ToArray();
 
@@ -732,7 +739,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                        x,
                                        dict[x.Key])).ToList())));
                                 var list = new EqualableReadOnlyList<Yolo>(resContext.ToArray());
-                                typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                                typeByYoloAndContext.AddOrThrow((yolo, list, isConstraint), res);
                                 return (res, list);
 
                             }
@@ -764,7 +771,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                          memberAndContext.Item3,
                                          memberAndContext.Item1)).ToList()))));
                                 var list = new EqualableReadOnlyList<Yolo>(resContext.ToArray());
-                                typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                                typeByYoloAndContext.AddOrThrow((yolo, list, isConstraint), res);
                                 return (res, list);
                             }
                         }
@@ -772,29 +779,29 @@ namespace Tac.Frontend.New.CrzayNamespace
                         {
                             var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(new AnyType()));
                             var list = new EqualableReadOnlyList<Yolo>(Array.Empty<Yolo>());
-                            typeByYoloAndContext.AddOrThrow((yolo, list), res);
+                            typeByYoloAndContext.AddOrThrow((yolo, list, isConstraint), res);
                             return (res, list);
                         }
                     }
                 }
                 else {
                     var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
-                    alreadyConverting.Add((yolo, couldBeGeneric), res);
+                    alreadyConverting.Add((yolo, !isConstraint), res);
 
                     // an or type..
                     var (left, leftContext) = CachedConvert3(yolo.left.IfElseReturn(x => x, () => throw new Exception("better have a left")), Add(context, yolo), alreadyConverting);
                     var (right, rightContext) = CachedConvert3(yolo.right.IfElseReturn(x => x, () => throw new Exception("better have a left")), Add(context, yolo), alreadyConverting);
 
                     var membersAndContextOrError = yolo.members.TransformInner(actually => actually.Select(member => {
-                            var (memberType, memberContext) = CachedConvert3(member.Item2, Add(context, yolo), alreadyConverting);
+                            var (memberType, memberContext) = CachedConvert3(member.Item2, Add(context, member.Item2), alreadyConverting);
                             return (memberType, memberContext, member.Item1);
                         }).ToArray());
 
                     var possiblyInput = yolo.input.TransformInner(x => x.SwitchReturns(
-                                       y => CachedConvert3(y, Add(context, yolo), alreadyConverting),
+                                       y => CachedConvert3(y, Add(context, y), alreadyConverting),
                                        error => (new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(error)), new Yolo[] { }/*an error is an error in all contexts*/)));
                     var possiblyOutput = yolo.output.TransformInner(x => x.SwitchReturns(
-                                       y => CachedConvert3(y, Add(context, yolo), alreadyConverting),
+                                       y => CachedConvert3(y, Add(context, y), alreadyConverting),
                                        error => (new Box<IOrType<IFrontendType<IVerifiableType>, IError>>(OrType.Make<IFrontendType<IVerifiableType>, IError>(error)), new Yolo[] { }/*an error is an error in all contexts*/)));
 
                     // find the longest context
@@ -843,7 +850,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                possiblyInput.TransformInner(x => x.Item1),
                                possiblyOutput.TransformInner(x=> x.Item1))));
 
-                    typeByYoloAndContext.AddOrThrow((yolo, new EqualableReadOnlyList<Yolo>(resContext.ToArray())), res);
+                    typeByYoloAndContext.AddOrThrow((yolo, new EqualableReadOnlyList<Yolo>(resContext.ToArray()), isConstraint), res);
                     return (res, resContext);
                 }
             }
@@ -860,7 +867,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             // list of paths
             // each path has the outer items towards the start
-            // does not include at
+            // contains at
             List<List<Yolo>> Paths(Yolo at,
                 Dictionary<Yolo,  List<Yolo>> positions) 
             {
@@ -902,7 +909,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                     currents = next;
                 }
-                return currents.Select(x=>x.SkipLast(1).ToList()).ToList();
+                return currents;//.Select(x=>x.SkipLast(1).ToList()).ToList();
             }
 
             IEnumerable<Yolo> ConvertContext(IEnumerable<ITypeProblemNode> context) {
@@ -1709,3 +1716,21 @@ namespace Tac.Frontend.New.CrzayNamespace
 //
 // but.. that is going to break a lot of these apis... GetMethodType, GetObjectType
 // I think I just have to pass it on and hope the call-e knowns the context
+
+
+
+
+// oof generics again
+// so two things can look up to the same generic type
+// and they can have two different paths to owner
+// often you know exactly who generic you are
+//
+// method [t] [t,t] a
+// b =: a
+//
+// here flowing the way I do makes a lot of sense
+//
+// ...
+// 
+// ok so the plan now is paired constrains generic and generic source
+// generic and generic source are paired 
