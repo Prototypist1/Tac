@@ -2638,6 +2638,9 @@ namespace Tac.Frontend.New.CrzayNamespace
 
         public class Generic
         {
+            /// <summary>
+            /// zero indexed
+            /// </summary>
             public readonly int index;
 
             public Generic(int index)
