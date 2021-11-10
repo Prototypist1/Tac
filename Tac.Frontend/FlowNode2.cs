@@ -459,6 +459,16 @@ namespace Tac.Frontend
     // x is {} not any
     class HasMembers : IConstraint
     {
+        public override bool Equals(object? obj)
+        {
+            return obj.SafeIs(out HasMembers _);
+        }
+
+        public override int GetHashCode()
+        {
+            return 982347;
+        }
+
         public bool IsCompatible(IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric> constraint, List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>> assumeTrue) =>
             constraint.SwitchReturns(
                 mustHave => mustHave.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(this), assumeTrue), // reverse it - use og assumeTrue

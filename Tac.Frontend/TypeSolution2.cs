@@ -317,7 +317,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return (alreadyBox, Array.Empty<Yolo>()/*we return the empty this, not to say this is really exists at the root, but just what we don't offer an opion where it exists*/);
                 }
 
-                for (int i = 0; i < context.Count(); i++)
+                for (int i = 0; i < context.Count()+1; i++)
                 {
                     var list = new EqualableReadOnlyList<Yolo>(context.Take(i).ToArray());
                     if (typeByYoloAndContext.TryGetValue((yolo, list), out var res))
