@@ -1106,8 +1106,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var constraints = methodType.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray();
                     for (int i = 0; i < constraints.Length; i++)
                     {
-                        var mustHave = target.AddGeneric(constraints[i],i);
-                        constraints[i].Is2OrThrow().IsConstraintFor(mustHave);
+                        target.AddGeneric(constraints[i],i);
+                        constraints[i].Is2OrThrow().IsConstraintFor();
                     }
 
                     //Walk(methodType, new[] { Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter,Method, IError>(methodType) }, Array.Empty<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>>(), flowNodes2);
@@ -1126,8 +1126,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var constraints = method.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray();
                     for (int i = 0; i < constraints.Length; i++)
                     {
-                        var mustHave = target.AddGeneric(constraints[i], i);
-                        constraints[i].Is2OrThrow().IsConstraintFor(mustHave);
+                        target.AddGeneric(constraints[i], i);
+                        constraints[i].Is2OrThrow().IsConstraintFor();
                     }
 
                     //target.AddGenerics(method.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray());
@@ -1162,8 +1162,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var constraints = inferredType.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray();
                     for (int i = 0; i < constraints.Length; i++)
                     {
-                        var mustHave = concreteFlowNode2.AddGeneric(constraints[i], i);
-                        constraints[i].Is2OrThrow().IsConstraintFor(mustHave);
+                        concreteFlowNode2.AddGeneric(constraints[i], i);
+                        constraints[i].Is2OrThrow().IsConstraintFor();
                     }
 
                     //concreteFlowNode2.AddGenerics(inferredType.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray());

@@ -509,23 +509,23 @@ namespace Tac.Frontend
     class IsGeneric : IConstraint
     {
 
-        public readonly MustHave source;
+        //public readonly MustHave source;
 
-        public IsGeneric(MustHave source)
+        public IsGeneric(/*MustHave source*/)
         {
-            this.source = source ?? throw new ArgumentNullException(nameof(source));
+            //this.source = source ?? throw new ArgumentNullException(nameof(source));
         }
 
-        public override bool Equals(object? obj)
-        {
-            return obj is IsGeneric generic &&
-                   EqualityComparer<MustHave>.Default.Equals(source, generic.source);
-        }
+        //public override bool Equals(object? obj)
+        //{
+        //    return obj is IsGeneric generic &&
+        //           EqualityComparer<MustHave>.Default.Equals(source, generic.source);
+        //}
 
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(source);
-        }
+        //public override int GetHashCode()
+        //{
+        //    return HashCode.Combine(source);
+        //}
 
         public bool IsCompatible(IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric> constraint, List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>> assumeTrue) =>
             constraint.SwitchReturns(
@@ -1054,14 +1054,13 @@ namespace Tac.Frontend
             constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new GivenPathThen(path, orType.GetValueAs(out IConstraintSoruce _))));
         }
 
-        internal MustHave AddGeneric(IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2> orType, int i)
+        internal void AddGeneric(IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2> orType, int i)
         {
             var path = OrType.Make<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember>(new Tpn.Generic(i));
             dependents[path] = orType;
             var res = new MustHave(path, orType.GetValueAs(out IConstraintSoruce _));
             constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(res));
             constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new GivenPathThen(path, orType.GetValueAs(out IConstraintSoruce _))));
-            return res;
         }
 
         internal void IsExternal(IInterfaceType external)
@@ -1151,13 +1150,13 @@ namespace Tac.Frontend
             return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>(GetConstraints().Select(x => x.Broaden()).ToHashSet());
         }
 
-        internal void IsConstraintFor(MustHave mustHave)
+        internal void IsConstraintFor(/*MustHave mustHave*/)
         {
             //if (isGenericRestraintFor.Is(out var _)) {
             //    throw new Exception("already set? that's suprising and worth thinking agout");
             //}
 
-            isGenericRestraintFor.Add(new IsGeneric(mustHave));
+            isGenericRestraintFor.Add(new IsGeneric(/*mustHave*/));
         }
 
         public override string ToString()

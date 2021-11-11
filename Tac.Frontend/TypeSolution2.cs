@@ -307,112 +307,119 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             private static bool DefinesGenerics(Yolo context, IsGeneric[] isGenerics, out int res) {
-                var acceptedSource = isGenerics.Select(x => x.source).ToHashSet();
+                var generics = isGenerics.ToHashSet();
 
                 var couldBe = context.key
                     .Select(x=>x
-                            .Where(y => y.Is1(out MustHave mustHave) && mustHave.path.Is4(out Generic _) && acceptedSource.Contains(mustHave.dependent))
-                            .Select(y => y.Is1OrThrow())
-                            .ToArray())
+                            .Where(y => y.Is1(out MustHave mustHave) && mustHave.path.Is4(out Generic _))
+                            .ToDictionary(
+                                y => y.Is1OrThrow().path.Is4OrThrow().index,
+                                y => y.Is1OrThrow().dependent.GetConstraints()
+                                    .Where(z=> z.Is6(out var _))
+                                    .Select(z => z.Is6OrThrow())
+                                    .Intersect(generics)
+                                    .ToHashSet()))
                     .ToArray();
 
                 var intersect = couldBe.First();
 
                 foreach (var item in couldBe.Skip(1))
                 {
-                    intersect = intersect.Intersect(item).ToArray();
+                    var next = new Dictionary<int, HashSet<IsGeneric>>();
+                    foreach (var key in intersect.Keys)
+                    {
+                        if (item.TryGetValue(key, out var isGeneric)) {
+                            next[key] = isGeneric.Intersect(intersect[key]).ToHashSet();
+                        }
+                    }
+                    intersect = next;
                 }
 
-                if (intersect.Length == acceptedSource.Count) {
-                    var indexes = intersect.Select(x => x.path.Is4OrThrow().index).Distinct().ToArray();
-                    if (indexes.Length == 1)
-                    {
-                        res = indexes.First();
-                        return true;
-                    }
-                    else if (indexes.Length > 1)
-                    {
-                        // blah blah blah, it's an and type, we don't support those 
+                var possibleIndexes = intersect.Where(x => x.Value.SetEquals(generics)).Select(x => x.Key).ToArray();
 
-                        // method [T] [T,T] a;
-                        // method [t1,t2] [t1, t2] b;
-                        // c =: a;
-                        // c =: b;
-                        //
-                        // pretty sure we have no idea what "c" is..
-                        // well probabaly method [T1,T2] [T1,T2] where T1: T,t1 and T2: T,t2 
-                        //
-                        // but...
-                        //
-                        // method [Ta, Tb] [Tb,Ta] a;
-                        // method [t1,t2] [t1, t2] b;
-                        // c =: a;
-                        // c =: b;
-                        //
-                        // "c" is method [T1,T2] [T1,T2] where T1: Tb, t1 and T2: Ta,t2 
-                        //
-                        // but I still don't know what index...
-                        // TODO, it's an error for now 
-                        //
-                        // any other pain point:
-                        //
-                        // method [Ta, Tb] [Tb,Ta] a;
-                        // method [t1,t2] [t1, t2] b;
-                        // c =: a;
-                        // c =: b;
-                        // o > c =: int x
-                        //
-                        // "c" is method [T1,T2] [T1,T2] where T1: Tb, t1 and T2: Ta,t2, int
-                        // but I have Ta, t2 and, int constraint on the output
-                        // while just Ta, t2 constring s on T2
-                        // how do I know that those collapse??
-                        //
-                        // 
-                        // I think it only works if the constraints are the same length
-                        // you can't do the assignment if you have different numbers of type parameters 
-                        //
-                        // method [Ta, Tb] [Tb,Ta] a;
-                        // method [t1,t2] [t1, t2] b;
-                        // c =: a;
-                        // c =: b;
-                        //
-                        // c is actually method [T1,T2] [??] where T1: Ta, t1  and T2 : Tb and t2 
-                        // c has an input of Tb, t1 
-                        // c has an output of Ta, t2
-                        //
-                        // c is actually method [T1,T2] [T1&T2,T1&T2]
-                        // once we assume c is method [T1,T2] [??]
-                        // from it's prospective 
-                        // "a" becomes: method [T1,T2] [T2,T1]
-                        // "b" becomes: method [T1,T2] [T1,T2]
-                        // now "c" has an input of T1, T2 
-                        // now "c" has an output of T1, T2
 
-                        //... anyway
-                        //... I don't even have AND types 
+                if (possibleIndexes.Length == 1)
+                {
+                    res = possibleIndexes.First();
+                    return true;
+                }
+                else if (possibleIndexes.Length > 1)
+                {
+                    // blah blah blah, it's an and type, we don't support those 
 
-                        // I think probably a flow from a generic is consider to be from your own generic
-                        // 
-                        // so what about this one?
-                        // 
-                        // method [Ta, Tb] [Tb,Ta] a;
-                        // method [t1,t2] [t1, t2] b;
-                        // c =: a;
-                        // c =: b;
-                        // o > c =: int x
-                        //
-                        // is "c" method [T1:int,T2:int] [T1&T2,T1&T2] ?
-                        // they both don't need the "int" but how would I know which one?
-                        // or maybe "c" is method [T1,T2] [T1 & T2,T1 & T2 & int]
-                        // {4C0E59B1-11EC-404B-9D57-760F2205E50C}
-                        throw new NotImplementedException("I think this should be an AND type, I don't really have those yet");
-                    }
-                    else {
-                        // ... it's zero.. ?
-                        // what does that mean?
-                        throw new Exception("huh?");
-                    }
+                    // method [T] [T,T] a;
+                    // method [t1,t2] [t1, t2] b;
+                    // c =: a;
+                    // c =: b;
+                    //
+                    // pretty sure we have no idea what "c" is..
+                    // well probabaly method [T1,T2] [T1,T2] where T1: T,t1 and T2: T,t2 
+                    //
+                    // but...
+                    //
+                    // method [Ta, Tb] [Tb,Ta] a;
+                    // method [t1,t2] [t1, t2] b;
+                    // c =: a;
+                    // c =: b;
+                    //
+                    // "c" is method [T1,T2] [T1,T2] where T1: Tb, t1 and T2: Ta,t2 
+                    //
+                    // but I still don't know what index...
+                    // TODO, it's an error for now 
+                    //
+                    // any other pain point:
+                    //
+                    // method [Ta, Tb] [Tb,Ta] a;
+                    // method [t1,t2] [t1, t2] b;
+                    // c =: a;
+                    // c =: b;
+                    // o > c =: int x
+                    //
+                    // "c" is method [T1,T2] [T1,T2] where T1: Tb, t1 and T2: Ta,t2, int
+                    // but I have Ta, t2 and, int constraint on the output
+                    // while just Ta, t2 constring s on T2
+                    // how do I know that those collapse??
+                    //
+                    // 
+                    // I think it only works if the constraints are the same length
+                    // you can't do the assignment if you have different numbers of type parameters 
+                    //
+                    // method [Ta, Tb] [Tb,Ta] a;
+                    // method [t1,t2] [t1, t2] b;
+                    // c =: a;
+                    // c =: b;
+                    //
+                    // c is actually method [T1,T2] [??] where T1: Ta, t1  and T2 : Tb and t2 
+                    // c has an input of Tb, t1 
+                    // c has an output of Ta, t2
+                    //
+                    // c is actually method [T1,T2] [T1&T2,T1&T2]
+                    // once we assume c is method [T1,T2] [??]
+                    // from it's prospective 
+                    // "a" becomes: method [T1,T2] [T2,T1]
+                    // "b" becomes: method [T1,T2] [T1,T2]
+                    // now "c" has an input of T1, T2 
+                    // now "c" has an output of T1, T2
 
+                    //... anyway
+                    //... I don't even have AND types 
+
+                    // I think probably a flow from a generic is consider to be from your own generic
+                    // 
+                    // so what about this one?
+                    // 
+                    // method [Ta, Tb] [Tb,Ta] a;
+                    // method [t1,t2] [t1, t2] b;
+                    // c =: a;
+                    // c =: b;
+                    // o > c =: int x
+                    //
+                    // is "c" method [T1:int,T2:int] [T1&T2,T1&T2] ?
+                    // they both don't need the "int" but how would I know which one?
+                    // or maybe "c" is method [T1,T2] [T1 & T2,T1 & T2 & int]
+                    // {4C0E59B1-11EC-404B-9D57-760F2205E50C}
+                    throw new NotImplementedException("I think this should be an AND type, I don't really have those yet");
+               
                 }
                 res = default;
                 return false;
