@@ -1103,9 +1103,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var targetOr = flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(methodType)];
                     var target = targetOr.Is1OrThrow();
 
-                    target.AddGenerics(methodType.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray());
+                    var constraints = methodType.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray();
+                    for (int i = 0; i < constraints.Length; i++)
+                    {
+                        var mustHave = target.AddGeneric(constraints[i],i);
+                        constraints[i].Is2OrThrow().IsConstraintFor(mustHave);
+                    }
 
-                    Walk(methodType, new[] { Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter,Method, IError>(methodType) }, Array.Empty<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>>(), flowNodes2);
+                    //Walk(methodType, new[] { Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter,Method, IError>(methodType) }, Array.Empty<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>>(), flowNodes2);
                     //foreach (var generic in methodType.Generics.Values)
                     //{
                     //    flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(generic.constraint)].Is2OrThrow().IsConstraintFor(generic);
@@ -1118,10 +1123,17 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var targetOr = flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(method)];
                     var target = targetOr.Is1OrThrow();
 
-                    target.AddGenerics(method.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray());
+                    var constraints = method.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray();
+                    for (int i = 0; i < constraints.Length; i++)
+                    {
+                        var mustHave = target.AddGeneric(constraints[i], i);
+                        constraints[i].Is2OrThrow().IsConstraintFor(mustHave);
+                    }
 
-                    Walk(method, new[] { Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError >(method) }, Array.Empty<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>>(), flowNodes2);
-                    //foreach (var generic in methodType.Generics.Values)
+                    //target.AddGenerics(method.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray());
+
+                    //Walk(method, new[] { Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError >(method) }, Array.Empty<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>>(), flowNodes2);
+                    ////foreach (var generic in methodType.Generics.Values)
                     //{
                     //    flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(generic.constraint)].Is2OrThrow().IsConstraintFor(generic);
                     //}
@@ -1146,9 +1158,17 @@ namespace Tac.Frontend.New.CrzayNamespace
                         continue;
                     }
 
-                    concreteFlowNode2.AddGenerics(inferredType.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray());
 
-                    Walk(inferredType, new[] { Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter,Method, IError>(inferredType) }, Array.Empty<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>>(), flowNodes2);
+                    var constraints = inferredType.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray();
+                    for (int i = 0; i < constraints.Length; i++)
+                    {
+                        var mustHave = concreteFlowNode2.AddGeneric(constraints[i], i);
+                        constraints[i].Is2OrThrow().IsConstraintFor(mustHave);
+                    }
+
+                    //concreteFlowNode2.AddGenerics(inferredType.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray());
+
+                    //Walk(inferredType, new[] { Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter,Method, IError>(inferredType) }, Array.Empty<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>>(), flowNodes2);
 
                     //foreach (var generic in inferredType.Generics.Values)
                     //{
@@ -1265,145 +1285,145 @@ namespace Tac.Frontend.New.CrzayNamespace
                 yield return next;
             }
 
-            private static void Walk(IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError> toWalk,
-                IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack, 
-                IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
-                Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
-            {
-                if (stack.SkipLast(1).Contains(toWalk))
-                {
-                    return;
-                }
-                toWalk.Switch(
-                    x => Walk(x, stack, path, flowNodes2),
-                    x => Walk(x, stack, path, flowNodes2),
-                    x => Walk(x, stack, path, flowNodes2),
-                    x => Walk(x, stack, path, flowNodes2),
-                    x => Walk(x, stack, path, flowNodes2),
-                    x => Walk(x, stack, path, flowNodes2),
-                    x => Walk(x, stack, path, flowNodes2),
-                    _ => { });
-            }
+            //private static void Walk(IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError> toWalk,
+            //    IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack, 
+            //    IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
+            //    Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
+            //{
+            //    if (stack.SkipLast(1).Contains(toWalk))
+            //    {
+            //        return;
+            //    }
+            //    toWalk.Switch(
+            //        x => Walk(x, stack, path, flowNodes2),
+            //        x => Walk(x, stack, path, flowNodes2),
+            //        x => Walk(x, stack, path, flowNodes2),
+            //        x => Walk(x, stack, path, flowNodes2),
+            //        x => Walk(x, stack, path, flowNodes2),
+            //        x => Walk(x, stack, path, flowNodes2),
+            //        x => Walk(x, stack, path, flowNodes2),
+            //        _ => { });
+            //}
 
-            private static void Walk(MethodType methodType, 
-                IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack, 
-                IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
-                Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
-            {
-                if (methodType.Input.Is(out var hasInput) && hasInput.LooksUp.Is(out var inputHasLookUp)) {
-                    Walk(Broaden(inputHasLookUp), Add(stack, Broaden(inputHasLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>( new Input())), flowNodes2);
-                }
-                if (methodType.Returns.Is(out var hasReturns) && hasReturns.LooksUp.Is(out var returnsLookUp))
-                {
-                    Walk(Broaden(returnsLookUp), Add(stack, Broaden(returnsLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Output())), flowNodes2);
-                }
-            }
-            private static void Walk(Method method,
-                IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack,
-                IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
-                Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
-            {
-                if (method.Input.Is(out var hasInput) && hasInput.LooksUp.Is(out var inputHasLookUp))
-                {
-                    Walk(Broaden(inputHasLookUp), Add(stack, Broaden( inputHasLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Input())), flowNodes2);
-                }
-                if (method.Returns.Is(out var hasReturns) && hasReturns.LooksUp.Is(out var returnsLookUp))
-                {
-                    Walk(Broaden(returnsLookUp), Add(stack, Broaden(returnsLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Output())), flowNodes2);
-                }
-                foreach (var member in method.PrivateMembers)
-                {
-                    if (member.Value.LooksUp.Is(out var memberLooksUp))
-                    {
-                        Walk(Broaden(memberLooksUp), Add(stack, Broaden(memberLooksUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Tpn.PrivateMember(member.Key))), flowNodes2);
-                    }
-                }
-            }
-            private static void Walk(Type type,
-                IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack,
-                IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
-                Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
-            {
-                foreach (var member in type.PublicMembers)
-                {
-                    if (member.Value.LooksUp.Is(out var memberLooksUp))
-                    {
-                        Walk(Broaden(memberLooksUp), Add(stack, Broaden(memberLooksUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Tpn.Member(member.Key))), flowNodes2);
-                    }
-                }
-                // inner types? 
-            }
-            private static void Walk(Object @object,
-                IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack,
-                IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
-                Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
-            {
-                foreach (var member in @object.PublicMembers)
-                {
-                    if (member.Value.LooksUp.Is(out var memberLooksUp))
-                    {
-                        Walk(Broaden(memberLooksUp), Add(stack, Broaden(memberLooksUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Tpn.Member(member.Key))), flowNodes2);
-                    }
-                }
-            }
-            private static void Walk(OrType orType,
-                IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack,
-                IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
-                Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
-            {
-                if (orType.Left.Is(out var leftIs) && leftIs.LooksUp.Is(out var leftLooksUp)) { 
-                    Walk(Broaden(leftLooksUp), Add(stack, Broaden(leftLooksUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right , PrivateMember>( new Left())), flowNodes2);
-                }
-                if (orType.Right.Is(out var rightIs) && rightIs.LooksUp.Is(out var rightLookUp))
-                {
-                    Walk(Broaden(rightLookUp), Add(stack, Broaden(rightLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Right())), flowNodes2);
-                }
-            }
-            private static void Walk(InferredType inferredType,
-                IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack,
-                IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right,PrivateMember>> path,
-                Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
-            {
-                if (inferredType.Input.Is(out var hasInput) && hasInput.LooksUp.Is(out var inputHasLookUp))
-                {
-                    Walk(Broaden(inputHasLookUp), Add(stack, Broaden(inputHasLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Input())), flowNodes2);
-                }
-                if (inferredType.Returns.Is(out var hasReturns) && hasReturns.LooksUp.Is(out var returnsLookUp))
-                {
-                    Walk(Broaden(returnsLookUp), Add(stack, Broaden(returnsLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Output())), flowNodes2);
-                }
-                foreach (var member in inferredType.PublicMembers)
-                {
-                    if (member.Value.LooksUp.Is(out var memberLooksUp))
-                    {
-                        Walk(Broaden(memberLooksUp), Add(stack, Broaden(memberLooksUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Tpn.Member(member.Key))), flowNodes2);
-                    }
-                }
-            }
-            private static void Walk(GenericTypeParameter self,
-                IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack,
-                IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
-                Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
-            {
-                // we found something to constain
-                var count = 0;
-                foreach (var stackItem in stack.Reverse().Skip(1)/*the last element is "self"*/)
-                {
-                    count++;
-                    if (stackItem.SwitchReturns(
-                        x => x.Generics.Values.Contains(self),
-                        x => x.Generics.Values.Contains(self),
-                        x => false,
-                        x => false,
-                        x => x.Generics.Values.Contains(self),
-                        x => false,
-                        x => x.Generics.Values.Contains(self),
-                        x => false)) {
+            //private static void Walk(MethodType methodType, 
+            //    IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack, 
+            //    IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
+            //    Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
+            //{
+            //    if (methodType.Input.Is(out var hasInput) && hasInput.LooksUp.Is(out var inputHasLookUp)) {
+            //        Walk(Broaden(inputHasLookUp), Add(stack, Broaden(inputHasLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>( new Input())), flowNodes2);
+            //    }
+            //    if (methodType.Returns.Is(out var hasReturns) && hasReturns.LooksUp.Is(out var returnsLookUp))
+            //    {
+            //        Walk(Broaden(returnsLookUp), Add(stack, Broaden(returnsLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Output())), flowNodes2);
+            //    }
+            //}
+            //private static void Walk(Method method,
+            //    IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack,
+            //    IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
+            //    Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
+            //{
+            //    if (method.Input.Is(out var hasInput) && hasInput.LooksUp.Is(out var inputHasLookUp))
+            //    {
+            //        Walk(Broaden(inputHasLookUp), Add(stack, Broaden( inputHasLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Input())), flowNodes2);
+            //    }
+            //    if (method.Returns.Is(out var hasReturns) && hasReturns.LooksUp.Is(out var returnsLookUp))
+            //    {
+            //        Walk(Broaden(returnsLookUp), Add(stack, Broaden(returnsLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Output())), flowNodes2);
+            //    }
+            //    foreach (var member in method.PrivateMembers)
+            //    {
+            //        if (member.Value.LooksUp.Is(out var memberLooksUp))
+            //        {
+            //            Walk(Broaden(memberLooksUp), Add(stack, Broaden(memberLooksUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Tpn.PrivateMember(member.Key))), flowNodes2);
+            //        }
+            //    }
+            //}
+            //private static void Walk(Type type,
+            //    IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack,
+            //    IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
+            //    Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
+            //{
+            //    foreach (var member in type.PublicMembers)
+            //    {
+            //        if (member.Value.LooksUp.Is(out var memberLooksUp))
+            //        {
+            //            Walk(Broaden(memberLooksUp), Add(stack, Broaden(memberLooksUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Tpn.Member(member.Key))), flowNodes2);
+            //        }
+            //    }
+            //    // inner types? 
+            //}
+            //private static void Walk(Object @object,
+            //    IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack,
+            //    IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
+            //    Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
+            //{
+            //    foreach (var member in @object.PublicMembers)
+            //    {
+            //        if (member.Value.LooksUp.Is(out var memberLooksUp))
+            //        {
+            //            Walk(Broaden(memberLooksUp), Add(stack, Broaden(memberLooksUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Tpn.Member(member.Key))), flowNodes2);
+            //        }
+            //    }
+            //}
+            //private static void Walk(OrType orType,
+            //    IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack,
+            //    IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
+            //    Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
+            //{
+            //    if (orType.Left.Is(out var leftIs) && leftIs.LooksUp.Is(out var leftLooksUp)) { 
+            //        Walk(Broaden(leftLooksUp), Add(stack, Broaden(leftLooksUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right , PrivateMember>( new Left())), flowNodes2);
+            //    }
+            //    if (orType.Right.Is(out var rightIs) && rightIs.LooksUp.Is(out var rightLookUp))
+            //    {
+            //        Walk(Broaden(rightLookUp), Add(stack, Broaden(rightLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Right())), flowNodes2);
+            //    }
+            //}
+            //private static void Walk(InferredType inferredType,
+            //    IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack,
+            //    IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right,PrivateMember>> path,
+            //    Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
+            //{
+            //    if (inferredType.Input.Is(out var hasInput) && hasInput.LooksUp.Is(out var inputHasLookUp))
+            //    {
+            //        Walk(Broaden(inputHasLookUp), Add(stack, Broaden(inputHasLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Input())), flowNodes2);
+            //    }
+            //    if (inferredType.Returns.Is(out var hasReturns) && hasReturns.LooksUp.Is(out var returnsLookUp))
+            //    {
+            //        Walk(Broaden(returnsLookUp), Add(stack, Broaden(returnsLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Output())), flowNodes2);
+            //    }
+            //    foreach (var member in inferredType.PublicMembers)
+            //    {
+            //        if (member.Value.LooksUp.Is(out var memberLooksUp))
+            //        {
+            //            Walk(Broaden(memberLooksUp), Add(stack, Broaden(memberLooksUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Tpn.Member(member.Key))), flowNodes2);
+            //        }
+            //    }
+            //}
+            //private static void Walk(GenericTypeParameter self,
+            //    IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack,
+            //    IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
+            //    Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
+            //{
+            //    // we found something to constain
+            //    var count = 0;
+            //    foreach (var stackItem in stack.Reverse().Skip(1)/*the last element is "self"*/)
+            //    {
+            //        count++;
+            //        if (stackItem.SwitchReturns(
+            //            x => x.Generics.Values.Contains(self),
+            //            x => x.Generics.Values.Contains(self),
+            //            x => false,
+            //            x => false,
+            //            x => x.Generics.Values.Contains(self),
+            //            x => false,
+            //            x => x.Generics.Values.Contains(self),
+            //            x => false)) {
                         
-                        flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(self.constraint)].Is2OrThrow().IsConstraintFor(path.TakeLast(count).ToArray(), self.index, self.owner);
-                    }
-                }
-            }
+            //            flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(self.constraint)].Is2OrThrow().IsConstraintFor(path.TakeLast(count).ToArray(), self.index, self.owner);
+            //        }
+            //    }
+            //}
 
             private static int Height(IStaticScope staticScope)
             {

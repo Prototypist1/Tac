@@ -18,11 +18,13 @@ namespace Tac.Frontend
     //  - if a node flows something, it will always flow that thing. once "A" has a member nothing can take that member away from "A"
     // 
 
-    interface IConstraint {
+    interface IConstraint
+    {
         bool IsCompatible(IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric> constraint, List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>> assumeTrue);
     }
 
-    interface IConstraintSoruce {
+    interface IConstraintSoruce
+    {
         EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> GetConstraints();
         EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>> GetExtendedConstraints();
     }
@@ -31,7 +33,8 @@ namespace Tac.Frontend
     // but it's constraints code from the element at the path
     //
     // this could also come from an or node
-    class MustHave : IConstraint {
+    class MustHave : IConstraint
+    {
         public readonly IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember> path;
         public readonly IConstraintSoruce dependent;
 
@@ -45,7 +48,7 @@ namespace Tac.Frontend
         {
             return obj.SafeIs(out MustHave have) &&
                    path.NullSafeEqual(have.path) &&
-                   dependent.NullSafeEqual( have.dependent);
+                   dependent.NullSafeEqual(have.dependent);
         }
 
         public override int GetHashCode()
@@ -58,18 +61,22 @@ namespace Tac.Frontend
             List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>> assumeTrue)
         {
             var pair = new UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(this), constraint);
-            if (assumeTrue.Contains(pair)) {
+            if (assumeTrue.Contains(pair))
+            {
                 return true;
             }
-            var nextAssumeTrue = new Lazy<List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>>>(() => {
+            var nextAssumeTrue = new Lazy<List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>>>(() =>
+            {
                 var list = assumeTrue.ToList();
                 list.Add(pair);
                 return list;
             });
 
             return constraint.SwitchReturns(
-                    mustHave => {
-                        if (path.Is1(out var _) && (mustHave.path.Is2(out var _) || mustHave.path.Is3(out var _))) {
+                    mustHave =>
+                    {
+                        if (path.Is1(out var _) && (mustHave.path.Is2(out var _) || mustHave.path.Is3(out var _)))
+                        {
                             return false;
                         }
 
@@ -91,7 +98,8 @@ namespace Tac.Frontend
                             mustHave.dependent.GetConstraints().All(theirConstraint => theirConstraint.GetValueAs(out IConstraint _).IsCompatible(myConstraint, nextAssumeTrue.Value)));
                     },
                     prim => false,
-                    givenPathThen => {
+                    givenPathThen =>
+                    {
                         if (path != givenPathThen.path)
                         {
                             return true;
@@ -103,17 +111,20 @@ namespace Tac.Frontend
                         return dependent.GetConstraints().All(myConstraint =>
                             givenPathThen.dependent.GetConstraints().All(theirConstraint => theirConstraint.GetValueAs(out IConstraint _).IsCompatible(myConstraint, nextAssumeTrue.Value)));
                     },
-                    or => or.source.or.Select(x=> x.GetValueAs(out IConstraintSoruce _).GetConstraints()).Any(oneOf => oneOf.All(item => this.IsCompatible(item, nextAssumeTrue.Value))),
-                    hasMembers => {
+                    or => or.source.or.Select(x => x.GetValueAs(out IConstraintSoruce _).GetConstraints()).Any(oneOf => oneOf.All(item => this.IsCompatible(item, nextAssumeTrue.Value))),
+                    hasMembers =>
+                    {
 
-                        if (path.Is2(out var _) || path.Is3(out var _)) {
+                        if (path.Is2(out var _) || path.Is3(out var _))
+                        {
                             return false;
                         }
 
                         return true;
 
                     },
-                    generic => {
+                    generic =>
+                    {
                         return true;
                     });
         }
@@ -161,7 +172,8 @@ namespace Tac.Frontend
             {
                 return true;
             }
-            var nextAssumeTrue = new Lazy<List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>>>(() => {
+            var nextAssumeTrue = new Lazy<List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>>>(() =>
+            {
                 var list = assumeTrue.ToList();
                 list.Add(pair);
                 return list;
@@ -221,7 +233,8 @@ namespace Tac.Frontend
             {
                 return true;
             }
-            var nextAssumeTrue = new Lazy<List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>>>(() => {
+            var nextAssumeTrue = new Lazy<List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>>>(() =>
+            {
                 var list = assumeTrue.ToList();
                 list.Add(pair);
                 return list;
@@ -230,7 +243,8 @@ namespace Tac.Frontend
             return constraint.SwitchReturns(
                 mustHave => mustHave.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(this), assumeTrue), // reverse it - use og assumeTrue
                 primitive => primitive.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(this), assumeTrue), // reverse it - use og assumeTrue
-                givenPathThen => {
+                givenPathThen =>
+                {
                     if (path != givenPathThen.path)
                     {
                         return true;
@@ -243,7 +257,8 @@ namespace Tac.Frontend
                         givenPathThen.dependent.GetConstraints().All(theirConstraint => theirConstraint.GetValueAs(out IConstraint _).IsCompatible(myConstraint, nextAssumeTrue.Value)));
                 },
                 or => or.source.or.Select(x => x.GetValueAs(out IConstraintSoruce _).GetConstraints()).Any(oneOf => oneOf.All(item => this.IsCompatible(item, nextAssumeTrue.Value))),
-                HasMembers => {
+                HasMembers =>
+                {
 
                     if (path.Is2(out var _) || path.Is3(out var _))
                     {
@@ -252,7 +267,8 @@ namespace Tac.Frontend
 
                     return true;
                 },
-                isGeneric => {
+                isGeneric =>
+                {
                     return true;
                 });
         }
@@ -287,22 +303,23 @@ namespace Tac.Frontend
             var sets = or
                 .Select(x => x
                     .GetConstraints()
-                    .SelectMany(z=>z.SwitchReturns(
-                        y=> new IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric>[] { OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric>(y) },
+                    .SelectMany(z => z.SwitchReturns(
+                        y => new IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric>[] { OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric>(y) },
                         y => new IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric>[] { OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric>(y) },
                         y => new IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric>[] { OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric>(y) },
                         // we can actually ignore OrConstraints
                         // when ever you get constraints from an "or" it will contain the intersection constraints
                         // so we should have that and the intersection is the only part of the or that is useful to us 
-                        y => new IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric>[] {  },
+                        y => new IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric>[] { },
                         y => new IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric>[] { OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric>(y) },
                         y => new IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric>[] { OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric>(y) }))
                     .ToArray())
                 .ToArray();
 
             // if any of the sets are empty return nothing
-            if (sets.Any(x => !x.Any())) {
-                return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>( new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> { });
+            if (sets.Any(x => !x.Any()))
+            {
+                return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>(new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> { });
             }
 
             // if all the sets are only MustBePrimitive
@@ -317,17 +334,18 @@ namespace Tac.Frontend
                 return Array.Empty<MustBePrimitive>();
             })).GroupBy(x => x.primitive).ToArray();
 
-            if (primitiveGroups.Count() == 1 && primitiveGroups.First().Count() == sets.Sum(x=>x.Length)) {
-                return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>( new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> {
+            if (primitiveGroups.Count() == 1 && primitiveGroups.First().Count() == sets.Sum(x => x.Length))
+            {
+                return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>(new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> {
                     OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(
                     primitiveGroups.First().First())
                 });
             }
 
             // if any of the sets are MustBePrimitive
-            if (sets.Any(x => x.Any(y=>y.Is2(out var _))))
+            if (sets.Any(x => x.Any(y => y.Is2(out var _))))
             {
-                return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>( new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> { });
+                return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>(new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> { });
             }
 
             var mustHaveGroups = sets.SelectMany(x => x.SelectMany(y =>
@@ -339,7 +357,8 @@ namespace Tac.Frontend
                 return Array.Empty<MustHave>();
             })).GroupBy(x => x.path).ToArray();
 
-            if (mustHaveGroups.Any(x => x.Count() > sets.Count())) {
+            if (mustHaveGroups.Any(x => x.Count() > sets.Count()))
+            {
                 // {49950614-10F1-4ABF-851F-E9D1EA0BF24C} relies on this assumption
                 throw new Exception("there should only be must have per set");
             }
@@ -351,7 +370,7 @@ namespace Tac.Frontend
                 // we assume there is only 1 must have per group so we can just intersect them all 
                 // if two came from the same source it would get more complex
                 // (a union b) intersection (c) interesection (d)
-                .Select(x => OrType.Make< MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(new MustHave(x.Key,new IntersectionsConstraintSource(new EqualableHashSet<IConstraintSoruce>(x.Select(x=>x.dependent).ToHashSet())))));
+                .Select(x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(new MustHave(x.Key, new IntersectionsConstraintSource(new EqualableHashSet<IConstraintSoruce>(x.Select(x => x.dependent).ToHashSet())))));
 
             var givePathThenGroups = sets.SelectMany(x => x.SelectMany(y =>
             {
@@ -376,7 +395,8 @@ namespace Tac.Frontend
         }
 
 
-        public EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>> GetExtendedConstraints() {
+        public EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>> GetExtendedConstraints()
+        {
             return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>(GetConstraints().Select(x => x.Broaden()).ToHashSet());
         }
         public override int GetHashCode()
@@ -418,7 +438,8 @@ namespace Tac.Frontend
             {
                 return true;
             }
-            var nextAssumeTrue = new Lazy<List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>>>(() => {
+            var nextAssumeTrue = new Lazy<List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>>>(() =>
+            {
                 var list = assumeTrue.ToList();
                 list.Add(pair);
                 return list;
@@ -430,12 +451,12 @@ namespace Tac.Frontend
                 givenPathThen => givenPathThen.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(this), assumeTrue), // reverse it  - use og assumeTrue
                 or =>
                     // if any of our source is compatible with any of their any sources
-                    source.or.Select(x=>x.GetValueAs(out IConstraintSoruce _).GetConstraints())
-                        .Any(ourSet =>or.source.or.Select(x=>x.GetValueAs(out IConstraintSoruce _).GetConstraints())
+                    source.or.Select(x => x.GetValueAs(out IConstraintSoruce _).GetConstraints())
+                        .Any(ourSet => or.source.or.Select(x => x.GetValueAs(out IConstraintSoruce _).GetConstraints())
                             .Any(thierSet => ourSet
                                 .All(ourItem => thierSet
                                     .All(theirItem => ourItem.GetValueAs(out IConstraint _).IsCompatible(theirItem, nextAssumeTrue.Value))))),
-                hasMembers => source.or.Select(x => x.GetValueAs(out IConstraintSoruce _).GetConstraints()).Any(x=>x.All(y=>y.GetValueAs(out IConstraint _).IsCompatible(constraint, assumeTrue))),
+                hasMembers => source.or.Select(x => x.GetValueAs(out IConstraintSoruce _).GetConstraints()).Any(x => x.All(y => y.GetValueAs(out IConstraint _).IsCompatible(constraint, assumeTrue))),
                 generic => true);
         }
 
@@ -485,12 +506,12 @@ namespace Tac.Frontend
 
     }
 
-    class IsGeneric: IConstraint
+    class IsGeneric : IConstraint
     {
 
-        public readonly InferredFlowNode2 source;
+        public readonly MustHave source;
 
-        public IsGeneric(InferredFlowNode2 source)
+        public IsGeneric(MustHave source)
         {
             this.source = source ?? throw new ArgumentNullException(nameof(source));
         }
@@ -498,7 +519,7 @@ namespace Tac.Frontend
         public override bool Equals(object? obj)
         {
             return obj is IsGeneric generic &&
-                   EqualityComparer<InferredFlowNode2>.Default.Equals(source, generic.source);
+                   EqualityComparer<MustHave>.Default.Equals(source, generic.source);
         }
 
         public override int GetHashCode()
@@ -541,7 +562,7 @@ namespace Tac.Frontend
     // this is a none flowing constrain
     // it is used to uniquely identify types in the type solution
     // it just pass through here
-    class IsExternal: IConstraint
+    class IsExternal : IConstraint
     {
         public readonly Tac.Model.Elements.IInterfaceType interfaceType;
 
@@ -608,10 +629,13 @@ namespace Tac.Frontend
 
     //}
 
-    static class TriStateExtensions {
+    static class TriStateExtensions
+    {
 
-        public static IOrType<NoChanges, Changes, FailedAction> CombineBothMustNotFail(this IOrType<NoChanges, Changes, FailedAction> self, IOrType<NoChanges, Changes, FailedAction> that) {
-            if (self.Is3(out var _)) {
+        public static IOrType<NoChanges, Changes, FailedAction> CombineBothMustNotFail(this IOrType<NoChanges, Changes, FailedAction> self, IOrType<NoChanges, Changes, FailedAction> that)
+        {
+            if (self.Is3(out var _))
+            {
                 return self;
             }
             if (that.Is3(out var _))
@@ -648,7 +672,8 @@ namespace Tac.Frontend
     }
 
 
-    interface IFlowNode2 : IConstraintSoruce {
+    interface IFlowNode2 : IConstraintSoruce
+    {
         /// <summary>
         /// when flowing down stream (given a =: b, downstream would be from a to b)
         /// only pass GivenPathThen and OrConstraint of GivenPathThen
@@ -660,12 +685,12 @@ namespace Tac.Frontend
 
     }
 
-    class PrimitiveFlowNode2: IFlowNode2
+    class PrimitiveFlowNode2 : IFlowNode2
     {
         public readonly Guid guid;
         public readonly Tpn.TypeProblem2.Type type;
         private static int index = 0;
-        private int myIndex = Interlocked.Increment(ref  index);
+        private int myIndex = Interlocked.Increment(ref index);
 
         public PrimitiveFlowNode2(Guid guid, Tpn.TypeProblem2.Type type)
         {
@@ -679,12 +704,13 @@ namespace Tac.Frontend
                 OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric> (new MustBePrimitive(guid,this))
             });
         }
-        public IOrType<NoChanges, Changes, FailedAction> AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> newConstraints) {
+        public IOrType<NoChanges, Changes, FailedAction> AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> newConstraints)
+        {
             return OrType.Make<NoChanges, Changes, FailedAction>(new NoChanges());
         }
 
         public bool CouldApplyToMe(IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> constraint) =>
-            constraint.All(x=>x.Is2(out var prim) && prim.primitive == guid);
+            constraint.All(x => x.Is2(out var prim) && prim.primitive == guid);
 
         public EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>> GetExtendedConstraints()
         {
@@ -700,15 +726,15 @@ namespace Tac.Frontend
     }
 
     class ConcreteFlowNode2 : IFlowNode2
-    { 
+    {
         // doesn't have OrConstraints
         private readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers>> constraints = new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers>>(new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers>>());
-        private readonly Dictionary<IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> dependents = new ();
+        private readonly Dictionary<IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> dependents = new();
         // private members don't flow
         private readonly List<MustHave> privateMembers = new List<MustHave>();
 
         private readonly HashSet<OrFlowNode2> perviouslyAccepted = new HashSet<OrFlowNode2>();
-        private readonly HashSet<OrFlowNode2> perviouslyAcceptedDownstream= new HashSet<OrFlowNode2>();
+        private readonly HashSet<OrFlowNode2> perviouslyAcceptedDownstream = new HashSet<OrFlowNode2>();
 
         public IIsPossibly<IsExternal> isExternal = Possibly.IsNot<IsExternal>();
 
@@ -717,7 +743,7 @@ namespace Tac.Frontend
 
         public EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> GetConstraints()
         {
-            return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>(constraints.Select(x=>x.SwitchReturns(
+            return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>(constraints.Select(x => x.SwitchReturns(
                 x => (IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>)OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x),
                 x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x),
                 x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x),
@@ -731,7 +757,7 @@ namespace Tac.Frontend
             {
 
                 sum = TriStateExtensions.CombineBothMustNotFail(
-                    sum, 
+                    sum,
                     constraint.SwitchReturns(
                         mustHave =>
                         {
@@ -739,7 +765,8 @@ namespace Tac.Frontend
                             // type {x;} a =: {y;} | number b
                             // ...they wrote bad code
                             // y could flow if they had left it inferred but they didn't
-                            if (dependents.TryGetValue(mustHave.path, out var dependent)) {
+                            if (dependents.TryGetValue(mustHave.path, out var dependent))
+                            {
                                 var constraints = mustHave.dependent.GetConstraints();
                                 return dependent.GetValueAs(out IFlowNode2 _).AcceptConstraints(constraints);
                             }
@@ -754,7 +781,8 @@ namespace Tac.Frontend
                             }
                             return OrType.Make<NoChanges, Changes, FailedAction>(new NoChanges());
                         },
-                        orConstraint => {
+                        orConstraint =>
+                        {
 
                             // this isn't always right
                             // something could be upstream and all GivenPathThen
@@ -766,13 +794,15 @@ namespace Tac.Frontend
                             var couldApply = orConstraint.source.or.SelectMany(sourceOr =>
                             {
                                 var set = sourceOr.GetValueAs(out IConstraintSoruce _).GetConstraints();
-                                if (CouldApplyToMe(set)) {
+                                if (CouldApplyToMe(set))
+                                {
                                     return new[] { sourceOr };
                                 }
                                 return Array.Empty<IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>>();
                             }).ToArray();
 
-                            if (couldApply.Length == 0) {
+                            if (couldApply.Length == 0)
+                            {
                                 // this is an error state
                                 // and an upsetting one because we could have flowed earlier versions of the OrConstraint
                                 // I think I probably want to restart the solve 
@@ -811,7 +841,8 @@ namespace Tac.Frontend
                                         return OrType.Make<NoChanges, Changes, FailedAction>(new FailedAction());
                                     }
                                 }
-                                else {
+                                else
+                                {
 
                                     if (perviouslyAccepted.Contains(orConstraint.source))
                                     {
@@ -821,7 +852,8 @@ namespace Tac.Frontend
                                 return OrType.Make<NoChanges, Changes, FailedAction>(new NoChanges());
                             }
 
-                            if (couldApply.Length == 1) {
+                            if (couldApply.Length == 1)
+                            {
                                 if (downstream)
                                 {
                                     perviouslyAcceptedDownstream.Add(orConstraint.source);
@@ -846,7 +878,7 @@ namespace Tac.Frontend
                             var intersectionsConstraintSource = new IntersectionsConstraintSource(new EqualableHashSet<IConstraintSoruce>(couldApply.Select(x => x.GetValueAs(out IConstraintSoruce _)).ToHashSet()));
 
                             return AcceptConstraints(intersectionsConstraintSource.GetConstraints().ToHashSet());
-                            
+
                             // we need to create to approprate OrConstraint for each element
                             //var res = (IOrType<NoChanges, Changes, FailedAction>)OrType.Make<NoChanges, Changes, FailedAction>(new NoChanges());
                             //foreach (var dependent in dependents)
@@ -870,16 +902,17 @@ namespace Tac.Frontend
                             //}
                             //return res;
                         },
-                        HasMembers => {
+                        HasMembers =>
+                        {
                             if (dependents.Any(x => x.Key.Is1(out var _)))
                             {
                                 return OrType.Make<NoChanges, Changes, FailedAction>(new NoChanges());
                             }
-                            if (dependents.Any(x => x.Key.Is2(out var _)|| x.Key.Is3(out var _)))
+                            if (dependents.Any(x => x.Key.Is2(out var _) || x.Key.Is3(out var _)))
                             {
                                 return OrType.Make<NoChanges, Changes, FailedAction>(new NoChanges());
                             }
-                            if (constraints.Any(x => x.Is4(out var _))) 
+                            if (constraints.Any(x => x.Is4(out var _)))
                             {
                                 return OrType.Make<NoChanges, Changes, FailedAction>(new NoChanges());
                             }
@@ -944,7 +977,8 @@ namespace Tac.Frontend
                     mustHave =>
                     {
                         // you can't have members and inputs/outputs
-                        if (mustHave.path.Is1(out var _) && dependents.Any(x => x.Key.Is2(out var _) || x.Key.Is3(out var _))) {
+                        if (mustHave.path.Is1(out var _) && dependents.Any(x => x.Key.Is2(out var _) || x.Key.Is3(out var _)))
+                        {
                             return false;
                         }
 
@@ -978,7 +1012,8 @@ namespace Tac.Frontend
                         return true;
                     },
                     orConstraint => orConstraint.source.or.Any(x => CouldApplyToMe(x.GetValueAs(out IConstraintSoruce _).GetConstraints())),
-                    HasMembers => {
+                    HasMembers =>
+                    {
                         if (dependents.Any(x => x.Key.Is2(out var _) || x.Key.Is3(out var _)))
                         {
                             return false;
@@ -1019,21 +1054,20 @@ namespace Tac.Frontend
             constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new GivenPathThen(path, orType.GetValueAs(out IConstraintSoruce _))));
         }
 
-        internal void AddGenerics(IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>[] orTypes)
+        internal MustHave AddGeneric(IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2> orType, int i)
         {
-            for (int i = 0; i < orTypes.Length; i++)
-            {
-                var orType = orTypes[i];
-                var path = OrType.Make<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember>(new Tpn.Generic(i));
-                dependents[path] = orType;
-                constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new MustHave(path, orType.GetValueAs(out IConstraintSoruce _))));
-                constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new GivenPathThen(path, orType.GetValueAs(out IConstraintSoruce _))));
-            }
+            var path = OrType.Make<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Generic, Tpn.PrivateMember>(new Tpn.Generic(i));
+            dependents[path] = orType;
+            var res = new MustHave(path, orType.GetValueAs(out IConstraintSoruce _));
+            constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(res));
+            constraints.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers>(new GivenPathThen(path, orType.GetValueAs(out IConstraintSoruce _))));
+            return res;
         }
 
         internal void IsExternal(IInterfaceType external)
         {
-            if (isExternal.Is(out var _)) {
+            if (isExternal.Is(out var _))
+            {
                 throw new Exception("already set, is that ok?");
             }
 
@@ -1048,13 +1082,13 @@ namespace Tac.Frontend
 
         public override string ToString()
         {
-            return $"{nameof(ConcreteFlowNode2)}-{myIndex}{{{String.Join(", ", GetExtendedConstraints().Select(x=>x.ToString()).ToArray())}}}";
+            return $"{nameof(ConcreteFlowNode2)}-{myIndex}{{{String.Join(", ", GetExtendedConstraints().Select(x => x.ToString()).ToArray())}}}";
         }
     }
 
     class InferredFlowNode2 : IFlowNode2
     {
-        public readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> constraints = new (new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>());
+        public readonly EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> constraints = new(new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>());
 
         public List<IsGeneric> isGenericRestraintFor = new List<IsGeneric>();
         //public IIsPossibly<IsExternal> isExternal = Possibly.IsNot<IsExternal>();
@@ -1087,7 +1121,8 @@ namespace Tac.Frontend
             var sum = (IOrType<NoChanges, Changes, FailedAction>)OrType.Make<NoChanges, Changes, FailedAction>(new NoChanges());
             foreach (var newConstraint in newConstraints)
             {
-                if (constraints.Add(newConstraint)) {
+                if (constraints.Add(newConstraint))
+                {
                     sum = OrType.Make<NoChanges, Changes, FailedAction>(new Changes());
                 }
             }
@@ -1116,13 +1151,13 @@ namespace Tac.Frontend
             return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>(GetConstraints().Select(x => x.Broaden()).ToHashSet());
         }
 
-        internal void IsConstraintFor(IOrType<Tpn.Member, Tpn.Input, Tpn.Output, Tpn.Left, Tpn.Right, Tpn.PrivateMember>[] pathFromOwner, int index, IOrType<Tpn.TypeProblem2.MethodType, Tpn.TypeProblem2.Type, Tpn.TypeProblem2.Method, Tpn.TypeProblem2.InferredType> owner)
+        internal void IsConstraintFor(MustHave mustHave)
         {
             //if (isGenericRestraintFor.Is(out var _)) {
             //    throw new Exception("already set? that's suprising and worth thinking agout");
             //}
 
-            isGenericRestraintFor.Add(new IsGeneric(this));
+            isGenericRestraintFor.Add(new IsGeneric(mustHave));
         }
 
         public override string ToString()
@@ -1144,7 +1179,7 @@ namespace Tac.Frontend
 
         public OrFlowNode2(IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2> left, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2> right)
         {
-            or =  new (new HashSet<IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> { left,right});
+            or = new(new HashSet<IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> { left, right });
         }
 
         public IOrType<NoChanges, Changes, FailedAction> AcceptConstraints(IReadOnlySet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> newConstraints)
@@ -1168,7 +1203,8 @@ namespace Tac.Frontend
             res.Add(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(new OrConstraint(this)));
             // ... and figure out the intersect
             var intersectSource = new IntersectionsConstraintSource(new EqualableHashSet<IConstraintSoruce>(or.Select(x => x.GetValueAs(out IConstraintSoruce _)).ToHashSet()));
-            foreach (var source in intersectSource.GetConstraints()) {
+            foreach (var source in intersectSource.GetConstraints())
+            {
                 res.Add(source);
             }
             return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>(res);
@@ -1309,12 +1345,13 @@ namespace Tac.Frontend
 
         // downstream we only send GivenPathThen and OrConstraint made entirely of GivenPathThen
         // {95C8B654-3AF5-42FD-A42B-A94165BEF7A3}
-        public static IReadOnlySet<IOrType<GivenPathThen, OrConstraint>> ToDownStream(this IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> constraints) {
+        public static IReadOnlySet<IOrType<GivenPathThen, OrConstraint>> ToDownStream(this IEnumerable<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>> constraints)
+        {
             return constraints.SelectMany(x =>
             {
                 if (x.Is3(out var givenPath))
                 {
-                    return new[] { OrType.Make < GivenPathThen, OrConstraint > (givenPath) };
+                    return new[] { OrType.Make<GivenPathThen, OrConstraint>(givenPath) };
                 }
                 // or's don't flow down stream
                 // instead they make intersect that flow downstream
@@ -1340,7 +1377,8 @@ namespace Tac.Frontend
         }
     }
 
-    class UnorderedPair {
+    class UnorderedPair
+    {
         private readonly object a, b;
 
         public UnorderedPair(object a, object b)
@@ -1362,9 +1400,9 @@ namespace Tac.Frontend
         }
     }
 
-    class UnorderedPair<T>: UnorderedPair
+    class UnorderedPair<T> : UnorderedPair
     {
-        public UnorderedPair(T a, T b): base(a,b){}
+        public UnorderedPair(T a, T b) : base(a, b) { }
     }
 
     // Tests to write
