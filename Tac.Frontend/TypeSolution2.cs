@@ -312,11 +312,13 @@ namespace Tac.Frontend.New.CrzayNamespace
                 var couldBe = context.key
                     .Select(x=>x
                             .Where(y => y.Is1(out MustHave mustHave) && mustHave.path.Is4(out Generic _))
+                            .Select(y=> y.Is1OrThrow())
+                            .GroupBy(y=>y.path.Is4OrThrow().index)
                             .ToDictionary(
-                                y => y.Is1OrThrow().path.Is4OrThrow().index,
-                                y => y.Is1OrThrow().dependent.GetConstraints()
-                                    .Where(z=> z.Is6(out var _))
-                                    .Select(z => z.Is6OrThrow())
+                                y => y.Key,
+                                y => y.SelectMany(w=> w.dependent.GetConstraints()
+                                        .Where(z=> z.Is6(out var _))
+                                        .Select(z => z.Is6OrThrow()))
                                     .Intersect(generics)
                                     .ToHashSet()))
                     .ToArray();
@@ -485,7 +487,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                                 var list = new EqualableReadOnlyList<Yolo>(Add(context.TakeWhile(x => !x.Equals(from)), from).ToArray());
                                 var res = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
                                 alreadyConverting.Add((yolo, !isConstraint), res);
-                                res.Fill(LookUpGeneric(from, context, index, alreadyConverting));
+                                res.Fill(LookUpGeneric(from, list, index, alreadyConverting));
                                 typeByYoloAndContext.AddOrThrow((yolo, list, isConstraint), res);
                                 return (res, list);
                             }
@@ -1073,7 +1075,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             internal IOrType<GenericTypeParameterPlacholder, IError> GetGenericPlaceholder(TypeProblem2.GenericTypeParameter from, IEnumerable<ITypeProblemNode> context)
             {
                 return CachedConvert3(
-                    cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IConstraintSoruce _)
+                    cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(from.constraint)].GetValueAs(out IConstraintSoruce _)
                         .GetExtendedConstraints()
                         .Flatten()],
                     ConvertContext(context),
