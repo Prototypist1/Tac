@@ -58,8 +58,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 internal IIsPossibly<Yolo>? left;
                 internal IIsPossibly<Yolo>? right;
                 internal IOrType<Yolo[], IError>? genericsConstraints;
-                internal IIsDefinately<IOrType<Yolo, IError>> looksUp;
-                internal GenericTypeParameterPlacholder? genericTypeParameterPlaceholder;
                 //internal readonly Box<IOrType<IFrontendType<IVerifiableType>, IError>> type = new Box<IOrType<IFrontendType<IVerifiableType>, IError>>();
 
                 public Yolo(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> key)
@@ -267,7 +265,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
 
-                var simplifiedPositions = positions.GroupBy(x => x.Key.Item1).ToDictionary(x => x.Key, x => x.SelectMany(y => y.Value).ToList());
+                var simplifiedPositions = positions.GroupBy(x => x.Key.Item1).ToDictionary(x => x.Key, x => x.SelectMany(y => y.Value).Distinct().ToList());
 
                 foreach (var (key, value) in cache)
                 {
@@ -588,7 +586,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             var genericsList = new List<IOrType<IGenericTypeParameterPlacholder, IError>>();
                             for (int i = 0; i < generics.Length; i++)
                             {
-                                genericsList.Add(LookUpGeneric(yolo, context, i++, alreadyConverting.ToDictionary(x => x.Key, x => x.Value)));
+                                genericsList.Add(LookUpGeneric(yolo, Add(context, yolo), i++, alreadyConverting.ToDictionary(x => x.Key, x => x.Value)));
                             }
                             var genericsArray = genericsList.ToArray();
 

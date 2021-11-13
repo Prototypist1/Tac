@@ -2215,37 +2215,46 @@ namespace Tac.Frontend.TypeProblem.Test
             problem.builder.CreatePublicMember(chickenType, chickenType, new NameKey("eggs"));
 
             // method [T] [T,T] input {
-            var (method, _, _) = problem.builder.CreateGenericMethod(
+
+            var genericParameters = new[] { new NameKey("T") };
+            var (method, realizedInput, realizedOutput) = problem.builder.CreateGenericMethod(
                 problem.ModuleRoot,
                 x => OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(problem.builder.CreateTypeReference(x, new NameKey("T"), new WeakTypeReferenceConverter())),
                 x => OrType.Make<Tpn.TypeProblem2.TypeReference, IError>(problem.builder.CreateTypeReference(x, new NameKey("T"), new WeakTypeReferenceConverter())),
                 "input",
                 new WeakMethodDefinitionConverter(new Box<IReadOnlyList<IOrType<IBox<IFrontendCodeElement>, IError>>>(new List<IOrType<IBox<IFrontendCodeElement>, IError>>())),
-                new[] {
-                    new Tpn.TypeAndConverter(new NameKey("T"), new WeakTypeDefinitionConverter())
-                });
+                genericParameters.Select(x => new Tpn.TypeAndConverter(x, new WeakTypeDefinitionConverter())).ToArray());
 
             // input =: chicken x;
             var x = problem.builder.CreatePrivateMember(method, method, new NameKey("x"), OrType.Make<IKey, Error>(new NameKey("chicken")));
             problem.builder.IsAssignedTo(method.Input.GetOrThrow(), x);
 
             //} =: my-method
-            var myMethod = problem.builder.CreatePublicMember(problem.ModuleRoot, problem.ModuleRoot, new NameKey("my-method"));
-            
             // this is copied from here:
-            // {8E138F8D-53AA-4D6A-B337-64CAFED23391}
-            var inputMember = problem.builder.GetInput(myMethod);
-            problem.builder.IsAssignedTo(inputMember, method.Input.GetOrThrow()/*lazy GetOrThrow*/);
+            //// {8E138F8D-53AA-4D6A-B337-64CAFED23391}
+            //var value = problem.builder.CreateValue(method, new DoubleGenericNameKey(
+            //    new NameKey("method"),
+            //    genericParameters,
+            //    new IOrType<IKey, IError>[] {
+            //        realizedInput.TransformInner(x=>x.Key()),
+            //        realizedOutput.TransformInner(x=>x.Key()),
+            //    }));
 
-            var returnsMember = problem.builder.GetReturns(myMethod);
-            problem.builder.IsAssignedTo(method.Returns.GetOrThrow()/*lazy GetOrThrow*/, returnsMember);
+            //var inputMember = problem.builder.GetInput(value);
+            //problem.builder.IsAssignedTo(inputMember, method.Input.GetOrThrow()/*lazy GetOrThrow*/);
 
-            var genericParameters = new[] { new NameKey("T") };
-            var dict = problem.builder.HasGenerics(myMethod, genericParameters);
-            foreach (var key in genericParameters)
-            {
-                problem.builder.AssertIs(dict[key], method.Generics[key]/*lazy GetOrThrow*/);
-            }
+            //var returnsMember = problem.builder.GetReturns(value);
+            //problem.builder.IsAssignedTo(method.Returns.GetOrThrow()/*lazy GetOrThrow*/, returnsMember);
+
+            //var dict = problem.builder.HasGenerics(value, genericParameters);
+            //foreach (var key in genericParameters)
+            //{
+            //    problem.builder.AssertIs(dict[key], method.Generics[key] /*lazy GetOrThrow*/);
+            //}
+
+            var myMethod = problem.builder.CreatePublicMember(problem.ModuleRoot, problem.ModuleRoot, new NameKey("my-method"));
+            problem.builder.IsAssignedTo(method, myMethod);
+
 
             // my-method =: method [T] [T,T] z
             var z = problem.builder.CreatePublicMember(

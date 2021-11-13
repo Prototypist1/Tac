@@ -89,10 +89,10 @@ namespace Tac.SemanticModel
         }
     }
 
-    internal class GenericMethodDefinitionMaker : IMaker<ISetUp<IBox<WeakGenericMethodDefinition>, Tpn.IValue>>
+    internal class GenericMethodDefinitionMaker : IMaker<ISetUp<IBox<WeakGenericMethodDefinition>, Tpn.TypeProblem2.Method>>
     {
 
-        public ITokenMatching<ISetUp<IBox<WeakGenericMethodDefinition>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IBox<WeakGenericMethodDefinition>, Tpn.TypeProblem2.Method>> TryMake(IMatchedTokenMatching tokenMatching)
         {
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
             ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> inputType = null, outputType = null;
@@ -117,7 +117,7 @@ namespace Tac.SemanticModel
             {
                 var elements = matching.Context.ParseBlock(body);
 
-                return TokenMatching<ISetUp<IBox<WeakGenericMethodDefinition>, Tpn.IValue>>.MakeMatch(
+                return TokenMatching<ISetUp<IBox<WeakGenericMethodDefinition>, Tpn.TypeProblem2.Method>>.MakeMatch(
                     tokenMatching,
                     new GenericMethodDefinitionPopulateScope(
                         inputType!,
@@ -129,13 +129,13 @@ namespace Tac.SemanticModel
                     );
             }
 
-            return TokenMatching<ISetUp<IBox<WeakGenericMethodDefinition>, Tpn.IValue>>.MakeNotMatch(
+            return TokenMatching<ISetUp<IBox<WeakGenericMethodDefinition>, Tpn.TypeProblem2.Method>>.MakeNotMatch(
                     matching.Context);
         }
     }
 
 
-    internal class GenericMethodDefinitionPopulateScope : ISetUp<IBox<WeakGenericMethodDefinition>, Tpn.IValue>
+    internal class GenericMethodDefinitionPopulateScope : ISetUp<IBox<WeakGenericMethodDefinition>, Tpn.TypeProblem2.Method>
     {
         private readonly ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> parameterDefinition;
         private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
@@ -158,7 +158,7 @@ namespace Tac.SemanticModel
             this.genericParameters = genericParameters ?? throw new ArgumentNullException(nameof(genericParameters));
         }
 
-        public ISetUpResult<IBox<WeakGenericMethodDefinition>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
+        public ISetUpResult<IBox<WeakGenericMethodDefinition>, Tpn.TypeProblem2.Method> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
 
             scope = scope.EnterInitizaionScopeIfNessisary();
@@ -200,34 +200,34 @@ namespace Tac.SemanticModel
             // there will still be look up tho, members
 
 
-            var value = context.TypeProblem.CreateValue(method, new DoubleGenericNameKey(
-                new NameKey("method"),
-                genericParameters,
-                new IOrType<IKey, IError>[] {
-                    realizedInput.TransformInner(x=>x.Key()),
-                    realizedOutput.TransformInner(x=>x.Key()),
-                })); ;
-
-
-            // {C28BDF52-A848-4D0A-824A-7F2943BCFE53}
             // {8E138F8D-53AA-4D6A-B337-64CAFED23391}
-            var inputMember = context.TypeProblem.GetInput(value);
-            context.TypeProblem.IsAssignedTo(inputMember, method.Input.GetOrThrow()/*lazy GetOrThrow*/);
+            //var value = context.TypeProblem.CreateValue(method, new DoubleGenericNameKey(
+            //    new NameKey("method"),
+            //    genericParameters,
+            //    new IOrType<IKey, IError>[] {
+            //        realizedInput.TransformInner(x=>x.Key()),
+            //        realizedOutput.TransformInner(x=>x.Key()),
+            //    })); ;
 
-            var returnsMember = context.TypeProblem.GetReturns(value);
-            context.TypeProblem.IsAssignedTo(method.Returns.GetOrThrow()/*lazy GetOrThrow*/, returnsMember);
 
-            var dict =context.TypeProblem.HasGenerics(value, genericParameters);
-            foreach (var key in genericParameters)
-            {
-                context.TypeProblem.AssertIs(dict[key], method.Generics[key]/*lazy GetOrThrow*/);
-            }
+            //// {C28BDF52-A848-4D0A-824A-7F2943BCFE53}
+            //var inputMember = context.TypeProblem.GetInput(value);
+            //context.TypeProblem.IsAssignedTo(inputMember, method.Input.GetOrThrow()/*lazy GetOrThrow*/);
+
+            //var returnsMember = context.TypeProblem.GetReturns(value);
+            //context.TypeProblem.IsAssignedTo(method.Returns.GetOrThrow()/*lazy GetOrThrow*/, returnsMember);
+
+            //var dict =context.TypeProblem.HasGenerics(value, genericParameters);
+            //foreach (var key in genericParameters)
+            //{
+            //    context.TypeProblem.AssertIs(dict[key], method.Generics[key]/*lazy GetOrThrow*/);
+            //}
 
 
             //var returnsMember = context.TypeProblem.GetReturns(value);
             //context.TypeProblem.IsAssignedTo(method.Returns.GetOrThrow()/*lazy GetOrThrow*/, returnsMember);
 
-            return new SetUpResult<IBox<WeakGenericMethodDefinition>, Tpn.IValue>(new GenericMethodDefinitionResolveReferance(method, nextElements, box), OrType.Make<Tpn.IValue, IError>(value));
+            return new SetUpResult<IBox<WeakGenericMethodDefinition>, Tpn.TypeProblem2.Method>(new GenericMethodDefinitionResolveReferance(method, nextElements, box), OrType.Make<Tpn.TypeProblem2.Method, IError>(method));
         }
     }
 

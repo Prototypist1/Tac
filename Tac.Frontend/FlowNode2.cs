@@ -508,12 +508,11 @@ namespace Tac.Frontend
 
     class IsGeneric : IConstraint
     {
+        private readonly string debugName;
 
-        //public readonly MustHave source;
-
-        public IsGeneric(/*MustHave source*/)
+        public IsGeneric(string debugName)
         {
-            //this.source = source ?? throw new ArgumentNullException(nameof(source));
+            this.debugName = debugName ?? throw new ArgumentNullException(nameof(debugName));
         }
 
         //public override bool Equals(object? obj)
@@ -555,7 +554,7 @@ namespace Tac.Frontend
 
         public override string ToString()
         {
-            return $"{nameof(IsGeneric)}(source)";
+            return $"{nameof(IsGeneric)}({debugName})";
         }
     }
 
@@ -1150,13 +1149,13 @@ namespace Tac.Frontend
             return new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>(GetConstraints().Select(x => x.Broaden()).ToHashSet());
         }
 
-        internal void IsConstraintFor(/*MustHave mustHave*/)
+        internal void IsConstraintFor(string debugString)
         {
             //if (isGenericRestraintFor.Is(out var _)) {
             //    throw new Exception("already set? that's suprising and worth thinking agout");
             //}
 
-            isGenericRestraintFor.Add(new IsGeneric(/*mustHave*/));
+            isGenericRestraintFor.Add(new IsGeneric(debugString));
         }
 
         public override string ToString()

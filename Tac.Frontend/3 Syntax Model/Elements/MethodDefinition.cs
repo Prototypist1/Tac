@@ -85,14 +85,14 @@ namespace Tac.SemanticModel
         }
     }
 
-    internal class MethodDefinitionMaker : IMaker<ISetUp<IBox<WeakMethodDefinition>, Tpn.IValue>>
+    internal class MethodDefinitionMaker : IMaker<ISetUp<IBox<WeakMethodDefinition>,  Tpn.TypeProblem2.Method>>
     {
         public MethodDefinitionMaker()
         {
         }
 
 
-        public ITokenMatching<ISetUp<IBox<WeakMethodDefinition>, Tpn.IValue>> TryMake(IMatchedTokenMatching tokenMatching)
+        public ITokenMatching<ISetUp<IBox<WeakMethodDefinition>,  Tpn.TypeProblem2.Method>> TryMake(IMatchedTokenMatching tokenMatching)
         {
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
             ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> inputType = null, outputType = null;
@@ -116,7 +116,7 @@ namespace Tac.SemanticModel
             {
                 var elements = matching.Context.ParseBlock(body);
 
-                return TokenMatching<ISetUp<IBox<WeakMethodDefinition>, Tpn.IValue>>.MakeMatch(
+                return TokenMatching<ISetUp<IBox<WeakMethodDefinition>,  Tpn.TypeProblem2.Method>>.MakeMatch(
                     tokenMatching,
                     new MethodDefinitionPopulateScope(
                         inputType!,
@@ -127,7 +127,7 @@ namespace Tac.SemanticModel
                     );
             }
 
-            return TokenMatching<ISetUp<IBox<WeakMethodDefinition>, Tpn.IValue>>.MakeNotMatch(
+            return TokenMatching<ISetUp<IBox<WeakMethodDefinition>,  Tpn.TypeProblem2.Method>>.MakeNotMatch(
                     matching.Context);
         }
 
@@ -135,7 +135,7 @@ namespace Tac.SemanticModel
     }
 
 
-    internal class MethodDefinitionPopulateScope : ISetUp<IBox<WeakMethodDefinition>, Tpn.IValue>
+    internal class MethodDefinitionPopulateScope : ISetUp<IBox<WeakMethodDefinition>,  Tpn.TypeProblem2.Method>
     {
         private readonly ISetUp<IBox<IFrontendType<IVerifiableType>>, Tpn.TypeProblem2.TypeReference> parameterDefinition;
         private readonly IReadOnlyList<IOrType<ISetUp<IBox<IFrontendCodeElement>, Tpn.ITypeProblemNode>, IError>> elements;
@@ -155,7 +155,7 @@ namespace Tac.SemanticModel
             this.parameterName = parameterName ?? throw new ArgumentNullException(nameof(parameterName));
         }
 
-        public ISetUpResult<IBox<WeakMethodDefinition>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
+        public ISetUpResult<IBox<WeakMethodDefinition>,  Tpn.TypeProblem2.Method> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
 
             scope = scope.EnterInitizaionScopeIfNessisary();
@@ -175,27 +175,33 @@ namespace Tac.SemanticModel
 
             var nextElements = elements.Select(x => x.TransformInner(y => y.Run(method, context.CreateChildContext(this)).Resolve)).ToArray();
 
-            var value = context.TypeProblem.CreateTransientMember(runtimeScope, new GenericNameKey(new NameKey("method"), new IOrType<IKey, IError>[] {
-                    realizedInput.TransformInner(x=>x.Key()),
-                    realizedOutput.TransformInner(x=>x.Key()),
-                }), "result-of-" + method.DebugName);
+            //var value = context.TypeProblem.CreateTransientMember(runtimeScope, new GenericNameKey(new NameKey("method"), new IOrType<IKey, IError>[] {
+            //        realizedInput.TransformInner(x=>x.Key()),
+            //        realizedOutput.TransformInner(x=>x.Key()),
+            //    }), "result-of-" + method.DebugName);
 
-            // TODO write a test
-            // {C28BDF52-A848-4D0A-824A-7F2943BCFE53}
-            // follow throw methods should work now.
-            // 
-            // x > method [infer; infer] input { input return; } =: chicken c
-            //
-            // chicken need to flow through the method to x, 
+            //// TODO write a test
+            //// {C28BDF52-A848-4D0A-824A-7F2943BCFE53}
+            //// follow throw methods should work now.
+            //// 
+            //// x > method [infer; infer] input { input return; } =: chicken c
+            ////
+            //// chicken need to flow through the method to x, 
+            ////
+            //// C28BDF52-A848-4D0A-824A-7F2943BCFE53
+            //// ... I think with my new type problem changes were method's become nodes and enter the type probelm
+            //// I can clean this up quite a bit
+            //// 
+            //// I think I have cleaned this up, just leaning it here until I get all my tests fixed
 
-            var inputMember = context.TypeProblem.GetInput(value);
-            context.TypeProblem.IsAssignedTo(inputMember, method.Input.GetOrThrow()/*lazy GetOrThrow*/);
+            //var inputMember = context.TypeProblem.GetInput(value);
+            //context.TypeProblem.IsAssignedTo(inputMember, method.Input.GetOrThrow()/*lazy GetOrThrow*/);
 
-            var returnsMember = context.TypeProblem.GetReturns(value);
-            context.TypeProblem.IsAssignedTo(method.Returns.GetOrThrow()/*lazy GetOrThrow*/, returnsMember);
+            //var returnsMember = context.TypeProblem.GetReturns(value);
+            //context.TypeProblem.IsAssignedTo(method.Returns.GetOrThrow()/*lazy GetOrThrow*/, returnsMember);
 
 
-            return new SetUpResult<IBox<WeakMethodDefinition>, Tpn.IValue>(new MethodDefinitionResolveReferance(method, nextElements,box), OrType.Make<Tpn.IValue, IError>(value));
+            return new SetUpResult<IBox<WeakMethodDefinition>,  Tpn.TypeProblem2.Method>(new MethodDefinitionResolveReferance(method, nextElements,box), OrType.Make< Tpn.TypeProblem2.Method, IError>(method));
         }
     }
 

@@ -121,17 +121,24 @@ namespace Tac.Frontend.New.CrzayNamespace
                     AssertIs(assignedFrom, assignedTo);
                 }
 
+                public void IsAssignedTo(Method assignedFrom, ICanBeAssignedTo assignedTo)
+                {
+                    problem.assignments.Add((
+                        Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError >(assignedFrom)),
+                        Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(assignedTo)));
+                }
+
                 public void AssertIs(ILookUpType assignedFrom, ILookUpType assignedTo)
                 {
                     problem.assignments.Add((
-                        Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(assignedFrom),
+                        Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>>(assignedFrom),
                         Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(assignedTo)));
                 }
 
                 public void AssertIs(GenericTypeParameter assignedFrom, GenericTypeParameter assignedTo)
                 {
                     problem.assignments.Add((
-                        Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(assignedFrom)),
+                        Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>(assignedFrom)),
                         Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(assignedTo))));
                 }
 
@@ -637,7 +644,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public IReadOnlyDictionary<NameKey, GenericTypeParameter> HasGenerics(IValue value, NameKey[] keys)
                 {
-                    InferredType? inferredType = null;
+                    InferredType? inferredType;
                     if (value.Hopeful.Is(out var innerInferredType))
                     {
                         inferredType = innerInferredType;

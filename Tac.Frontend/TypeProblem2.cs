@@ -318,7 +318,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             public readonly Builder builder;
 
             // these are pretty much the same
-            private readonly List<(IOrType<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>, IOrType<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>)> assignments = new();
+            private readonly List<(IOrType<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>>, IOrType<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>)> assignments = new();
             private readonly MethodType rootMethod;
 
             // I am interested in rewriting large parts of thi
@@ -658,6 +658,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                             x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                             x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.constraint),
+                            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                             x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x)));
 
 
@@ -1107,7 +1108,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     for (int i = 0; i < constraints.Length; i++)
                     {
                         target.AddGeneric(constraints[i],i);
-                        constraints[i].Is2OrThrow().IsConstraintFor();
+                        constraints[i].Is2OrThrow().IsConstraintFor(methodType.DebugName + "-" + i);
                     }
 
                     //Walk(methodType, new[] { Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter,Method, IError>(methodType) }, Array.Empty<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>>(), flowNodes2);
@@ -1127,7 +1128,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     for (int i = 0; i < constraints.Length; i++)
                     {
                         target.AddGeneric(constraints[i], i);
-                        constraints[i].Is2OrThrow().IsConstraintFor();
+                        constraints[i].Is2OrThrow().IsConstraintFor(method.DebugName + "-" + i);
                     }
 
                     //target.AddGenerics(method.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray());
@@ -1163,7 +1164,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     for (int i = 0; i < constraints.Length; i++)
                     {
                         concreteFlowNode2.AddGeneric(constraints[i], i);
-                        constraints[i].Is2OrThrow().IsConstraintFor();
+                        constraints[i].Is2OrThrow().IsConstraintFor(inferredType.DebugName + "-" + i);
                     }
 
                     //concreteFlowNode2.AddGenerics(inferredType.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray());
@@ -1876,15 +1877,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                 foreach (var item in assignments.ToArray())
                 {
                     var newFrom = item.Item1.SwitchReturns(
-                        x => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(CopiedToOrSelf(x)),
+                        x => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>>(CopiedToOrSelf(x)),
                         x => x.SwitchReturns(
-                            y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(CopiedToOrSelf(y))),
-                            y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(CopiedToOrSelf(y))),
-                            y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(CopiedToOrSelf(y))),
-                            y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(CopiedToOrSelf(y))),
-                            y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(CopiedToOrSelf(y))),
-                            y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(CopiedToOrSelf(y))),
-                            y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(y))));
+                            y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter,Method, IError>(CopiedToOrSelf(y))),
+                            y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>(CopiedToOrSelf(y))),
+                            y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>(CopiedToOrSelf(y))),
+                            y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>(CopiedToOrSelf(y))),
+                            y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>(CopiedToOrSelf(y))),
+                            y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>(CopiedToOrSelf(y))),
+                            y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>(CopiedToOrSelf(y))),
+                            y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>(y))));
                     var newTo = item.Item2.SwitchReturns(
                         x => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(CopiedToOrSelf(x)),
                         x => x.SwitchReturns(
