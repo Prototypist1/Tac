@@ -214,7 +214,7 @@ namespace Tac.Frontend
 
         public override bool Equals(object? obj)
         {
-            return obj.SafeIs(out MustHave have) &&
+            return obj.SafeIs(out GivenPathThen have) &&
                    path.NullSafeEqual(have.path) &&
                    dependent.NullSafeEqual(have.dependent);
         }

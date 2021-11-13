@@ -469,6 +469,8 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void GenericContainsSelfWithInferred()
         {
+            throw new Exception("stack overflow");
+
             // type[node-t] node {node[node-t] next}
             // type chicken {}
             // node[chicken] thing;
