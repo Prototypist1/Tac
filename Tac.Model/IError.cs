@@ -24,6 +24,9 @@ namespace Tac.Model
         public static IOrType<TT, IError> TransformAndFlatten<T, TT>(this IOrType<T, IError> self, Func<T, IOrType<TT, IError>> transform)
             => self.SwitchReturns(x => transform(x), y => OrType.Make<TT, IError>(y));
 
+        public static IIsPossibly<TT> TransformAndFlatten<T, TT>(this IIsPossibly<T> self, Func<T, IIsPossibly<TT>> transform)
+                 => self.IfElseReturn(x => transform(x), () => Possibly.IsNot<TT>());
+
         public static IOrType<TT, IError> TransformInner<T, TT>(this IOrType<T, IError> self, Func<T, IOrType<TT, IError>> transform) {
             return self.SwitchReturns(x => transform(x), x => OrType.Make<TT, IError>(x));
         }

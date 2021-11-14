@@ -1235,19 +1235,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                             var to = pair.Value;
                             var from = flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(pair.Key)];
 
-                            from.GetValueAs(out IFlowNode2 _).AcceptConstraints(to.GetConstraints())
+                            from.GetValueAs(out IFlowNode2 _).AcceptConstraints(to.GetConstraints(), new List<(IFlowNode2, IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>)>())
                                 .Switch(_ => { }, _ => { go = true; }, _ => { throw new NotImplementedException("blacklist, restart the flow!"); });
 
-                            to.AcceptConstraints(from.GetValueAs(out IFlowNode2 _).GetConstraints().ToDownStream().Select(x => x.Broaden()).ToHashSet())
+                            to.AcceptConstraints(from.GetValueAs(out IFlowNode2 _).GetConstraints().ToDownStream().Select(x => x.Broaden()).ToHashSet(), new List<(IFlowNode2, IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>)>())
                                 .Switch(_ => { }, _ => { go = true; }, _ => { throw new NotImplementedException("blacklist, restart the flow!"); });
                         }
 
                         foreach (var (from, to) in flows)
                         {
-                            flowNodes2[from].GetValueAs(out IFlowNode2 _).AcceptConstraints(flowNodes2[to].GetValueAs(out IFlowNode2 _).GetConstraints())
+                            flowNodes2[from].GetValueAs(out IFlowNode2 _).AcceptConstraints(flowNodes2[to].GetValueAs(out IFlowNode2 _).GetConstraints(), new List<(IFlowNode2, IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>)>())
                                 .Switch(_ => { }, _ => { go = true; }, _ => { throw new NotImplementedException("blacklist, restart the flow!"); });
 
-                            flowNodes2[to].GetValueAs(out IFlowNode2 _).AcceptConstraints(flowNodes2[from].GetValueAs(out IFlowNode2 _).GetConstraints().ToDownStream().Select(x => x.Broaden()).ToHashSet())
+                            flowNodes2[to].GetValueAs(out IFlowNode2 _).AcceptConstraints(flowNodes2[from].GetValueAs(out IFlowNode2 _).GetConstraints().ToDownStream().Select(x => x.Broaden()).ToHashSet(), new List<(IFlowNode2, IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>)>())
                                 .Switch(_ => { }, _ => { go = true; }, _ => { throw new NotImplementedException("blacklist, restart the flow!"); });
 
                         }

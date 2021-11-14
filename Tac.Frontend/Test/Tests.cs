@@ -469,7 +469,6 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void GenericContainsSelfWithInferred()
         {
-            throw new Exception("stack overflow");
 
             // type[node-t] node {node[node-t] next}
             // type chicken {}
@@ -529,7 +528,6 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void GenericCircular()
         {
-            throw new Exception("stack overflow!");
             // type[left-t] left {  right[left-t] thing }
             // type[right-t] right {  left[right-t] thing }
             // type chicken {}
@@ -1105,8 +1103,6 @@ namespace Tac.Frontend.TypeProblem.Test
         [Fact]
         public void Complex()  
         {
-            throw new Exception("stack overflow!");
-
             var problem = new Tpn.TypeProblem2(new WeakScopeConverter(), DefaultRootScopePopulateScope(), _ => { });
 
             var yType = problem.builder.CreateType(

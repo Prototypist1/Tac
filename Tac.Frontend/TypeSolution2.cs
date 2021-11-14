@@ -154,15 +154,35 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         if (equalableHashSet.Count() > 1)
                         {
-                            myBox.left = Possibly.Is(GetOrAdd(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>(equalableHashSet.Take(equalableHashSet.Count() - 1).ToHashSet())));
-                            myBox.right = Possibly.Is(GetOrAdd(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>(new HashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>() { equalableHashSet.Last() })));
+                            var left = GetOrAdd(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>(equalableHashSet.Take(equalableHashSet.Count() - 1).ToHashSet()));
+                            var right = GetOrAdd(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>(new HashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>() { equalableHashSet.Last() }));
+
+                            myBox.left = Possibly.Is(left);
+                            myBox.right = Possibly.Is(right);
+
+                            // TODO
+                            // here is a crazy case
+                            //
+                            // method [T1,T2] [T1,T2] | method [T1,T2] [T2, T1]
+                            // 
+                            // maybe think of some tests around it
+                            // in any case, I'm pretty sure an "or" can't intro a generic
 
                             myBox.genericsConstraints = OrType.Make<Yolo[], IError>(Array.Empty<Yolo>());
                             
-                            myBox.members = OrType.Make<IReadOnlyList<(IKey, Yolo)>, IError>(Array.Empty<(IKey, Yolo)>());
+                            myBox.members = left.members.TransformAndFlatten(leftMebers => right.members.TransformInner(rightMembers =>
+                               leftMebers.Join(rightMembers, leftMember => leftMember.Item1, rightMember => rightMember.Item1, (leftMember, rightMember) => (leftMember.Item1, GetOrAdd(Intersect(leftMember.Item2.key, rightMember.Item2.key)))).ToArray()));
                             myBox.privateMembers = OrType.Make<IReadOnlyList<(IKey, Yolo)>, IError>(Array.Empty<(IKey, Yolo)>());
-                            myBox.input = Possibly.IsNot<IOrType<Yolo, IError>>();
-                            myBox.output = Possibly.IsNot<IOrType<Yolo, IError>>();
+                            myBox.input = left.input.TransformAndFlatten(leftInputOr =>
+                                            right.input.TransformInner(rightInputOr =>
+                                                leftInputOr.TransformAndFlatten(leftInput =>
+                                                    rightInputOr.TransformInner(rightInput =>
+                                                         GetOrAdd(Intersect(leftInput.key, rightInput.key))))));
+                            myBox.output = left.output.TransformAndFlatten(leftOutputOr =>
+                                            right.output.TransformInner(rightOutputOr =>
+                                                leftOutputOr.TransformAndFlatten(leftOutput =>
+                                                    rightOutputOr.TransformInner(rightOutput =>
+                                                         GetOrAdd(Intersect(leftOutput.key, rightOutput.key))))));
                         }
                         else
                         {
@@ -276,6 +296,24 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
+            }
+
+            // A | B intersect C | D -> A intersect C | A intersect D | B intersect C | B interesct D
+            private EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> Intersect(
+                EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> left, 
+                EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> right)
+            {
+                var res = new HashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>();
+
+                foreach (var leftItem in left)
+                {
+                    foreach (var rightItem in right)
+                    {
+                        var intersect = new  EqualableHashSet < IOrType < MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>( leftItem.Intersect(rightItem).ToHashSet());
+                        res.Add(intersect);
+                    }
+                }
+                return new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>(res);
             }
 
             // I think I need a seprate generic cache
