@@ -122,46 +122,46 @@ namespace Tac.SemanticModel.CodeStuff
     // TODO this is not really a type
     // or type is primitive
     // this is not a type
-    internal abstract class BinaryTypeOperation<TLeft, TRight, TType>
-        where TLeft : IFrontendType<IVerifiableType>
-        where TRight : IFrontendType<IVerifiableType>
-        where TType: IVerifiableType 
-    { 
-        public IBox<IOrType<TLeft, IError>> Left { get; }
-        public IBox<IOrType<TRight, IError>> Right { get; }
-        public IEnumerable<IBox<IFrontendType<IVerifiableType>>> Operands { get {
-                // this make me sad,
-                // if we could mark TLeft, TRight as classes and I would need these ugly casts
-                // but a lot of types are structs
-                // so I have casts
-                // I assume this has something to do with boxing
-                // the cast boxes
-                yield return (IBox<IFrontendType<IVerifiableType>>)Left;
-                yield return (IBox<IFrontendType<IVerifiableType>>)Right;
-            }
-        }
+    //internal abstract class BinaryTypeOperation<TLeft, TRight, TType>
+    //    where TLeft : IFrontendType<IVerifiableType>
+    //    where TRight : IFrontendType<IVerifiableType>
+    //    where TType: IVerifiableType 
+    //{ 
+    //    public IBox<IOrType<TLeft, IError>> Left { get; }
+    //    public IBox<IOrType<TRight, IError>> Right { get; }
+    //    public IEnumerable<IBox<IFrontendType<IVerifiableType>>> Operands { get {
+    //            // this make me sad,
+    //            // if we could mark TLeft, TRight as classes and I would need these ugly casts
+    //            // but a lot of types are structs
+    //            // so I have casts
+    //            // I assume this has something to do with boxing
+    //            // the cast boxes
+    //            yield return (IBox<IFrontendType<IVerifiableType>>)Left;
+    //            yield return (IBox<IFrontendType<IVerifiableType>>)Right;
+    //        }
+    //    }
 
-        public BinaryTypeOperation(IBox<IOrType<TLeft, IError>> left, IBox<IOrType<TRight, IError>> right)
-        {
-            this.Left = left ?? throw new ArgumentNullException(nameof(left));
-            this.Right = right ?? throw new ArgumentNullException(nameof(right));
-        }
+    //    public BinaryTypeOperation(IBox<IOrType<TLeft, IError>> left, IBox<IOrType<TRight, IError>> right)
+    //    {
+    //        this.Left = left ?? throw new ArgumentNullException(nameof(left));
+    //        this.Right = right ?? throw new ArgumentNullException(nameof(right));
+    //    }
 
 
-        //public abstract IBuildIntention<TType> GetBuildIntention(IConversionContext context);
+    //    //public abstract IBuildIntention<TType> GetBuildIntention(IConversionContext context);
 
-        public virtual IEnumerable<IError> Validate()
-        {
-            foreach (var error in Left.GetValue().SwitchReturns(x=>x.Validate(),x=>new[] { x}))
-            {
-                yield return error;
-            }
-            foreach (var error in Right.GetValue().SwitchReturns(x => x.Validate(), x => new[] { x }))
-            {
-                yield return error;
-            }
-        }
-    }
+    //    public virtual IEnumerable<IError> Validate()
+    //    {
+    //        foreach (var error in Left.GetValue().SwitchReturns(x=>x.Validate(),x=>new[] { x}))
+    //        {
+    //            yield return error;
+    //        }
+    //        foreach (var error in Right.GetValue().SwitchReturns(x => x.Validate(), x => new[] { x }))
+    //        {
+    //            yield return error;
+    //        }
+    //    }
+    //}
 
     internal static class ScopeExtensions {
         public static Tpn.IStaticScope EnterInitizaionScopeIfNessisary(this Tpn.IStaticScope staticScope ) {

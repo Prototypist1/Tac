@@ -201,9 +201,9 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Dictionary<NameKey, GenericTypeParameter> Generics { get; } = new Dictionary<NameKey, GenericTypeParameter>();
             }
 
-            public class OrType : TypeProblemNode<OrType, WeakTypeOrOperation>
+            public class OrType : TypeProblemNode<OrType, IFrontendType<IVerifiableType>>
             {
-                public OrType(Builder problem, string debugName, IConvertTo<OrType, WeakTypeOrOperation> converter) : base(problem, debugName, converter)
+                public OrType(Builder problem, string debugName, IConvertTo<OrType, IFrontendType<IVerifiableType>> converter) : base(problem, debugName, converter)
                 {
                 }
                 public IIsPossibly<TypeReference> Left { get; set; } = Possibly.IsNot<TypeReference>();

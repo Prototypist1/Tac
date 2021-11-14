@@ -232,13 +232,13 @@ namespace Tac.SemanticModel.Operations
 
         public IBox<WeakTryAssignOperation> Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack)
         {
-            var transformedBlock = block.TransformInner(x => x.Run(context, stack));
+            var transformedBlock = block.TransformInner(x => x.Run(context, stack.Add(haveMembers)));
             box.Fill(new[] { transformedBlock });
             var res = new Box<WeakTryAssignOperation>(new WeakTryAssignOperation(
-                left.TransformInner(x => x.Run(context, stack)),
-                right.TransformInner(x => x.Run(context, stack)),
+                left.TransformInner(x => x.Run(context, stack.Add(haveMembers))),
+                right.TransformInner(x => x.Run(context, stack.Add(haveMembers))),
                 transformedBlock,
-                OrType.Make<IBox<WeakScope>,IError>( new Box<WeakScope>(context.GetWeakScope(haveMembers, stack)))));
+                OrType.Make<IBox<WeakScope>,IError>( new Box<WeakScope>(context.GetWeakScope(haveMembers, stack.Add(haveMembers))))));
             return res;
         }
     }

@@ -50,7 +50,7 @@ namespace Tac.Frontend
                 return OrType.Make<WeakTypeDefinition, WeakGenericTypeDefinition, Tac.SyntaxModel.Elements.AtomicTypes.IPrimitiveType>(
                     new WeakGenericTypeDefinition(
                         from.Key,
-                        typeSolution.GetHasMemberType(from, context), // wrapping in a box here is weird 
+                        typeSolution.GetHasMemberType(from, context), 
                         from.Generics.Select(x => typeSolution.GetGenericPlaceholder(x.Value, context)).ToArray()));// from.Generics.Select(x=>Possibly.Is< IGenericTypeParameterPlacholder>(x.Value.Converter.Convert(typeSolution,x.Value))).ToArray()));
             }
 
@@ -225,11 +225,16 @@ namespace Tac.Frontend
         }
     }
 
-    internal class WeakTypeOrOperationConverter : Tpn.IConvertTo<Tpn.TypeProblem2.OrType, WeakTypeOrOperation>
+    internal class WeakTypeOrOperationConverter : Tpn.IConvertTo<Tpn.TypeProblem2.OrType, IFrontendType<IVerifiableType>>
     {
-        public WeakTypeOrOperation Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.OrType from, IEnumerable<Tpn.ITypeProblemNode> context)
+        public IFrontendType<IVerifiableType> Convert(Tpn.TypeSolution typeSolution, Tpn.TypeProblem2.OrType from, IEnumerable<Tpn.ITypeProblemNode> context)
         {
-            return new WeakTypeOrOperation(typeSolution.GetOrType(from, context));
+            // TODO 
+            // it is a bit werid that this return a type reference 
+            // structaully a WeakTypeReference is just a type-or-error
+            // and that is what I need here 
+            return new WeakTypeReference(typeSolution.GetOrType(from, context));
+            //return typeSolution.GetOrType(from, context);
         }
     }
 

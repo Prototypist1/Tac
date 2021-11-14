@@ -1070,7 +1070,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                             }
                             return GetMethodType(x, context);
                         },
-                        x => GetHasMemberType(x, context),
+                        x => GetType(x, context),
                         x => GetObjectType(x, context),
                         x => GetOrType(x, context),
                         x => GetInferredType(x, context),
@@ -1078,14 +1078,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                         x => OrType.Make<IFrontendType<IVerifiableType>, IError>(x));
             }
 
-            internal IOrType<FrontEndOrType, IError> GetOrType(TypeProblem2.OrType from, IEnumerable<ITypeProblemNode> context)
+            // this doesn't return FrontEndOrType
+            // bool | bool is simplifed to just bool 
+            internal IOrType<IFrontendType<IVerifiableType>, IError> GetOrType(TypeProblem2.OrType from, IEnumerable<ITypeProblemNode> context)
             {
                 return CachedConvert3(
                     cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IConstraintSoruce _)
                         .GetExtendedConstraints()
                         .Flatten()],
                     ConvertContext(context),
-                    new Dictionary<(Yolo, bool couldBeGeneric), Box<IOrType<IFrontendType<IVerifiableType>, IError>>>()).Item1.GetValue().TransformInner(y => y.CastTo<FrontEndOrType>());
+                    new Dictionary<(Yolo, bool couldBeGeneric), Box<IOrType<IFrontendType<IVerifiableType>, IError>>>()).Item1.GetValue();//.TransformInner(y => y.CastTo<FrontEndOrType>());
             }
 
             internal IOrType<MethodType, IError> GetMethodType(TypeProblem2.MethodType from, IEnumerable<ITypeProblemNode> context)
@@ -1108,6 +1110,16 @@ namespace Tac.Frontend.New.CrzayNamespace
                         .Flatten()],
                     ConvertContext(context),
                     new Dictionary<(Yolo, bool couldBeGeneric), Box<IOrType<IFrontendType<IVerifiableType>, IError>>>()).Item1.GetValue().TransformInner(y => y.CastTo<GenericMethodType>());
+            }
+
+            internal IOrType<IFrontendType<IVerifiableType>, IError> GetType(TypeProblem2.Type from, IEnumerable<ITypeProblemNode> context)
+            {
+                return CachedConvert3(
+                    cache[flowNodes2[OrType.Make<ITypeProblemNode, IError>(from)].GetValueAs(out IConstraintSoruce _)
+                        .GetExtendedConstraints()
+                        .Flatten()],
+                    ConvertContext(context),
+                    new Dictionary<(Yolo, bool couldBeGeneric), Box<IOrType<IFrontendType<IVerifiableType>, IError>>>()).Item1.GetValue();
             }
 
             internal IOrType<HasMembersType, IError> GetHasMemberType(TypeProblem2.Type from, IEnumerable<ITypeProblemNode> context)
@@ -1159,6 +1171,31 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             internal bool TryGetMember(IStaticScope scope, IKey key, IEnumerable<ITypeProblemNode> context, [NotNullWhen(true)] out IOrType<WeakMemberDefinition, IError>? res)
             {
+                // I don't think anything has private and public members
+                // method - private
+                // scipt - private
+                // type - public
+                // object - public
+
+                if (scope is Tpn.IHavePrivateMembers privateMembers)
+                {
+                    var matches = GetWeakScope(privateMembers, context).membersList.Where(x => x.Key.Equals(key)).ToArray();
+
+                    if (matches.Length > 1)
+                    {
+                        throw new Exception("that's not right");
+                    }
+
+                    if (matches.Length == 0)
+                    {
+                        res = default;
+                        return false;
+                    }
+
+                    res = OrType.Make<WeakMemberDefinition, IError>(matches.First());
+                    return true;
+                }
+
                 if (flowNodes2.TryGetValue(OrType.Make<ITypeProblemNode, IError>(scope), out var flowNode))
                 {
                     var rep = flowNode.GetValueAs(out IConstraintSoruce _).GetExtendedConstraints().Flatten();
@@ -1193,26 +1230,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                         return true;
                     }
                 }
-
-                if (scope is Tpn.IHavePrivateMembers privateMembers)
-                {
-                    var matches = GetWeakScope(privateMembers, context).membersList.Where(x => x.Key.Equals(key)).ToArray();
-
-                    if (matches.Length > 1)
-                    {
-                        throw new Exception("that's not right");
-                    }
-
-                    if (matches.Length == 0)
-                    {
-                        res = default;
-                        return false;
-                    }
-
-                    res = OrType.Make<WeakMemberDefinition, IError>(matches.First());
-                    return true;
-                }
-
 
                 // should pass in an more descritive type so I don't end up with this weird exception
                 throw new Exception("I... don't think it should get here.");

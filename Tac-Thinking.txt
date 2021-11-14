@@ -756,3 +756,12 @@ would return generic-method [T] [T, pair[T,T]]
 naw... just wrap the method
 
 y := generic-method [T] [T, pair[T,T]] input { x realize [T,T] < input return }
+
+
+============================= maybe something can be a method and a type?
+
+I mean it might make inferred types easier
+
+and their is no reason not to have both, under the mood methods already come with an object
+
+but conceptually I do like the to be seperate, forcing them to be seperate might be too much tho

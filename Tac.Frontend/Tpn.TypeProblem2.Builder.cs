@@ -444,7 +444,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
 
 
-                public OrType CreateOrType(IStaticScope s, IKey key, IOrType<TypeReference, IError> setUpSideNode1, IOrType<TypeReference, IError> setUpSideNode2, IConvertTo<OrType, WeakTypeOrOperation> converter)
+                public OrType CreateOrType(IStaticScope s, IKey key, IOrType<TypeReference, IError> setUpSideNode1, IOrType<TypeReference, IError> setUpSideNode2, IConvertTo<OrType, IFrontendType<IVerifiableType>> converter)
                 {
                     if (!setUpSideNode1.Is1(out var node1))
                     {
