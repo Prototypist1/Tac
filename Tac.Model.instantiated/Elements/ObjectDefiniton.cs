@@ -22,11 +22,11 @@ namespace Tac.Model.Instantiated
             return context.ObjectDefinition(this);
         }
 
-        public void Build(IFinalizedScope scope, IReadOnlyList<IAssignOperation> assignments)
+        public void Build(IFinalizedScope scope, IReadOnlyList<IAssignOperation> assignments, IInterfaceType interfaceType)
         {
             buildableScope.Set(scope);
             buildableAssignments.Set(assignments);
-            type = InterfaceType.CreateAndBuild(scope.Members.Values.Select(x => x.Value).ToList());
+            type = interfaceType;
         }
 
         public static (IObjectDefiniton, IObjectDefinitonBuilder) Create()
@@ -35,10 +35,10 @@ namespace Tac.Model.Instantiated
             return (res, res);
         }
 
-        public static IObjectDefiniton CreateAndBuild(IFinalizedScope scope, IReadOnlyList<IAssignOperation> assignments)
+        public static IObjectDefiniton CreateAndBuild(IFinalizedScope scope, IReadOnlyList<IAssignOperation> assignments, IInterfaceType interfaceType)
         {
             var (x, y) = Create();
-            y.Build(scope, assignments);
+            y.Build(scope, assignments, interfaceType);
             return x;
         }
 
@@ -48,6 +48,6 @@ namespace Tac.Model.Instantiated
 
     public interface IObjectDefinitonBuilder
     {
-        void Build(IFinalizedScope scope, IReadOnlyList<IAssignOperation> assignments);
+        void Build(IFinalizedScope scope, IReadOnlyList<IAssignOperation> assignments, IInterfaceType interfaceType);
     }
 }

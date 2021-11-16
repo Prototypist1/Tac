@@ -67,8 +67,8 @@ method [ number ; pair [ number ; ] ] input {
                                                 MemberReference.CreateAndBuild(localX)),
                                             AssignOperation.CreateAndBuild(
                                                 MemberReference.CreateAndBuild(input),
-                                                MemberReference.CreateAndBuild(localY))
-                                        }))},
+                                                MemberReference.CreateAndBuild(localY))},
+                                        InterfaceType.CreateAndBuild(new []{ localX, localY })))},
                             Array.Empty<ICodeElement>()),
                     MemberReference.CreateAndBuild(pairify))},
                 EntryPointDefinition.CreateAndBuild(new EmptyType(), MemberDefinition.CreateAndBuild(new NameKey("input"), new NumberType(), Access.ReadWrite), Scope.CreateAndBuild(Array.Empty<IsStatic>()), Array.Empty<ICodeElement>(), Array.Empty<ICodeElement>()));

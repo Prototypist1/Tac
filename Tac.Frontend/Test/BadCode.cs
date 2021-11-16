@@ -89,9 +89,6 @@ namespace Tac.Tests
 
         }
 
-        // I think this actaully will not error out here
-        // a is used before it is assigned 
-        // but that is flow analysis 
         [Fact]
         public void UndefinedVariable()
         {
@@ -100,7 +97,7 @@ namespace Tac.Tests
 
             var errors = converted.Validate().ToArray();
 
-            Assert.Empty(errors);
+            Assert.NotEmpty(errors);
         }
 
         [Fact]

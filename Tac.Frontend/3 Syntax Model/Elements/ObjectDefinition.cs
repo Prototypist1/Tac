@@ -64,7 +64,8 @@ namespace Tac.SemanticModel
             {
                 maker.Build(
                     Scope.Is1OrThrow().Convert(context), 
-                    Assignments.GetValue().Select(x => x.Is1OrThrow().GetValue().Convert(context)).ToArray());
+                    Assignments.GetValue().Select(x => x.Is1OrThrow().GetValue().Convert(context)).ToArray(),
+                    returns.Is1OrThrow().Convert(context));
             });
         }
 

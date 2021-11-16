@@ -376,7 +376,8 @@ namespace Tac.Backend.Emit.Test
                                 new List<IAssignOperation>{
                                     AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(0),Model.Instantiated.MemberReference.CreateAndBuild(xDefinition) ),
                                     AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(1),Model.Instantiated.MemberReference.CreateAndBuild(yDefinition))
-                                }
+                                },
+                                InterfaceType.CreateAndBuild(new []{ xDefinition, yDefinition })
                             ),
                             ReturnOperation.CreateAndBuild(EmptyInstance.CreateAndBuild())
                         },
@@ -402,7 +403,8 @@ namespace Tac.Backend.Emit.Test
                                 new List<IAssignOperation>{
                                     AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(0),Model.Instantiated.MemberReference.CreateAndBuild(xDefinition) ),
                                     AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(1),Model.Instantiated.MemberReference.CreateAndBuild(yDefinition))
-                                }
+                                },
+                                InterfaceType.CreateAndBuild(new[] { xDefinition, yDefinition })
                             );
 
             var objectType = objectDefiniton.Returns();
@@ -453,7 +455,8 @@ namespace Tac.Backend.Emit.Test
                                 new List<IAssignOperation>{
                                     AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(0),Model.Instantiated.MemberReference.CreateAndBuild(xDefinition) ),
                                     AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(1),Model.Instantiated.MemberReference.CreateAndBuild(yDefinition))
-                                }
+                                },
+                                InterfaceType.CreateAndBuild(new[] { xDefinition, yDefinition })
                             );
 
             var objectMemberX =
@@ -597,7 +600,8 @@ namespace Tac.Backend.Emit.Test
                                                     AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(2), Model.Instantiated.MemberReference.CreateAndBuild(objectB)),
                                                     AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(3), Model.Instantiated.MemberReference.CreateAndBuild(objectC)),
                                                     AssignOperation.CreateAndBuild(ConstantNumber.CreateAndBuild(4), Model.Instantiated.MemberReference.CreateAndBuild(objectD)),
-                                                }) ,
+                                                },
+                                                InterfaceType.CreateAndBuild(new[] { objectA, objectB,objectC,objectD })) ,
                                                 Model.Instantiated.MemberReference.CreateAndBuild(cast))
                                         },
                                         Array.Empty<ICodeElement>()
@@ -698,14 +702,15 @@ namespace Tac.Backend.Emit.Test
                         new List<ICodeElement> {
                             AssignOperation.CreateAndBuild(
                                 ObjectDefiniton.CreateAndBuild(
-                                Scope.CreateAndBuild(new List<IsStatic>{
-                                    new IsStatic(object1next, false)
-                                }),
-                                new List<IAssignOperation>{
-                                    AssignOperation.CreateAndBuild(
-                                        EmptyInstance.CreateAndBuild(),
-                                        Model.Instantiated.MemberReference.CreateAndBuild(object1next))
-                                }),
+                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(object1next, false)
+                                    }),
+                                    new List<IAssignOperation>{
+                                        AssignOperation.CreateAndBuild(
+                                            EmptyInstance.CreateAndBuild(),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(object1next))
+                                    },
+                                    InterfaceType.CreateAndBuild(new[] { object1next })),
                                 Model.Instantiated.MemberReference.CreateAndBuild(t)),
                             TryAssignOperation.CreateAndBuild(
                                 PathOperation.CreateAndBuild( Model.Instantiated.MemberReference.CreateAndBuild(t), Model.Instantiated.MemberReference.CreateAndBuild(next)),
@@ -762,22 +767,24 @@ namespace Tac.Backend.Emit.Test
                         new List<ICodeElement> {
                             AssignOperation.CreateAndBuild(
                                 ObjectDefiniton.CreateAndBuild(
-                                Scope.CreateAndBuild(new List<IsStatic>{
-                                    new IsStatic(object1next, false)
-                                }),
-                                new List<IAssignOperation>{
-                                    AssignOperation.CreateAndBuild(
-                                        ObjectDefiniton.CreateAndBuild(
-                                        Scope.CreateAndBuild(new List<IsStatic>{
-                                            new IsStatic(object2next, false)
-                                        }),
-                                        new List<IAssignOperation>{
-                                            AssignOperation.CreateAndBuild(
-                                                EmptyInstance.CreateAndBuild(),
-                                                Model.Instantiated.MemberReference.CreateAndBuild(object2next))
-                                        }),
-                                        Model.Instantiated.MemberReference.CreateAndBuild(object1next))
-                                }),
+                                    Scope.CreateAndBuild(new List<IsStatic>{
+                                        new IsStatic(object1next, false)
+                                    }),
+                                    new List<IAssignOperation>{
+                                        AssignOperation.CreateAndBuild(
+                                            ObjectDefiniton.CreateAndBuild(
+                                                Scope.CreateAndBuild(new List<IsStatic>{
+                                                    new IsStatic(object2next, false)
+                                                }),
+                                                new List<IAssignOperation>{
+                                                    AssignOperation.CreateAndBuild(
+                                                        EmptyInstance.CreateAndBuild(),
+                                                        Model.Instantiated.MemberReference.CreateAndBuild(object2next))
+                                                },
+                                                InterfaceType.CreateAndBuild(new[] { object2next })),
+                                            Model.Instantiated.MemberReference.CreateAndBuild(object1next))
+                                    },
+                                    InterfaceType.CreateAndBuild(new[] { object1next })),
                                 Model.Instantiated.MemberReference.CreateAndBuild(t)),
                             TryAssignOperation.CreateAndBuild(
                                 PathOperation.CreateAndBuild( Model.Instantiated.MemberReference.CreateAndBuild(t), Model.Instantiated.MemberReference.CreateAndBuild(next)),
@@ -870,20 +877,24 @@ namespace Tac.Backend.Emit.Test
                                                 new List<IAssignOperation>{
                                                     AssignOperation.CreateAndBuild(
                                                         ObjectDefiniton.CreateAndBuild(
-                                                        Scope.CreateAndBuild(new List<IsStatic>{
-                                                            new IsStatic(object4next, false)
-                                                        }),
-                                                        new List<IAssignOperation>{
-                                                            AssignOperation.CreateAndBuild(
-                                                                EmptyInstance.CreateAndBuild(),
-                                                                Model.Instantiated.MemberReference.CreateAndBuild(object4next))
-                                                        }),
+                                                            Scope.CreateAndBuild(new List<IsStatic>{
+                                                                new IsStatic(object4next, false)
+                                                            }),
+                                                            new List<IAssignOperation>{
+                                                                AssignOperation.CreateAndBuild(
+                                                                    EmptyInstance.CreateAndBuild(),
+                                                                    Model.Instantiated.MemberReference.CreateAndBuild(object4next))
+                                                            },
+                                                            InterfaceType.CreateAndBuild(new[] { object4next })),
                                                         Model.Instantiated.MemberReference.CreateAndBuild(object3next))
-                                                }),
+                                                },
+                                                InterfaceType.CreateAndBuild(new[] { object3next })),
                                                 Model.Instantiated.MemberReference.CreateAndBuild(object2next))
-                                        }),
+                                        },
+                                        InterfaceType.CreateAndBuild(new[] { object2next })),
                                         Model.Instantiated.MemberReference.CreateAndBuild(object1next))
-                                }),
+                                },
+                                InterfaceType.CreateAndBuild(new[] { object1next })),
                                 Model.Instantiated.MemberReference.CreateAndBuild(t)),
                                 TryAssignOperation.CreateAndBuild(
                                     PathOperation.CreateAndBuild( Model.Instantiated.MemberReference.CreateAndBuild(t), Model.Instantiated.MemberReference.CreateAndBuild(next)),
@@ -953,7 +964,8 @@ namespace Tac.Backend.Emit.Test
                                         AssignOperation.CreateAndBuild(
                                             ConstantNumber.CreateAndBuild(5),
                                             Model.Instantiated.MemberReference.CreateAndBuild(object4next))
-                                    });
+                                    },
+                                    InterfaceType.CreateAndBuild(new[] { object4next }));
 
             var object3next = MemberDefinition.CreateAndBuild(new NameKey("next"), object4.Returns(), Access.ReadWrite);
             var object3 = ObjectDefiniton.CreateAndBuild(
@@ -964,7 +976,8 @@ namespace Tac.Backend.Emit.Test
                                         AssignOperation.CreateAndBuild(
                                             object4,
                                             Model.Instantiated.MemberReference.CreateAndBuild(object3next))
-                                    });
+                                    },
+                                    InterfaceType.CreateAndBuild(new[] { object3next }));
 
             var object2next = MemberDefinition.CreateAndBuild(new NameKey("next"), object3.Returns(), Access.ReadWrite);
             var object2 = ObjectDefiniton.CreateAndBuild(
@@ -975,7 +988,8 @@ namespace Tac.Backend.Emit.Test
                                         AssignOperation.CreateAndBuild(
                                             object3,
                                             Model.Instantiated.MemberReference.CreateAndBuild(object2next))
-                                    });
+                                    },
+                                    InterfaceType.CreateAndBuild(new[] { object2next }));
 
             var object1next = MemberDefinition.CreateAndBuild(new NameKey("next"), object2.Returns(), Access.ReadWrite);
             var object1 = ObjectDefiniton.CreateAndBuild(
@@ -986,7 +1000,8 @@ namespace Tac.Backend.Emit.Test
                                         AssignOperation.CreateAndBuild(
                                             object2,
                                             Model.Instantiated.MemberReference.CreateAndBuild(object1next))
-                                    });
+                                    },
+                                    InterfaceType.CreateAndBuild(new[] { object1next }));
 
 
             var member = MemberDefinition.CreateAndBuild(new NameKey("root"), object1.Returns(), Access.ReadWrite);
@@ -1246,7 +1261,8 @@ namespace Tac.Backend.Emit.Test
                                         AssignOperation.CreateAndBuild(
                                             ConstantNumber.CreateAndBuild(3),
                                             Model.Instantiated.MemberReference.CreateAndBuild(memC))
-                        });
+                        },
+                        InterfaceType.CreateAndBuild(new[] { memA, memB, memC }));
 
             Compiler.BuildAndRun<double, object>(
                        Model.Instantiated.RootScope.CreateAndBuild(
@@ -1325,7 +1341,8 @@ namespace Tac.Backend.Emit.Test
                                         AssignOperation.CreateAndBuild(
                                             ConstantNumber.CreateAndBuild(3),
                                             Model.Instantiated.MemberReference.CreateAndBuild(memC))
-                        });
+                        },
+                        InterfaceType.CreateAndBuild(new[] { memA, memB, memC }));
 
             Compiler.BuildAndRun<double, object>(
                        Model.Instantiated.RootScope.CreateAndBuild(
@@ -1391,7 +1408,8 @@ namespace Tac.Backend.Emit.Test
                                         AssignOperation.CreateAndBuild(
                                             ConstantNumber.CreateAndBuild(3),
                                             Model.Instantiated.MemberReference.CreateAndBuild(memC))
-                        });
+                        },
+                        InterfaceType.CreateAndBuild(new[] { memA, memB, memC }));
 
             Compiler.BuildAndRun<double, object>(
                        Model.Instantiated.RootScope.CreateAndBuild(
@@ -1461,7 +1479,8 @@ namespace Tac.Backend.Emit.Test
                                         AssignOperation.CreateAndBuild(
                                             ConstantNumber.CreateAndBuild(3),
                                             Model.Instantiated.MemberReference.CreateAndBuild(memC))
-                        });
+                        },
+                        InterfaceType.CreateAndBuild(new[] { memA, memB, memC }));
 
             Compiler.BuildAndRun<double, object>(
                        Model.Instantiated.RootScope.CreateAndBuild(
@@ -1576,7 +1595,8 @@ namespace Tac.Backend.Emit.Test
                                         AssignOperation.CreateAndBuild(
                                             ConstantNumber.CreateAndBuild(2),
                                             Model.Instantiated.MemberReference.CreateAndBuild(memB))
-                      });
+                      },
+                      InterfaceType.CreateAndBuild(new[] { memA, memB }));
 
             Compiler.BuildAndRun<double, object>(
                        Model.Instantiated.RootScope.CreateAndBuild(
@@ -1654,7 +1674,8 @@ namespace Tac.Backend.Emit.Test
                                         AssignOperation.CreateAndBuild(
                                             ConstantNumber.CreateAndBuild(2),
                                             Model.Instantiated.MemberReference.CreateAndBuild(memB))
-                      });
+                      },
+                      InterfaceType.CreateAndBuild(new[] { memA, memB }));
 
             Compiler.BuildAndRun<double, object>(
                        Model.Instantiated.RootScope.CreateAndBuild(
@@ -1724,7 +1745,8 @@ namespace Tac.Backend.Emit.Test
                                         AssignOperation.CreateAndBuild(
                                             ConstantNumber.CreateAndBuild(2),
                                             Model.Instantiated.MemberReference.CreateAndBuild(memB))
-                      });
+                      },
+                      InterfaceType.CreateAndBuild(new[] { memA, memB }));
 
             var res = Compiler.BuildAndRun<double, double>(
                        Model.Instantiated.RootScope.CreateAndBuild(
@@ -1858,7 +1880,8 @@ namespace Tac.Backend.Emit.Test
                                         AssignOperation.CreateAndBuild(
                                             ConstantNumber.CreateAndBuild(3),
                                             Model.Instantiated.MemberReference.CreateAndBuild(memA))
-                      });
+                      },
+                      InterfaceType.CreateAndBuild(new[] { memA }));
 
             var o_member = MemberDefinition.CreateAndBuild(new NameKey("o"), object1.Returns(), Model.Elements.Access.ReadWrite);
             var method_member = MemberDefinition.CreateAndBuild(new NameKey("method-member"), MethodType.CreateAndBuild(new NumberType(), new NumberType()), Model.Elements.Access.ReadWrite);

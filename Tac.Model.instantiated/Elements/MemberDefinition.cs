@@ -1,12 +1,17 @@
 ﻿using Prototypist.Toolbox;
 using System;
+using System.Threading;
 using Tac.Model.Elements;
 
 namespace Tac.Model.Instantiated
 {
     public class MemberDefinition : IMemberDefinition, IMemberDefinitionBuilder
     {
-        private MemberDefinition() { }
+        private static int index = 0;
+        private readonly int myIndex;
+        private MemberDefinition() {
+            myIndex = Interlocked.Increment(ref index);
+        }
 
         private readonly Buildable<IKey> buildableKey = new Buildable<IKey>();
         private readonly Buildable<IVerifiableType> buildableType = new Buildable<IVerifiableType>();
@@ -41,6 +46,10 @@ namespace Tac.Model.Instantiated
             return x;
         }
 
+        public override string? ToString()
+        {
+            return $"{nameof(MemberDefinition)}-{myIndex}({Key})";
+        }
     }
 
     public interface IMemberDefinitionBuilder

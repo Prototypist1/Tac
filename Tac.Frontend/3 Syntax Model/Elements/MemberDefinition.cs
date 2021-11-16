@@ -250,7 +250,7 @@ namespace Tac.SemanticModel
         public IBox<WeakMemberReference> Run(Tpn.TypeSolution context, IEnumerable<Tpn.ITypeProblemNode> stack)
         {
             if (context.TryGetMember(stack.Last().SafeCastTo(out Tpn.IStaticScope _)/* this is a lazy cast*/ , memberName, stack, out var member)) {
-                return new Box<WeakMemberReference>(new WeakMemberReference(new Box<WeakMemberDefinition>(member.Is1OrThrow()))); // don't love the Is1OrThrow here
+                return new Box<WeakMemberReference>(new WeakMemberReference(new Box<IOrType<WeakMemberDefinition, IError>>(member))); // don't love the Is1OrThrow here
             }
             throw new Exception("I don't think this should happen, if it does I guess we need to put an IError somewhere");
         }

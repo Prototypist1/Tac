@@ -120,16 +120,16 @@ namespace Tac.Frontend
 
             if (from.Generics.Any()) {
                 return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>(new WeakGenericMethodDefinition(
-                        typeSolution.GetType(from.Returns.GetOrThrow(), context),
+                        typeSolution.GetType(from.Returns.GetOrThrow(), context.Add(from)),
                         scope.membersList.Single(x => x.Key.Equals(inputKey.Key)),
                         body,
                         OrType.Make<WeakScope, IError>(scope),
                         Array.Empty<IIsPossibly<IConvertableFrontendCodeElement<ICodeElement>>>(),
-                        from.Generics.Select(x => typeSolution.GetGenericPlaceholder(x.Value, context)).ToArray()));
+                        from.Generics.Select(x => typeSolution.GetGenericPlaceholder(x.Value, context.Add(from))).ToArray()));
             }
 
             return OrType.Make<WeakMethodDefinition, WeakImplementationDefinition, WeakEntryPointDefinition, WeakGenericMethodDefinition>(new WeakMethodDefinition(
-                typeSolution.GetType(from.Returns.GetOrThrow(), context),
+                typeSolution.GetType(from.Returns.GetOrThrow(), context.Add(from)),
                 scope.membersList.Single(x => x.Key.Equals(inputKey.Key)),
                 body,
                 OrType.Make<WeakScope, IError>(scope),

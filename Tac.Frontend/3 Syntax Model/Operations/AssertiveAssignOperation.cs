@@ -170,12 +170,6 @@ namespace Tac.SemanticModel.Operations
 
             if (nextLeft.Is1(out var nextLeft1) && nextLeft1.SetUpSideNode.Is1(out var node1) && nextRight.Is1(out var nextRight1) && nextRight1.SetUpSideNode.Is1(out var node2))
             {
-                if (!(node1 is Tpn.ICanAssignFromMe canAssignFromMe))
-                {
-                    // todo I need real error handling
-                    // probably I need somewhere to stuff additional errors
-                    throw new NotImplementedException($"can not assign from {nextLeft1.SetUpSideNode}");
-                }
 
                 if (!(node2 is Tpn.ICanBeAssignedTo canBeAssignedTo))
                 {
@@ -183,7 +177,25 @@ namespace Tac.SemanticModel.Operations
                     throw new NotImplementedException($"can not assign to {nextRight1.SetUpSideNode}");
                 }
 
-                canAssignFromMe.AssignTo(canBeAssignedTo);
+                if (!(node1 is Tpn.ICanAssignFromMe canAssignFromMe))
+                {
+                    if (node1 is Tpn.TypeProblem2.Method method)
+                    {
+                        node1.Problem.IsAssignedTo(method, canBeAssignedTo);
+                    }
+                    else
+                    {
+                        // todo I need real error handling
+                        // probably I need somewhere to stuff additional errors
+                        throw new NotImplementedException($"can not assign from {nextLeft1.SetUpSideNode}");
+                    }
+                }
+                else {
+
+                    canAssignFromMe.AssignTo(canBeAssignedTo);
+                }
+
+
 
             }
             else

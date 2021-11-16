@@ -219,7 +219,7 @@ namespace Tac.SemanticModel.Operations
 
                         //context.TryGetMember(,key)
 
-                        return new WeakMemberReference(new Box<WeakMemberDefinition>(memberDef.Is1OrThrow().Is1OrThrow()));
+                        return new WeakMemberReference(new Box<IOrType<WeakMemberDefinition,IError>>(memberDef.Is1OrThrow()));
 
 
                         //WeakMemberReference memberRef = leftRes.Is1OrThrow().GetValue().CastTo<WeakMemberReference>();

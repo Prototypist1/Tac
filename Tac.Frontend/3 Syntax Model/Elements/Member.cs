@@ -150,11 +150,12 @@ namespace Tac.SemanticModel
                 {
                     if (context.TryGetMember(scope, key, stack.SkipLast(i), out var res))
                     {
-                        return new Box<WeakMemberReference>(new WeakMemberReference(new Box<WeakMemberDefinition>(res.Is1OrThrow())));
+                        return new Box<WeakMemberReference>(new WeakMemberReference(new Box<IOrType<WeakMemberDefinition,IError>>(res)));
                     }
                 }
             }
-            throw new Exception("should have found that!");
+
+            return new Box<WeakMemberReference>(new WeakMemberReference(new Box<IOrType<WeakMemberDefinition, IError>>(OrType.Make<WeakMemberDefinition, IError>(Error.Other($"should have found {key}")))));
         }
     }
 }
