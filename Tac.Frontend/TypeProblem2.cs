@@ -229,14 +229,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             }
 
-            //public class PrimitiveScope : Scope
-            //{
-            //    public PrimitiveScope(Builder problem, string debugName, IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> converter) : base(problem, debugName, converter)
-            //    {
-            //    }
-
-
-            //}
             public class Object : TypeProblemNode<Object, IOrType<WeakObjectDefinition, WeakRootScope>>, IExplicitType, IHavePossibleMembers
             {
                 public Object(Builder problem, string debugName, IConvertTo<Object, IOrType<WeakObjectDefinition, WeakRootScope>> converter, IConvertTo<Scope, IOrType<WeakBlockDefinition, WeakScope, WeakEntryPointDefinition>> innerConverter) : base(problem, debugName, converter)
@@ -270,7 +262,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 public IIsPossibly<IStaticScope> Parent { get; set; } = Possibly.IsNot<IStaticScope>();
                 public Dictionary<IKey, Member> PrivateMembers { get; } = new Dictionary<IKey, Member>();
-                //public List<Scope> EntryPoints { get; } = new List<Scope>();
                 public List<Value> Values { get; } = new List<Value>();
                 public List<TransientMember> TransientMembers { get; } = new List<TransientMember>();
                 public Dictionary<IKey, Method> Methods { get; } = new Dictionary<IKey, Method>();
@@ -346,85 +337,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 #region Handle generics
 
-                //var keyAndTypes = new Dictionary<GenericTypeKey, OrType<MethodType, Type>>();
-                //// two way map.. probably need a TwoWayDictonary type, that wraps a pair of dictionaries 
-                //var typeParametersAndTypes = new Dictionary<GenericTypeKey.TypeParameter, GenericTypeParameter>();
-                //var overlaysToTypeParameters = new Dictionary<GenericTypeParameter, GenericTypeKey.TypeParameter>();
-
-                //// why do I order by height?
-                //// we register types top down
-                //// so types lower down can look up type higher up
-                //// in perticular overlaysToTypeParameters
-                //// need to be populated top down
-                //// for type [t1] outer { generic-method [t2] [t1,t2] outer }
-                //// we want to outer to go first so t1 can resolve to the typeParameter
-                //// the mechinism here is overlaysToTypeParameters
-                //foreach (var item in typeProblemNodes.OfType<Type>().Where(x => x.Generics.Any()).OrderBy(x => Height(x)))
-                //{
-                //    var visitor = KeyVisitor.Base(y => LookUpOrError(item, y), overlaysToTypeParameters);
-                //    var key = new DoubleGenericNameKey(item.Key.GetOrThrow().Is1OrThrow(), item.Generics.Keys.Select(x => x).ToArray(), item.Generics.Keys.Select(x => Prototypist.Toolbox.OrType.Make<IKey, IError>(x)).ToArray());
-                //    var genericNameKey = visitor.DuobleGenericNameKey_BetterType_PassInPrimary(key, Prototypist.Toolbox.OrType.Make<MethodType, Type>( item));
-
-                //    foreach (var (overlay, typeParameter) in item.Generics.Join(genericNameKey.sourceTypes,x=>x.Key, x=>x.Key, (x,y)=>(x.Value,y.Value)))
-                //    {
-                //        overlaysToTypeParameters.Add(overlay, typeParameter);
-                //        typeParametersAndTypes.Add(typeParameter, overlay);
-                //    }
-
-                //    keyAndTypes.TryAdd(genericNameKey, Prototypist.Toolbox.OrType.Make<MethodType, Type>(item));
-                //}
-                //foreach (var method in typeProblemNodes.OfType<Method>().Where(x => x.Generics.Any()).OrderBy(x => Height(x)))
-                //{
-                //    // {2E20DFFB-7BD2-4351-9CAF-10A63491ABCF}
-                //    var methodType = new MethodType(this.builder, "method-type-for-" + method.DebugName, new MethodTypeConverter());
-
-                //    foreach (var generic in method.Generics)
-                //    {
-                //        this.builder.HasGenericType(Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(methodType), generic.Key, generic.Value);// it's tempting to copy here, but we don't. In this case the method type is really what defines the generics. The method is just using them.
-                //    }
-
-                //    var inputKey = method.PrivateMembers.Single(x => x.Value == method.Input.GetOrThrow()).Key;
-
-                //    methodType.Input = Possibly.Is(builder.CreatePrivateMember(methodType, rootMethod, inputKey, Prototypist.Toolbox.OrType.Make<IKey, IError>(method.Input.GetOrThrow().TypeKey.Is1OrThrow())));
-                //    methodType.Returns = Possibly.Is(builder.CreateTransientMember(methodType, method.Returns.GetOrThrow().TypeKey.Is1OrThrow(), $"return of {rootMethod.DebugName} "));
-
-                //    // foreach method we make a double generic name key that resolves to it 
-                //    //var visitor = KeyVisitor.Base(y => LookUpOrError(method, y), overlaysToTypeParameters);
-                //    //var key = new DoubleGenericNameKey(
-                //    //    new NameKey("method"), 
-                //    //    method.Generics.Keys.Select(x => x).ToArray(), 
-                //    //    new[] {
-                //    //        /*I don't know about alld this OrThrows, just kind of put those in optimisically */
-                //    //        Prototypist.Toolbox.OrType.Make<IKey, IError>(method.Input.GetOrThrow().TypeKey.Is1OrThrow()) ,
-                //    //        Prototypist.Toolbox.OrType.Make<IKey, IError>(method.Returns.GetOrThrow().TypeKey.Is1OrThrow())
-                //    //    });
-                //    //var genericNameKey = visitor.DuobleGenericNameKey_BetterType_PassInPrimary(key, Prototypist.Toolbox.OrType.Make<MethodType, Type>(rootMethod));
-
-                //    //foreach (var (overlay, typeParameter) in method.Generics.Join(genericNameKey.sourceTypes, x => x.Key, x => x.Key, (x, y) => (x.Value, y.Value)))
-                //    //{
-                //    //    overlaysToTypeParameters.Add(overlay, typeParameter);
-                //    //    typeParametersAndTypes.Add(typeParameter, overlay);
-                //    //}
-
-                //    // we don't do this for methods
-                //    // if anyting looks up this type it will create MethodType
-                //    //keyAndTypes.TryAdd(genericNameKey, Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(method));
-
-                //}
-                //foreach (var item in typeProblemNodes.OfType<MethodType>().Where(x => x.Generics.Any()).OrderBy(x => Height(x)))
-                //{
-                //    var visitor = KeyVisitor.Base(y => LookUpOrError(item, y), overlaysToTypeParameters);
-                //    var key = new DoubleGenericNameKey(new NameKey("method"), item.Generics.Keys.Select(x=>x).ToArray() , item.Generics.Keys.Select(x => Prototypist.Toolbox.OrType.Make<IKey, IError>(x)).ToArray());
-                //    var genericNameKey = visitor.DuobleGenericNameKey_BetterType_PassInPrimary(key, Prototypist.Toolbox.OrType.Make<MethodType, Type>(rootMethod));
-
-                //    foreach (var (overlay, typeParameter) in item.Generics.Join(genericNameKey.sourceTypes, x => x.Key, x => x.Key, (x, y) => (x.Value, y.Value)))
-                //    {
-                //        overlaysToTypeParameters.Add(overlay, typeParameter);
-                //        typeParametersAndTypes.Add(typeParameter, overlay);
-                //    }
-
-                //    keyAndTypes.TryAdd(genericNameKey, Prototypist.Toolbox.OrType.Make<MethodType, Type>(item));
-                //}
 
 
                 // if type [t1] node {}
@@ -448,14 +360,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // this... isn't great
                 // 
 
-                //var completeLookUps = typeProblemNodes.OfType<ILookUpType>()
-                //       .Where(x => x.LooksUp.Is(out var _)) // why do somethings already know what they look up? yeah, inferred types (type test {x;})
-                //       .ToList();
-
-                //var incompleteLookups = typeProblemNodes.OfType<ILookUpType>()
-                //       //.Except(completeLookUps)
-                //       .ToArray();
-
                 var steam = 0;
 
                 var realizedGeneric = new Dictionary<GenericTypeKey, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>();
@@ -477,151 +381,18 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     }
 
-                    //incompleteLookups = typeProblemNodes.OfType<ILookUpType>()
-                    //    //.Except(completeLookUps)
-                    //    .ToArray();
+                    // do circcle examples work?
+                    // can they overlay over each other?
+                    // A [T]
+                    // B [T]
+                    // generic-A [T1] [generic-B [T2] [Pair[T1,T2]]
+                    // generic-B [T1] [generic-A [T2] [Pair[T1,T2]]
+                    // this is fine, the type that is being overlayed does need to be populated 
 
-                    //// convert all keys to a consistant format
-                    //// 1. make all the new types for the GenericTypeKeys 
-                    //var lookupsAndTarget = incompleteLookups
-                    //    .SelectMany(x => {
-                    //        var key = x.TypeKey.Is1OrThrow()/*lazy Is1OrThrow*/;
-
-                    //        if (key.SafeIs(out GenericNameKey genericNameKey)) { 
-                    //            return (x, )
-                    //        }
-
-                    //        if (key.SafeIs(out DoubleGenericNameKey doubleGenericNameKey))
-                    //        {
-
-                    //        }
-                    //    })
-                    //    .ToList();
-
-                    //// create types for realized and double generics
-                    //// 2. make their GenericOverlays from GenericTypeKey.sourceTypes + put them in a dict 
-                    //var distintTargets = lookupsAndTarget
-                    //    .SelectMany(x => Walk(x.Item2)) // we have to "walk" for pair[pair[chicken]] we want to resolve pair[pair[chicken]] and pair[chicken]
-                    //    .Except(keyAndTypes.Keys)
-                    //    .Distinct().ToArray();
-
-                    //foreach (var (genericTypeKey, newType) in distintTargets
-                    //    .Select(genericTypeKey =>
-                    //    {
-                    //        var newType = genericTypeKey.primary.SwitchReturns(
-                    //            methodType => Prototypist.Toolbox.OrType.Make<MethodType, Type>(new MethodType(this.builder, genericTypeKey.ToString(), methodType.Converter)),
-                    //            type => Prototypist.Toolbox.OrType.Make<MethodType, Type>(new Type(this.builder, genericTypeKey.ToString(), type.Key, type.Converter,  Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>())));
-
-                    //        // do I really need to make place holders?
-                    //        // yeah, for a reference like generic-method [t1] [t1, t1] 
-                    //        var i =0;
-                    //        foreach (var placeholder in genericTypeKey.sourceTypes)
-                    //        {
-                    //            //var key = new ImplicitKey(Guid.NewGuid());
-                    //            var placeholderType = new GenericTypeParameter(this.builder, placeholder.ToString(), i++);
-                    //            //var placeholderType = new Type(this.builder, placeholder.ToString(), Possibly.Is(Prototypist.Toolbox.OrType.Make<NameKey, ImplicitKey>(key)), new WeakTypeDefinitionConverter(),  Possibly.IsNot<Guid>(), Possibly.IsNot<IInterfaceType>());
-
-                    //            builder.HasGenericType(
-                    //                newType.SwitchReturns(
-                    //                    x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(x),
-                    //                    x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Method>(x)),
-                    //                placeholder.Key,
-                    //                placeholderType);
-
-                    //            overlaysToTypeParameters.TryAdd(placeholderType, placeholder.Value);
-                    //            typeParametersAndTypes.TryAdd(placeholder.Value, placeholderType);
-                    //        }
-
-                    //        return (genericTypeKey, newType);
-                    //    }))
-                    //{
-                    //    keyAndTypes.Add(genericTypeKey, newType);
-                    //}
-
-                    //// do circcle examples work?
-                    //// can they overlay over each other?
-                    //// A [T]
-                    //// B [T]
-                    //// generic-A [T1] [generic-B [T2] [Pair[T1,T2]]
-                    //// generic-B [T1] [generic-A [T2] [Pair[T1,T2]]
-                    //// this is fine, the type that is being overlayed does need to be populated 
-
-                    //// 4. copy tree 
-                    //foreach (var (key, value) in distintTargets.Select(x => (x, keyAndTypes[x])))
-                    //{
-                    //    var map = key.primary.SwitchReturns(x => x.Generics.Values, x => x.Generics.Values)
-                    //        .Zip(
-                    //            key.parameters.Select(parameter => parameter.SwitchReturns(
-                    //                methodType => (IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>)Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(methodType),
-                    //                type => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(type),
-                    //                @object => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(@object),
-                    //                orType => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(orType),
-                    //                inferredType => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(inferredType),
-                    //                ierror => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(ierror),
-                    //                typeParameter => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(typeParametersAndTypes[typeParameter]),
-                    //                genericTypeKey => keyAndTypes[genericTypeKey].SwitchReturns(
-                    //                    methodType => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(methodType),
-                    //                    type => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(type)))),
-                    //            (from, to) => (from, to))
-                    //        .ToDictionary(pair => pair.from, pair => pair.to);
-
-                    //    CopyTree(key.primary, value, map);
-                    //}
-
-                    //completeLookUps.AddRange(lookupsAndTarget.Select(x => x.x));
-
-                    //incompleteLookups = typeProblemNodes.OfType<ILookUpType>()
-                    //   .Except(completeLookUps)
-                    //   .ToArray();
                 }
                 #endregion
 
-                //{
-                //    //var lookupsAndTarget = 
-                //    //   .Select(x => (x, x.TypeKey.Is1OrThrow()/*if we don't have a look up we should have a typeKey*/.Visit(KeyVisitor.Base(y => LookUpOrError(x.Context.GetOrThrow(), y),  overlaysToTypeParameters))))
-                //    //   .ToList();
-
-                //    // resolve lookups
-                //    // 3. look up
-                //    //      normal stuff looks up in th normal way with look up or throw
-                //    //      GenericTypeKeys look up in the dict from step 2 
-                //    //      GenericTypeKeys.TypeParameter looks up the parent and then the type
-                //    foreach (var lookup in typeProblemNodes.OfType<ILookUpType>().Where(x => x.LooksUp.IsNot()))
-                //    {
-                //        lookup.LooksUp = Possibly.Is(LookUpOrError(lookup.Context.GetOrThrow(), lookup.TypeKey.Is1OrThrow()));
-
-                //        //target.Switch(
-                //        //    methodType => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(methodType)); },
-                //        //    type => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(type)); },
-                //        //    @object => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(@object)); },
-                //        //    orType => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(orType)); },
-                //        //    inferredType => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(inferredType)); },
-                //        //    ierror => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(ierror)); },
-                //        //    typeParameter => { lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(typeParametersAndTypes[typeParameter])); },
-                //        //    genericTypeKey =>
-                //        //    {
-                //        //        if (!keyAndTypes.ContainsKey(genericTypeKey)) {
-                //        //            lookup.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(Error.Other("type not found")));
-                //        //        }
-                //        //        else {
-                //        //            lookup.LooksUp = keyAndTypes[genericTypeKey].SwitchReturns(
-                //        //                methodType => Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(methodType)),
-                //        //                type => Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(type)));
-                //        //        }
-                //        //    });
-                //    }
-                //}
-                // assignemtns become flow
-                // this is a more flexable type
-                // assignments are values
-                // flow are types
-                // you can flow types without having values
-                // we do this with hopeful stuff 
-                // we could not use types before because maybe values don't have types until solve 
-
                 var flows = new List<(IOrType<ITypeProblemNode, IError> From, IOrType<ITypeProblemNode, IError> To)> { };
-
-                //var deferingTypes = new Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ITypeProblemNode, IError>> { };
 
                 foreach (var (from, to) in assignments)
                 {
@@ -783,24 +554,12 @@ namespace Tac.Frontend.New.CrzayNamespace
                     .Distinct()
                     .ToArray();
 
-                // TODO (or atleast document), do I need both of these?
-                //var orsToFlowNodesBuild = new Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
-                //var orsToFlowNodesLookup = new Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>>();
-                //var sourcePathCache = new Tpn.SourcePath.SourcePathCache();
-
-
                 var flowNodes2 = new Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>>();
                 var concreteHelp = new Dictionary<InferredType, ConcreteFlowNode2>();
 
                 foreach (var methodType in ors.Select(x => (x.Is1(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
                     var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(methodType);
-                    //var inner = new ConcreteFlowNode<Tpn.TypeProblem2.MethodType>(methodType);
-                    //var value = ToOr(inner);
-
-                    //orsToFlowNodesBuild.Add(key, value);
-                    //orsToFlowNodesLookup.Add(key, value);
-
 
                     var flowNode2 = new ConcreteFlowNode2();
                     flowNodes2.Add(key, ToOr2(flowNode2));
@@ -811,9 +570,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                     if (type.PrimitiveId.Is(out var guid))
                     {
                         var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(type);
-                        //var flowNode = ToOr(new PrimitiveFlowNode(type, guid));
-                        //orsToFlowNodesBuild.Add(key, flowNode);
-                        //orsToFlowNodesLookup.Add(key, flowNode);
 
                         var flowNode2 = new PrimitiveFlowNode2(guid, type);
                         flowNodes2.Add(key, ToOr2(flowNode2));
@@ -821,10 +577,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                     else
                     {
                         var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(type);
-                        //var value = ToOr(new ConcreteFlowNode<Tpn.TypeProblem2.Type>(type));
-
-                        //orsToFlowNodesBuild.Add(key, value);
-                        //orsToFlowNodesLookup.Add(key, value);
 
                         var flowNode2 = new ConcreteFlowNode2();
                         flowNode2.HasMembers();
@@ -840,10 +592,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 foreach (var @object in ors.Select(x => (x.Is3(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
                     var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(@object);
-                    //var value = ToOr(new ConcreteFlowNode<Tpn.TypeProblem2.Object>(@object));
-
-                    //orsToFlowNodesBuild.Add(key, value);
-                    //orsToFlowNodesLookup.Add(key, value);
 
                     var flowNode2 = new ConcreteFlowNode2();
                     flowNode2.HasMembers();
@@ -852,18 +600,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 foreach (var inferred in ors.Select(x => (x.Is5(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
                     var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(inferred);
-                    //var concrete = new ConcreteFlowNode<Tpn.TypeProblem2.InferredType>(inferred);
-
-                    //orsToFlowNodesBuild.Add(key, ToOr(concrete));
-
-                    //var inferredFlowNode = new InferredFlowNode(Possibly.Is(inferred));
-                    //inferredFlowNode.Returned2.Add(
-                    //    new EqualableHashSet<CombinedTypesAnd>(
-                    //        new HashSet<CombinedTypesAnd> {
-                    //            new CombinedTypesAnd(
-                    //                new HashSet<IOrType<ConcreteFlowNode, PrimitiveFlowNode>>{
-                    //                    Prototypist.Toolbox.OrType.Make<ConcreteFlowNode, PrimitiveFlowNode>(concrete)})}));
-                    //orsToFlowNodesLookup.Add(key, ToOr(inferredFlowNode));
 
                     var inferredFlowNode2 = new InferredFlowNode2();
                     flowNodes2.Add(key, ToOr2(inferredFlowNode2));
@@ -874,20 +610,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 foreach (var generic in ors.Select(x => (x.Is6(out var v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
-                    // generics don't enter the type problem
-                    //var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(generic);
-                    //var value = ToOr(new ConcreteFlowNode<GenericTypeParameter>(generic));
-
-                    //orsToFlowNodesBuild.Add(key, value);
-                    //orsToFlowNodesLookup.Add(key, value);
+                    // no op
                 }
                 foreach (var method in ors.Select(x => (x.Is7(out Method v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
                     var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(method);
-                    //var value = ToOr(new ConcreteFlowNode<IError>(error));
-
-                    //orsToFlowNodesBuild.Add(key, value);
-                    //orsToFlowNodesLookup.Add(key, value);
 
                     var inferredFlowNode2 = new ConcreteFlowNode2();
                     flowNodes2.Add(key, ToOr2(inferredFlowNode2));
@@ -895,45 +622,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                 foreach (var error in ors.Select(x => (x.Is8(out IError v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
                     var key = Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(error);
-                    //var value = ToOr(new ConcreteFlowNode<IError>(error));
-
-                    //orsToFlowNodesBuild.Add(key, value);
-                    //orsToFlowNodesLookup.Add(key, value);
 
                     var inferredFlowNode2 = new InferredFlowNode2();
                     flowNodes2.Add(key, ToOr2(inferredFlowNode2));
                 }
 
-
-
-                //{
-                //    var todo = ors.Select(x => (x.Is4(out var v), v)).Where(x => x.Item1).Select(x => x.v).ToArray();
-                //    var excapeValve = 0;
-
-                //    // or types are a bit of a project because they might depend on each other
-                //    while (todo.Any())
-                //    {
-                //        excapeValve++;
-                //        var nextTodo = new List<TypeProblem2.OrType>();
-                //        foreach (var or in todo)
-                //        {
-                //            if (TryToOuterFlowNode(orsToFlowNodesLookup, or, out var res))
-                //            {
-                //                orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(or)] = res;
-                //                orsToFlowNodesLookup[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(or)] = res;
-                //            }
-                //            else
-                //            {
-                //                nextTodo.Add(or);
-                //            }
-                //        }
-                //        todo = nextTodo.ToArray();
-                //        if (excapeValve > 100000)
-                //        {
-                //            throw new Exception("we are probably stuck");
-                //        }
-                //    }
-                //}
                 {
                     var todo = ors.Select(x => (x.Is4(out var v), v)).Where(x => x.Item1).Select(x => x.v).ToArray();
                     var excapeValve = 0;
@@ -982,17 +675,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var member in hasPublicMembers.PublicMembers)
                     {
-                        //orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasPublicMembers)].Is1OrThrow().AddMember(
-                        //    member.Key,
-                        //    orsToFlowNodesLookup[member.Value.LooksUp.GetOrThrow().SwitchReturns(
-                        //        x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.constraint),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))]);
-
                         concreteFlowNode2.AddMember(member.Key, flowNodes2[member.Value.LooksUp.GetOrThrow().SwitchReturns(
                                 x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -1012,17 +694,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     foreach (var member in method.PrivateMembers)
                     {
-                        //orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasPublicMembers)].Is1OrThrow().AddMember(
-                        //    member.Key,
-                        //    orsToFlowNodesLookup[member.Value.LooksUp.GetOrThrow().SwitchReturns(
-                        //        x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.constraint),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))]);
-
                         concreteFlowNode2.AddPrivateMember(member.Key, flowNodes2[member.Value.LooksUp.GetOrThrow().SwitchReturns(
                                 x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                     x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -1053,16 +724,6 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                     if (hasInputAndOutput.Input.Is(out var input))
                     {
-                        //orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasInputAndOutput)].Is1OrThrow().Input =
-                        //            Possibly.Is(orsToFlowNodesLookup[input.LooksUp.GetOrThrow().SwitchReturns(
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.constraint),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))]);
-
                         concreteFlowNode2.AddInput(flowNodes2[input.LooksUp.GetOrThrow().SwitchReturns(
                             x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                 x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -1074,17 +735,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                     if (hasInputAndOutput.Returns.Is(out var output))
                     {
-                        //orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(hasInputAndOutput)].Is1OrThrow().Output = Possibly.Is(
-                        //        orsToFlowNodesLookup[output.LooksUp.GetOrThrow().SwitchReturns(
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.constraint),
-                        //            x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x))]);
-
-
                         concreteFlowNode2.AddOutput(flowNodes2[output.LooksUp.GetOrThrow().SwitchReturns(
                             x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
                                 x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
@@ -1110,14 +760,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                         target.AddGeneric(constraints[i],i);
                         constraints[i].Is2OrThrow().IsConstraintFor(methodType.DebugName + "-" + i);
                     }
-
-                    //Walk(methodType, new[] { Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter,Method, IError>(methodType) }, Array.Empty<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>>(), flowNodes2);
-                    //foreach (var generic in methodType.Generics.Values)
-                    //{
-                    //    flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(generic.constraint)].Is2OrThrow().IsConstraintFor(generic);
-                    //}
-
-                    //orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(methodType)].Is1OrThrow().Generics = methodType.Generics.Select(x => orsToFlowNodesLookup[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray();
                 }
                 foreach (var method in ors.Select(x => (x.Is7(out Method v), v)).Where(x => x.Item1).Select(x => x.v))
                 {
@@ -1130,16 +772,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                         target.AddGeneric(constraints[i], i);
                         constraints[i].Is2OrThrow().IsConstraintFor(method.DebugName + "-" + i);
                     }
-
-                    //target.AddGenerics(method.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray());
-
-                    //Walk(method, new[] { Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError >(method) }, Array.Empty<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>>(), flowNodes2);
-                    ////foreach (var generic in methodType.Generics.Values)
-                    //{
-                    //    flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(generic.constraint)].Is2OrThrow().IsConstraintFor(generic);
-                    //}
-
-                    //orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(methodType)].Is1OrThrow().Generics = methodType.Generics.Select(x => orsToFlowNodesLookup[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray();
                 }
 
                 // infered types as well, they are probably methods
@@ -1166,60 +798,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                         concreteFlowNode2.AddGeneric(constraints[i], i);
                         constraints[i].Is2OrThrow().IsConstraintFor(inferredType.DebugName + "-" + i);
                     }
-
-                    //concreteFlowNode2.AddGenerics(inferredType.Generics.Select(x => flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray());
-
-                    //Walk(inferredType, new[] { Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter,Method, IError>(inferredType) }, Array.Empty<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>>(), flowNodes2);
-
-                    //foreach (var generic in inferredType.Generics.Values)
-                    //{
-                    //    flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(generic.constraint)].Is2OrThrow().IsConstraintFor(generic);
-                    //}
-
-                    // orsToFlowNodesBuild[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(inferredType)].Is1OrThrow().Generics = inferredType.Generics.Select(x => orsToFlowNodesLookup[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x.Value.constraint)]).ToArray();
                 }
 
-                //foreach (var genericTypeParameter in typeProblemNodes.Where(x=>x.SafeIs(out GenericTypeParameter _)).Select(x=> (GenericTypeParameter)x))
-                //{
-                //    if (flowNodes2.TryGetValue(Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(genericTypeParameter.constraint), out var or)) 
-                //    {
-                //        or.Is2OrThrow().IsConstraintFor(genericTypeParameter);
-                //    }
-                //}
-
-
-
-                //{
-                //    var excapeValve = 0;
-
-                //    bool go;
-                //    do
-                //    {
-                //        go = false;
-
-                //        foreach (var (from, to) in flows)
-                //        {
-                //            go |= orsToFlowNodesLookup[to].GetValueAs(out IFlowNode _).MustAccept(
-                //                orsToFlowNodesLookup[from].GetValueAs(out IFlowNode _).DownStreamMustAccept(),
-                //                new List<(EqualableHashSet<EqualableHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
-
-                //        }
-
-                //        foreach (var (from, to) in flows)
-                //        {
-                //            go |= orsToFlowNodesLookup[from].GetValueAs(out IFlowNode _).MustReturn(
-                //                orsToFlowNodesLookup[to].GetValueAs(out IFlowNode _).UpStreamMustReturn(),
-                //                new List<(EqualableHashSet<EqualableHashSet<CombinedTypesAnd>>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>)>());
-                //        }
-
-                //        excapeValve++;
-                //        if (excapeValve > 1000000)
-                //        {
-                //            throw new Exception("probably stuck in a loop");
-                //        }
-
-                //    } while (go);
-                //}
                 {
                     var excapeValve = 0;
 
@@ -1261,14 +841,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                     } while (go);
                 }
 
-                //var db = "";
-
-                //foreach (var item in flowNodes2)
-                //{
-                //    var key = item.Key.ToString();
-                //    db += key + string.Join("", new string[Math.Max(1, 300 - key.Length)].Select(x => " ")) + item.Value.ToString() + Environment.NewLine;
-                //}
-
                 return new TypeSolution(ors, flowNodes2);
             }
 
@@ -1286,146 +858,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 yield return next;
             }
 
-            //private static void Walk(IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError> toWalk,
-            //    IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack, 
-            //    IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
-            //    Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
-            //{
-            //    if (stack.SkipLast(1).Contains(toWalk))
-            //    {
-            //        return;
-            //    }
-            //    toWalk.Switch(
-            //        x => Walk(x, stack, path, flowNodes2),
-            //        x => Walk(x, stack, path, flowNodes2),
-            //        x => Walk(x, stack, path, flowNodes2),
-            //        x => Walk(x, stack, path, flowNodes2),
-            //        x => Walk(x, stack, path, flowNodes2),
-            //        x => Walk(x, stack, path, flowNodes2),
-            //        x => Walk(x, stack, path, flowNodes2),
-            //        _ => { });
-            //}
-
-            //private static void Walk(MethodType methodType, 
-            //    IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack, 
-            //    IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
-            //    Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
-            //{
-            //    if (methodType.Input.Is(out var hasInput) && hasInput.LooksUp.Is(out var inputHasLookUp)) {
-            //        Walk(Broaden(inputHasLookUp), Add(stack, Broaden(inputHasLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>( new Input())), flowNodes2);
-            //    }
-            //    if (methodType.Returns.Is(out var hasReturns) && hasReturns.LooksUp.Is(out var returnsLookUp))
-            //    {
-            //        Walk(Broaden(returnsLookUp), Add(stack, Broaden(returnsLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Output())), flowNodes2);
-            //    }
-            //}
-            //private static void Walk(Method method,
-            //    IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack,
-            //    IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
-            //    Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
-            //{
-            //    if (method.Input.Is(out var hasInput) && hasInput.LooksUp.Is(out var inputHasLookUp))
-            //    {
-            //        Walk(Broaden(inputHasLookUp), Add(stack, Broaden( inputHasLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Input())), flowNodes2);
-            //    }
-            //    if (method.Returns.Is(out var hasReturns) && hasReturns.LooksUp.Is(out var returnsLookUp))
-            //    {
-            //        Walk(Broaden(returnsLookUp), Add(stack, Broaden(returnsLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Output())), flowNodes2);
-            //    }
-            //    foreach (var member in method.PrivateMembers)
-            //    {
-            //        if (member.Value.LooksUp.Is(out var memberLooksUp))
-            //        {
-            //            Walk(Broaden(memberLooksUp), Add(stack, Broaden(memberLooksUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Tpn.PrivateMember(member.Key))), flowNodes2);
-            //        }
-            //    }
-            //}
-            //private static void Walk(Type type,
-            //    IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack,
-            //    IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
-            //    Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
-            //{
-            //    foreach (var member in type.PublicMembers)
-            //    {
-            //        if (member.Value.LooksUp.Is(out var memberLooksUp))
-            //        {
-            //            Walk(Broaden(memberLooksUp), Add(stack, Broaden(memberLooksUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Tpn.Member(member.Key))), flowNodes2);
-            //        }
-            //    }
-            //    // inner types? 
-            //}
-            //private static void Walk(Object @object,
-            //    IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack,
-            //    IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
-            //    Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
-            //{
-            //    foreach (var member in @object.PublicMembers)
-            //    {
-            //        if (member.Value.LooksUp.Is(out var memberLooksUp))
-            //        {
-            //            Walk(Broaden(memberLooksUp), Add(stack, Broaden(memberLooksUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Tpn.Member(member.Key))), flowNodes2);
-            //        }
-            //    }
-            //}
-            //private static void Walk(OrType orType,
-            //    IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack,
-            //    IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
-            //    Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
-            //{
-            //    if (orType.Left.Is(out var leftIs) && leftIs.LooksUp.Is(out var leftLooksUp)) { 
-            //        Walk(Broaden(leftLooksUp), Add(stack, Broaden(leftLooksUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right , PrivateMember>( new Left())), flowNodes2);
-            //    }
-            //    if (orType.Right.Is(out var rightIs) && rightIs.LooksUp.Is(out var rightLookUp))
-            //    {
-            //        Walk(Broaden(rightLookUp), Add(stack, Broaden(rightLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Right())), flowNodes2);
-            //    }
-            //}
-            //private static void Walk(InferredType inferredType,
-            //    IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack,
-            //    IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right,PrivateMember>> path,
-            //    Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
-            //{
-            //    if (inferredType.Input.Is(out var hasInput) && hasInput.LooksUp.Is(out var inputHasLookUp))
-            //    {
-            //        Walk(Broaden(inputHasLookUp), Add(stack, Broaden(inputHasLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Input())), flowNodes2);
-            //    }
-            //    if (inferredType.Returns.Is(out var hasReturns) && hasReturns.LooksUp.Is(out var returnsLookUp))
-            //    {
-            //        Walk(Broaden(returnsLookUp), Add(stack, Broaden(returnsLookUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Output())), flowNodes2);
-            //    }
-            //    foreach (var member in inferredType.PublicMembers)
-            //    {
-            //        if (member.Value.LooksUp.Is(out var memberLooksUp))
-            //        {
-            //            Walk(Broaden(memberLooksUp), Add(stack, Broaden(memberLooksUp)), Add(path, Prototypist.Toolbox.OrType.Make<Tpn.Member, Input, Output, Left, Right, PrivateMember>(new Tpn.Member(member.Key))), flowNodes2);
-            //        }
-            //    }
-            //}
-            //private static void Walk(GenericTypeParameter self,
-            //    IEnumerable<IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>> stack,
-            //    IEnumerable<IOrType<Tpn.Member, Input, Output, Left, Right, PrivateMember>> path,
-            //    Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
-            //{
-            //    // we found something to constain
-            //    var count = 0;
-            //    foreach (var stackItem in stack.Reverse().Skip(1)/*the last element is "self"*/)
-            //    {
-            //        count++;
-            //        if (stackItem.SwitchReturns(
-            //            x => x.Generics.Values.Contains(self),
-            //            x => x.Generics.Values.Contains(self),
-            //            x => false,
-            //            x => false,
-            //            x => x.Generics.Values.Contains(self),
-            //            x => false,
-            //            x => x.Generics.Values.Contains(self),
-            //            x => false)) {
-                        
-            //            flowNodes2[Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(self.constraint)].Is2OrThrow().IsConstraintFor(path.TakeLast(count).ToArray(), self.index, self.owner);
-            //        }
-            //    }
-            //}
-
             private static int Height(IStaticScope staticScope)
             {
                 var res = 0;
@@ -1436,44 +868,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 }
                 return res;
             }
-
-
-            private static IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError> Broaden(IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> orType) {
-               return orType.SwitchReturns(x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>(x),
-                    x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>(x),
-                    x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>(x),
-                    x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>(x),
-                    x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>(x),
-                    x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>(x),
-                    x => Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>(x));
-                
-            }
-            //private static bool TryToOuterFlowNode(Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode>> orsToFlowNodes, Tpn.TypeProblem2.OrType or, out IOrType<ConcreteFlowNode, InferredFlowNode, PrimitiveFlowNode, OrFlowNode> res)
-            //{
-            //    if (orsToFlowNodes.TryGetValue(GetType(or.Left.GetOrThrow()).SwitchReturns(
-            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x)), out var left) &&
-            //               orsToFlowNodes.TryGetValue(GetType(or.Right.GetOrThrow()).SwitchReturns(
-            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x),
-            //                               x => Prototypist.Toolbox.OrType.Make<ITypeProblemNode, IError>(x)), out var right))
-            //    {
-
-            //        res = ToOr(new OrFlowNode(new[] { left, right }, Possibly.Is(or)));
-            //        return true;
-            //    }
-            //    res = default;
-            //    return false;
-            //}
 
             private static bool TryToOuterFlowNode2(Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> orsToFlowNodes, Tpn.TypeProblem2.OrType or, out OrFlowNode2 res)
             {
@@ -1503,86 +897,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                 res = default;
                 return false;
             }
-
-            //private static HashSet<GenericTypeKey> Walk(IOrType<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey> toWalk) {
-            //    var res = new HashSet<GenericTypeKey>();
-            //    Walk(toWalk, res);
-            //    return res;
-            //}
-
-            //private static void Walk(IOrType<MethodType, Type, Object, OrType, InferredType, IError, GenericTypeKey.TypeParameter, GenericTypeKey> toWalk, HashSet<GenericTypeKey> set)
-            //{
-
-            //    if (toWalk.Is8(out var genericTypeKey))
-            //    {
-            //        if (set.Contains(genericTypeKey))
-            //        {
-            //            return;
-            //        }
-            //        set.Add(genericTypeKey);
-
-            //        foreach (var item in genericTypeKey.parameters)
-            //        {
-            //            Walk(item, set);
-            //        }
-            //    }
-            //}
-
-
-            //        // do I need to cache locally?
-            //        // that is, on the from.
-
-            //        // two generic-method [T] [T, Builder]
-            //        // could be different if defined in scopes with different Builder types
-            //        // but they could also be the same
-
-            //        // I am not sure what I currently do with generics handles this very nicely... 
-            //        // realizedGeneric is global 
-            //        // yeah, actually it does
-            //        // because it resolves all the types so the two builders would be different
-
-
-            //        // I think I can just overlay MethodType with GenericTypeKey and have some of the types be Types that are
-            //        // GenericOverlays from a new MethodType built here
-
-
-            //        // 1. create new methodType with the right type overlays
-            //        // 2. create the GenericTypeKey to overlay the generic methodType with the second set from the DoubleGenericNameKey
-
-            //        // but the GenericTypeKey is going use the generic type parameters from the new methodType so it will never match anything
-            //        // so I need a new key type
-
-            //        // it needs to use real looked up types when possible
-            //        // but some sort of dummy types for the generics
-            //        // the type is a set of trees made from visiting DoubleGenericNameKey.DependentTypes
-
-            //        // how does it handle genenic-method [T] [T, generic-mthod [T1] [T1, T]]?
-            //        // it would try to look up the inner generic-mthod and end up here
-            //        // and that would try to look up T  ...and would it find it? it better.
-
-            //        // I think maybe these method types should be added in "populate scope"
-            //        // no because you can't look all the type up...
-
-            //        // the inner one has to be looking up from inside the outer method definition
-            //        // after all the real type defintions have gone, these have to go
-
-            //        // and they have to understand where they are in the scope stack
-            //        // in this case:
-            //        // genenic-method [T] [T, generic-mthod [T1] [T1, T]]
-            //        // the outer need to go first
-            //        // and it need to look stuff up but not try to look up the inner
-            //        // once the outer has made a methodType (ut just need to have GenericOverlays it can't have input/output yet) the inner can look up "T" off it
-
-            //        // 1. build types for the tree
-            //        //      start outer
-            //        //          start inner
-            //        //          complete inner
-            //        //      complete outer
-            //        // 2. build key for inner
-            //        //      build key for outer
-
-            //        // what happen when we have generic inside a double generic
-            //        // double generic inside generic inside double generic?
 
             Prototypist.Toolbox.IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> OuterLookUpOrError(ILookUpType item, Dictionary<GenericTypeKey, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>> realizedGenerics, IEnumerable<IStaticScope> contextStack)
             {
@@ -1902,52 +1216,6 @@ namespace Tac.Frontend.New.CrzayNamespace
                         assignments.Add((newFrom, newTo));
                     }
                 }
-
-                //    foreach (var pair in map)
-                //{
-                //    if (pair.Key.SafeIs(out ICanBeAssignedTo assignedToFrom) && pair.Value.SafeIs(out ICanBeAssignedTo assignedToTo))
-                //    {
-                //        foreach (var item in oldAssignments)
-                //        {
-                //            if (item.Item2 == assignedToFrom)
-                //            {
-                //                var newFrom = item.Item1.SwitchReturns(
-                //                    x => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(CopiedToOrSelf(x)),
-                //                    x => x.SwitchReturns(
-                //                        y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(CopiedToOrSelf(y))),
-                //                        y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(CopiedToOrSelf(y))),
-                //                        y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(CopiedToOrSelf(y))),
-                //                        y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(CopiedToOrSelf(y))),
-                //                        y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(CopiedToOrSelf(y))),
-                //                        y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(CopiedToOrSelf(y))),
-                //                        y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(y))));
-                //                assignments.Add((newFrom, Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(assignedToTo)));
-                //            }
-                //        }
-                //    }
-
-                //    if (pair.Value.SafeIs(out ICanAssignFromMe assignFromFrom) && pair.Value.SafeIs(out ICanAssignFromMe assignFromTo))
-                //    {
-                //        foreach (var item in oldAssignments)
-                //        {
-                //            if (item.Item1 == assignFromFrom)
-                //            {
-                //                var newTo = item.Item2.SwitchReturns(
-                //                    x => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(CopiedToOrSelf(x)),
-                //                    x => x.SwitchReturns(
-                //                        y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(CopiedToOrSelf(y))),
-                //                        y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(CopiedToOrSelf(y))),
-                //                        y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(CopiedToOrSelf(y))),
-                //                        y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(CopiedToOrSelf(y))),
-                //                        y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(CopiedToOrSelf(y))),
-                //                        y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(CopiedToOrSelf(y))),
-                //                        y => Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(y))));
-
-                //                assignments.Add((assignFromTo, newTo));
-                //            }
-                //        }
-                //    }
-                //}
 
                 foreach (var pair in map)
                 {
@@ -2405,7 +1673,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 // it will LookUpOrError ({7FF166EC-C833-4032-B674-32E82103EB0D}) badly 
                 // T_BASE_INPUT (the one on the base method) is overlayed with empty
                 // but it will see that that is the name of a generic (on the generic method) and look up to that
-                // TODO unit tes
+                // TODO unit test
 
                 rootMethod = new MethodType(
                     this.builder,
@@ -2458,8 +1726,16 @@ namespace Tac.Frontend.New.CrzayNamespace
 
                 public override int GetHashCode()
                 {
-                    return 1;
-                    //return unchecked(primary.GetHashCode() + parameters.Aggregate(0, (y, x) => unchecked(y + x.GetHashCode())));
+                    unchecked
+                    {
+                        var res = primary.GetHashCode();
+
+                        foreach (var parameter in parameters)
+                        {
+                            res += parameter.GetHashCode(); 
+                        }
+                        return res;
+                    }
                 }
             }
         }

@@ -3,6 +3,7 @@ using Prototypist.Toolbox.Object;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Tac.Model;
 using Tac.Model.Elements;
 using Tac.Type;
@@ -32,11 +33,15 @@ namespace Tac.Model.Instantiated
     // 🤫 IInterfaceType and module are they same 
     public class InterfaceType : IInterfaceType, IModuleType, IInterfaceTypeBuilder
     {
+        private static int index = 0;
+        private readonly int myIndex;
 
         private readonly Buildable<IReadOnlyList<IMemberDefinition>> buildableMembers = new();
         public IReadOnlyList<IMemberDefinition> Members => buildableMembers.Get();
 
-        private InterfaceType() { }
+        private InterfaceType() {
+            myIndex = Interlocked.Increment(ref index);
+        }
 
         public void Build(IReadOnlyList<IMemberDefinition> scope)
         {
@@ -98,6 +103,8 @@ namespace Tac.Model.Instantiated
 
         public IIsPossibly<IVerifiableType> TryGetReturn() => Possibly.IsNot<IVerifiableType>();
         public IIsPossibly<IVerifiableType> TryGetInput() => Possibly.IsNot<IVerifiableType>();
+
+        public override string? ToString() => $"{nameof(InterfaceType)}-{myIndex}()";
     }
 
     public interface IInterfaceTypeBuilder
