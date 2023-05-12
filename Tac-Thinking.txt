@@ -765,3 +765,17 @@ I mean it might make inferred types easier
 and their is no reason not to have both, under the mood methods already come with an object
 
 but conceptually I do like the to be seperate, forcing them to be seperate might be too much tho
+
+=========================== order representaion vs named representaion
+
+("cat", 5) vs {type: "cat", age: 5}
+
+the latter is implicitly the former
+the former is not implicitly the latter
+maybe you could do a mixed
+
+{"cat", age: 5} 
+
+this would be the following types
+type {string, int}
+type {int age}
