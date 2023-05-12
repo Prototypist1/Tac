@@ -682,6 +682,9 @@ x viewed-with [number, number]
 x accessed-with [number, number]
 x concretely [number, number]
 
+... or maybe I could just index?
+x[number, number]
+
 but how do I implement generic methods in emit? I use Func<in, out> for methods
 what happens when you call a generic method in C#??
 well, any call would be to a 
@@ -765,6 +768,22 @@ I mean it might make inferred types easier
 and their is no reason not to have both, under the mood methods already come with an object
 
 but conceptually I do like the to be seperate, forcing them to be seperate might be too much tho
+
+============================= back to thinkging about generic method
+
+is it just?
+
+IGenericMethod<T1>{
+    Func<T,T1> Make<T>();
+}
+
+...no I think I need to emit it each time
+the relationship between the geneic(s) of make and the return type is unbound
+it could be: Func<T,T> Make<T>();
+or: Func<T,Pair[T]> Make<T>();
+
+
+... I need to reset a bit on this... why did I need these? 
 
 =========================== order representaion vs named representaion
 

@@ -127,7 +127,8 @@ namespace Tac.Frontend._3_Syntax_Model.Operations
         public ISetUpResult<IBox<WeakRealizeMethodOperation>, Tpn.IValue> Run(Tpn.IStaticScope scope, ISetUpContext context)
         {
  
-
+            // so lhs has to evaluate to a generic method
+            // we need to realize it with the parameter provided
 
             throw new NotImplementedException();
             //return new SetUpResult<IBox<WeakRealizeMethodOperation>, Tpn.IValue>(
