@@ -1,4 +1,4 @@
-// no static for now
+﻿// no static for now
 static x is method(int;int) input {
     input + 2 return;
 }
@@ -798,3 +798,50 @@ maybe you could do a mixed
 this would be the following types
 type {string, int}
 type {int age}
+
+========================== brackets
+
+I have 4 brackets to work with:
+ - ()
+ - {}
+ - []
+ - <>
+
+but <> are troubl because the also have meaning inside code
+
+things that need brackets:
+
+ - obj order representaion
+ - obj named representaion
+ - type order representaion
+ - type named representaion
+ - code
+ - do this first
+ - list of type parameters (order representation)
+
+I like () for order representation - like parameters for functions, or maybe [] like json
+I like {} for named like json
+
+really, I can just whatever
+code edoc
+|- -|
+🛫🛬
+
+I thinkkk code and "do this first" could be the same symbol because code can only be used side method or implement definitions
+
+ - obj order representaion []
+ - obj named representaion {}
+ - type order representaion []
+ - type named representaion {}
+ - code ()
+ - do this first ()
+ - list of type parameters (order representation) []
+
+unused <>, 🛫🛬
+
+
+ 
+
+
+
+
