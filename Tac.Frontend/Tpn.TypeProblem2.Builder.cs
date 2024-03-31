@@ -66,7 +66,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 {
                     parent.Switch(x => x.Generics.Add(key, type), x => x.Generics.Add(key, type), x => x.Generics.Add(key, type));
                 }
-                public void HasOverlayedGeneric(IOrType<MethodType, Type, Method> parent, NameKey key, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> type)
+                public void HasOverlayedGeneric(IOrType<MethodType, Type, Method> parent, NameKey key, TypeLikeOrError type)
                 {
                     parent.Switch(x => x.GenericOverlays.Add(key, type), x => x.GenericOverlays.Add(key, type), x => x.GenericOverlays.Add(key, type));
                 }
@@ -124,22 +124,22 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public void IsAssignedTo(Method assignedFrom, ICanBeAssignedTo assignedTo)
                 {
                     problem.assignments.Add((
-                        Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError >(assignedFrom)),
-                        Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(assignedTo)));
+                        Prototypist.Toolbox.OrType.Make<ILookUpType, Tpn.TypeLikeWithMethodOrError>(Tpn.TypeLikeWithMethodOrError.Make(assignedFrom)),
+                        Prototypist.Toolbox.OrType.Make<ILookUpType, TypeLikeOrError>(assignedTo)));
                 }
 
                 public void AssertIs(ILookUpType assignedFrom, ILookUpType assignedTo)
                 {
                     problem.assignments.Add((
-                        Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>>(assignedFrom),
-                        Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(assignedTo)));
+                        Prototypist.Toolbox.OrType.Make<ILookUpType, Tpn.TypeLikeWithMethodOrError>(assignedFrom),
+                        Prototypist.Toolbox.OrType.Make<ILookUpType, TypeLikeOrError>(assignedTo)));
                 }
 
                 public void AssertIs(GenericTypeParameter assignedFrom, GenericTypeParameter assignedTo)
                 {
                     problem.assignments.Add((
-                        Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, Method, IError>(assignedFrom)),
-                        Prototypist.Toolbox.OrType.Make<ILookUpType, IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>>(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(assignedTo))));
+                        Prototypist.Toolbox.OrType.Make<ILookUpType, Tpn.TypeLikeWithMethodOrError>(Tpn.TypeLikeWithMethodOrError.Make(assignedFrom)),
+                        Prototypist.Toolbox.OrType.Make<ILookUpType, TypeLikeOrError>(TypeLikeOrError.Make(assignedTo))));
                 }
 
                 public Value CreateValue(IScope scope, IKey typeKey)
@@ -202,7 +202,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Member CreatePublicMember(
                     IHavePublicMembers scope,
                     IKey key,
-                    IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> type)
+                    TypeLikeOrError type)
                 {
                     var res = new Member(this, key.ToString()!);
                     HasPublicMember(scope, key, res);
@@ -237,7 +237,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 public Member CreatePrivateMember(
                     IHavePrivateMembers scope,
                     IKey key,
-                    IOrType<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError> type)
+                    TypeLikeOrError type)
                 {
                     var res = new Member(this, key.ToString()!);
                     HasPrivateMember(scope, key, res);
@@ -326,7 +326,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     var i = 0;
                     foreach (var placeholder in placeholders)
                     {
-                        var placeholderType = new TypeProblem2.GenericTypeParameter(this, $"generic-parameter-{placeholder.key}", i++, Prototypist.Toolbox.OrType.Make<MethodType, Type, Method,InferredType>(res));
+                        var placeholderType = new GenericTypeParameter(this, $"generic-parameter-{placeholder.key}", i++, Prototypist.Toolbox.OrType.Make<MethodType, Type, Method,InferredType>(res));
                         //var placeholderType = new Type(
                         //    this,
                         //    $"generic-parameter-{placeholder.key}",
@@ -462,7 +462,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     return res;
 
                 }
-                public MethodType GetMethod(IOrType<MethodType, Type, Object, OrType, InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError> input, IOrType<MethodType, Type, Object, OrType, InferredType, Tpn.TypeProblem2.GenericTypeParameter, IError> output)
+                public MethodType GetMethod(TypeLikeOrError input, TypeLikeOrError output)
                 {
                     throw new NotImplementedException();
                 }
@@ -563,11 +563,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                         // and infered to do not have private members
                         var methodInputKey = new NameKey("generated infered method input - " + Guid.NewGuid());
                         var inputMember = new Member(this, methodInputKey.ToString()!);
-                        inputMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter,  IError>(new InferredType(this, "implicit input")));
+                        inputMember.LooksUp = Possibly.Is(TypeLikeOrError.Make(new InferredType(this, "implicit input")));
                         inferredMethodType.Input = Possibly.Is(inputMember);
 
                         var returnMember = new TransientMember(this, "generated infered method return -" + Guid.NewGuid());
-                        returnMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError>(new InferredType(this, "implicit return")));
+                        returnMember.LooksUp = Possibly.Is(TypeLikeOrError.Make(new InferredType(this, "implicit return")));
                         inferredMethodType.Returns = Possibly.Is(returnMember);
 
                         return inputMember;
@@ -631,11 +631,11 @@ namespace Tac.Frontend.New.CrzayNamespace
                         // and infered to do not have private members
                         var methodInputKey = new NameKey("generated infered method input - " + Guid.NewGuid());
                         var inputMember = new Member(this, methodInputKey.ToString()!);
-                        inputMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError >(new InferredType(this, "implicit input")));
+                        inputMember.LooksUp = Possibly.Is(TypeLikeOrError.Make(new InferredType(this, "implicit input")));
                         inferredMethodType.Input = Possibly.Is(inputMember);
 
                         var returnMember = new TransientMember(this, "generated infered method return -" + Guid.NewGuid());
-                        returnMember.LooksUp = Possibly.Is(Prototypist.Toolbox.OrType.Make<MethodType, Type, Object, OrType, InferredType, GenericTypeParameter, IError >(new InferredType(this, "implicit return")));
+                        returnMember.LooksUp = Possibly.Is(TypeLikeOrError.Make(new InferredType(this, "implicit return")));
                         inferredMethodType.Returns = Possibly.Is(returnMember);
 
                         return returnMember;

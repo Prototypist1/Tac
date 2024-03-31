@@ -168,6 +168,12 @@ maybe no order of operators, but me first characters (^)
 // Conculsion
 // this sucks, I am going to do left to right with "me first" characters
 
+// 3/30/24 update
+
+I like new line to have some order power 
+5 >
+this . x . y . z . a
+
 ======================= LEFT TO RIGHT FIELD
 
 as we know, this:
@@ -647,6 +653,15 @@ list > where of method[number, bool] input { input < 10 return; } > select of me
 // to make it easier to pares I could add a special character
 list | where method[number, bool] input { input < 10 return; } | select method[number, number] input { input * input return; } to-array
 
+===================================== linq syntax II
+
+don't I just need extension methods?
+
+list 
+    .where < method[number, bool] input { input < 10 return; } 
+    .select < method[number, number] input { input * input return; } 
+    .to-array < {}
+
 ===================================== how do you define a generic method?
 
 method [T] [T, Type[T]] input {} // probably this... ?
@@ -693,7 +708,7 @@ I think I need to understand what's wrong with type-eraceure and probably remove
 
 Actually, I think it is fair to call this an operation. This is implemented as a generic method that returns a func<,>. the operation calls the generic method.
 
-===============================
+=============================== Order or operations
 
 maybe you can use prefix/suffix/center notation for order of operations? 
 
@@ -734,6 +749,28 @@ list > > method [number;number;] x { x * x return} . linq select > > method [num
 it gets a little messey with () but it will do for now
 
 list > (method [number;number;] x { x * x return} >  (linq . select)) > (method [number;bool;] x { x % 2 == 0 return;} >  (linq . where)) 
+
+// or I could use new lines
+
+5 >
+a.b.c
+
+// but that only helps a little trailing operations are more helpful
+
+1 2 + 3 4 + *
+1 + 2 3 + 4 *
+
+that is going to be hard to parse....
+
+maybe I need syntax for take the two before
+
+1 2 <+ 3 4 <+ <*
+
+I like the new line
+
+1 + 2
+*
+3 + 4
 
 =========================== scope return?
 
@@ -807,7 +844,7 @@ I have 4 brackets to work with:
  - []
  - <>
 
-but <> are troubl because the also have meaning inside code
+but <> are troubl because they also mean less then and greater than
 
 things that need brackets:
 
@@ -823,7 +860,7 @@ I like () for order representation - like parameters for functions, or maybe [] 
 I like {} for named like json
 
 really, I can just whatever
-code edoc
+code }
 |- -|
 🛫🛬
 
@@ -839,8 +876,58 @@ I thinkkk code and "do this first" could be the same symbol because code can onl
 
 unused <>, 🛫🛬
 
+... that means you can create an object anywhere by writing {}
+and a list the same way by writing []
 
+... I'd like to be able to do similar with types 
+and maybe I just can, types can only be used in very specfic places 
+
+ - obj order representaion                          : new []
+ - obj named representaion                          : new {}
+ - type order representaion                         : type []
+ - type named representaion                         : type {}
+ - code                                             : {}
+ - do this first                                    : ()
+ - list of type parameters (order representation)   : <>
+
+ but generic types are fixed length
  
+ maybe we just tell by how stuff is delimited
+ 
+,,, vs ;;;
+
+x:int => block { }: int;
+
+this: type {age:int} => input:int => block { this.age := input; new-empty return; }:null;
+
+can you declear in ether order? "int: x" vs "x :int" 
+
+========================== if and for should return
+is
+
+for (...){
+    break;
+}
+
+for (...){
+    return;
+}
+
+if you want to return from inside a loop
+
+return for (...){ return ...;}
+
+so.. for is a function? what is it's signature?
+
+========================== I like all the unwrapping stuff ts has
+
+fit my language well
+
+{...obj,x,y}
+
+[...test, x, y]
+
+
 
 
 

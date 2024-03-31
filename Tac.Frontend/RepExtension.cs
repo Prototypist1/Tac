@@ -15,7 +15,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         // this is basically
         // A and B and (C or D) to (A and B and C) or (A and B and D)
         // returns OR AND
-        public static EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> Flatten(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>> self)
+        public static EqualableHashSet<EqualableHashSet<Tpn.TypeRequirementWithExternal>> Flatten(this EqualableHashSet<Tpn.TypeRequirementFull> self)
         {
             // AND OR AND 
             var andOrAnd = self
@@ -27,15 +27,15 @@ namespace Tac.Frontend.New.CrzayNamespace
                     .ToArray())
                 .ToHashSet();
 
-            var orAndRes = new List<List<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>() {
-                new List<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>()
+            var orAndRes = new List<List<Tpn.TypeRequirementWithExternal>>() {
+                new List<Tpn.TypeRequirementWithExternal>()
             };
 
 
             foreach (var orAnd in andOrAnd)
             {
 
-                var nextOrAndRes = new List<List<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>() { };
+                var nextOrAndRes = new List<List<Tpn.TypeRequirementWithExternal>>() { };
 
                 foreach (var andRes in orAndRes)
                 {
@@ -54,16 +54,16 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             var shared = self.Where(x => !x.Is4(out var _))
                 .Select(x => x.SwitchReturns(
-                    y => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>(y),
-                    y => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>(y),
-                    y => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>(y),
+                    y => Tpn.TypeRequirementWithExternal.Make(y),
+                    y => Tpn.TypeRequirementWithExternal.Make(y),
+                    y => Tpn.TypeRequirementWithExternal.Make(y),
                     _ => throw new Exception("I just said not that!"),
-                    y => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>(y),
-                    y => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>(y),
-                    y => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>(y)))
+                    y => Tpn.TypeRequirementWithExternal.Make(y),
+                    y => Tpn.TypeRequirementWithExternal.Make(y),
+                    y => Tpn.TypeRequirementWithExternal.Make(y)))
                 .ToList();
             {
-                var nextOrAndRes = new List<List<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>() { };
+                var nextOrAndRes = new List<List<Tpn.TypeRequirementWithExternal>>() { };
 
                 foreach (var andRes in orAndRes)
                 {
@@ -76,32 +76,32 @@ namespace Tac.Frontend.New.CrzayNamespace
                 orAndRes = nextOrAndRes;
             }
 
-            return new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>(
-                orAndRes.Select(x => new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>(x.ToHashSet())).ToHashSet());
+            return new EqualableHashSet<EqualableHashSet<Tpn.TypeRequirementWithExternal>>(
+                orAndRes.Select(x => new EqualableHashSet<Tpn.TypeRequirementWithExternal>(x.ToHashSet())).ToHashSet());
         }
 
-        public static bool ExtendedIsCompatible(this IConstraint constraint, IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal> item)
+        public static bool ExtendedIsCompatible(this IConstraint constraint, Tpn.TypeRequirementWithExternal item)
         {
             return item.SwitchReturns(
-                x => constraint.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x), new List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>>()),
-                x => constraint.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x), new List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>>()),
-                x => constraint.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x), new List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>>()),
-                x => constraint.IsCompatible(OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x), new List<UnorderedPair<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>>>()),
+                x => constraint.IsCompatible(Tpn.TypeRequirementWithOr.Make(x), new List<UnorderedPair<Tpn.TypeRequirementWithOr>>()),
+                x => constraint.IsCompatible(Tpn.TypeRequirementWithOr.Make(x), new List<UnorderedPair<Tpn.TypeRequirementWithOr>>()),
+                x => constraint.IsCompatible(Tpn.TypeRequirementWithOr.Make(x), new List<UnorderedPair<Tpn.TypeRequirementWithOr>>()),
+                x => constraint.IsCompatible(Tpn.TypeRequirementWithOr.Make(x), new List<UnorderedPair<Tpn.TypeRequirementWithOr>>()),
                 x => true,
                 x => true);
         }
 
         //public static IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric> Broaden(this IOrType<MustHave, MustBePrimitive, GivenPathThen,  HasMembers, IsGenericRestraintFor, IsExternal> self) {
         //    return self.SwitchReturns(
-        //        x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x),
-        //        x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x),
-        //        x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x),
-        //        x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x),
-        //        x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x),
-        //        x => OrType.Make<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric>(x));
+        //        x => Tpn.TypeRequirementWithOr(x),
+        //        x => Tpn.TypeRequirementWithOr(x),
+        //        x => Tpn.TypeRequirementWithOr(x),
+        //        x => Tpn.TypeRequirementWithOr(x),
+        //        x => Tpn.TypeRequirementWithOr(x),
+        //        x => Tpn.TypeRequirementWithOr(x));
         //}
 
-        public static IOrType<IIsPossibly<Guid>, IError> Primitive(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>> self)
+        public static IOrType<IIsPossibly<Guid>, IError> Primitive(this EqualableHashSet<Tpn.TypeRequirementWithExternal> self)
         {
             var primitives = self.SelectMany(x =>
             {
@@ -129,11 +129,11 @@ namespace Tac.Frontend.New.CrzayNamespace
             return OrType.Make<IIsPossibly<Guid>, IError>(Possibly.IsNot<Guid>());
         }
 
-        public static IOrType<ICollection<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>>, IError> Members(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>> self)
+        public static IOrType<ICollection<KeyValuePair<IKey, EqualableHashSet<Tpn.TypeRequirementFull>>>, IError> Members(this EqualableHashSet<Tpn.TypeRequirementWithExternal> self)
         {
             if (self.ErrorCheck(out var error))
             {
-                return OrType.Make<ICollection<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>>, IError>(error);
+                return OrType.Make<ICollection<KeyValuePair<IKey, EqualableHashSet<Tpn.TypeRequirementFull>>>, IError>(error);
             }
 
             var givenPathDictionary = self
@@ -160,10 +160,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 .Where(x => x.path.Is1(out var _))
                 .GroupBy(x => x.path.Is1OrThrow());
 
-            var list = new List<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>>();
+            var list = new List<KeyValuePair<IKey, EqualableHashSet<Tpn.TypeRequirementFull>>>();
             foreach (var mustHaves in mustHaveGroup)
             {
-                var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>();
+                var set = new HashSet<Tpn.TypeRequirementFull>();
 
                 foreach (var mustHave in mustHaves)
                 {
@@ -184,20 +184,20 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                     }
                 }
-                var equalableSet = new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>(set);
+                var equalableSet = new EqualableHashSet<Tpn.TypeRequirementFull>(set);
 
-                list.Add(new KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>(mustHaves.Key.key, equalableSet));
+                list.Add(new KeyValuePair<IKey, EqualableHashSet<Tpn.TypeRequirementFull>>(mustHaves.Key.key, equalableSet));
             }
 
-            return OrType.Make<ICollection<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>>, IError>(list);
+            return OrType.Make<ICollection<KeyValuePair<IKey, EqualableHashSet<Tpn.TypeRequirementFull>>>, IError>(list);
         }
 
 
-        public static IOrType<ICollection<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>>, IError> PrivateMembers(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>> self)
+        public static IOrType<ICollection<KeyValuePair<IKey, EqualableHashSet<Tpn.TypeRequirementFull>>>, IError> PrivateMembers(this EqualableHashSet<Tpn.TypeRequirementWithExternal> self)
         {
             if (self.ErrorCheck(out var error))
             {
-                return OrType.Make<ICollection<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>>, IError>(error);
+                return OrType.Make<ICollection<KeyValuePair<IKey, EqualableHashSet<Tpn.TypeRequirementFull>>>, IError>(error);
             }
 
             var givenPathDictionary = self
@@ -224,10 +224,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 .Where(x => x.path.Is5(out var _))
                 .GroupBy(x => x.path.Is5OrThrow());
 
-            var list = new List<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>>();
+            var list = new List<KeyValuePair<IKey, EqualableHashSet<Tpn.TypeRequirementFull>>>();
             foreach (var mustHaves in mustHaveGroup)
             {
-                var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>();
+                var set = new HashSet<Tpn.TypeRequirementFull>();
 
                 foreach (var mustHave in mustHaves)
                 {
@@ -248,19 +248,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                     }
                 }
-                var equalableSet = new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>(set);
+                var equalableSet = new EqualableHashSet<Tpn.TypeRequirementFull>(set);
 
-                list.Add(new KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>(mustHaves.Key.key, equalableSet));
+                list.Add(new KeyValuePair<IKey, EqualableHashSet<Tpn.TypeRequirementFull>>(mustHaves.Key.key, equalableSet));
             }
 
-            return OrType.Make<ICollection<KeyValuePair<IKey, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>>, IError>(list);
+            return OrType.Make<ICollection<KeyValuePair<IKey, EqualableHashSet<Tpn.TypeRequirementFull>>>, IError>(list);
         }
 
-        public static IIsPossibly<IOrType<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>, IError>> Input(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>> self)
+        public static IIsPossibly<IOrType<EqualableHashSet<Tpn.TypeRequirementFull>, IError>> Input(this EqualableHashSet<Tpn.TypeRequirementWithExternal> self)
         {
             if (self.ErrorCheck(out var error))
             {
-                return Possibly.Is(OrType.Make<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>, IError>(error));
+                return Possibly.Is(OrType.Make<EqualableHashSet<Tpn.TypeRequirementFull>, IError>(error));
             }
 
             var mustHaves = self
@@ -277,7 +277,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             if (mustHaves.Any())
             {
-                var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>();
+                var set = new HashSet<Tpn.TypeRequirementFull>();
 
                 var givenPaths = self
                     .SelectMany(x =>
@@ -306,19 +306,19 @@ namespace Tac.Frontend.New.CrzayNamespace
                         set.Add(constraint);
                     }
                 }
-                return Possibly.Is(OrType.Make<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>, IError>(new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>(set)));
+                return Possibly.Is(OrType.Make<EqualableHashSet<Tpn.TypeRequirementFull>, IError>(new EqualableHashSet<Tpn.TypeRequirementFull>(set)));
 
             }
 
-            return Possibly.IsNot<IOrType<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>, IError>>();
+            return Possibly.IsNot<IOrType<EqualableHashSet<Tpn.TypeRequirementFull>, IError>>();
         }
 
 
-        public static IIsPossibly<IOrType<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>, IError>> Output(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>> self)
+        public static IIsPossibly<IOrType<EqualableHashSet<Tpn.TypeRequirementFull>, IError>> Output(this EqualableHashSet<Tpn.TypeRequirementWithExternal> self)
         {
             if (self.ErrorCheck(out var error))
             {
-                return Possibly.Is(OrType.Make<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>, IError>(error));
+                return Possibly.Is(OrType.Make<EqualableHashSet<Tpn.TypeRequirementFull>, IError>(error));
             }
 
             var mustHaves = self
@@ -335,7 +335,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             if (mustHaves.Any())
             {
-                var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>();
+                var set = new HashSet<Tpn.TypeRequirementFull>();
 
 
                 var givenPaths = self
@@ -380,18 +380,18 @@ namespace Tac.Frontend.New.CrzayNamespace
                         set.Add(constraint);
                     }
                 }
-                return Possibly.Is(OrType.Make<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>, IError>(new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>(set)));
+                return Possibly.Is(OrType.Make<EqualableHashSet<Tpn.TypeRequirementFull>, IError>(new EqualableHashSet<Tpn.TypeRequirementFull>(set)));
 
             }
-            return Possibly.IsNot<IOrType<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>, IError>>();
+            return Possibly.IsNot<IOrType<EqualableHashSet<Tpn.TypeRequirementFull>, IError>>();
         }
 
-        public static IOrType<IReadOnlyList<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>, IError> Generics(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>> self)
+        public static IOrType<IReadOnlyList<EqualableHashSet<Tpn.TypeRequirementFull>>, IError> Generics(this EqualableHashSet<Tpn.TypeRequirementWithExternal> self)
         {
 
             if (self.ErrorCheck(out var error))
             {
-                return OrType.Make<IReadOnlyList<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>, IError>(error);
+                return OrType.Make<IReadOnlyList<EqualableHashSet<Tpn.TypeRequirementFull>>, IError>(error);
             }
 
             var givenPathDictionary = self
@@ -418,10 +418,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 .Where(x => x.path.Is4(out var _))
                 .GroupBy(x => x.path.Is4OrThrow());
 
-            var pairs = new List<(int, EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>)>();
+            var pairs = new List<(int, EqualableHashSet<Tpn.TypeRequirementFull>)>();
             foreach (var mustHaves in mustHaveGroup)
             {
-                var set = new HashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>();
+                var set = new HashSet<Tpn.TypeRequirementFull>();
 
                 //var extened = false;
                 //{
@@ -459,14 +459,14 @@ namespace Tac.Frontend.New.CrzayNamespace
                         }
                     }
                 }
-                var equalableSet = new EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>(set);
+                var equalableSet = new EqualableHashSet<Tpn.TypeRequirementFull>(set);
 
                 pairs.Add((mustHaves.Key.index, equalableSet));
             }
 
             if (!pairs.Any())
             {
-                return OrType.Make<IReadOnlyList<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>, IError>(Array.Empty<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>());
+                return OrType.Make<IReadOnlyList<EqualableHashSet<Tpn.TypeRequirementFull>>, IError>(Array.Empty<EqualableHashSet<Tpn.TypeRequirementFull>>());
             }
 
             if (pairs.Select(x => x.Item1).Max() != pairs.Count() - 1)
@@ -476,10 +476,10 @@ namespace Tac.Frontend.New.CrzayNamespace
                 throw new Exception("the generic constriants are discontinious...");
             }
 
-            return OrType.Make<IReadOnlyList<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, OrConstraint, HasMembers, IsGeneric, IsExternal>>>, IError>(pairs.OrderBy(x => x.Item1).Select(x => x.Item2).ToArray());
+            return OrType.Make<IReadOnlyList<EqualableHashSet<Tpn.TypeRequirementFull>>, IError>(pairs.OrderBy(x => x.Item1).Select(x => x.Item2).ToArray());
         }
 
-        private static bool ErrorCheck(this EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>> self, [NotNullWhen(true)] out IError? error)
+        private static bool ErrorCheck(this EqualableHashSet<Tpn.TypeRequirementWithExternal> self, [NotNullWhen(true)] out IError? error)
         {
             if (self.Any(x => x.Is2(out var _)) && !self.All(x => x.Is2(out var _)))
             {

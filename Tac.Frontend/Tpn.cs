@@ -79,7 +79,7 @@ namespace Tac.Frontend.New.CrzayNamespace
         {
             public IOrType<IKey, IError, Unset> TypeKey { get; set; }
             public IIsPossibly<IStaticScope> Context { get; set; }
-            public IIsPossibly<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, TypeProblem2.GenericTypeParameter, IError>> LooksUp { get; set; }
+            public IIsPossibly<Tpn.TypeLikeOrError> LooksUp { get; set; }
         }
 
         internal interface ICanAssignFromMe : ITypeProblemNode, ILookUpType { }

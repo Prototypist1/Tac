@@ -16,10 +16,11 @@ namespace Tac.Frontend.New.CrzayNamespace
 {
     internal partial class Tpn
     {
+
         internal class TypeSolution
         {
 
-            private readonly ConcurrentIndexed<EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>, Yolo> cache = new();
+            private readonly ConcurrentIndexed<EqualableHashSet<EqualableHashSet<TypeRequirementWithExternal>>, Yolo> cache = new();
             private readonly Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2;
 
             private readonly Dictionary<(Yolo, IOrType<Member, Input, Output, Left, Right, PrivateMember>), List<Yolo>> positions;
@@ -30,7 +31,7 @@ namespace Tac.Frontend.New.CrzayNamespace
 
             private class Yolo
             {
-                public readonly EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> key;
+                public readonly EqualableHashSet<EqualableHashSet<TypeRequirementWithExternal>> key;
 
                 internal IOrType<IReadOnlyList<(IKey, Yolo)>, IError>? members;
                 internal IOrType<IReadOnlyList<(IKey, Yolo)>, IError>? privateMembers;
@@ -45,7 +46,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                 internal IIsPossibly<Yolo>? right;
                 internal IOrType<Yolo[], IError>? genericsConstraints;
 
-                public Yolo(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> key)
+                public Yolo(EqualableHashSet<EqualableHashSet<TypeRequirementWithExternal>> key)
                 {
                     this.key = key ?? throw new ArgumentNullException(nameof(key));
                 }
@@ -69,7 +70,7 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             public TypeSolution(
-                IReadOnlyList<IOrType<TypeProblem2.MethodType, TypeProblem2.Type, TypeProblem2.Object, TypeProblem2.OrType, TypeProblem2.InferredType, TypeProblem2.GenericTypeParameter, TypeProblem2.Method, IError>> things,
+                IReadOnlyList<TypeLikeWithMethodOrError> things,
                 Dictionary<IOrType<ITypeProblemNode, IError>, IOrType<ConcreteFlowNode2, InferredFlowNode2, PrimitiveFlowNode2, OrFlowNode2>> flowNodes2)
             {
 
@@ -92,7 +93,7 @@ namespace Tac.Frontend.New.CrzayNamespace
                     }
                 }
 
-                Yolo GetOrAdd(EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> equalableHashSet)
+                Yolo GetOrAdd(EqualableHashSet<EqualableHashSet<TypeRequirementWithExternal>> equalableHashSet)
                 {
                     var myBox = new Yolo(equalableHashSet);
                     var current = cache.GetOrAdd(equalableHashSet, myBox);
@@ -102,8 +103,8 @@ namespace Tac.Frontend.New.CrzayNamespace
                     {
                         if (equalableHashSet.Count() > 1)
                         {
-                            var left = GetOrAdd(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>(equalableHashSet.Take(equalableHashSet.Count() - 1).ToHashSet()));
-                            var right = GetOrAdd(new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>(new HashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>() { equalableHashSet.Last() }));
+                            var left = GetOrAdd(new EqualableHashSet<EqualableHashSet<TypeRequirementWithExternal>>(equalableHashSet.Take(equalableHashSet.Count() - 1).ToHashSet()));
+                            var right = GetOrAdd(new EqualableHashSet<EqualableHashSet<TypeRequirementWithExternal>>(new HashSet<EqualableHashSet<TypeRequirementWithExternal>>() { equalableHashSet.Last() }));
 
                             myBox.left = Possibly.Is(left);
                             myBox.right = Possibly.Is(right);
@@ -247,21 +248,21 @@ namespace Tac.Frontend.New.CrzayNamespace
             }
 
             // A | B intersect C | D -> A intersect C | A intersect D | B intersect C | B interesct D
-            private EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> Intersect(
-                EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> left, 
-                EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>> right)
+            private EqualableHashSet<EqualableHashSet<TypeRequirementWithExternal>> Intersect(
+                EqualableHashSet<EqualableHashSet<TypeRequirementWithExternal>> left, 
+                EqualableHashSet<EqualableHashSet<TypeRequirementWithExternal>> right)
             {
-                var res = new HashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>();
+                var res = new HashSet<EqualableHashSet<TypeRequirementWithExternal>>();
 
                 foreach (var leftItem in left)
                 {
                     foreach (var rightItem in right)
                     {
-                        var intersect = new  EqualableHashSet < IOrType < MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>( leftItem.Intersect(rightItem).ToHashSet());
+                        var intersect = new  EqualableHashSet < TypeRequirementWithExternal>( leftItem.Intersect(rightItem).ToHashSet());
                         res.Add(intersect);
                     }
                 }
-                return new EqualableHashSet<EqualableHashSet<IOrType<MustHave, MustBePrimitive, GivenPathThen, HasMembers, IsGeneric, IsExternal>>>(res);
+                return new EqualableHashSet<EqualableHashSet<TypeRequirementWithExternal>>(res);
             }
 
             // I think I need a seprate generic cache
