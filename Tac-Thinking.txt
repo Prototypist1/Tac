@@ -891,10 +891,12 @@ and maybe I just can, types can only be used in very specfic places
  - list of type parameters (order representation)   : <>
 
  but generic types are fixed length
- 
+
  maybe we just tell by how stuff is delimited
  
 ,,, vs ;;;
+
+then how do you nest?
 
 x:int => block { }: int;
 
