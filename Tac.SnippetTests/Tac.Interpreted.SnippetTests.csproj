@@ -14,7 +14,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="Prototypist.TaskChain" Version="1.0.17" />
     <PackageReference Include="Prototypist.Toolbox" Version="1.0.0.30" />
     <PackageReference Include="xunit" Version="2.4.1" />
