@@ -463,7 +463,7 @@ static x                                        static declare
 static var x                                    static declare
 static int x                                    static declare      
 .  \                                            field
-of  /                                       ?   reverse field
+of  /                                       ?   reverse field -- I do think this is very useful
 return                                          return
 and                                             and
 or                                              or
@@ -771,6 +771,40 @@ I like the new line
 1 + 2
 *
 3 + 4
+
+=========================== linq part 2
+
+I think I need extension methods. Or really method that take two things, an object and an input
+
+object > extension-method < input
+
+list 
+    > where < method [number;bool] x { x % 2 == 0 return;} 
+    > select < method [number;number] x { x * x return; } 
+    > to-array < empty
+
+that's not bad.
+
+...
+
+an implementation is a method that takes an object and an input as well
+
+but those are attached to object these are not... or may
+
+the >< syntax sort of makes sense. implementation is Func<TOwner, Func<TIn, TOut>>.
+`list > where` is actually calling the implementation and creating a Func<Func<int,bool>, IEnum<int>>
+and then you call that and it returns a IEnum<int>
+
+
+...or they could really really be extension methods and use the dot notation
+that would make a lot of people confortalbe
+but the above is more explicit about what's happening
+...if that is indeed what is happening....
+
+list 
+    . where < method [number;bool] x { x % 2 == 0 return;} 
+    . select < method [number;number] x { x * x return; } 
+    . to-array < empty
 
 =========================== scope return?
 
