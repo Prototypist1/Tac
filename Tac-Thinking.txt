@@ -963,8 +963,47 @@ fit my language well
 
 [...test, x, y]
 
+var {a, b} = c
 
+========================== let's rethink things a bit
 
+1. implmenations are extension methods and you should be able to use them as such
+2. it would be nice to be able to use implentations without any special syntax just `context implementation input`
+3. if I do that it would be nice to call methods the same way `input method`
+4. then how do you pass a method without calling it? we could add something special for that like `ref-method =: x`. clearly we could let one name anything to start with ref if we choose that implementation.
 
+let's write some sample code
+
+list 
+    where method [number;bool] x { x % 2 == 0 return;} 
+    select method [number;number] x { x * x return; } 
+    to-array
+
+... that's alright, but I do kind of like calling methods. I feel very uncomfortable with out a () at the end of that.
+calling is doing a thing. so if feels right to have syntax that reflects that
+
+I don't think we could go for the . since extension methods aren't actually on the object. I think maybe `context something implementations something input`
+
+list call where with method [number;bool] x { x % 2 == 0 return;} 
+
+.. but I kind of what symbols... maybe dot id best... of maybe a : sort of like a dot but more
+
+list : where < method [number;bool] x { x % 2 == 0 return;} 
+     : select . method [number;number] x { x * x return; } 
+     : to-array . {}
+
+maybe I shoudl use a comma
+
+list : where , method [number;bool] x { x % 2 == 0 return;} 
+     : select , method [number;number] x { x * x return; } 
+     : to-array , {}
+
+I could use a space, I think
+
+list : where method [number;bool] x { x % 2 == 0 return;} 
+     : select method [number;number] x { x * x return; } 
+     : to-array {}
+
+Idk... I guess I'll I'm really trying to say is I think I shoudl have extension methods
 
 
